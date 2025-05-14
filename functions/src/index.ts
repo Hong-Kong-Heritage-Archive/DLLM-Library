@@ -10,13 +10,16 @@ import http from 'http';
 import cors from 'cors';
 import { resolvers } from './resolver';
 import { readFileSync } from "fs";
+import * as admin from 'firebase-admin';
 
 const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 
-const PORT = process.env.PORT || 4000;
+const PORT = 4000;
+
+const app = express();
 
 async function startApolloServer() {
-    const app = express();
+
     /*
   app.use(
     '/',
@@ -68,9 +71,12 @@ async function startApolloServer() {
         ],
     });
     await server.start();
+    // Apply CORS globally
+    app.use(cors({ origin: true }));
+
+    // Apply the Apollo middleware
     app.use(
         '/graphql',
-        cors<cors.CorsRequest>(),
         express.json(),
         /*
         expressMiddleware(server, {
@@ -84,7 +90,10 @@ async function startApolloServer() {
             if (token) {
               try {
                 // Replace with admin.auth().verifyIdToken(token) for production
-                user = { uid: 'sample-uid', email: 'user@example.com' };
+                // user = { uid: 'sample-uid', email: 'user@example.com' };
+                let decodedId = await admin.auth().verifyIdToken(token);
+                user = { uid: decodedId.uid, email: decodedId.email };
+                console.log('Decoded ID:', decodedId);
               } catch (error) {
                 console.error('Auth error:', error);
               }
@@ -99,3 +108,5 @@ async function startApolloServer() {
 }
 
 startApolloServer();
+
+export const graphql = functions.https.onRequest(app);

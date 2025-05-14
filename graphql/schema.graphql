@@ -31,7 +31,7 @@ type User {
   email: String! # 唯一必填，加密儲存
   nickname: String # 可選暱稱
   location: Location # 可選經緯度，用於搜尋
-  postcode: String # 可選地區，如 "London, UK"
+  address: String # 可選地區，如 "London, UK"
   contactMethods: [ContactMethod!] # 其他聯繫方式
   createdAt: String!
   items: [Item!] # 用戶上載的藏品
@@ -82,13 +82,13 @@ type Query {
   # 用戶相關
   user(id: ID!): User
   me: User # 當前登錄用戶
-  users(postcode: String, limit: Int, offset: Int): [User!]! # 按地區查找（備用）
+  users(address: String, limit: Int, offset: Int): [User!]! # 按地區查找（備用）
 
   # 藏品相關
   item(id: ID!): Item
   items(
     category: [String!],
-    postcode: String, # 備用字段
+    address: String, # 備用字段
     status: ItemStatus,
     keyword: String,
     limit: Int,
@@ -115,14 +115,12 @@ type Mutation {
   # 用戶管理
   createUser(
     email: String!,
-    location: LocationInput,
-    postcode: String,
+    address: String,
     nickname: String
   ): User!
   updateUser(
     nickname: String,
-    location: LocationInput,
-    postcode: String,
+    address: String,
     contactMethods: [ContactMethodInput!]
   ): User!
   deleteUser(id: ID!): Boolean!

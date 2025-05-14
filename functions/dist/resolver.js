@@ -80,27 +80,27 @@ exports.resolvers = {
         },
     },
     Mutation: {
-        createUser: async (_, { nickname, location, postcode }, { user }) => {
+        createUser: async (_, { nickname, address }, { user }) => {
             if (!user)
                 throw new Error('Not authenticated');
             const userData = {
                 id: user.uid,
                 email: user.email,
                 nickname: nickname || undefined,
-                location: location || undefined,
-                postcode: postcode || undefined,
+                location: undefined, // require to resolve from google map base on address
+                address: address || undefined,
                 createdAt: new Date().toISOString(),
             };
             await db.collection('users').doc(user.uid).set(userData);
             return userData;
         },
-        updateUser: async (_, { nickname, location, postcode }, { user }) => {
+        updateUser: async (_, { nickname, address }, { user }) => {
             if (!user)
                 throw new Error('Not authenticated');
             const updates = {
                 nickname: nickname || undefined,
-                location: location || undefined,
-                postcode: postcode || undefined,
+                location: undefined, // require to resolve from google map base on address
+                address: address || undefined,
             };
             await db.collection('users').doc(user.uid).update(updates);
             const updatedDoc = await db.collection('users').doc(user.uid).get();
@@ -120,7 +120,7 @@ exports.resolvers = {
                 images: args.images || [],
                 publishedYear: args.publishedYear || undefined,
                 language: args.language,
-                location: args.location || undefined,
+                //location: undefined,  // require to get from user service 's location
                 createdAt: new Date().toISOString(),
             };
             const docRef = await db.collection('items').add(itemData);

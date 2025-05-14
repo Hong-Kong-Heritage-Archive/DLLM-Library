@@ -40,7 +40,7 @@ interface User {
   email: string;
   nickname?: string;
   location?: Location;
-  postcode?: string;
+  address?: string;
   createdAt: string;
 }
 
@@ -84,25 +84,25 @@ export const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (_: any, { nickname, location, postcode }: any, { user }: Context): Promise<User> => {
+    createUser: async (_: any, { nickname, address }: any, { user }: Context): Promise<User> => {
       if (!user) throw new Error('Not authenticated');
       const userData: User = {
         id: user.uid,
         email: user.email,
         nickname: nickname || undefined,
-        location: location || undefined,
-        postcode: postcode || undefined,
+        location: undefined,  // require to resolve from google map base on address
+        address: address || undefined,
         createdAt: new Date().toISOString(),
       };
       await db.collection('users').doc(user.uid).set(userData);
       return userData;
     },
-    updateUser: async (_: any, { nickname, location, postcode }: any, { user }: Context): Promise<User> => {
+    updateUser: async (_: any, { nickname, address }: any, { user }: Context): Promise<User> => {
       if (!user) throw new Error('Not authenticated');
       const updates: Partial<User> = {
         nickname: nickname || undefined,
-        location: location || undefined,
-        postcode: postcode || undefined,
+        location: undefined,  // require to resolve from google map base on address
+        address: address || undefined,
       };
       await db.collection('users').doc(user.uid).update(updates);
       const updatedDoc = await db.collection('users').doc(user.uid).get();
@@ -121,7 +121,7 @@ export const resolvers = {
         images: args.images || [],
         publishedYear: args.publishedYear || undefined,
         language: args.language,
-        location: args.location || undefined,
+        //location: undefined,  // require to get from user service 's location
         createdAt: new Date().toISOString(),
       };
       const docRef = await db.collection('items').add(itemData);

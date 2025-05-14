@@ -115,10 +115,9 @@ export type MutationCreateTransactionArgs = {
 
 
 export type MutationCreateUserArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
-  location?: InputMaybe<LocationInput>;
   nickname?: InputMaybe<Scalars['String']['input']>;
-  postcode?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -151,10 +150,9 @@ export type MutationUpdateTransactionArgs = {
 
 
 export type MutationUpdateUserArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
   contactMethods?: InputMaybe<Array<ContactMethodInput>>;
-  location?: InputMaybe<LocationInput>;
   nickname?: InputMaybe<Scalars['String']['input']>;
-  postcode?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Query = {
@@ -176,11 +174,11 @@ export type QueryItemArgs = {
 
 
 export type QueryItemsArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-  postcode?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ItemStatus>;
 };
 
@@ -214,9 +212,9 @@ export type QueryUserArgs = {
 
 
 export type QueryUsersArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-  postcode?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Transaction = {
@@ -238,6 +236,7 @@ export enum TransactionStatus {
 
 export type User = {
   __typename?: 'User';
+  address?: Maybe<Scalars['String']['output']>;
   contactMethods?: Maybe<Array<ContactMethod>>;
   createdAt: Scalars['String']['output'];
   email: Scalars['String']['output'];
@@ -245,7 +244,6 @@ export type User = {
   items?: Maybe<Array<Item>>;
   location?: Maybe<Location>;
   nickname?: Maybe<Scalars['String']['output']>;
-  postcode?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -421,6 +419,7 @@ export type TransactionResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
+  address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   contactMethods?: Resolver<Maybe<Array<ResolversTypes['ContactMethod']>>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -428,7 +427,6 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   items?: Resolver<Maybe<Array<ResolversTypes['Item']>>, ParentType, ContextType>;
   location?: Resolver<Maybe<ResolversTypes['Location']>, ParentType, ContextType>;
   nickname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  postcode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
