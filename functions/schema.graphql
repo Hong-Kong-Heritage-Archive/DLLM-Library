@@ -46,7 +46,7 @@ type ContactMethod {
 # 藏品
 type Item {
   id: ID!
-  owner: User! # 藏品擁有者
+  ownerId: ID! # 藏品擁有者
   name: String! # 書名或物品名稱
   description: String # 可選描述
   condition: ItemCondition!

@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
-import { auth } from './firebase';
 import { Button, Box, Typography, List, ListItem } from '@mui/material';
-import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
+import { User as fireUser , createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
-  // Adds messages only in a dev environment
-  loadDevMessages();
-  loadErrorMessages();
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!) {
@@ -21,6 +16,18 @@ const ITEMS_QUERY = gql`
   }
 `;
 
+const ME_QUERY = gql`
+  query Me {
+    me {
+      address
+      createdAt
+      email
+      id
+      nickname
+    }
+  }
+`;
+
 interface Item {
   id: string;
   name: string;
@@ -29,52 +36,20 @@ interface Item {
   category: string[];
 }
 
-const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+interface User {
+    id: string;
+    address: string;
+    createdAt: string;
+    email: string;
+    nickname: string;
+}
+
+interface AppProps {
+  user: fireUser | null;
+}
+
+const App: React.FC<AppProps> = ({user}) => {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(setUser);
-    return () => unsubscribe();
-  }, []);
-
-  const signIn = async () => {
-    /*
-    const provider = new EmailAuthProvider();
-    await signInWithPopup(auth, provider);
-    */
-    const email = prompt('Enter your email:');
-    const password = prompt('Enter your password:');
-    if (email && password) {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        console.log('Account created successfully');
-      } catch (error) {
-        console.error('Error creating account:', error);
-      }
-    }   
-  };
-
-  const signUp = async () => {
-    /*
-    const provider = new EmailAuthProvider();
-    await signInWithPopup(auth, provider);
-    */
-    const email = prompt('Enter your email:');
-    const password = prompt('Enter your password:');
-    if (email && password) {
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        console.log('Account created successfully');
-      } catch (error) {
-        console.error('Error creating account:', error);
-      }
-    }   
-  };
-
-  const signOut = async () => {
-    await auth.signOut();
-  };
 
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -83,27 +58,61 @@ const App: React.FC = () => {
     );
   };
 
-  const { data, loading, error } = useQuery<{ itemsByLocation: Item[] }>(ITEMS_QUERY, {
+  const itemsByLocationOutput = useQuery<{ itemsByLocation: Item[] }>(ITEMS_QUERY, {
     variables: location ? { ...location, radiusKm: 10 } : undefined,
     skip: !location,
   });
 
+  
+  const meOutput = useQuery<{ me: User }>(ME_QUERY, {
+    skip: !user,
+  });
+
+  return (
+    <Box p={4}>
+        {meOutput.loading && <Typography>Loading...</Typography>}
+        {meOutput.error && <Typography>Error: {meOutput.error.message}</Typography>}
+        {meOutput.data &&  
+            <>
+                <Button onClick={getLocation}>Use My Location</Button>
+            {location && (
+            <Box mt={2}>
+            <Typography variant="h6">Items within 10km</Typography>
+            {itemsByLocationOutput.loading && <Typography>Loading...</Typography>}
+            {itemsByLocationOutput.error && <Typography>Error: {itemsByLocationOutput.error.message}</Typography>}
+            {itemsByLocationOutput.data && (
+                <List>
+                    {itemsByLocationOutput.data.itemsByLocation.map((item) => (
+                    <ListItem key={item.id}>
+                        {item.name} ({item.condition}, {item.status})
+                    </ListItem>
+                    ))}
+                </List>
+                )}
+            </Box>
+        )}</>
+        }
+    </Box>
+  );
+};
+
+/*
   return (
     <Box p={4}>
       <Typography variant="h4">無大台香港典藏館</Typography>
-      {user ? (
+      {user ? ((meOutput === undefined || meOutput.data) ? (
         <>
-          <Typography>Welcome, {user.email}</Typography>
+          <Typography>Welcome, {(meOutput !== undefined) ? "me " : user.email }</Typography>
           <Button onClick={signOut}>Sign Out</Button>
           <Button onClick={getLocation}>Use My Location</Button>
           {location && (
             <Box mt={2}>
               <Typography variant="h6">Items within 10km</Typography>
-              {loading && <Typography>Loading...</Typography>}
-              {error && <Typography>Error: {error.message}</Typography>}
-              {data && (
+              {itemsByLocationOutput.loading && <Typography>Loading...</Typography>}
+              {itemsByLocationOutput.error && <Typography>Error: {itemsByLocationOutput.error.message}</Typography>}
+              {itemsByLocationOutput.data && (
                 <List>
-                  {data.itemsByLocation.map((item) => (
+                  {itemsByLocationOutput.data.itemsByLocation.map((item) => (
                     <ListItem key={item.id}>
                       {item.name} ({item.condition}, {item.status})
                     </ListItem>
@@ -113,7 +122,12 @@ const App: React.FC = () => {
             </Box>
           )}
         </>
-      ) : (
+      ):(
+        <Box mt={2}>
+            {meOutput.loading && <Typography>Loading...</Typography>}
+            {meOutput.error && <Typography>Error: {meOutput.error.message}</Typography>}
+        </Box>
+      )) : (
         <>
         <Button onClick={signUp}>Sign up with Email</Button>
         <Button onClick={signIn}>Sign In</Button>
@@ -122,5 +136,5 @@ const App: React.FC = () => {
     </Box>
   );
 };
-
+*/
 export default App;

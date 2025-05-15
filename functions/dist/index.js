@@ -53,26 +53,6 @@ const typeDefs = (0, fs_1.readFileSync)("./schema.graphql", { encoding: "utf-8" 
 const PORT = 4000;
 const app = (0, express_1.default)();
 async function startApolloServer() {
-    /*
-  app.use(
-    '/',
-    express.json(),
-    expressMiddleware(server, {
-      context: async ({ req }) => {
-        const token = req.headers.authorization || '';
-        let user = null;
-        if (token) {
-          try {
-            // Replace with admin.auth().verifyIdToken(token) for production
-            user = { uid: 'sample-uid', email: 'user@example.com' };
-          } catch (error) {
-            console.error('Auth error:', error);
-          }
-        }
-        return { user };
-      },
-    })
-  );*/
     const httpServer = http_1.default.createServer(app);
     const schema = (0, schema_1.makeExecutableSchema)({ typeDefs, resolvers: resolver_1.resolvers });
     /*
@@ -107,15 +87,10 @@ async function startApolloServer() {
     // Apply CORS globally
     app.use((0, cors_1.default)({ origin: true }));
     // Apply the Apollo middleware
-    app.use('/graphql', express_1.default.json(), 
-    /*
-    expressMiddleware(server, {
-        context: async ({ req }) => ({ token: req.headers.token }),
-    })
-    */
-    (0, express4_1.expressMiddleware)(server, {
+    app.use('/graphql', express_1.default.json(), (0, express4_1.expressMiddleware)(server, {
         context: async ({ req }) => {
-            const token = req.headers.authorization || '';
+            const token = req.headers.authorization?.split(' ')[1] || ''; // Extract the token from the "Authorization" header
+            console.log('Token:', token);
             let user = null;
             if (token) {
                 try {

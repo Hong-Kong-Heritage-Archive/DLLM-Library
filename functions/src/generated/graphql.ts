@@ -40,7 +40,7 @@ export type Item = {
   language: Language;
   location?: Maybe<Location>;
   name: Scalars['String']['output'];
-  owner: User;
+  ownerId: Scalars['ID']['output'];
   publishedYear?: Maybe<Scalars['Int']['output']>;
   status: ItemStatus;
   transactions?: Maybe<Array<Transaction>>;
@@ -372,7 +372,7 @@ export type ItemResolvers<ContextType = any, ParentType extends ResolversParentT
   language?: Resolver<ResolversTypes['Language'], ParentType, ContextType>;
   location?: Resolver<Maybe<ResolversTypes['Location']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  owner?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  ownerId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   publishedYear?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['ItemStatus'], ParentType, ContextType>;
   transactions?: Resolver<Maybe<Array<ResolversTypes['Transaction']>>, ParentType, ContextType>;

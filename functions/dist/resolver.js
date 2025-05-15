@@ -44,6 +44,7 @@ const db = admin.firestore();
 exports.resolvers = {
     Query: {
         me: async (_, __, { user }) => {
+            console.log(user);
             if (!user)
                 throw new Error('Not authenticated');
             const userDoc = await db.collection('users').doc(user.uid).get();
@@ -94,11 +95,12 @@ exports.resolvers = {
             await db.collection('users').doc(user.uid).set(userData);
             return userData;
         },
-        updateUser: async (_, { nickname, address }, { user }) => {
+        updateUser: async (_, { nickname, contactMethods, address }, { user }) => {
             if (!user)
                 throw new Error('Not authenticated');
             const updates = {
                 nickname: nickname || undefined,
+                contactMethods: contactMethods || undefined,
                 location: undefined, // require to resolve from google map base on address
                 address: address || undefined,
             };
@@ -133,11 +135,5 @@ exports.resolvers = {
             const snapshot = await db.collection('items').where('ownerId', '==', parent.id).get();
             return snapshot.docs.map(doc => ({ ...doc.data() }));
         },
-    },
-    Item: {
-        owner: async (parent) => {
-            const userDoc = await db.collection('users').doc(parent.ownerId).get();
-            return userDoc.exists ? { ...userDoc.data() } : null;
-        },
-    },
+    }
 };

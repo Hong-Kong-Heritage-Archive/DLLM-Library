@@ -20,26 +20,6 @@ const app = express();
 
 async function startApolloServer() {
 
-    /*
-  app.use(
-    '/',
-    express.json(),
-    expressMiddleware(server, {
-      context: async ({ req }) => {
-        const token = req.headers.authorization || '';
-        let user = null;
-        if (token) {
-          try {
-            // Replace with admin.auth().verifyIdToken(token) for production
-            user = { uid: 'sample-uid', email: 'user@example.com' };
-          } catch (error) {
-            console.error('Auth error:', error);
-          }
-        }
-        return { user };
-      },
-    })
-  );*/    
     const httpServer = http.createServer(app);
     const schema = makeExecutableSchema({ typeDefs, resolvers });
     /*
@@ -78,26 +58,23 @@ async function startApolloServer() {
     app.use(
         '/graphql',
         express.json(),
-        /*
-        expressMiddleware(server, {
-            context: async ({ req }) => ({ token: req.headers.token }),
-        })
-        */
         expressMiddleware(server, {
           context: async ({ req }) => {
-            const token = req.headers.authorization || '';
+            const token = req.headers.authorization?.split(' ')[1] || ''; // Extract the token from the "Authorization" header
+            console.log('Token:', token);      
             let user = null;
             if (token) {
               try {
                 // Replace with admin.auth().verifyIdToken(token) for production
                 // user = { uid: 'sample-uid', email: 'user@example.com' };
                 let decodedId = await admin.auth().verifyIdToken(token);
-                user = { uid: decodedId.uid, email: decodedId.email };
+                user = { uid: decodedId.uid, email: decodedId.email };        
                 console.log('Decoded ID:', decodedId);
               } catch (error) {
                 console.error('Auth error:', error);
               }
             }
+            console.log('user', user);
             return { user };
           },
         }));

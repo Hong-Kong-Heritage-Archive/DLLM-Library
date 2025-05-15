@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-
+import { Resolvers, Location, Item, User, ContactMethod} from './generated/graphql';
 var serviceAccount = require("./dllm-libray-firebase-adminsdk.json");
 
 
@@ -15,38 +15,14 @@ interface Context {
   user: { uid: string; email: string } | null;
 }
 
-interface Location {
-  latitude: number;
-  longitude: number;
-}
 
-interface Item {
-  id: string;
-  ownerId: string;
-  name: string;
-  description?: string;
-  condition: string;
-  category: string[];
-  status: string;
-  images: string[];
-  publishedYear?: number;
-  language: string;
-  location?: Location;
-  createdAt: string;
-}
 
-interface User {
-  id: string;
-  email: string;
-  nickname?: string;
-  location?: Location;
-  address?: string;
-  createdAt: string;
-}
+
 
 export const resolvers = {
   Query: {
     me: async (_: any, __: any, { user }: Context): Promise<User | null> => {
+      console.log(user);
       if (!user) throw new Error('Not authenticated');
       const userDoc = await db.collection('users').doc(user.uid).get();
       if (!userDoc.exists) return null;
@@ -97,10 +73,11 @@ export const resolvers = {
       await db.collection('users').doc(user.uid).set(userData);
       return userData;
     },
-    updateUser: async (_: any, { nickname, address }: any, { user }: Context): Promise<User> => {
+    updateUser: async (_: any, { nickname, contactMethods, address }: any, { user }: Context): Promise<User> => {
       if (!user) throw new Error('Not authenticated');
       const updates: Partial<User> = {
         nickname: nickname || undefined,
+        contactMethods: contactMethods || undefined,
         location: undefined,  // require to resolve from google map base on address
         address: address || undefined,
       };
@@ -134,11 +111,5 @@ export const resolvers = {
       const snapshot = await db.collection('items').where('ownerId', '==', parent.id).get();
       return snapshot.docs.map(doc => ({  ...doc.data() } as Item));
     },
-  },
-  Item: {
-    owner: async (parent: Item): Promise<User | null> => {
-      const userDoc = await db.collection('users').doc(parent.ownerId).get();
-      return userDoc.exists ? { ...(userDoc.data() as User) } : null;
-    },
-  },
+  }
 };
