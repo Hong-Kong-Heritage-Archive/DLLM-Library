@@ -9,6 +9,8 @@ import {
   User,
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
+import { MapService } from "./mapService";
+import { p } from "graphql-ws/dist/common-DY-PBNYy";
 
 type ItemModel = Omit<Item, 'id'> & {
   geohash?: string;
@@ -18,9 +20,38 @@ type ItemModel = Omit<Item, 'id'> & {
 
 
 export class ItemService {
-  constructor() {}
+  constructor(private mapService: MapService = new MapService()) {
+    
+  }
 
   async itemsByLocation(
+    loginUser: LoginUser | null,
+    latitude: number,
+    longitude: number,
+    radiusKm: number,
+    category: string[],
+    status: string,
+    keyword: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Item[]> {
+    let query = db.collection("items").where("geohash", ">=", "");
+    if (category)
+      query = query.where("category", "array-contains-any", category);
+    if (status) query = query.where("status", "==", status);
+    if (keyword)
+      query = query
+        .where("name", ">=", keyword)
+        .where("name", "<=", keyword + "\uf8ff");
+    const items = this.mapService.getLocationsByRadius(query, { latitude, longitude }, radiusKm);
+    const filteredItems = (await items).map((item) => {
+        item = { ...item, id: item.id };
+        return item as Item;
+    });
+    return filteredItems;
+  }
+
+  async itemsByLocation1(
     loginUser: LoginUser | null,
     latitude: number,
     longitude: number,
@@ -62,6 +93,7 @@ export class ItemService {
     });
     return filteredItems;
   }
+
 
   async itemById(
     loginUser: LoginUser | null,
