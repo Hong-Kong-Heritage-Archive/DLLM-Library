@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { auth } from "./firebase";
 import { Button, Box, Typography, List, ListItem } from "@mui/material";
-import {
-  User as fireUser,
-} from "firebase/auth";
+import { User as fireUser } from "firebase/auth";
+import Map from "./components/Map";
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -72,8 +71,6 @@ const App: React.FC<AppProps> = ({ user }) => {
     longitude: number;
   } | null>(null);
 
-
-
   const itemsByLocationOutput = useQuery<{ itemsByLocation: Item[] }>(
     ITEMS_QUERY,
     {
@@ -88,10 +85,10 @@ const App: React.FC<AppProps> = ({ user }) => {
 
   const getLocation = () => {
     if (meOutput.data?.me?.location?.latitude) {
-        setLocation({
-          latitude: meOutput.data.me.location.latitude,
-          longitude: meOutput.data.me.location.longitude,
-        })
+      setLocation({
+        latitude: meOutput.data.me.location.latitude,
+        longitude: meOutput.data.me.location.longitude,
+      });
     } else {
       navigator.geolocation.getCurrentPosition(
         (pos) =>
@@ -119,28 +116,35 @@ const App: React.FC<AppProps> = ({ user }) => {
       {meOutput.data && meOutput.data.me ? (
         <>
           <Typography>Welcome, {meOutput.data.me.nickname}</Typography>
-          <Button onClick={getLocation}>Use My Location</Button>
+          <Button onClick={getLocation}>Display nearby items</Button>
           {location && (
-            <Box mt={2}>
-              <Typography variant="h6">Items within 10km</Typography>
-              {itemsByLocationOutput.loading && (
-                <Typography>Loading...</Typography>
-              )}
-              {itemsByLocationOutput.error && (
-                <Typography>
-                  Error: {itemsByLocationOutput.error.message}
-                </Typography>
-              )}
-              {itemsByLocationOutput.data && (
-                <List>
-                  {itemsByLocationOutput.data.itemsByLocation.map((item) => (
-                    <ListItem key={item.id}>
-                      {item.name} ({item.condition}, {item.status})
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </Box>
+            <>
+              <Map
+                open={location != null}
+                closeEvent={(event, reason) => setLocation(null)}
+                location={location}
+              />
+              <Box mt={2}>
+                <Typography variant="h6">Items within 10km</Typography>
+                {itemsByLocationOutput.loading && (
+                  <Typography>Loading...</Typography>
+                )}
+                {itemsByLocationOutput.error && (
+                  <Typography>
+                    Error: {itemsByLocationOutput.error.message}
+                  </Typography>
+                )}
+                {itemsByLocationOutput.data && (
+                  <List>
+                    {itemsByLocationOutput.data.itemsByLocation.map((item) => (
+                      <ListItem key={item.id}>
+                        {item.name} ({item.condition}, {item.status})
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Box>
+            </>
           )}
         </>
       ) : (
