@@ -7,9 +7,9 @@ const auth = getAuth();
 
 // Create an HttpLink for the GraphQL endpoint
 const httpLink = new HttpLink({
-    // uri: 'http://localhost:4000/graphql', // Replace with your Firebase Function URL
+    uri: 'http://localhost:4000/graphql', // Replace with your Firebase Function URL
     //    uri: 'https://us-central1-dllm-libray.cloudfunctions.net/graphql', // Replace with your Firebase Function URL
-        uri: 'https://graphql-lkgxripzba-uc.a.run.app/graphql/',
+        // uri: 'https://graphql-lkgxripzba-uc.a.run.app/graphql/',
     });
 
 // Middleware to add the Authorization header
