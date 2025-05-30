@@ -2,11 +2,13 @@ import { LoginUser } from "./platform";
 import { UserService } from "./userService";
 import { ItemService } from "./itemService";
 import { NewsService } from "./newsService";
+import { createMapService } from "./mapService";
 import {
   Resolvers,
   Item,
   User,
   NewsPost,
+  Location,
 } from "./generated/graphql";
 
 
@@ -93,7 +95,20 @@ export const resolvers: Resolvers = {
       __: any
     ): Promise<NewsPost[]> => {
       return newsService.RecentNews(keyword, tags, limit, offset);
-    }
+    },
+    geocodeAddress: async (
+      _parent: any,
+      { address }: { address: string },
+      _context: Context,
+      _info: any
+    ): Promise<Location | null> => {
+      if (!address || address.trim() === "") {
+        console.warn("geocodeAddress called with empty address.");
+        throw new Error("geocodeAddress called with empty address.");
+      }
+      const mapService = createMapService();
+      return await mapService.resolveLocationAndGeohash(address);
+    },
   },
   Mutation: {
     createUser: async (
@@ -157,6 +172,6 @@ export const resolvers: Resolvers = {
         relatedItemIds,
         tags
       );
-    } 
+    }
   },
 };

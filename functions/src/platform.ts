@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { Resolvers, Location, Item, User, ContactMethod} from './generated/graphql';
 var serviceAccount = require("./dllm-libray-firebase-adminsdk.json");
-
+export const googleMapsApiKey = serviceAccount.google_maps_api_key ?? '';
 
 const projectId = process.env.GCLOUD_PROJECT || 'dllm-libray';
 admin.initializeApp({

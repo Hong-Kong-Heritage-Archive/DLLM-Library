@@ -6,16 +6,18 @@ import {
   Role,
 } from "./generated/graphql";
 import { ItemService } from "./itemService";
-import { MapService } from "./mapService";
+import { MapService, createMapService } from "./mapService";
 import * as geofire from "geofire-common";
 
 type UserModel = User & {
   geohash?: string;
 };
 export class UserService {
-  constructor(private itemService: ItemService,
-    private mapService: MapService = new MapService()  // geofire.geohashForLocation is a function that takes a location and returns a geohash
-  ) {}
+  private mapService: MapService;
+
+  constructor(private itemService: ItemService) {
+    this.mapService = createMapService();
+  }
 
   async me(loginUser: LoginUser | null): Promise<User | null> {
     if (!loginUser) throw new Error("Not authenticated");
@@ -46,30 +48,24 @@ export class UserService {
     address: string
   ): Promise<User> {
     if (!loginUser) throw new Error("Not authenticated");
-    // location should use google map api to resolve from address
 
-    let location: Location | undefined = undefined;
-    let g: geofire.Geohash | undefined = undefined;
+    let resolvedLocation: Location | undefined | null = undefined;
+    
     if (address) {
-      const result = this.mapService.resolveLocation(address);
-      if (result) {
-        location = result.location;
-        g = result.geohash;
-      }
-      // require to resolve from google map base on address
+      resolvedLocation = await this.mapService.resolveLocationAndGeohash(address); 
     }
 
     const userData: UserModel = {
       id: loginUser.uid,
       email: loginUser.email,
       nickname: nickname || undefined,
-      location: location, // require to resolve from google map base on address
+      location: resolvedLocation ? { latitude: resolvedLocation.latitude, longitude: resolvedLocation.longitude } : undefined,
       address: address || undefined,
       role: Role.User,
       isActive: true,
       isVerified: false,
       createdAt: new Date().toISOString(),
-      geohash: g || undefined,
+      geohash: resolvedLocation?.geohash || undefined,
     };
     await db.collection("users").doc(loginUser.uid).set(userData);
     return userData as User;
@@ -82,22 +78,17 @@ export class UserService {
     contactMethods: ContactMethod[]
   ): Promise<User> {
     if (!loginUser) throw new Error("Not authenticated");
-    let location: Location | undefined = undefined;
-    let g: geofire.Geohash | undefined = undefined;
+    let resolvedLocation: Location | undefined | null = undefined;
+
     if (address) {
-      const result = this.mapService.resolveLocation(address);
-      if (result) {
-        location = result.location;
-        g = result.geohash;
-      }
-      // require to resolve from google map base on address
+      resolvedLocation = await this.mapService.resolveLocationAndGeohash(address);
     }
     const updates: Partial<UserModel> = {
       nickname: nickname || undefined,
       contactMethods: contactMethods || undefined,
-      location: location, // require to resolve from google map base on address
+      location: resolvedLocation ? { latitude: resolvedLocation.latitude, longitude: resolvedLocation.longitude } : undefined,
       address: address || undefined,
-      geohash: g || undefined,
+      geohash: resolvedLocation?.geohash || undefined,
     };
     await db.collection("users").doc(loginUser.uid).update(updates);
     const updatedDoc = await db.collection("users").doc(loginUser.uid).get();

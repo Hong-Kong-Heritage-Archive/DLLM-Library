@@ -70,3 +70,6 @@ dist/
 
 # dataconnect generated files
 .dataconnect
+
+# IntelliJ IDEA
+.idea

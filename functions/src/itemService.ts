@@ -9,7 +9,7 @@ import {
   User,
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
-import { MapService } from "./mapService";
+import { MapService, createMapService } from "./mapService";
 import firebase from "firebase-admin"; 
 import { p } from "graphql-ws/dist/common-DY-PBNYy";
 
@@ -21,8 +21,10 @@ type ItemModel = Omit<Item, 'id'> & {
 
 
 export class ItemService {
-  constructor(private mapService: MapService = new MapService()) {
-    
+  private mapService: MapService;
+
+  constructor() {
+    this.mapService = createMapService();
   }
 
   async itemsByLocation(

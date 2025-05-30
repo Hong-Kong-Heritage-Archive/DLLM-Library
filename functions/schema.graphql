@@ -23,6 +23,7 @@ enum ItemStatus {
 type Location {
   latitude: Float!
   longitude: Float!
+  geohash: String
 }
 
 enum Role {
@@ -151,6 +152,9 @@ type Query {
     limit: Int,
     offset: Int
   ): [NewsPost!]! # 按關鍵字和標籤搜尋新聞
+
+  # 地理編碼相關
+  geocodeAddress(address: String!): Location
 }
 
 # 變更

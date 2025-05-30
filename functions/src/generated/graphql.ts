@@ -68,6 +68,7 @@ export enum Language {
 
 export type Location = {
   __typename?: 'Location';
+  geohash?: Maybe<Scalars['String']['output']>;
   latitude: Scalars['Float']['output'];
   longitude: Scalars['Float']['output'];
 };
@@ -198,6 +199,7 @@ export type NewsPost = {
 
 export type Query = {
   __typename?: 'Query';
+  geocodeAddress?: Maybe<Location>;
   item?: Maybe<Item>;
   items: Array<Item>;
   itemsByLocation: Array<Item>;
@@ -210,6 +212,11 @@ export type Query = {
   transactions: Array<Transaction>;
   user?: Maybe<User>;
   users: Array<User>;
+};
+
+
+export type QueryGeocodeAddressArgs = {
+  address: Scalars['String']['input'];
 };
 
 
@@ -465,6 +472,7 @@ export type ItemResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type LocationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Location'] = ResolversParentTypes['Location']> = {
+  geohash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   latitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   longitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -500,6 +508,7 @@ export type NewsPostResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  geocodeAddress?: Resolver<Maybe<ResolversTypes['Location']>, ParentType, ContextType, RequireFields<QueryGeocodeAddressArgs, 'address'>>;
   item?: Resolver<Maybe<ResolversTypes['Item']>, ParentType, ContextType, RequireFields<QueryItemArgs, 'id'>>;
   items?: Resolver<Array<ResolversTypes['Item']>, ParentType, ContextType, Partial<QueryItemsArgs>>;
   itemsByLocation?: Resolver<Array<ResolversTypes['Item']>, ParentType, ContextType, RequireFields<QueryItemsByLocationArgs, 'latitude' | 'longitude' | 'radiusKm'>>;
