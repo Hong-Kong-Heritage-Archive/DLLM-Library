@@ -350,6 +350,17 @@ export type NewsRecentPostsQueryVariables = Exact<{
 
 export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: string, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', name: string }> | null, user: { __typename?: 'User', isVerified: boolean, nickname?: string | null } }> };
 
+export type CreateNewsPostMutationVariables = Exact<{
+  title: Scalars['String']['input'];
+  content: Scalars['String']['input'];
+  images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: string, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
+
 
 export const ItemsByLocationDocument = gql`
     query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!) {
@@ -497,3 +508,58 @@ export type NewsRecentPostsQueryHookResult = ReturnType<typeof useNewsRecentPost
 export type NewsRecentPostsLazyQueryHookResult = ReturnType<typeof useNewsRecentPostsLazyQuery>;
 export type NewsRecentPostsSuspenseQueryHookResult = ReturnType<typeof useNewsRecentPostsSuspenseQuery>;
 export type NewsRecentPostsQueryResult = Apollo.QueryResult<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>;
+export const CreateNewsPostDocument = gql`
+    mutation CreateNewsPost($title: String!, $content: String!, $images: [String!], $relatedItemIds: [ID!], $tags: [String!]) {
+  createNewsPost(
+    title: $title
+    content: $content
+    images: $images
+    relatedItemIds: $relatedItemIds
+    tags: $tags
+  ) {
+    content
+    createdAt
+    id
+    images
+    isVisible
+    relatedItems {
+      id
+      description
+      name
+      ownerId
+    }
+    tags
+    title
+  }
+}
+    `;
+export type CreateNewsPostMutationFn = Apollo.MutationFunction<CreateNewsPostMutation, CreateNewsPostMutationVariables>;
+
+/**
+ * __useCreateNewsPostMutation__
+ *
+ * To run a mutation, you first call `useCreateNewsPostMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNewsPostMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createNewsPostMutation, { data, loading, error }] = useCreateNewsPostMutation({
+ *   variables: {
+ *      title: // value for 'title'
+ *      content: // value for 'content'
+ *      images: // value for 'images'
+ *      relatedItemIds: // value for 'relatedItemIds'
+ *      tags: // value for 'tags'
+ *   },
+ * });
+ */
+export function useCreateNewsPostMutation(baseOptions?: Apollo.MutationHookOptions<CreateNewsPostMutation, CreateNewsPostMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNewsPostMutation, CreateNewsPostMutationVariables>(CreateNewsPostDocument, options);
+      }
+export type CreateNewsPostMutationHookResult = ReturnType<typeof useCreateNewsPostMutation>;
+export type CreateNewsPostMutationResult = Apollo.MutationResult<CreateNewsPostMutation>;
+export type CreateNewsPostMutationOptions = Apollo.BaseMutationOptions<CreateNewsPostMutation, CreateNewsPostMutationVariables>;

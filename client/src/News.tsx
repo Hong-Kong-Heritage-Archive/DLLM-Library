@@ -1,11 +1,18 @@
 import React from "react";
 import { gql } from "@apollo/client";
 import { Box, Typography, List, ListItem } from "@mui/material";
-import { NewsPost, useNewsRecentPostsQuery, NewsRecentPostsQuery, NewsRecentPostsQueryVariables } from "./generated/graphql";
+import {
+  NewsPost,
+  useNewsRecentPostsQuery,
+  NewsRecentPostsQuery,
+  NewsRecentPostsQueryVariables,
+} from "./generated/graphql";
+import NewsForm from "./components/NewsForm"; // Adjust path as needed
+import { CreateNewsPostMutation } from "./generated/graphql";
 
 const NEWS_RECENT_QUERY = gql`
   query NewsRecentPosts($tags: [String!]) {
-    newsRecentPosts(tags: $tags)  {
+    newsRecentPosts(tags: $tags) {
       id
       title
       content
@@ -21,15 +28,22 @@ const NEWS_RECENT_QUERY = gql`
       }
     }
   }
-`
+`;
 
 const News: React.FC = () => {
+  const recentNewsOutput = useNewsRecentPostsQuery({
+    variables: { tags: ["Testing"] } as NewsRecentPostsQueryVariables,
+  });
 
-  const recentNewsOutput = useNewsRecentPostsQuery({variables: {tags:["Testing"]} as NewsRecentPostsQueryVariables});
+  const handleNewsCreated = (data: CreateNewsPostMutation) => {
+    console.log("News post created:", data.createNewsPost);
+    // You could add logic here to refresh a list of news posts, show a success message, etc.
+  };
 
   return (
     <>
       <Box p={4}>
+        <NewsForm onNewsCreated={handleNewsCreated} />
         {recentNewsOutput.data && (
           <Box mt={2}>
             <Typography variant="h6">News</Typography>
