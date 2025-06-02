@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -14,6 +14,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Date: { input: any; output: any; }
 };
 
 export type ContactMethod = {
@@ -33,7 +34,7 @@ export type Item = {
   __typename?: 'Item';
   category: Array<Scalars['String']['output']>;
   condition: ItemCondition;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
@@ -44,6 +45,7 @@ export type Item = {
   publishedYear?: Maybe<Scalars['Int']['output']>;
   status: ItemStatus;
   transactions?: Maybe<Array<Transaction>>;
+  updatedAt: Scalars['Date']['output'];
 };
 
 export enum ItemCondition {
@@ -186,14 +188,14 @@ export type MutationUpdateUserArgs = {
 export type NewsPost = {
   __typename?: 'NewsPost';
   content: Scalars['String']['output'];
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
   isVisible: Scalars['Boolean']['output'];
   relatedItems?: Maybe<Array<Item>>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
+  updatedAt: Scalars['Date']['output'];
   user: User;
 };
 
@@ -307,11 +309,11 @@ export enum Role {
 export type Transaction = {
   __typename?: 'Transaction';
   borrower?: Maybe<User>;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   item: Item;
   status: TransactionStatus;
-  updatedAt: Scalars['String']['output'];
+  updatedAt: Scalars['Date']['output'];
 };
 
 export enum TransactionStatus {
@@ -325,7 +327,7 @@ export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
   contactMethods?: Maybe<Array<ContactMethod>>;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
@@ -409,6 +411,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ContactMethod: ResolverTypeWrapper<ContactMethod>;
   ContactMethodInput: ContactMethodInput;
+  Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -433,6 +436,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   ContactMethod: ContactMethod;
   ContactMethodInput: ContactMethodInput;
+  Date: Scalars['Date']['output'];
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -454,10 +458,14 @@ export type ContactMethodResolvers<ContextType = any, ParentType extends Resolve
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date';
+}
+
 export type ItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['Item'] = ResolversParentTypes['Item']> = {
   category?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   condition?: Resolver<ResolversTypes['ItemCondition'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   images?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
@@ -468,6 +476,7 @@ export type ItemResolvers<ContextType = any, ParentType extends ResolversParentT
   publishedYear?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['ItemStatus'], ParentType, ContextType>;
   transactions?: Resolver<Maybe<Array<ResolversTypes['Transaction']>>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -495,14 +504,14 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type NewsPostResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewsPost'] = ResolversParentTypes['NewsPost']> = {
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   images?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   isVisible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   relatedItems?: Resolver<Maybe<Array<ResolversTypes['Item']>>, ParentType, ContextType>;
   tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -525,18 +534,18 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 
 export type TransactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Transaction'] = ResolversParentTypes['Transaction']> = {
   borrower?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   item?: Resolver<ResolversTypes['Item'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['TransactionStatus'], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   contactMethods?: Resolver<Maybe<Array<ResolversTypes['ContactMethod']>>, ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -549,6 +558,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type Resolvers<ContextType = any> = {
   ContactMethod?: ContactMethodResolvers<ContextType>;
+  Date?: GraphQLScalarType;
   Item?: ItemResolvers<ContextType>;
   Location?: LocationResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

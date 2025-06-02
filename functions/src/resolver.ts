@@ -10,7 +10,8 @@ import {
   NewsPost,
   Location,
 } from "./generated/graphql";
-
+import { GraphQLScalarType, GraphQLError } from 'graphql';
+import { Kind } from 'graphql/language';
 
 interface Context {
   loginUser: LoginUser | null;
@@ -20,7 +21,48 @@ const itemService = new ItemService();
 const userService = new UserService(itemService);
 const newsService = new NewsService(itemService, userService);
 
+export const DateScalar = new GraphQLScalarType({
+  name: 'Date',
+  description: 'Date custom scalar type',
+  serialize(value) {
+    // Convert outgoing Date to ISO string for JSON
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    if (typeof value === 'string') {
+      return new Date(value).toISOString();
+    }
+    if (typeof value === 'number') {
+      return new Date(value).toISOString();
+    }
+    throw new GraphQLError('Value is not a valid Date: ' + value);
+  },
+  parseValue(value) {
+    // Convert incoming string to Date object
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        throw new GraphQLError('Value is not a valid Date: ' + value);
+      }
+      return date;
+    }
+    throw new GraphQLError('Value is not a valid Date: ' + value);
+  },
+  parseLiteral(ast) {
+    // Convert hard-coded AST string to Date object
+    if (ast.kind === Kind.STRING) {
+      const date = new Date(ast.value);
+      if (isNaN(date.getTime())) {
+        throw new GraphQLError('Value is not a valid Date: ' + ast.value);
+      }
+      return date;
+    }
+    throw new GraphQLError('Can only parse strings to Dates but got a: ' + ast.kind);
+  },
+});
+
 export const resolvers: Resolvers = {
+  Date: DateScalar,
   Query: {
     me: async (
       _: any,
