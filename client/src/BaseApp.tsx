@@ -57,7 +57,7 @@ const BaseApp: React.FC = () => {
   };
 
   return (
-    <Box p={4}>
+    <Box p={2}>
       <Typography variant="h4">無大台香港典藏館</Typography>
       { user ? (<></>):
         <>

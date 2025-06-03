@@ -41,7 +41,7 @@ const ME_QUERY = gql`
       location {
         latitude
         longitude
-      }      
+      }
     }
   }
 `;
@@ -100,32 +100,39 @@ const App: React.FC<AppProps> = ({ user }) => {
   };
 
   return (
-    <>
-      <Box p={4}>
+    <Box p={2}>
+      <List>
         {user && (
-          <>
-            <Button onClick={signOut}>Sign Out</Button>
+          <ListItem>
             {meOutput.data && meOutput.data.me ? (
-              <>
-                {/* display user with nickname and address */}
-                <Typography>Welcome, {meOutput.data.me.nickname}</Typography>
-                <Button onClick={getLocation}>Display nearby items</Button>
-                {location && (
-                  <>
-                    <Map
-                      open={maplocation != null}
-                      closeEvent={(event, reason) => setMapLocation(null)}
-                      location={maplocation}
-                    />
-                  </>
-                )}
-              </>
+                <>
+                  {/* display user with nickname and address */}
+                  <Typography>Welcome, {meOutput.data.me.nickname}</Typography>
+                  <Button onClick={signOut}>Sign Out</Button>
+                </>
             ) : (
               <Typography>TODO: Please add a box to create user</Typography>
             )}
-          </>
+          </ListItem>
         )}
-        {itemsByLocationOutput.data ? (
+        <ListItem>
+          <News user={meOutput?.data?.me} />
+        </ListItem>
+        <ListItem>
+          <Button variant="contained" onClick={getLocation}>
+            Display nearby items
+          </Button>
+          {location && (
+            <>
+              <Map
+                open={maplocation != null}
+                closeEvent={(event, reason) => setMapLocation(null)}
+                location={maplocation}
+              />
+            </>
+          )}
+        </ListItem>
+        {itemsByLocationOutput.data && (
           <Box mt={2}>
             <Typography variant="h6">Items within 10km</Typography>
             <List>
@@ -136,24 +143,23 @@ const App: React.FC<AppProps> = ({ user }) => {
               ))}
             </List>
           </Box>
-        ) : (
-          <>
-          {/* me should pass into to News object. if user is Admin, there should be botton to add News */}
-          <News user={meOutput?.data?.me}/>
-          </>
         )}
-      </Box>
-      <Box mt={2}>
         {itemsByLocationOutput.loading && <Typography>Loading...</Typography>}
         {itemsByLocationOutput.error && (
-          <Typography>Error: {itemsByLocationOutput.error.message}</Typography>
+          <ListItem>
+            <Typography>
+              Error: {itemsByLocationOutput.error.message}
+            </Typography>
+          </ListItem>
         )}
         {meOutput.loading && <Typography>Loading user...</Typography>}
         {meOutput.error && (
-          <Typography>Error: {meOutput.error.message}</Typography>
+          <ListItem>
+            <Typography>Error: {meOutput.error.message}</Typography>
+          </ListItem>
         )}
-      </Box>
-    </>
+      </List>
+    </Box>
   );
 };
 
