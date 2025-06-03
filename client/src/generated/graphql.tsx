@@ -15,6 +15,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Date: { input: any; output: any; }
 };
 
 export type ContactMethod = {
@@ -34,7 +35,7 @@ export type Item = {
   __typename?: 'Item';
   category: Array<Scalars['String']['output']>;
   condition: ItemCondition;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
@@ -45,6 +46,7 @@ export type Item = {
   publishedYear?: Maybe<Scalars['Int']['output']>;
   status: ItemStatus;
   transactions?: Maybe<Array<Transaction>>;
+  updatedAt: Scalars['Date']['output'];
 };
 
 export enum ItemCondition {
@@ -69,6 +71,7 @@ export enum Language {
 
 export type Location = {
   __typename?: 'Location';
+  geohash?: Maybe<Scalars['String']['output']>;
   latitude: Scalars['Float']['output'];
   longitude: Scalars['Float']['output'];
 };
@@ -186,19 +189,20 @@ export type MutationUpdateUserArgs = {
 export type NewsPost = {
   __typename?: 'NewsPost';
   content: Scalars['String']['output'];
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
   isVisible: Scalars['Boolean']['output'];
   relatedItems?: Maybe<Array<Item>>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
+  updatedAt: Scalars['Date']['output'];
   user: User;
 };
 
 export type Query = {
   __typename?: 'Query';
+  geocodeAddress?: Maybe<Location>;
   item?: Maybe<Item>;
   items: Array<Item>;
   itemsByLocation: Array<Item>;
@@ -211,6 +215,11 @@ export type Query = {
   transactions: Array<Transaction>;
   user?: Maybe<User>;
   users: Array<User>;
+};
+
+
+export type QueryGeocodeAddressArgs = {
+  address: Scalars['String']['input'];
 };
 
 
@@ -301,11 +310,11 @@ export enum Role {
 export type Transaction = {
   __typename?: 'Transaction';
   borrower?: Maybe<User>;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   item: Item;
   status: TransactionStatus;
-  updatedAt: Scalars['String']['output'];
+  updatedAt: Scalars['Date']['output'];
 };
 
 export enum TransactionStatus {
@@ -319,7 +328,7 @@ export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
   contactMethods?: Maybe<Array<ContactMethod>>;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
@@ -341,14 +350,14 @@ export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Arra
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: string, email: string, id: string, role: Role, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: any, email: string, id: string, isVerified: boolean, isActive: boolean, role: Role, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
 
 export type NewsRecentPostsQueryVariables = Exact<{
   tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
 }>;
 
 
-export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: string, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', name: string }> | null, user: { __typename?: 'User', isVerified: boolean, nickname?: string | null } }> };
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', name: string }> | null, user: { __typename?: 'User', isVerified: boolean, nickname?: string | null } }> };
 
 export type CreateNewsPostMutationVariables = Exact<{
   title: Scalars['String']['input'];
@@ -359,7 +368,7 @@ export type CreateNewsPostMutationVariables = Exact<{
 }>;
 
 
-export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: string, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
+export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: any, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
 
 
 export const ItemsByLocationDocument = gql`
@@ -415,6 +424,8 @@ export const MeDocument = gql`
     createdAt
     email
     id
+    isVerified
+    isActive
     role
     nickname
     location {

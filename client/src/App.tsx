@@ -3,6 +3,7 @@ import { useQuery, gql } from "@apollo/client";
 import { auth } from "./firebase";
 import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User as fireUser } from "firebase/auth";
+import { User, Item } from "./generated/graphql"; // Adjust the import path as necessary
 import Map from "./components/Map";
 import News from "./News";
 
@@ -33,36 +34,17 @@ const ME_QUERY = gql`
       createdAt
       email
       id
+      isVerified
+      isActive
       role
       nickname
       location {
         latitude
         longitude
-      }
+      }      
     }
   }
 `;
-
-interface Item {
-  id: string;
-  name: string;
-  condition: string;
-  status: string;
-  category: string[];
-}
-
-interface User {
-  id: string;
-  address: string;
-  createdAt: string;
-  email: string;
-  role: string;
-  nickname: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-}
 
 interface AppProps {
   user: fireUser | null;
@@ -157,7 +139,7 @@ const App: React.FC<AppProps> = ({ user }) => {
         ) : (
           <>
           {/* me should pass into to News object. if user is Admin, there should be botton to add News */}
-          <News />
+          <News user={meOutput?.data?.me}/>
           </>
         )}
       </Box>

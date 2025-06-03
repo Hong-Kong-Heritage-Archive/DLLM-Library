@@ -2,10 +2,12 @@ import React from "react";
 import { gql } from "@apollo/client";
 import { Box, Typography, List, ListItem } from "@mui/material";
 import {
+  User,
   NewsPost,
   useNewsRecentPostsQuery,
   NewsRecentPostsQuery,
   NewsRecentPostsQueryVariables,
+  Role,
 } from "./generated/graphql";
 import NewsForm from "./components/NewsForm"; // Adjust path as needed
 import { CreateNewsPostMutation } from "./generated/graphql";
@@ -30,7 +32,11 @@ const NEWS_RECENT_QUERY = gql`
   }
 `;
 
-const News: React.FC = () => {
+interface NewsProps {
+  user: User | undefined;
+}
+
+const News: React.FC<NewsProps> = ({user}) => {
   const recentNewsOutput = useNewsRecentPostsQuery({
     variables: { tags: ["Testing"] } as NewsRecentPostsQueryVariables,
   });
@@ -43,11 +49,12 @@ const News: React.FC = () => {
   return (
     <>
       <Box p={4}>
-        <NewsForm onNewsCreated={handleNewsCreated} />
         {recentNewsOutput.data && (
           <Box mt={2}>
-            <Typography variant="h6">News</Typography>
             <List>
+              <ListItem sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="h6">News</Typography>{user?.role === Role.Admin && <NewsForm onNewsCreated={handleNewsCreated} />}
+              </ListItem>
               {recentNewsOutput.data.newsRecentPosts.map((news) => (
                 <ListItem key={news.id}>
                   {news.createdAt} {news.title}, {news.content}

@@ -8,10 +8,15 @@ import {
 import { ItemService } from "./itemService";
 import { MapService, createMapService } from "./mapService";
 import * as geofire from "geofire-common";
+import { Timestamp } from "firebase-admin/firestore";
+import { create } from "domain";
 
-type UserModel = User & {
+
+type UserModel = Omit<User, "createdAt" > & {
   geohash?: string;
+  created: Timestamp;
 };
+
 export class UserService {
   private mapService: MapService;
 
@@ -24,12 +29,12 @@ export class UserService {
     // check if user's email is verified
     const userDoc = await db.collection("users").doc(loginUser.uid).get();
     if (!userDoc.exists) return null;
-    const data = userDoc.data() as User;
+    const data = userDoc.data() as UserModel;
     if (!data.isVerified && loginUser.emailVerified) {
       // update user to verified if email is verified
       await db.collection("users").doc(loginUser.uid).update({ isVerified: true });
     }
-    return { ...data };
+    return { createdAt: data.created.seconds * 1000, ...data } as User;
   }
 
   async userById(
@@ -38,8 +43,8 @@ export class UserService {
   ): Promise<User | null> {
     const userDoc = await db.collection("users").doc(userId).get();
     if (!userDoc.exists) return null;
-    const data = userDoc.data() as User;
-    return { ...data };
+    const data = userDoc.data() as UserModel;
+    return { createdAt: data.created.seconds * 1000, ...data } as User;
   }
 
   async createUser(
@@ -64,11 +69,11 @@ export class UserService {
       role: Role.User,
       isActive: true,
       isVerified: false,
-      createdAt: new Date().toISOString(),
+      created: Timestamp.now(),
       geohash: resolvedLocation?.geohash || undefined,
     };
     await db.collection("users").doc(loginUser.uid).set(userData);
-    return userData as User;
+    return {createdAt: userData.created.seconds * 1000, ...userData} as User;
   }
 
   async updateUser(

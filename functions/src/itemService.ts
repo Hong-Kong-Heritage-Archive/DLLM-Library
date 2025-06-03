@@ -10,15 +10,15 @@ import {
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
 import { MapService, createMapService } from "./mapService";
-import firebase from "firebase-admin"; 
+import firebase from "firebase-admin";
+import { Timestamp } from "firebase-admin/firestore";
 import { p } from "graphql-ws/dist/common-DY-PBNYy";
 
-type ItemModel = Omit<Item, 'id'> & {
+type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
+  created: Timestamp;
+  updated: Timestamp;
 };
-  
-
-
 
 export class ItemService {
   private mapService: MapService;
@@ -45,22 +45,28 @@ export class ItemService {
       query = query
         .where("name", ">=", keyword)
         .where("name", "<=", keyword + "\uf8ff");
-    const items = this.mapService.getLocationsByRadius(query, { latitude, longitude }, radiusKm);
+    const items = this.mapService.getLocationsByRadius(
+      query,
+      { latitude, longitude },
+      radiusKm
+    );
     const filteredItems = (await items).map((item) => {
-        item = { ...item, id: item.id };
-        return item as Item;
+      item = { ...item, id: item.id };
+      return item as Item;
     });
     return filteredItems;
   }
 
-
-  async itemById(
-    itemId: string
-  ): Promise<Item | null> {
+  async itemById(itemId: string): Promise<Item | null> {
     const itemDoc = await db.collection("items").doc(itemId).get();
     if (!itemDoc.exists) return null;
     const data = itemDoc.data() as ItemModel;
-    return { id: itemId, ...data } as Item;
+    return {
+      id: itemId,
+      createdAt: data.created.seconds * 1000,
+      updatedAt: data.updated.seconds * 1000,
+      ...data,
+    } as Item;
   }
 
   // this function should be limited to internal use only
@@ -81,17 +87,21 @@ export class ItemService {
           .collection("items")
           .where(firebase.firestore.FieldPath.documentId(), "in", batchIds)
           .get();
-        
-        const items = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Item));
+
+        const items = snapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              createdAt: doc.data().created.seconds * 1000,
+              updatedAt: doc.data().updated.seconds * 1000,
+              ...doc.data(),
+            } as Item)
+        );
         results.push(...items);
       }
     }
     return results;
   }
-
 
   async itemsByUser(
     userId: string,
@@ -114,7 +124,13 @@ export class ItemService {
         .where("name", "<=", keyword + "\uf8ff");
     const snapshot = await query.limit(limit).offset(offset).get();
     const items = snapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as Item)
+      (doc) =>
+        ({
+          id: doc.id,
+          createdAt: doc.data().created.seconds * 1000,
+          updatedAt: doc.data().updated.seconds * 1000,
+          ...doc.data(),
+        } as Item)
     );
     return items;
   }
@@ -132,7 +148,10 @@ export class ItemService {
   ): Promise<Item> {
     let hash = null;
     if (owner?.location) {
-      hash = geofire.geohashForLocation([owner.location.latitude, owner.location.longitude]);
+      hash = geofire.geohashForLocation([
+        owner.location.latitude,
+        owner.location.longitude,
+      ]);
     }
 
     const itemData: ItemModel = {
@@ -145,12 +164,18 @@ export class ItemService {
       images: images || [],
       publishedYear: publishedYear || undefined,
       language: language,
-      createdAt: new Date().toISOString(),
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
       location: owner?.location || undefined,
       geohash: hash || undefined,
     };
     const docRef = await db.collection("items").add(itemData);
-    const rv = {id: docRef.id, ...itemData } as Item; // Set the ID after adding to Firestore
-    return rv
+    const rv = {
+      id: docRef.id,
+      createdAt: itemData.created.seconds * 1000,
+      updatedAt: itemData.updated.seconds * 1000,
+      ...itemData,
+    } as Item; // Set the ID after adding to Firestore
+    return rv;
   }
 }
