@@ -111,7 +111,10 @@ const App: React.FC<AppProps> = ({ user }) => {
                   <Button onClick={signOut}>Sign Out</Button>
                 </>
             ) : (
-              <Typography>TODO: Please add a box to create user</Typography>
+              <>
+                <Typography>TODO: Please add a box to create user</Typography>
+                <Button onClick={signOut}>Sign Out</Button>
+              </>
             )}
           </ListItem>
         )}

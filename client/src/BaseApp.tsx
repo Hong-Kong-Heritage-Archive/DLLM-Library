@@ -5,7 +5,7 @@ import {
   User as fireUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail 
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { ApolloProvider } from "@apollo/client";
