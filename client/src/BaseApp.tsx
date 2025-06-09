@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "./firebase";
-import { Button, Box, Typography, TextField, Container } from "@mui/material";
+import { Button, Box, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import {
   User as fireUser,
   createUserWithEmailAndPassword,
@@ -29,7 +29,7 @@ const BaseApp: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => 
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) =>
     (e: React.ChangeEvent<HTMLInputElement>) => setter(e.target.value);
 
   const signInSubmit = async (e?: React.FormEvent) => {
@@ -37,7 +37,6 @@ const BaseApp: React.FC = () => {
     if (email && password) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        console.log("Signed in successfully");
         setShowSignInForm(false);
       } catch (error) {
         alert("Error signing in:" + error);
@@ -50,7 +49,6 @@ const BaseApp: React.FC = () => {
     if (email && password) {
       try {
         await createUserWithEmailAndPassword(auth, email, password);
-        console.log("Account created successfully");
         setShowSignUpForm(false);
       } catch (error) {
         alert("Error creating account:" + error);
@@ -94,162 +92,121 @@ const BaseApp: React.FC = () => {
       {!user && (
         <>
           <Box mb={2}>
-            <Button 
+            <Button
               variant="outlined"
               sx={{ mr: 1 }}
               onClick={handleShowSignUp}
             >
               Sign up
             </Button>
-            <Button 
+            <Button
               variant="outlined"
               onClick={handleShowSignIn}
             >
-              Confirm
+              Sign In
             </Button>
           </Box>
-          {showSignInForm && (
-            <Container maxWidth="xs">
-              <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                mt={4}
-                p={4}
-                boxShadow={3}
-                borderRadius={2}
-              >
-                <Typography variant="h5" mb={2}>
+          {/* Sign In Dialog */}
+          <Dialog open={showSignInForm} onClose={() => setShowSignInForm(false)}>
+            <DialogTitle sx={{ fontWeight: 'bold', textAlign: "center" }}>Sign In</DialogTitle>
+            <form onSubmit={signInSubmit}>
+              <DialogContent>
+                <TextField
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  margin="normal"
+                  required
+                  value={email}
+                  onChange={handleInputChange(setEmail)}
+                />
+                <TextField
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  margin="normal"
+                  required
+                  value={password}
+                  onChange={handleInputChange(setPassword)}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                >
                   Sign In
-                </Typography>
-                <form onSubmit={signInSubmit} style={{ width: '100%' }}>
-                  <TextField
-                    label="Email"
-                    type="email"
-                    fullWidth
-                    margin="normal"
-                    required
-                    value={email}
-                    onChange={handleInputChange(setEmail)}
-                  />
-                  <TextField
-                    label="Password"
-                    type="password"
-                    fullWidth
-                    margin="normal"
-                    required
-                    value={password}
-                    onChange={handleInputChange(setPassword)}
-                  />
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    sx={{ mt: 2 }}
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="text"
-                    sx={{ mt: 2 }}
-                    onClick={handleShowReset}
-                  >
-                    Forgot Password?
-                  </Button>
-                </form>
-              </Box>
-            </Container>
-          )}
-          {showSignUpForm && (
-            <Container maxWidth="xs">
-              <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                mt={4}
-                p={4}
-                boxShadow={3}
-                borderRadius={2}
-              >
-                <Typography variant="h5" mb={2}>
-                  Sign Up
-                </Typography>
-                <form onSubmit={signUpSubmit} style={{ width: '100%' }}>
-                  <TextField
-                    label="Email"
-                    type="email"
-                    fullWidth
-                    margin="normal"
-                    required
-                    value={email}
-                    onChange={handleInputChange(setEmail)}
-                  />
-                  <TextField
-                    label="Password"
-                    type="password"
-                    fullWidth
-                    margin="normal"
-                    required
-                    value={password}
-                    onChange={handleInputChange(setPassword)}
-                  />
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    sx={{ mt: 2 }}
-                  >
-                    Submit
-                  </Button>
-                </form>
-              </Box>
-            </Container>
-          )}
-          {showResetForm && (
-            <Container maxWidth="xs">
-              <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                mt={4}
-                p={4}
-                boxShadow={3}
-                borderRadius={2}
-              >
-                <Typography variant="h5" mb={2}>
-                  Reset Password
-                </Typography>
-                <form onSubmit={handleResetPassword} style={{ width: '100%' }}>
-                  <TextField
-                    label="Email"
-                    type="email"
-                    fullWidth
-                    margin="normal"
-                    required
-                    value={resetEmail}
-                    onChange={handleInputChange(setResetEmail)}
-                  />
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    sx={{ mt: 2 }}
-                  >
-                    Send
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="text"
-                    sx={{ mt: 2 }}
-                    onClick={() => setShowResetForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                </form>
-              </Box>
-            </Container>
-          )}
+                </Button>
+                <Button
+                  onClick={handleShowReset}
+                  color="secondary"
+                  fullWidth
+                  sx={{ mt: 1 }}
+                >
+                  Forgot Password?
+                </Button>
+              </DialogContent>
+            </form>
+          </Dialog>
+          {/* Sign Up Dialog */}
+          <Dialog open={showSignUpForm} onClose={() => setShowSignUpForm(false)}>
+            <DialogTitle sx={{ fontWeight: 'bold', textAlign: "center" }}>Sign Up</DialogTitle>
+            <form onSubmit={signUpSubmit}>
+              <DialogContent>
+                <TextField
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  margin="normal"
+                  required
+                  value={email}
+                  onChange={handleInputChange(setEmail)}
+                />
+                <TextField
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  margin="normal"
+                  required
+                  value={password}
+                  onChange={handleInputChange(setPassword)}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                >
+                  Submit
+                </Button>
+              </DialogContent>
+            </form>
+          </Dialog>
+          {/* Reset Password Dialog */}
+          <Dialog open={showResetForm} onClose={() => setShowResetForm(false)}>
+            <DialogTitle sx={{ fontWeight: 'bold', textAlign: "center" }}>Reset Password</DialogTitle>
+            <form onSubmit={handleResetPassword}>
+              <DialogContent>
+                <TextField
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  margin="normal"
+                  required
+                  value={resetEmail}
+                  onChange={handleInputChange(setResetEmail)}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                >
+                  Send
+                </Button>
+              </DialogContent>
+            </form>
+          </Dialog>
         </>
       )}
       <ApolloProvider client={client}>
