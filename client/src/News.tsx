@@ -26,7 +26,7 @@ import {
   NewsPostQueryVariables,
   Role,
 } from "./generated/graphql";
-import NewsForm from "./components/NewsForm"; // Adjust path as needed
+import NewsForm from "./components/NewsForm"; 
 import { CreateNewsPostMutation } from "./generated/graphql";
 
 const NEWS_RECENT_QUERY = gql`
