@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "./firebase";
-import { Button, Box, Typography, TextField, Container } from "@mui/material";
+import { Button, Box, Typography, TextField, Container, ListItem } from "@mui/material";
 import {
   User as fireUser,
   createUserWithEmailAndPassword,
@@ -9,11 +9,13 @@ import {
 } from "firebase/auth";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { ApolloProvider } from "@apollo/client";
+
 import client from "./apollo";
 import App from "./App";
 // Adds messages only in a dev environment
 loadDevMessages();
 loadErrorMessages();
+
 
 const BaseApp: React.FC = () => {
   const [user, setUser] = useState<fireUser | null>(null);
@@ -23,6 +25,7 @@ const BaseApp: React.FC = () => {
   const [showSignUpForm, setShowSignUpForm] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(setUser);
@@ -41,6 +44,7 @@ const BaseApp: React.FC = () => {
       }
     }
   };
+
 
   const signUpSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -69,8 +73,7 @@ const BaseApp: React.FC = () => {
   };
 
   return (
-    <Box p={4}>
-      <Typography variant="h4">無大台香港典藏館</Typography>
+    <>
       {!user && (
         <>
           <Button 
@@ -234,7 +237,7 @@ const BaseApp: React.FC = () => {
       <ApolloProvider client={client}>
         <App user={user} />
       </ApolloProvider>
-    </Box>
+    </>
   );
 };
 

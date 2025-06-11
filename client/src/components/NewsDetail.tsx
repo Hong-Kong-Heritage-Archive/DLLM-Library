@@ -12,8 +12,32 @@ import {
   Alert
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
+import { useQuery, gql } from "@apollo/client";
 import { useNewsPostQuery, NewsPostQueryVariables } from "../generated/graphql";
 
+const DETAIL_NEWS_QUERY = gql`
+  query NewsPost($newsPostId: ID!) {
+    newsPost(id: $newsPostId) {
+      id
+      title
+      content
+      images
+      relatedItems {
+        id
+        name
+        category
+        status
+      }
+      createdAt
+      updatedAt
+      tags
+      user {
+        id
+        nickname
+      }
+    }
+  }
+`;
 interface NewsDetailProps {
   newsId: string | null;
   open: boolean;

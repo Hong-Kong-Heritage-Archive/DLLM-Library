@@ -3,10 +3,7 @@ import ReactDOM from 'react-dom/client';
 import BaseApp from './BaseApp';
 import * as serviceWorker from './serviceWorker';
 import './index.css';
-import {
-  ApolloProvider
-} from "@apollo/client";
-import client from './apollo';
+
 
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
