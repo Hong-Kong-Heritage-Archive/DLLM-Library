@@ -106,7 +106,7 @@ const HomePage: React.FC = () => {
   return (
     <Box p={2}>
       <List>
-        {user && (
+        {/* {user && ( */}
           <ListItem>
             {user ? (
               <>
@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
               </>
             )}
           </ListItem>
-        )} 
+        {/* )} */}
         <ListItem>
           <Button component={Link} to="/news" variant="outlined">
             View News
