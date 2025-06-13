@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Box, Typography, List, ListItem } from "@mui/material";
+import { Typography, List, ListItem } from "@mui/material";
+import { Link } from "react-router";
 import {
   useNewsRecentPostsQuery,
   NewsRecentPostsQueryVariables,
@@ -13,13 +14,11 @@ import NewsDetail from "./NewsDetail";
 
 interface RecentNewsBannerProps {
   user: User | undefined;
-  onShowAllNews: () => void;
   onNewsCreated: (data: CreateNewsPostMutation) => void;
 }
 
 const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({
   user,
-  onShowAllNews,
   onNewsCreated,
 }) => {
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
@@ -55,11 +54,12 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({
           <ListItem sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography
               variant="h6"
+              component={Link}
+              to="/news/all"              
               sx={{
                 cursor: "pointer",
                 "&:hover": { textDecoration: "underline" },
               }}
-              onClick={onShowAllNews}
             >
               News
             </Typography>

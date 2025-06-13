@@ -1,12 +1,25 @@
 import React, { useState } from "react";
 import { Box, Typography, List, IconButton } from "@mui/material";
+import { useQuery, gql } from "@apollo/client";
 import { ArrowBack } from "@mui/icons-material";
 import { useNewsRecentPostsQuery, NewsRecentPostsQueryVariables, User, Role } from "../generated/graphql";
 import { CreateNewsPostMutation } from "../generated/graphql";
 import NewsForm from "./NewsForm";
 import NewsSummary from "./NewsSummary";
 import NewsDetail from "./NewsDetail";
+import { useNavigate } from "react-router";
 
+const NEWS_RECENT_QUERY = gql`
+  query NewsRecentPosts($limit: Int, $offset: Int) {
+    newsRecentPosts(limit: $limit, offset: $offset) {
+      id
+      title
+      images
+      createdAt
+      tags
+    }
+  }
+`;
 interface RecentNewsPageProps {
   user: User | undefined;
   onBack: () => void;
@@ -19,7 +32,7 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
   onNewsCreated 
 }) => {
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   const { data, loading, error, refetch } = useNewsRecentPostsQuery({
     variables: { tags: ["Testing"], limit: 20, offset: 0 } as NewsRecentPostsQueryVariables,
   });
@@ -30,7 +43,9 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
   };
 
   const handleNewsItemClick = (newsId: string) => {
-    setSelectedNewsId(newsId);
+    // Navigate to the news detail page instead of opening a dialog
+    // setSelectedNewsId(newsId);
+    navigate(`/news/${newsId}`);
   };
 
   const handleCloseDialog = () => {
@@ -75,11 +90,6 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
         </Box>
       )}
 
-      <NewsDetail 
-        newsId={selectedNewsId}
-        open={!!selectedNewsId}
-        onClose={handleCloseDialog}
-      />
     </Box>
   );
 };

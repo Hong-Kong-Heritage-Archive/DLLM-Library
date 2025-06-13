@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
-import { auth } from "./firebase";
+import { auth } from "../firebase";
 import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User as fireUser } from "firebase/auth";
-import { User, Item } from "./generated/graphql"; // Adjust the import path as necessary
-import Map from "./components/Map";
-import { createRouter } from './Router';
-import { RouterProvider } from "react-router";
+import { User, Item } from "../generated/graphql";
+import Map from "../components/Map";
+import { Link } from "react-router";
+import { useOutletContext } from 'react-router-dom';
+import CreateUser from "./components/UserProfile";
+
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -47,41 +49,86 @@ const ME_QUERY = gql`
   }
 `;
 
-interface AppProps {
-  user: fireUser | null;
+interface OutletContext {
+  user?: User;
 }
 
-const App: React.FC<AppProps> = ({ user }) => {
+const HomePage: React.FC = () => {
+  const { user } = useOutletContext<OutletContext>();
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
-  const meOutput = useQuery<{ me: User }>(ME_QUERY, {
-    skip: !user,
-  });
+  const [maplocation, setMapLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
-  const router = createRouter(meOutput?.data?.me);
+  const itemsByLocationOutput = useQuery<{ itemsByLocation: Item[] }>(
+    ITEMS_QUERY,
+    {
+      variables: location ? { ...location, radiusKm: 10 } : undefined,
+      skip: !location,
+    }
+  );
 
 
-  return <RouterProvider router={router} />
-  
-/*
+  const getLocation = () => {
+    if (user?.location?.latitude) {
+      setLocation({
+        latitude: user?.location.latitude,
+        longitude: user?.location.longitude,
+      });
+      setMapLocation({
+        latitude: user?.location.latitude,
+        longitude: user?.location.longitude,
+      });
+    } else {
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          setLocation({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          }),
+        (err) => console.error(err)
+      );
+    }
+  };
+
+  const [userFormOpen, setUserFormOpen] = useState(false);
+
+
+  const signOut = async () => {
+    await auth.signOut();
+  };
+
   return (
     <Box p={2}>
       <List>
         {user && (
           <ListItem>
-            {meOutput.data && meOutput.data.me ? (
-                <>
-
-                  <Typography>Welcome, {meOutput.data.me.nickname}</Typography>
-                  <Button onClick={signOut}>Sign Out</Button>
-                </>
+            {user ? (
+              <>
+                <Typography>Welcome, {user.nickname}</Typography>
+                <Button onClick={signOut}>Sign Out</Button>
+              </>
             ) : (
               <>
-                <Typography>TODO: Please add a box to create user</Typography>
+                <Button onClick={() => setUserFormOpen(!userFormOpen)}>
+                  Create User
+                </Button>
+                {userFormOpen && <CreateUser onUserCreated={() => { }} />}
                 <Button onClick={signOut}>Sign Out</Button>
               </>
             )}
           </ListItem>
         )}
+        <ListItem>
+          <Button component={Link} to="/news" variant="outlined">
+            View News
+          </Button>
+        </ListItem>
         <ListItem>
           <Button variant="contained" onClick={getLocation}>
             Display nearby items
@@ -116,16 +163,9 @@ const App: React.FC<AppProps> = ({ user }) => {
             </Typography>
           </ListItem>
         )}
-        {meOutput.loading && <Typography>Loading user...</Typography>}
-        {meOutput.error && (
-          <ListItem>
-            <Typography>Error: {meOutput.error.message}</Typography>
-          </ListItem>
-        )}
       </List>
     </Box>
   );
-  */
 };
 
-export default App;
+export default HomePage;
