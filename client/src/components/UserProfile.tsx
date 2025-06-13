@@ -69,9 +69,6 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
   
   return (
     <Box>
-      {/* <Button variant="contained" onClick={() => setOpen(true)}>
-        Create User
-      </Button> */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle sx={{ textAlign: "center" }}>Create User</DialogTitle>
         <form onSubmit={handleSubmit}>
