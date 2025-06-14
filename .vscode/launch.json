@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "type": "node",
+      "name": "[LOCAL] API start:inspect",
+      "request": "launch",
+      "runtimeVersion": "22.15.0",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "start:inspect"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/functions",
+      "env": {
+        "NODE_END": "local"
+      }
+    }
+  ]
+}

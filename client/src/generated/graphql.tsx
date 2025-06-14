@@ -136,7 +136,6 @@ export type MutationCreateUserArgs = {
   nickname?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type MutationDeleteItemArgs = {
   id: Scalars['ID']['input'];
 };
@@ -376,7 +375,28 @@ export type CreateNewsPostMutationVariables = Exact<{
 }>;
 
 
+export type CreateUserMutationVariables = Exact<{
+  email: Scalars['String']['input'];
+  address?: InputMaybe<Scalars['String']['input']>;
+  nickname?: InputMaybe<Scalars['String']['input']>;
+}>;
+
 export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: any, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
+
+export type CreateUserMutation = {
+  __typename?: 'Mutation',
+  createUser: {
+    __typename?: 'User',
+    id: string,
+    email: string,
+    address?: string | null,
+    nickname?: string | null,
+    createdAt: any,
+    isActive: boolean,
+    isVerified: boolean,
+    role: Role
+  }
+};
 
 
 export const ItemsByLocationDocument = gql`

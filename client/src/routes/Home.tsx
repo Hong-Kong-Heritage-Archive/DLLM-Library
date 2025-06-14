@@ -7,6 +7,8 @@ import RecentNewsBanner from "../components/RecentNewsBanner";
 import Map from "../components/Map";
 import { Link } from "react-router";
 import { useOutletContext } from 'react-router-dom';
+import CreateUser from "../components/UserProfile";
+
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -51,7 +53,7 @@ interface OutletContext {
   user?: User;
 }
 
-const HomePage: React.FC= () => {
+const HomePage: React.FC = () => {
   const { user } = useOutletContext<OutletContext>();
   const [location, setLocation] = useState<{
     latitude: number;
@@ -94,6 +96,9 @@ const HomePage: React.FC= () => {
     }
   };
 
+  const [userFormOpen, setUserFormOpen] = useState(false);
+
+
   const signOut = async () => {
     await auth.signOut();
   };
@@ -101,21 +106,24 @@ const HomePage: React.FC= () => {
   return (
     <Box p={2}>
       <List>
-        {user && (
+        {/* {user && ( */}
           <ListItem>
-            {user? (
-                <>
-                  <Typography>Welcome, {user.nickname}</Typography>
-                  <Button onClick={signOut}>Sign Out</Button>
-                </>
+            {user ? (
+              <>
+                <Typography>Welcome, {user.nickname}</Typography>
+                <Button onClick={signOut}>Sign Out</Button>
+              </>
             ) : (
               <>
-                <Typography>TODO: Please add a box to create user</Typography>
+                <Button onClick={() => setUserFormOpen(!userFormOpen)}>
+                  Create User
+                </Button>
+                {userFormOpen && <CreateUser onUserCreated={() => { }} />}
                 <Button onClick={signOut}>Sign Out</Button>
               </>
             )}
           </ListItem>
-        )}
+        {/* )} */}
         <ListItem>
           <RecentNewsBanner 
             user={user}

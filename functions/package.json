@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
+    "start:inspect": "nodemon --exec \"node --require ts-node/register src/index.ts\"",
     "dev": "ts-node src/index.ts",
     "compile": "graphql-codegen --config codegen.ts"
   },
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.6",
     "@graphql-codegen/typescript": "^4.1.6",
-    "@graphql-codegen/typescript-resolvers": "^4.5.1"
+    "@graphql-codegen/typescript-resolvers": "^4.5.1",
+    "nodemon": "^3.1.10"
   }
 }
