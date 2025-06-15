@@ -1,6 +1,5 @@
 import React from "react";
-import { useQuery } from "@apollo/client";
-import { User, Role } from "../generated/graphql";
+import { User } from "../generated/graphql";
 import { CreateNewsPostMutation } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import { Link } from "react-router";
@@ -14,13 +13,7 @@ interface OutletContext {
 const NewsPage: React.FC = () => {
   const { user } = useOutletContext<OutletContext>();
 
-  const handleNewsCreated = (data: CreateNewsPostMutation) => {
-    console.log("News post created:", data.createNewsPost);
-  };
 
-  const handleShowAllNews = () => {
-    // Navigation is handled by Link component
-  };
 
   return (
     <Box>
@@ -31,7 +24,6 @@ const NewsPage: React.FC = () => {
       </Box>
       <RecentNewsBanner 
         user={user}
-        onNewsCreated={handleNewsCreated}
       />
     </Box>
   );

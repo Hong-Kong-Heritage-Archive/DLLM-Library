@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { DialogTitle, DialogContent, Button, Box, Typography, List, ListItem, Dialog, DialogActions } from "@mui/material";
+import React, { useState, } from "react";
+import { DialogTitle, DialogContent, Button, Typography, Dialog, DialogActions } from "@mui/material";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';

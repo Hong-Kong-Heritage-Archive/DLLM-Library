@@ -14,6 +14,7 @@ import {
 import { Close } from "@mui/icons-material";
 import { useQuery, gql } from "@apollo/client";
 import { useNewsPostQuery, NewsPostQueryVariables } from "../generated/graphql";
+import SafeImage from "./SafeImage";
 
 const DETAIL_NEWS_QUERY = gql`
   query NewsPost($newsPostId: ID!) {
@@ -61,7 +62,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
       }}
     >
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h5">News Details</Typography>
+        <Typography >News Details</Typography>
         <IconButton onClick={onClose}>
           <Close />
         </IconButton>
@@ -103,7 +104,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                 <Typography variant="h6" gutterBottom>Images</Typography>
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   {data.newsPost.images.map((image, index) => (
-                    <img 
+                    <SafeImage
                       key={index}
                       src={image} 
                       alt={`News image ${index + 1}`}

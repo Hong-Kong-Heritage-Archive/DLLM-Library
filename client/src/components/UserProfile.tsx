@@ -12,21 +12,24 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { CreateUserMutation, CreateUserMutationVariables } from "../generated/graphql";
+import {
+  CreateUserMutation,
+  CreateUserMutationVariables,
+} from "../generated/graphql";
 
 export const CREATE_USER_MUTATION = gql`
-mutation CreateUser($email: String!, $address: String, $nickname: String) {
-  createUser(email: $email, address: $address, nickname: $nickname) {
-    id
-    email
-    address
-    nickname
-    createdAt
-    isActive
-    isVerified
-    role
+  mutation CreateUser($email: String!, $address: String, $nickname: String) {
+    createUser(email: $email, address: $address, nickname: $nickname) {
+      id
+      email
+      address
+      nickname
+      createdAt
+      isActive
+      isVerified
+      role
+    }
   }
-}
 `;
 
 interface UserProps {
@@ -52,8 +55,7 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
       setNickname("");
     },
   });
-  
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createUser({
@@ -65,8 +67,6 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
     });
   };
 
-
-  
   return (
     <Box>
       <Dialog open={open} onClose={() => setOpen(false)}>
@@ -79,7 +79,7 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
               fullWidth
               margin="normal"
               value={address}
-              onChange={e => setAddress(e.target.value)}
+              onChange={(e) => setAddress(e.target.value)}
             />
             <TextField
               label="Nickname"
@@ -87,24 +87,23 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
               fullWidth
               margin="normal"
               value={nickname}
-              onChange={e => setNickname(e.target.value)}
+              onChange={(e) => setNickname(e.target.value)}
             />
             {error && <Alert severity="error">{error.message}</Alert>}
-            {loading && <CircularProgress sx={{ display: "block", mx: "auto", my: 2 }} />}
+            {loading && (
+              <CircularProgress sx={{ display: "block", mx: "auto", my: 2 }} />
+            )}
           </DialogContent>
-          <DialogActions sx={{ flexDirection: "column", alignItems: "stretch", gap: 1 }}>
-            <Button 
-              onClick={() => setOpen(false)} 
-              fullWidth 
-              sx={{ mt: 2 }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              fullWidth 
-              disabled={loading}
+          <DialogActions
+            sx={{ flexDirection: "column", alignItems: "stretch", gap: 1 }}
+          >
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={
+                loading || address.trim() === "" || nickname.trim() === ""
+              }
               sx={{ mt: 1 }}
             >
               Submit

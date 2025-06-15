@@ -5,7 +5,7 @@ import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User as fireUser } from "firebase/auth";
 import { User, Item } from "./generated/graphql"; // Adjust the import path as necessary
 import Map from "./components/Map";
-import { createRouter } from './Router';
+import { createRouter } from "./Router";
 import { RouterProvider } from "react-router";
 
 const ITEMS_QUERY = gql`
@@ -52,17 +52,15 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ user }) => {
-
   const meOutput = useQuery<{ me: User }>(ME_QUERY, {
     skip: !user,
   });
 
-  const router = createRouter(meOutput?.data?.me);
+  const router = createRouter(user?.email, meOutput?.data?.me);
 
+  return <RouterProvider router={router} />;
 
-  return <RouterProvider router={router} />
-  
-/*
+  /*
   return (
     <Box p={2}>
       <List>

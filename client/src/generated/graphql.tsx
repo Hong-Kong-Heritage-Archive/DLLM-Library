@@ -136,6 +136,7 @@ export type MutationCreateUserArgs = {
   nickname?: InputMaybe<Scalars['String']['input']>;
 };
 
+
 export type MutationDeleteItemArgs = {
   id: Scalars['ID']['input'];
 };
@@ -351,14 +352,6 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: any, email: string, id: string, isVerified: boolean, isActive: boolean, role: Role, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
 
-export type NewsRecentPostsQueryVariables = Exact<{
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-}>;
-
-
-export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null }> };
-
 export type NewsPostQueryVariables = Exact<{
   newsPostId: Scalars['ID']['input'];
 }>;
@@ -375,28 +368,24 @@ export type CreateNewsPostMutationVariables = Exact<{
 }>;
 
 
+export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: any, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
+
+export type NewsRecentPostsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null }> };
+
 export type CreateUserMutationVariables = Exact<{
   email: Scalars['String']['input'];
   address?: InputMaybe<Scalars['String']['input']>;
   nickname?: InputMaybe<Scalars['String']['input']>;
 }>;
 
-export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: any, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
 
-export type CreateUserMutation = {
-  __typename?: 'Mutation',
-  createUser: {
-    __typename?: 'User',
-    id: string,
-    email: string,
-    address?: string | null,
-    nickname?: string | null,
-    createdAt: any,
-    isActive: boolean,
-    isVerified: boolean,
-    role: Role
-  }
-};
+export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', id: string, email: string, address?: string | null, nickname?: string | null, createdAt: any, isActive: boolean, isVerified: boolean, role: Role } };
 
 
 export const ItemsByLocationDocument = gql`
@@ -495,51 +484,6 @@ export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
-export const NewsRecentPostsDocument = gql`
-    query NewsRecentPosts($limit: Int, $offset: Int) {
-  newsRecentPosts(limit: $limit, offset: $offset) {
-    id
-    title
-    images
-    createdAt
-    tags
-  }
-}
-    `;
-
-/**
- * __useNewsRecentPostsQuery__
- *
- * To run a query within a React component, call `useNewsRecentPostsQuery` and pass it any options that fit your needs.
- * When your component renders, `useNewsRecentPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useNewsRecentPostsQuery({
- *   variables: {
- *      limit: // value for 'limit'
- *      offset: // value for 'offset'
- *   },
- * });
- */
-export function useNewsRecentPostsQuery(baseOptions?: Apollo.QueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
-      }
-export function useNewsRecentPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
-        }
-export function useNewsRecentPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
-        }
-export type NewsRecentPostsQueryHookResult = ReturnType<typeof useNewsRecentPostsQuery>;
-export type NewsRecentPostsLazyQueryHookResult = ReturnType<typeof useNewsRecentPostsLazyQuery>;
-export type NewsRecentPostsSuspenseQueryHookResult = ReturnType<typeof useNewsRecentPostsSuspenseQuery>;
-export type NewsRecentPostsQueryResult = Apollo.QueryResult<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>;
 export const NewsPostDocument = gql`
     query NewsPost($newsPostId: ID!) {
   newsPost(id: $newsPostId) {
@@ -651,3 +595,90 @@ export function useCreateNewsPostMutation(baseOptions?: Apollo.MutationHookOptio
 export type CreateNewsPostMutationHookResult = ReturnType<typeof useCreateNewsPostMutation>;
 export type CreateNewsPostMutationResult = Apollo.MutationResult<CreateNewsPostMutation>;
 export type CreateNewsPostMutationOptions = Apollo.BaseMutationOptions<CreateNewsPostMutation, CreateNewsPostMutationVariables>;
+export const NewsRecentPostsDocument = gql`
+    query NewsRecentPosts($limit: Int, $offset: Int) {
+  newsRecentPosts(limit: $limit, offset: $offset) {
+    id
+    title
+    images
+    createdAt
+    tags
+  }
+}
+    `;
+
+/**
+ * __useNewsRecentPostsQuery__
+ *
+ * To run a query within a React component, call `useNewsRecentPostsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNewsRecentPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNewsRecentPostsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useNewsRecentPostsQuery(baseOptions?: Apollo.QueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+      }
+export function useNewsRecentPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+        }
+export function useNewsRecentPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+        }
+export type NewsRecentPostsQueryHookResult = ReturnType<typeof useNewsRecentPostsQuery>;
+export type NewsRecentPostsLazyQueryHookResult = ReturnType<typeof useNewsRecentPostsLazyQuery>;
+export type NewsRecentPostsSuspenseQueryHookResult = ReturnType<typeof useNewsRecentPostsSuspenseQuery>;
+export type NewsRecentPostsQueryResult = Apollo.QueryResult<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>;
+export const CreateUserDocument = gql`
+    mutation CreateUser($email: String!, $address: String, $nickname: String) {
+  createUser(email: $email, address: $address, nickname: $nickname) {
+    id
+    email
+    address
+    nickname
+    createdAt
+    isActive
+    isVerified
+    role
+  }
+}
+    `;
+export type CreateUserMutationFn = Apollo.MutationFunction<CreateUserMutation, CreateUserMutationVariables>;
+
+/**
+ * __useCreateUserMutation__
+ *
+ * To run a mutation, you first call `useCreateUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createUserMutation, { data, loading, error }] = useCreateUserMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *      address: // value for 'address'
+ *      nickname: // value for 'nickname'
+ *   },
+ * });
+ */
+export function useCreateUserMutation(baseOptions?: Apollo.MutationHookOptions<CreateUserMutation, CreateUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateUserMutation, CreateUserMutationVariables>(CreateUserDocument, options);
+      }
+export type CreateUserMutationHookResult = ReturnType<typeof useCreateUserMutation>;
+export type CreateUserMutationResult = Apollo.MutationResult<CreateUserMutation>;
+export type CreateUserMutationOptions = Apollo.BaseMutationOptions<CreateUserMutation, CreateUserMutationVariables>;

@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "./firebase";
-import { Button, Box, Typography, TextField, Dialog, DialogTitle, DialogContent,  Container, ListItem } from "@mui/material";
+import {
+  Button,
+  Box,
+  Typography,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Container,
+  ListItem,
+} from "@mui/material";
 import {
   User as fireUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { ApolloProvider } from "@apollo/client";
@@ -16,24 +26,24 @@ import App from "./App";
 loadDevMessages();
 loadErrorMessages();
 
-
 const BaseApp: React.FC = () => {
   const [user, setUser] = useState<fireUser | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showSignInForm, setShowSignInForm] = useState(false);
   const [showSignUpForm, setShowSignUpForm] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-
+  const [resetEmail, setResetEmail] = useState("");
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(setUser);
     return () => unsubscribe();
   }, []);
 
-  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => setter(e.target.value);
+  const handleInputChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setter(e.target.value);
 
   const signInSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -46,7 +56,6 @@ const BaseApp: React.FC = () => {
       }
     }
   };
-
 
   const signUpSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -78,11 +87,11 @@ const BaseApp: React.FC = () => {
     setShowSignUpForm(form === "signUp");
     setShowResetForm(form === "reset");
     if (form === "signIn" || form === "signUp") {
-      setEmail('');
-      setPassword('');
+      setEmail("");
+      setPassword("");
     }
     if (form === "reset") {
-      setResetEmail('');
+      setResetEmail("");
     }
   };
 
@@ -101,18 +110,20 @@ const BaseApp: React.FC = () => {
               sx={{ mr: 1 }}
               onClick={handleShowSignUp}
             >
-              Siugn up
+              Sign up
             </Button>
-            <Button
-              variant="outlined"
-              onClick={handleShowSignIn}
-            >
+            <Button variant="outlined" onClick={handleShowSignIn}>
               Sign In
             </Button>
           </Box>
           {/* Sign In Dialog */}
-          <Dialog open={showSignInForm} onClose={() => setShowSignInForm(false)}>
-            <DialogTitle sx={{ fontWeight: 'bold', textAlign: "center" }}>Sign In</DialogTitle>
+          <Dialog
+            open={showSignInForm}
+            onClose={() => setShowSignInForm(false)}
+          >
+            <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
+              Sign In
+            </DialogTitle>
             <form onSubmit={signInSubmit}>
               <DialogContent>
                 <TextField
@@ -153,8 +164,13 @@ const BaseApp: React.FC = () => {
             </form>
           </Dialog>
           {/* Sign Up Dialog */}
-          <Dialog open={showSignUpForm} onClose={() => setShowSignUpForm(false)}>
-            <DialogTitle sx={{ fontWeight: 'bold', textAlign: "center" }}>Sign Up</DialogTitle>
+          <Dialog
+            open={showSignUpForm}
+            onClose={() => setShowSignUpForm(false)}
+          >
+            <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
+              Sign Up
+            </DialogTitle>
             <form onSubmit={signUpSubmit}>
               <DialogContent>
                 <TextField
@@ -188,7 +204,9 @@ const BaseApp: React.FC = () => {
           </Dialog>
           {/* Reset Password Dialog */}
           <Dialog open={showResetForm} onClose={() => setShowResetForm(false)}>
-            <DialogTitle sx={{ fontWeight: 'bold', textAlign: "center" }}>Reset Password</DialogTitle>
+            <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
+              Reset Password
+            </DialogTitle>
             <form onSubmit={handleResetPassword}>
               <DialogContent>
                 <TextField

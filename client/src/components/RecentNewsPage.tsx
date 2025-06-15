@@ -31,7 +31,6 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
   onBack, 
   onNewsCreated 
 }) => {
-  const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { data, loading, error, refetch } = useNewsRecentPostsQuery({
     variables: { tags: ["Testing"], limit: 20, offset: 0 } as NewsRecentPostsQueryVariables,
@@ -48,9 +47,6 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
     navigate(`/news/${newsId}`);
   };
 
-  const handleCloseDialog = () => {
-    setSelectedNewsId(null);
-  };
 
   return (
     <Box>

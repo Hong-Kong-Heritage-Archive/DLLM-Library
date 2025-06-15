@@ -14,12 +14,10 @@ import NewsDetail from "./NewsDetail";
 
 interface RecentNewsBannerProps {
   user: User | undefined;
-  onNewsCreated: (data: CreateNewsPostMutation) => void;
 }
 
 const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({
   user,
-  onNewsCreated,
 }) => {
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
 
@@ -32,7 +30,6 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({
   });
 
   const handleNewsCreated = (data: CreateNewsPostMutation) => {
-    onNewsCreated(data);
     refetch();
   };
 
