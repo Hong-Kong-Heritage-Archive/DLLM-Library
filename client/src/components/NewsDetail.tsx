@@ -1,7 +1,7 @@
 import React from "react";
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -9,10 +9,10 @@ import {
   Button,
   IconButton,
   CircularProgress,
-  Alert
+  Alert,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import { useQuery, gql } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { useNewsPostQuery, NewsPostQueryVariables } from "../generated/graphql";
 import SafeImage from "./SafeImage";
 
@@ -52,46 +52,53 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
   });
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
       maxWidth="md"
       fullWidth
       PaperProps={{
-        sx: { maxHeight: '80vh' }
+        sx: { maxHeight: "80vh" },
       }}
     >
-      <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography >News Details</Typography>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography>News Details</Typography>
         <IconButton onClick={onClose}>
           <Close />
         </IconButton>
       </DialogTitle>
-      
+
       <DialogContent>
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
             <CircularProgress />
           </Box>
         )}
-        
+
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             Error loading news details: {error.message}
           </Alert>
         )}
-        
+
         {data?.newsPost && (
           <Box>
             <Typography variant="h4" gutterBottom>
               {data.newsPost.title}
             </Typography>
-            
+
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                By {data.newsPost.user?.nickname || 'Unknown'} • 
-                Created: {new Date(data.newsPost.createdAt).toLocaleDateString()} • 
-                Updated: {new Date(data.newsPost.updatedAt).toLocaleDateString()}
+                By {data.newsPost.user?.nickname || "Unknown"} • Created:{" "}
+                {new Date(data.newsPost.createdAt).toLocaleDateString()} •
+                Updated:{" "}
+                {new Date(data.newsPost.updatedAt).toLocaleDateString()}
               </Typography>
             </Box>
 
@@ -101,18 +108,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
 
             {data.newsPost.images && data.newsPost.images.length > 0 && (
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Images</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Images
+                </Typography>
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   {data.newsPost.images.map((image, index) => (
                     <SafeImage
                       key={index}
-                      src={image} 
+                      src={image}
                       alt={`News image ${index + 1}`}
-                      style={{ 
-                        maxWidth: "200px", 
-                        maxHeight: "200px", 
+                      style={{
+                        maxWidth: "200px",
+                        maxHeight: "200px",
                         objectFit: "cover",
-                        borderRadius: "8px"
+                        borderRadius: "8px",
                       }}
                     />
                   ))}
@@ -120,36 +129,50 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
               </Box>
             )}
 
-            {data.newsPost.relatedItems && data.newsPost.relatedItems.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Related Items</Typography>
-                {data.newsPost.relatedItems.map((item) => (
-                  <Box key={item.id} sx={{ p: 2, border: "1px solid #ddd", borderRadius: 1, mb: 1 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {item.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Status: {item.status} • Categories: {item.category.join(", ")}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            )}
+            {data.newsPost.relatedItems &&
+              data.newsPost.relatedItems.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Related Items
+                  </Typography>
+                  {data.newsPost.relatedItems.map((item) => (
+                    <Box
+                      key={item.id}
+                      sx={{
+                        p: 2,
+                        border: "1px solid #ddd",
+                        borderRadius: 1,
+                        mb: 1,
+                      }}
+                    >
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        {item.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Status: {item.status} • Categories:{" "}
+                        {item.category.join(", ")}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
 
             {data.newsPost.tags && data.newsPost.tags.length > 0 && (
               <Box>
-                <Typography variant="h6" gutterBottom>Tags</Typography>
+                <Typography variant="h6" gutterBottom>
+                  Tags
+                </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                   {data.newsPost.tags.map((tag, index) => (
-                    <Typography 
+                    <Typography
                       key={index}
-                      variant="body2" 
-                      sx={{ 
-                        bgcolor: "primary.main", 
-                        color: "white", 
-                        px: 2, 
-                        py: 1, 
-                        borderRadius: 2 
+                      variant="body2"
+                      sx={{
+                        bgcolor: "primary.main",
+                        color: "white",
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
                       }}
                     >
                       {tag}
@@ -161,7 +184,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
           </Box>
         )}
       </DialogContent>
-      
+
       <DialogActions>
         <Button onClick={onClose} variant="contained">
           Close

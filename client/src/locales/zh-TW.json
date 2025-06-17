@@ -1,0 +1,49 @@
+{
+  "app": {
+    "title": "無大台香港典藏館"
+  },
+  "auth": {
+    "signIn": "登入",
+    "signUp": "註冊",
+    "signOut": "登出",
+    "email": "電子郵件",
+    "password": "密碼",
+    "forgotPassword": "忘記密碼？",
+    "resetPassword": "重設密碼",
+    "sendResetEmail": "發送重設郵件",
+    "cancel": "取消",
+    "submit": "提交"
+  },
+  "navigation": {
+    "home": "首頁",
+    "news": "新聞",
+    "viewNews": "查看新聞",
+    "viewAllNews": "查看所有新聞",
+    "allNews": "所有新聞"
+  },
+  "home": {
+    "welcome": "歡迎，{{nickname}}",
+    "displayNearbyItems": "顯示附近物品",
+    "itemsWithinRadius": "10公里內的物品",
+    "createUserPrompt": "請建立您的用戶檔案"
+  },
+  "common": {
+    "loading": "載入中...",
+    "error": "錯誤：{{message}}",
+    "back": "返回",
+    "close": "關閉",
+    "language": "語言"
+  },
+  "news": {
+    "title": "新聞",
+    "content": "內容",
+    "author": "作者",
+    "publishedAt": "發佈時間",
+    "viewAll": "查看所有新聞",
+    "create": "創建新聞"
+  },
+  "languages": {
+    "en": "English",
+    "zh-TW": "繁體中文"
+  }
+}

@@ -12,30 +12,47 @@ import {
   CircularProgress,
   Alert,
   IconButton,
-  Grid
+  Grid,
 } from "@mui/material";
 import { CloudUpload, Delete, PhotoCamera } from "@mui/icons-material";
-import { CreateNewsPostMutation, CreateNewsPostMutationVariables } from "../generated/graphql";
+import {
+  CreateNewsPostMutation,
+  CreateNewsPostMutationVariables,
+} from "../generated/graphql";
+import { useTranslation } from "react-i18next";
+import { t } from "i18next";
 
 const CREATE_NEWS_MUTATION = gql`
-mutation CreateNewsPost($title: String!, $content: String!, $images: [String!], $relatedItemIds: [ID!], $tags: [String!]) {
-  createNewsPost(title: $title, content: $content, images: $images, relatedItemIds: $relatedItemIds, tags: $tags) {
-    content
-    createdAt
-    id
-    images
-    isVisible
-    relatedItems {
+  mutation CreateNewsPost(
+    $title: String!
+    $content: String!
+    $images: [String!]
+    $relatedItemIds: [ID!]
+    $tags: [String!]
+  ) {
+    createNewsPost(
+      title: $title
+      content: $content
+      images: $images
+      relatedItemIds: $relatedItemIds
+      tags: $tags
+    ) {
+      content
+      createdAt
       id
-      description
-      name
-      ownerId
+      images
+      isVisible
+      relatedItems {
+        id
+        description
+        name
+        ownerId
+      }
+      tags
+      title
     }
-    tags
-    title
   }
-}
-`
+`;
 
 interface NewsFormProps {
   onNewsCreated?: (data: CreateNewsPostMutation) => void;
@@ -84,22 +101,24 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
+      reader.onerror = (error) => reject(error);
     });
   };
 
   // Handle file selection
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (!files) return;
 
     const newImages: ImagePreview[] = [];
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      
+
       // Validate file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setFormError(`File ${file.name} is not an image`);
         continue;
       }
@@ -113,25 +132,25 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
       try {
         const base64 = await fileToBase64(file);
         const url = URL.createObjectURL(file);
-        
+
         newImages.push({
           file,
           url,
-          base64
+          base64,
         });
       } catch (error) {
         setFormError(`Error processing file ${file.name}`);
       }
     }
 
-    setImageFiles(prev => [...prev, ...newImages]);
+    setImageFiles((prev) => [...prev, ...newImages]);
     // Clear the input value so the same file can be selected again
-    event.target.value = '';
+    event.target.value = "";
   };
 
   // Remove image from preview
   const handleRemoveImage = (index: number) => {
-    setImageFiles(prev => {
+    setImageFiles((prev) => {
       const newFiles = [...prev];
       // Revoke the object URL to free memory
       URL.revokeObjectURL(newFiles[index].url);
@@ -145,37 +164,36 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
     // This is a placeholder function. You'll need to implement actual upload logic
     // depending on your backend (e.g., upload to AWS S3, Firebase Storage, etc.)
     // TODO: Implement your upload logic here
-    
+
     const uploadedUrls: string[] = [];
-    
+
     for (const image of images) {
       try {
         // Example: Upload to your backend
         const formData = new FormData();
-        formData.append('image', image.file);
-        
+        formData.append("image", image.file);
+
         // Replace this with your actual upload endpoint
-        const response = await fetch('/api/upload-image', {
-          method: 'POST',
+        const response = await fetch("/api/upload-image", {
+          method: "POST",
           body: formData,
         });
-        
+
         if (!response.ok) {
-          throw new Error('Upload failed');
+          throw new Error("Upload failed");
         }
-        
+
         const result = await response.json();
         uploadedUrls.push(result.url);
-        
+
         // Alternative: For demo purposes, you could use the base64 data
         // uploadedUrls.push(image.base64);
-        
       } catch (error) {
-        console.error('Upload error:', error);
+        console.error("Upload error:", error);
         throw new Error(`Failed to upload ${image.file.name}`);
       }
     }
-    
+
     return uploadedUrls;
   };
 
@@ -200,15 +218,21 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
 
     try {
       setUploadProgress(true);
-      
+
       // Upload images and get URLs
       let imageUrls: string[] = [];
       if (imageFiles.length > 0) {
         imageUrls = await uploadImages(imageFiles);
       }
 
-      const relatedItemIdsArray = relatedItemIds.split(',').map(id => id.trim()).filter(id => id);
-      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      const relatedItemIdsArray = relatedItemIds
+        .split(",")
+        .map((id) => id.trim())
+        .filter((id) => id);
+      const tagsArray = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag);
 
       const result = await createNewsPost({
         variables: {
@@ -219,7 +243,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
           tags: tagsArray,
         },
       });
-      
+
       if (result.data && onNewsCreated) {
         onNewsCreated(result.data);
       }
@@ -241,21 +265,25 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
   // Cleanup object URLs when component unmounts
   useEffect(() => {
     return () => {
-      imageFiles.forEach(image => URL.revokeObjectURL(image.url));
+      imageFiles.forEach((image) => URL.revokeObjectURL(image.url));
     };
   }, []);
 
   return (
     <Box>
       <Button variant="contained" onClick={handleClickOpen}>
-        Create News Post
+        {t("news.create")}
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle>Create New News Post</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
-            {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
-            
+            {formError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {formError}
+              </Alert>
+            )}
+
             <TextField
               autoFocus
               margin="dense"
@@ -269,7 +297,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               required
               error={formError?.includes("Title")}
             />
-            
+
             <TextField
               margin="dense"
               id="content"
@@ -290,7 +318,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               <Typography variant="subtitle1" gutterBottom>
                 Images
               </Typography>
-              
+
               {/* Upload Button */}
               <Button
                 variant="outlined"
@@ -312,29 +340,29 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               {imageFiles.length > 0 && (
                 <Grid container spacing={2}>
                   {imageFiles.map((image, index) => (
-                    <Grid size={{xs: 6,  sm: 4,  md: 3}} key={index}>
-                      <Box sx={{ position: 'relative' }}>
+                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={index}>
+                      <Box sx={{ position: "relative" }}>
                         <img
                           src={image.url}
                           alt={`Preview ${index + 1}`}
                           style={{
-                            width: '100%',
-                            height: '120px',
-                            objectFit: 'cover',
-                            borderRadius: '8px',
-                            border: '1px solid #ddd'
+                            width: "100%",
+                            height: "120px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                            border: "1px solid #ddd",
                           }}
                         />
                         <IconButton
                           sx={{
-                            position: 'absolute',
+                            position: "absolute",
                             top: 4,
                             right: 4,
-                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                            '&:hover': {
-                              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            backgroundColor: "rgba(255, 255, 255, 0.8)",
+                            "&:hover": {
+                              backgroundColor: "rgba(255, 255, 255, 0.9)",
                             },
-                            size: 'small'
+                            size: "small",
                           }}
                           onClick={() => handleRemoveImage(index)}
                         >
@@ -343,18 +371,18 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
                         <Typography
                           variant="caption"
                           sx={{
-                            position: 'absolute',
+                            position: "absolute",
                             bottom: 4,
                             left: 4,
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            color: 'white',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '0.7rem'
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                            color: "white",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                            fontSize: "0.7rem",
                           }}
                         >
-                          {image.file.name.length > 15 
-                            ? `${image.file.name.substring(0, 12)}...` 
+                          {image.file.name.length > 15
+                            ? `${image.file.name.substring(0, 12)}...`
                             : image.file.name}
                         </Typography>
                       </Box>
@@ -375,7 +403,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               onChange={(e) => setRelatedItemIds(e.target.value)}
               helperText="e.g., itemID1,itemID2"
             />
-            
+
             <TextField
               margin="dense"
               id="tags"
@@ -388,18 +416,22 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               helperText="e.g., announcement,update"
             />
           </DialogContent>
-          
-          <DialogActions sx={{ padding: '16px 24px' }}>
-            <Button onClick={handleClose} color="secondary">Cancel</Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              disabled={loading || uploadProgress || !title.trim() || !content.trim()}
+
+          <DialogActions sx={{ padding: "16px 24px" }}>
+            <Button onClick={handleClose} color="secondary">
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={
+                loading || uploadProgress || !title.trim() || !content.trim()
+              }
             >
               {loading || uploadProgress ? (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
                   <CircularProgress size={20} sx={{ mr: 1 }} />
-                  {uploadProgress ? 'Uploading...' : 'Creating...'}
+                  {uploadProgress ? "Uploading..." : "Creating..."}
                 </Box>
               ) : (
                 "Create Post"

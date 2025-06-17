@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import { Box, Typography, List, IconButton } from "@mui/material";
-import { useQuery, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { ArrowBack } from "@mui/icons-material";
-import { useNewsRecentPostsQuery, NewsRecentPostsQueryVariables, User, Role } from "../generated/graphql";
+import {
+  useNewsRecentPostsQuery,
+  NewsRecentPostsQueryVariables,
+  User,
+  Role,
+} from "../generated/graphql";
 import { CreateNewsPostMutation } from "../generated/graphql";
 import NewsForm from "./NewsForm";
 import NewsSummary from "./NewsSummary";
-import NewsDetail from "./NewsDetail";
 import { useNavigate } from "react-router";
 
 const NEWS_RECENT_QUERY = gql`
@@ -26,14 +30,18 @@ interface RecentNewsPageProps {
   onNewsCreated: (data: CreateNewsPostMutation) => void;
 }
 
-const RecentNewsPage: React.FC<RecentNewsPageProps> = ({ 
-  user, 
-  onBack, 
-  onNewsCreated 
+const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
+  user,
+  onBack,
+  onNewsCreated,
 }) => {
   const navigate = useNavigate();
   const { data, loading, error, refetch } = useNewsRecentPostsQuery({
-    variables: { tags: ["Testing"], limit: 20, offset: 0 } as NewsRecentPostsQueryVariables,
+    variables: {
+      tags: ["Testing"],
+      limit: 20,
+      offset: 0,
+    } as NewsRecentPostsQueryVariables,
   });
 
   const handleNewsCreated = (data: CreateNewsPostMutation) => {
@@ -47,7 +55,6 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
     navigate(`/news/${newsId}`);
   };
 
-
   return (
     <Box>
       {/* Header with back button */}
@@ -58,34 +65,35 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
         <Typography variant="h5" sx={{ flexGrow: 1 }}>
           All News
         </Typography>
-        {user?.role === Role.Admin && <NewsForm onNewsCreated={handleNewsCreated} />}
+        {user?.role === Role.Admin && (
+          <NewsForm onNewsCreated={handleNewsCreated} />
+        )}
       </Box>
 
       {/* All news list */}
       {data && (
         <List>
           {data.newsRecentPosts.map((news) => (
-            <NewsSummary 
+            <NewsSummary
               key={news.id}
-              news={news} 
+              news={news}
               onClick={handleNewsItemClick}
             />
           ))}
         </List>
       )}
-      
+
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
           <Typography>Loading all news...</Typography>
         </Box>
       )}
-      
+
       {error && (
         <Box sx={{ p: 2 }}>
           <Typography color="error">Error: {error.message}</Typography>
         </Box>
       )}
-
     </Box>
   );
 };

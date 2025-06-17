@@ -5,9 +5,9 @@ import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User, Item } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import Map from "../components/Map";
-import { Link } from "react-router";
 import { useOutletContext } from "react-router-dom";
 import CreateUser from "../components/UserProfile";
+import { useTranslation } from "react-i18next";
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -29,33 +29,15 @@ const ITEMS_QUERY = gql`
   }
 `;
 
-const ME_QUERY = gql`
-  query Me {
-    me {
-      address
-      createdAt
-      email
-      id
-      isVerified
-      isActive
-      role
-      nickname
-      location {
-        latitude
-        longitude
-      }
-    }
-  }
-`;
-
 interface OutletContext {
   email?: string | undefined | null;
   user?: User;
 }
 
 const HomePage: React.FC = () => {
-  const { user } = useOutletContext<OutletContext>();
-  const { email } = useOutletContext<OutletContext>();
+  const { t } = useTranslation();
+  const { user, email } = useOutletContext<OutletContext>();
+
   const [location, setLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -96,8 +78,6 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const [userFormOpen, setUserFormOpen] = useState(false);
-
   const signOut = async () => {
     await auth.signOut();
   };
@@ -105,35 +85,35 @@ const HomePage: React.FC = () => {
   return (
     <Box p={2}>
       <List>
-        {/* {user && ( */}
         <ListItem>
           {user ? (
             <>
-              <Typography>Welcome, {user.nickname}</Typography>
-              <Button onClick={signOut}>Sign Out</Button>
+              <Typography>
+                {t("home.welcome", { nickname: user.nickname })}
+              </Typography>
+              <Button onClick={signOut}>{t("auth.signOut")}</Button>
             </>
           ) : (
             email && (
               <>
                 <CreateUser onUserCreated={() => {}} />
-                <Button onClick={signOut}>Sign Out</Button>
+                <Button onClick={signOut}>{t("auth.signOut")}</Button>
               </>
             )
           )}
         </ListItem>
-        {/* )} */}
         <ListItem>
           <RecentNewsBanner user={user} />
         </ListItem>
         <ListItem>
           <Button variant="contained" onClick={getLocation}>
-            Display nearby items
+            {t("home.displayNearbyItems")}
           </Button>
           {location && (
             <>
               <Map
                 open={maplocation != null}
-                closeEvent={(event, reason) => setMapLocation(null)}
+                closeEvent={() => setMapLocation(null)}
                 location={maplocation}
               />
             </>
@@ -141,7 +121,7 @@ const HomePage: React.FC = () => {
         </ListItem>
         {itemsByLocationOutput.data && (
           <Box mt={2}>
-            <Typography variant="h6">Items within 10km</Typography>
+            <Typography variant="h6">{t("home.itemsWithinRadius")}</Typography>
             <List>
               {itemsByLocationOutput.data.itemsByLocation.map((item) => (
                 <ListItem key={item.id}>
@@ -151,11 +131,15 @@ const HomePage: React.FC = () => {
             </List>
           </Box>
         )}
-        {itemsByLocationOutput.loading && <Typography>Loading...</Typography>}
+        {itemsByLocationOutput.loading && (
+          <Typography>{t("common.loading")}</Typography>
+        )}
         {itemsByLocationOutput.error && (
           <ListItem>
             <Typography>
-              Error: {itemsByLocationOutput.error.message}
+              {t("common.error", {
+                message: itemsByLocationOutput.error.message,
+              })}
             </Typography>
           </ListItem>
         )}

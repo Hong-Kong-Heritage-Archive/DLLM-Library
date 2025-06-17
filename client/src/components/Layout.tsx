@@ -1,6 +1,8 @@
 import React from "react";
 import { Outlet } from "react-router";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, AppBar, Toolbar } from "@mui/material";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "./LanguageSwitcher";
 import { User } from "../generated/graphql";
 
 interface LayoutProps {
@@ -9,10 +11,21 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ email, user }) => {
+  const { t } = useTranslation();
+
   return (
-    <Box p={4}>
-      <Typography variant="h4">無大台香港典藏館</Typography>
-      <Outlet context={{ email, user }} />
+    <Box>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            {t("app.title")}
+          </Typography>
+          <LanguageSwitcher />
+        </Toolbar>
+      </AppBar>
+      <Box p={4}>
+        <Outlet context={{ email, user }} />
+      </Box>
     </Box>
   );
 };

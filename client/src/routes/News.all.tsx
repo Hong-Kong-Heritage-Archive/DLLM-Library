@@ -1,9 +1,9 @@
 import React from "react";
-import { User, Role } from "../generated/graphql";
+import { User } from "../generated/graphql";
 import { CreateNewsPostMutation } from "../generated/graphql";
 import RecentNewsPage from "../components/RecentNewsPage";
 import { useNavigate } from "react-router";
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext } from "react-router-dom";
 
 interface OutletContext {
   user?: User;
@@ -18,11 +18,11 @@ const AllNewsPage: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/');
+    navigate("/");
   };
 
   return (
-    <RecentNewsPage 
+    <RecentNewsPage
       user={user}
       onBack={handleBack}
       onNewsCreated={handleNewsCreated}

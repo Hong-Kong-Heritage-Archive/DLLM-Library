@@ -3,13 +3,10 @@ import { auth } from "./firebase";
 import {
   Button,
   Box,
-  Typography,
   TextField,
   Dialog,
   DialogTitle,
   DialogContent,
-  Container,
-  ListItem,
 } from "@mui/material";
 import {
   User as fireUser,
@@ -19,14 +16,17 @@ import {
 } from "firebase/auth";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { ApolloProvider } from "@apollo/client";
-
+import { RouterProvider } from "react-router";
+import { useTranslation } from "react-i18next";
 import client from "./apollo";
 import App from "./App";
+
 // Adds messages only in a dev environment
 loadDevMessages();
 loadErrorMessages();
 
 const BaseApp: React.FC = () => {
+  const { t } = useTranslation();
   const [user, setUser] = useState<fireUser | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,9 +50,10 @@ const BaseApp: React.FC = () => {
     if (email && password) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
+        console.log("Signed in successfully");
         setShowSignInForm(false);
       } catch (error) {
-        alert("Error signing in:" + error);
+        alert(t("common.error", { message: error }));
       }
     }
   };
@@ -62,9 +63,10 @@ const BaseApp: React.FC = () => {
     if (email && password) {
       try {
         await createUserWithEmailAndPassword(auth, email, password);
+        console.log("Account created successfully");
         setShowSignUpForm(false);
       } catch (error) {
-        alert("Error creating account:" + error);
+        alert(t("common.error", { message: error }));
       }
     }
   };
@@ -77,43 +79,33 @@ const BaseApp: React.FC = () => {
         alert("Password reset email sent!");
         setShowResetForm(false);
       } catch (error) {
-        alert("Error sending reset email: " + error);
+        alert(t("common.error", { message: error }));
       }
     }
   };
 
-  const handleShowForm = (form: "signIn" | "signUp" | "reset") => {
-    setShowSignInForm(form === "signIn");
-    setShowSignUpForm(form === "signUp");
-    setShowResetForm(form === "reset");
-    if (form === "signIn" || form === "signUp") {
-      setEmail("");
-      setPassword("");
-    }
-    if (form === "reset") {
-      setResetEmail("");
-    }
-  };
-
-  const handleShowSignIn = () => handleShowForm("signIn");
-  const handleShowSignUp = () => handleShowForm("signUp");
-  const handleShowReset = () => handleShowForm("reset");
-
   return (
     <Box p={4}>
-      {/* <Typography variant="h4" mb={2}>無大台香港典藏館</Typography> */}
       {!user && (
         <>
-          <Box mb={2}>
+          <Box sx={{ display: "flex", gap: 2, mb: 4 }}>
             <Button
               variant="outlined"
-              sx={{ mr: 1 }}
-              onClick={handleShowSignUp}
+              onClick={() => {
+                setShowSignUpForm(true);
+                setShowSignInForm(false);
+              }}
             >
-              Sign up
+              {t("auth.signUp")}
             </Button>
-            <Button variant="outlined" onClick={handleShowSignIn}>
-              Sign In
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setShowSignInForm(true);
+                setShowSignUpForm(false);
+              }}
+            >
+              {t("auth.signIn")}
             </Button>
           </Box>
           {/* Sign In Dialog */}
@@ -126,39 +118,44 @@ const BaseApp: React.FC = () => {
             </DialogTitle>
             <form onSubmit={signInSubmit}>
               <DialogContent>
+                {" "}
                 <TextField
-                  label="Email"
+                  label={t("auth.email")}
                   type="email"
                   fullWidth
                   margin="normal"
                   required
                   value={email}
-                  onChange={handleInputChange(setEmail)}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
                 <TextField
-                  label="Password"
+                  label={t("auth.password")}
                   type="password"
                   fullWidth
                   margin="normal"
                   required
                   value={password}
-                  onChange={handleInputChange(setPassword)}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <Button
                   type="submit"
-                  variant="contained"
                   fullWidth
+                  variant="contained"
                   sx={{ mt: 2 }}
                 >
-                  Sign In
+                  {t("auth.submit")}
                 </Button>
                 <Button
-                  onClick={handleShowReset}
-                  color="secondary"
                   fullWidth
-                  sx={{ mt: 1 }}
+                  variant="text"
+                  sx={{ mt: 2 }}
+                  onClick={() => {
+                    setShowSignInForm(false);
+                    setShowSignUpForm(false);
+                    setShowResetForm(true);
+                  }}
                 >
-                  Forgot Password?
+                  {t("auth.forgotPassword")}
                 </Button>
               </DialogContent>
             </form>
@@ -173,64 +170,67 @@ const BaseApp: React.FC = () => {
             </DialogTitle>
             <form onSubmit={signUpSubmit}>
               <DialogContent>
+                {" "}
                 <TextField
-                  label="Email"
+                  label={t("auth.email")}
                   type="email"
                   fullWidth
                   margin="normal"
                   required
                   value={email}
-                  onChange={handleInputChange(setEmail)}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
                 <TextField
-                  label="Password"
+                  label={t("auth.password")}
                   type="password"
                   fullWidth
                   margin="normal"
                   required
                   value={password}
-                  onChange={handleInputChange(setPassword)}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <Button
                   type="submit"
-                  variant="contained"
                   fullWidth
+                  variant="contained"
                   sx={{ mt: 2 }}
                 >
-                  Submit
+                  {t("auth.signUp")}
                 </Button>
               </DialogContent>
             </form>
           </Dialog>
           {/* Reset Password Dialog */}
+
           <Dialog open={showResetForm} onClose={() => setShowResetForm(false)}>
             <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
-              Reset Password
+              {t("auth.resetPassword")}
             </DialogTitle>
-            <form onSubmit={handleResetPassword}>
+            <form onSubmit={handleResetPassword} style={{ width: "100%" }}>
               <DialogContent>
                 <TextField
-                  label="Email"
+                  label={t("auth.email")}
                   type="email"
                   fullWidth
                   margin="normal"
                   required
                   value={resetEmail}
-                  onChange={handleInputChange(setResetEmail)}
+                  onChange={(e) => setResetEmail(e.target.value)}
                 />
                 <Button
                   type="submit"
-                  variant="contained"
                   fullWidth
+                  variant="contained"
                   sx={{ mt: 2 }}
                 >
-                  Send
+                  {t("auth.sendResetEmail")}
                 </Button>
               </DialogContent>
             </form>
           </Dialog>
         </>
       )}
+
       <ApolloProvider client={client}>
         <App user={user} />
       </ApolloProvider>

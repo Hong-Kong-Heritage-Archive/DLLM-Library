@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import {
   Button,
@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
   Box,
-  Typography,
   CircularProgress,
   Alert,
 } from "@mui/material";

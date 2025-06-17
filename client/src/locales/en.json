@@ -1,0 +1,49 @@
+{
+  "app": {
+    "title": "Hong Kong Decentralized Archive"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "sendResetEmail": "Send Reset Email",
+    "cancel": "Cancel",
+    "submit": "Submit"
+  },
+  "navigation": {
+    "home": "Home",
+    "news": "News",
+    "viewNews": "View News",
+    "viewAllNews": "View All News",
+    "allNews": "All News"
+  },
+  "home": {
+    "welcome": "Welcome, {{nickname}}",
+    "displayNearbyItems": "Display nearby items",
+    "itemsWithinRadius": "Items within 10km",
+    "createUserPrompt": "Please create your user profile"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error: {{message}}",
+    "back": "Back",
+    "close": "Close",
+    "language": "Language"
+  },
+  "news": {
+    "title": "News",
+    "content": "Content",
+    "author": "Author",
+    "publishedAt": "Published At",
+    "create": "Create News",
+    "viewAll": "View All News"
+  },
+  "languages": {
+    "en": "English",
+    "zh-TW": "繁體中文"
+  }
+}
