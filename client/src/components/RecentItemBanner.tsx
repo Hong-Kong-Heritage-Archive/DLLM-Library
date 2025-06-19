@@ -362,6 +362,7 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
         itemId={selectedItemId}
         open={!!selectedItemId}
         onClose={handleCloseDialog}
+        user={user}
       />
     </>
   );

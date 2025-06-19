@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { gql, useQuery } from "@apollo/client";
-import { Item } from "../generated/graphql";
+import { Item, User } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import SafeImage from "./SafeImage";
 
@@ -41,15 +41,23 @@ interface ItemDetailProps {
   itemId: string | null;
   open: boolean;
   onClose: () => void;
+  user?: User | null; // Assuming user is passed for potential future use
 }
 
-const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, open, onClose }) => {
+const ItemDetail: React.FC<ItemDetailProps> = ({
+  itemId,
+  open,
+  onClose,
+  user,
+}) => {
   const { t } = useTranslation();
 
   const { data, loading, error } = useQuery<{ item: Item }>(ITEM_DETAIL_QUERY, {
     variables: { itemId: itemId! },
     skip: !itemId,
   });
+
+  const isOwner = user && data?.item.ownerId === user.id;
 
   return (
     <Dialog
@@ -69,7 +77,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, open, onClose }) => {
         }}
       >
         <Typography variant="h5">
-          {t("item.details", "item Details")}
+          {t("item.details", "item Details")} isOwner: {isOwner ? "Yes" : "No"}
         </Typography>
         <IconButton onClick={onClose}>
           <Close />
