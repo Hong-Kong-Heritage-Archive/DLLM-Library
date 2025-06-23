@@ -15,6 +15,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Date: { input: any; output: any; }
 };
 
 export type ContactMethod = {
@@ -34,7 +35,7 @@ export type Item = {
   __typename?: 'Item';
   category: Array<Scalars['String']['output']>;
   condition: ItemCondition;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
@@ -45,6 +46,7 @@ export type Item = {
   publishedYear?: Maybe<Scalars['Int']['output']>;
   status: ItemStatus;
   transactions?: Maybe<Array<Transaction>>;
+  updatedAt: Scalars['Date']['output'];
 };
 
 export enum ItemCondition {
@@ -88,6 +90,7 @@ export type Mutation = {
   createUser: User;
   deleteItem: Scalars['Boolean']['output'];
   deleteUser: Scalars['Boolean']['output'];
+  generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
   updateItem: Item;
   updateNewsPost: NewsPost;
@@ -145,6 +148,13 @@ export type MutationDeleteUserArgs = {
 };
 
 
+export type MutationGenerateSignedUrlArgs = {
+  contentType: Scalars['String']['input'];
+  fileName: Scalars['String']['input'];
+  folder?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationHideNewsPostArgs = {
   id: Scalars['ID']['input'];
 };
@@ -187,14 +197,14 @@ export type MutationUpdateUserArgs = {
 export type NewsPost = {
   __typename?: 'NewsPost';
   content: Scalars['String']['output'];
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
   isVisible: Scalars['Boolean']['output'];
   relatedItems?: Maybe<Array<Item>>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
+  updatedAt: Scalars['Date']['output'];
   user: User;
 };
 
@@ -306,14 +316,21 @@ export enum Role {
   User = 'USER'
 }
 
+export type SignedUrlResponse = {
+  __typename?: 'SignedUrlResponse';
+  expires: Scalars['Float']['output'];
+  gsUrl: Scalars['String']['output'];
+  signedUrl: Scalars['String']['output'];
+};
+
 export type Transaction = {
   __typename?: 'Transaction';
   borrower?: Maybe<User>;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   item: Item;
   status: TransactionStatus;
-  updatedAt: Scalars['String']['output'];
+  updatedAt: Scalars['Date']['output'];
 };
 
 export enum TransactionStatus {
@@ -327,7 +344,7 @@ export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
   contactMethods?: Maybe<Array<ContactMethod>>;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
@@ -340,21 +357,21 @@ export type User = {
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: string, email: string, id: string, isVerified: boolean, isActive: boolean, role: Role, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', address?: string | null, createdAt: any, email: string, id: string, isVerified: boolean, isActive: boolean, role: Role, nickname?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
 
 export type ItemQueryVariables = Exact<{
   itemId: Scalars['ID']['input'];
 }>;
 
 
-export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: string, ownerId: string } | null };
+export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string } | null };
 
 export type NewsPostQueryVariables = Exact<{
   newsPostId: Scalars['ID']['input'];
 }>;
 
 
-export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: string, updatedAt: string, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, status: ItemStatus }> | null, user: { __typename?: 'User', id: string, nickname?: string | null } } | null };
+export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, status: ItemStatus }> | null, user: { __typename?: 'User', id: string, nickname?: string | null } } | null };
 
 export type CreateNewsPostMutationVariables = Exact<{
   title: Scalars['String']['input'];
@@ -365,7 +382,7 @@ export type CreateNewsPostMutationVariables = Exact<{
 }>;
 
 
-export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: string, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
+export type CreateNewsPostMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', content: string, createdAt: any, id: string, images?: Array<string> | null, isVisible: boolean, tags?: Array<string> | null, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string, description?: string | null, name: string, ownerId: string }> | null } };
 
 export type RecentAddedItemsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -374,7 +391,7 @@ export type RecentAddedItemsQueryVariables = Exact<{
 }>;
 
 
-export type RecentAddedItemsQuery = { __typename?: 'Query', recentAddedItems: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: string }> };
+export type RecentAddedItemsQuery = { __typename?: 'Query', recentAddedItems: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any }> };
 
 export type NewsRecentPostsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -382,7 +399,7 @@ export type NewsRecentPostsQueryVariables = Exact<{
 }>;
 
 
-export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: string, tags?: Array<string> | null }> };
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null }> };
 
 export type CreateUserMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -391,7 +408,7 @@ export type CreateUserMutationVariables = Exact<{
 }>;
 
 
-export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', id: string, email: string, address?: string | null, nickname?: string | null, createdAt: string, isActive: boolean, isVerified: boolean, role: Role } };
+export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', id: string, email: string, address?: string | null, nickname?: string | null, createdAt: any, isActive: boolean, isVerified: boolean, role: Role } };
 
 export type ItemsByLocationQueryVariables = Exact<{
   latitude: Scalars['Float']['input'];
@@ -401,6 +418,15 @@ export type ItemsByLocationQueryVariables = Exact<{
 
 
 export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, category: Array<string> }> };
+
+export type GenerateSignedUrlMutationVariables = Exact<{
+  fileName: Scalars['String']['input'];
+  contentType: Scalars['String']['input'];
+  folder?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GenerateSignedUrlMutation = { __typename?: 'Mutation', generateSignedUrl: { __typename?: 'SignedUrlResponse', signedUrl: string, gsUrl: string, expires: number } };
 
 
 export const MeDocument = gql`
@@ -798,3 +824,44 @@ export type ItemsByLocationQueryHookResult = ReturnType<typeof useItemsByLocatio
 export type ItemsByLocationLazyQueryHookResult = ReturnType<typeof useItemsByLocationLazyQuery>;
 export type ItemsByLocationSuspenseQueryHookResult = ReturnType<typeof useItemsByLocationSuspenseQuery>;
 export type ItemsByLocationQueryResult = Apollo.QueryResult<ItemsByLocationQuery, ItemsByLocationQueryVariables>;
+export const GenerateSignedUrlDocument = gql`
+    mutation GenerateSignedUrl($fileName: String!, $contentType: String!, $folder: String) {
+  generateSignedUrl(
+    fileName: $fileName
+    contentType: $contentType
+    folder: $folder
+  ) {
+    signedUrl
+    gsUrl
+    expires
+  }
+}
+    `;
+export type GenerateSignedUrlMutationFn = Apollo.MutationFunction<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>;
+
+/**
+ * __useGenerateSignedUrlMutation__
+ *
+ * To run a mutation, you first call `useGenerateSignedUrlMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateSignedUrlMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateSignedUrlMutation, { data, loading, error }] = useGenerateSignedUrlMutation({
+ *   variables: {
+ *      fileName: // value for 'fileName'
+ *      contentType: // value for 'contentType'
+ *      folder: // value for 'folder'
+ *   },
+ * });
+ */
+export function useGenerateSignedUrlMutation(baseOptions?: Apollo.MutationHookOptions<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>(GenerateSignedUrlDocument, options);
+      }
+export type GenerateSignedUrlMutationHookResult = ReturnType<typeof useGenerateSignedUrlMutation>;
+export type GenerateSignedUrlMutationResult = Apollo.MutationResult<GenerateSignedUrlMutation>;
+export type GenerateSignedUrlMutationOptions = Apollo.BaseMutationOptions<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useApolloClient } from "@apollo/client";
 import {
   Button,
   TextField,
@@ -13,14 +13,21 @@ import {
   Alert,
   IconButton,
   Grid,
+  LinearProgress,
+  Chip,
 } from "@mui/material";
-import { CloudUpload, Delete, PhotoCamera } from "@mui/icons-material";
+import { CloudUpload, Delete, PhotoCamera, Info } from "@mui/icons-material";
 import {
   CreateNewsPostMutation,
   CreateNewsPostMutationVariables,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
-import { t } from "i18next";
+import {
+  processImage,
+  batchProcessImages,
+  ProcessedImage,
+} from "../utils/ImageProcessor";
+import { GCSUploadService, UploadProgress } from "../services/UploadService";
 
 const CREATE_NEWS_MUTATION = gql`
   mutation CreateNewsPost(
@@ -56,15 +63,24 @@ const CREATE_NEWS_MUTATION = gql`
 
 interface NewsFormProps {
   onNewsCreated?: (data: CreateNewsPostMutation) => void;
+  maxImageSize?: number;
+  imageQuality?: number;
 }
 
-interface ImagePreview {
-  file: File;
-  url: string;
-  base64: string;
+interface ImagePreview extends ProcessedImage {
+  uploadProgress?: number;
+  isUploading?: boolean;
+  uploadError?: string;
+  gsUrl?: string;
 }
 
-const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
+const NewsForm: React.FC<NewsFormProps> = ({
+  onNewsCreated,
+  maxImageSize = 2000,
+  imageQuality = 0.9,
+}) => {
+  const { t } = useTranslation();
+  const apolloClient = useApolloClient();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -72,7 +88,13 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
   const [relatedItemIds, setRelatedItemIds] = useState("");
   const [tags, setTags] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(false);
+  const [isProcessingImages, setIsProcessingImages] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Initialize GCS service with Apollo Client
+  const gcsService = new GCSUploadService(apolloClient);
 
   const [createNewsPost, { data, loading, error: mutationError }] = useMutation<
     CreateNewsPostMutation,
@@ -85,116 +107,170 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
 
   const handleClose = () => {
     setOpen(false);
-    // Reset form fields and errors on close
+    // Cleanup object URLs
+    imageFiles.forEach((image) => {
+      URL.revokeObjectURL(image.url);
+    });
+    // Reset form
     setTitle("");
     setContent("");
     setImageFiles([]);
     setRelatedItemIds("");
     setTags("");
     setFormError(null);
-    setUploadProgress(false);
+    setIsProcessingImages(false);
+    setProcessingProgress(0);
+    setIsUploading(false);
+    setUploadProgress(0);
   };
 
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  // Handle file selection
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
-    const newImages: ImagePreview[] = [];
+    setFormError(null);
+    setIsProcessingImages(true);
+    setProcessingProgress(0);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    try {
+      // Validate files first
+      const validFiles: File[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
 
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        setFormError(`File ${file.name} is not an image`);
-        continue;
+        if (!file.type.startsWith("image/")) {
+          setFormError(`File ${file.name} is not an image`);
+          continue;
+        }
+
+        if (file.size > 50 * 1024 * 1024) {
+          // 50MB limit before processing
+          setFormError(`File ${file.name} is too large. Maximum size is 50MB`);
+          continue;
+        }
+
+        validFiles.push(file);
       }
 
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        setFormError(`File ${file.name} is too large. Maximum size is 5MB`);
-        continue;
+      if (validFiles.length === 0) {
+        setIsProcessingImages(false);
+        return;
       }
 
-      try {
-        const base64 = await fileToBase64(file);
-        const url = URL.createObjectURL(file);
+      // Process images
+      const processedImages = await batchProcessImages(
+        validFiles,
+        maxImageSize,
+        imageQuality,
+        (processed, total) => {
+          setProcessingProgress(Math.round((processed / total) * 100));
+        }
+      );
 
-        newImages.push({
-          file,
-          url,
-          base64,
-        });
-      } catch (error) {
-        setFormError(`Error processing file ${file.name}`);
-      }
+      // Add to preview list
+      const newImagePreviews: ImagePreview[] = processedImages.map((img) => ({
+        ...img,
+        uploadProgress: 0,
+        isUploading: false,
+      }));
+
+      setImageFiles((prev) => [...prev, ...newImagePreviews]);
+    } catch (error) {
+      console.error("Image processing error:", error);
+      setFormError(`Failed to process images: ${error}`);
+    } finally {
+      setIsProcessingImages(false);
+      setProcessingProgress(0);
     }
 
-    setImageFiles((prev) => [...prev, ...newImages]);
-    // Clear the input value so the same file can be selected again
+    // Clear input
     event.target.value = "";
   };
 
-  // Remove image from preview
   const handleRemoveImage = (index: number) => {
     setImageFiles((prev) => {
       const newFiles = [...prev];
-      // Revoke the object URL to free memory
-      URL.revokeObjectURL(newFiles[index].url);
+      const removedImage = newFiles[index];
+
+      // Cleanup object URLs
+      URL.revokeObjectURL(removedImage.url);
+
       newFiles.splice(index, 1);
       return newFiles;
     });
   };
 
-  // Upload images to your server/cloud storage
   const uploadImages = async (images: ImagePreview[]): Promise<string[]> => {
-    // This is a placeholder function. You'll need to implement actual upload logic
-    // depending on your backend (e.g., upload to AWS S3, Firebase Storage, etc.)
-    // TODO: Implement your upload logic here
+    const totalFiles = images.length;
+    const uploadedGsUrls: string[] = [];
 
-    const uploadedUrls: string[] = [];
+    try {
+      const filesToUpload = images.map((img) => img.file);
 
-    for (const image of images) {
-      try {
-        // Example: Upload to your backend
-        const formData = new FormData();
-        formData.append("image", image.file);
+      const gsUrls = await gcsService.batchUploadToGCS(
+        filesToUpload,
+        "news",
+        (fileIndex: number, progress: UploadProgress) => {
+          // Update individual file progress
+          setImageFiles((prev) =>
+            prev.map((img, idx) =>
+              idx === fileIndex
+                ? {
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
+                : img
+            )
+          );
 
-        // Replace this with your actual upload endpoint
-        const response = await fetch("/api/upload-image", {
-          method: "POST",
-          body: formData,
-        });
+          // Update overall progress
+          const overallProgress = Math.round(
+            ((fileIndex + progress.percentage / 100) / totalFiles) * 100
+          );
+          setUploadProgress(overallProgress);
+        },
+        (fileIndex: number, gsUrl: string) => {
+          // Mark file as completed
+          setImageFiles((prev) =>
+            prev.map((img, idx) =>
+              idx === fileIndex
+                ? {
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
+                : img
+            )
+          );
 
-        if (!response.ok) {
-          throw new Error("Upload failed");
+          uploadedGsUrls[fileIndex] = gsUrl;
+          console.log(`File ${fileIndex + 1}/${totalFiles} uploaded: ${gsUrl}`);
         }
+      );
 
-        const result = await response.json();
-        uploadedUrls.push(result.url);
+      return gsUrls;
+    } catch (error) {
+      console.error("Batch upload error:", error);
 
-        // Alternative: For demo purposes, you could use the base64 data
-        // uploadedUrls.push(image.base64);
-      } catch (error) {
-        console.error("Upload error:", error);
-        throw new Error(`Failed to upload ${image.file.name}`);
-      }
+      // Mark failed uploads
+      setImageFiles((prev) =>
+        prev.map((img, _) =>
+          !img.gsUrl
+            ? {
+                ...img,
+                isUploading: false,
+                uploadError: `Upload failed: ${error}`,
+              }
+            : img
+        )
+      );
+
+      throw error;
     }
-
-    return uploadedUrls;
   };
 
   const validateForm = () => {
@@ -217,12 +293,14 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
     }
 
     try {
-      setUploadProgress(true);
+      setIsUploading(true);
+      setUploadProgress(0);
 
-      // Upload images and get URLs
-      let imageUrls: string[] = [];
+      // Upload images to GCS and get GS URLs
+      let gsUrls: string[] = [];
       if (imageFiles.length > 0) {
-        imageUrls = await uploadImages(imageFiles);
+        gsUrls = await uploadImages(imageFiles);
+        console.log("All images uploaded to GCS:", gsUrls);
       }
 
       const relatedItemIdsArray = relatedItemIds
@@ -234,11 +312,12 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
         .map((tag) => tag.trim())
         .filter((tag) => tag);
 
+      // Create news post with GS URLs
       const result = await createNewsPost({
         variables: {
           title,
           content,
-          images: imageUrls,
+          images: gsUrls,
           relatedItemIds: relatedItemIdsArray,
           tags: tagsArray,
         },
@@ -250,9 +329,10 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
       handleClose();
     } catch (e) {
       console.error("Submission error:", e);
-      setFormError("Failed to create news post. Please try again.");
+      setFormError(`Failed to create news post: ${e}`);
     } finally {
-      setUploadProgress(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -262,18 +342,20 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
     }
   }, [mutationError]);
 
-  // Cleanup object URLs when component unmounts
-  useEffect(() => {
-    return () => {
-      imageFiles.forEach((image) => URL.revokeObjectURL(image.url));
-    };
-  }, []);
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
 
   return (
     <Box>
       <Button variant="contained" onClick={handleClickOpen}>
         {t("news.create")}
       </Button>
+
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle>Create New News Post</DialogTitle>
         <form onSubmit={handleSubmit}>
@@ -295,7 +377,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              error={formError?.includes("Title")}
+              disabled={isProcessingImages || isUploading}
             />
 
             <TextField
@@ -310,14 +392,57 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               required
-              error={formError?.includes("Content")}
+              disabled={isProcessingImages || isUploading}
             />
 
             {/* Image Upload Section */}
             <Box sx={{ mt: 2, mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Images
+                <IconButton size="small" sx={{ ml: 1 }}>
+                  <Info fontSize="small" />
+                </IconButton>
               </Typography>
+
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Images will be automatically resized to max {maxImageSize}px and
+                converted to PNG format. Signed URLs are generated via GraphQL
+                for secure direct upload to Google Cloud Storage.
+              </Alert>
+
+              {/* Image Processing Progress */}
+              {isProcessingImages && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    Processing images...
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={processingProgress}
+                    sx={{ mt: 1 }}
+                  />
+                  <Typography variant="caption" color="textSecondary">
+                    {processingProgress}% complete
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Upload Progress */}
+              {isUploading && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    Uploading to Google Cloud Storage via GraphQL signed URLs...
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={uploadProgress}
+                    sx={{ mt: 1 }}
+                  />
+                  <Typography variant="caption" color="textSecondary">
+                    {uploadProgress}% complete
+                  </Typography>
+                </Box>
+              )}
 
               {/* Upload Button */}
               <Button
@@ -325,6 +450,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
                 component="label"
                 startIcon={<PhotoCamera />}
                 sx={{ mb: 2 }}
+                disabled={isProcessingImages || isUploading}
               >
                 Add Images
                 <input
@@ -353,6 +479,78 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
                             border: "1px solid #ddd",
                           }}
                         />
+
+                        {/* Upload Status Indicators */}
+                        {image.isUploading && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              backgroundColor: "rgba(25, 118, 210, 0.9)",
+                              color: "white",
+                              padding: "4px 8px",
+                              borderRadius: "0 0 8px 8px",
+                            }}
+                          >
+                            <LinearProgress
+                              variant="determinate"
+                              value={image.uploadProgress || 0}
+                              sx={{
+                                mb: 0.5,
+                                "& .MuiLinearProgress-bar": {
+                                  backgroundColor: "white",
+                                },
+                              }}
+                            />
+                            <Typography variant="caption">
+                              Uploading {image.uploadProgress || 0}%
+                            </Typography>
+                          </Box>
+                        )}
+
+                        {/* Success Indicator */}
+                        {image.gsUrl && !image.isUploading && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              backgroundColor: "rgba(76, 175, 80, 0.9)",
+                              color: "white",
+                              padding: "4px 8px",
+                              borderRadius: "0 0 8px 8px",
+                            }}
+                          >
+                            <Typography variant="caption">
+                              ✓ Uploaded to GCS
+                            </Typography>
+                          </Box>
+                        )}
+
+                        {/* Error Overlay */}
+                        {image.uploadError && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              backgroundColor: "rgba(244, 67, 54, 0.9)",
+                              color: "white",
+                              padding: "4px 8px",
+                              borderRadius: "0 0 8px 8px",
+                            }}
+                          >
+                            <Typography variant="caption">
+                              Upload Failed
+                            </Typography>
+                          </Box>
+                        )}
+
+                        {/* Delete Button */}
                         <IconButton
                           sx={{
                             position: "absolute",
@@ -362,29 +560,46 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
                             "&:hover": {
                               backgroundColor: "rgba(255, 255, 255, 0.9)",
                             },
-                            size: "small",
                           }}
+                          size="small"
                           onClick={() => handleRemoveImage(index)}
+                          disabled={isProcessingImages || isUploading}
                         >
                           <Delete fontSize="small" />
                         </IconButton>
-                        <Typography
-                          variant="caption"
+
+                        {/* Image Info */}
+                        <Box
                           sx={{
                             position: "absolute",
-                            bottom: 4,
+                            top: 4,
                             left: 4,
-                            backgroundColor: "rgba(0, 0, 0, 0.7)",
-                            color: "white",
-                            padding: "2px 6px",
-                            borderRadius: "4px",
-                            fontSize: "0.7rem",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 0.5,
                           }}
                         >
-                          {image.file.name.length > 15
-                            ? `${image.file.name.substring(0, 12)}...`
-                            : image.file.name}
-                        </Typography>
+                          <Chip
+                            label={`${image.width}×${image.height}`}
+                            size="small"
+                            sx={{
+                              backgroundColor: "rgba(0, 0, 0, 0.7)",
+                              color: "white",
+                              fontSize: "0.6rem",
+                              height: 16,
+                            }}
+                          />
+                          <Chip
+                            label={formatFileSize(image.size)}
+                            size="small"
+                            sx={{
+                              backgroundColor: "rgba(0, 0, 0, 0.7)",
+                              color: "white",
+                              fontSize: "0.6rem",
+                              height: 16,
+                            }}
+                          />
+                        </Box>
                       </Box>
                     </Grid>
                   ))}
@@ -402,6 +617,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               value={relatedItemIds}
               onChange={(e) => setRelatedItemIds(e.target.value)}
               helperText="e.g., itemID1,itemID2"
+              disabled={isProcessingImages || isUploading}
             />
 
             <TextField
@@ -414,24 +630,37 @@ const NewsForm: React.FC<NewsFormProps> = ({ onNewsCreated }) => {
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               helperText="e.g., announcement,update"
+              disabled={isProcessingImages || isUploading}
             />
           </DialogContent>
 
           <DialogActions sx={{ padding: "16px 24px" }}>
-            <Button onClick={handleClose} color="secondary">
+            <Button
+              onClick={handleClose}
+              color="secondary"
+              disabled={isProcessingImages || isUploading}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="contained"
               disabled={
-                loading || uploadProgress || !title.trim() || !content.trim()
+                loading ||
+                isProcessingImages ||
+                isUploading ||
+                !title.trim() ||
+                !content.trim()
               }
             >
-              {loading || uploadProgress ? (
+              {loading || isProcessingImages || isUploading ? (
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <CircularProgress size={20} sx={{ mr: 1 }} />
-                  {uploadProgress ? "Uploading..." : "Creating..."}
+                  {isProcessingImages
+                    ? "Processing..."
+                    : isUploading
+                    ? "Uploading..."
+                    : "Creating..."}
                 </Box>
               ) : (
                 "Create Post"

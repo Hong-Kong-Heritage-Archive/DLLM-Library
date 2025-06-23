@@ -1,3 +1,5 @@
+scalar Date
+
 # 基本類型定義
 enum Language {
   ZH_HK # 繁體中文
@@ -43,7 +45,7 @@ type User {
   isActive: Boolean! # 是否啟用帳號
   isVerified: Boolean! # 是否已驗證電子郵件
   contactMethods: [ContactMethod!] # 其他聯繫方式
-  createdAt: String!
+  createdAt: Date!
 }
 
 type ContactMethod {
@@ -65,7 +67,8 @@ type Item {
   publishedYear: Int # 可選出版年份
   language: Language! # 主要語言
   location: Location # 藏品所在地（繼承自擁有者）
-  createdAt: String!
+  createdAt: Date!
+  updatedAt: Date!
   transactions: [Transaction!] # 相關交易紀錄
 }
 
@@ -75,8 +78,8 @@ type NewsPost {
   content: String!
   images: [String!] # 圖片URL列表
   relatedItems: [Item!] # 相關藏品
-  createdAt: String!
-  updatedAt: String!
+  createdAt: Date!
+  updatedAt: Date!
   isVisible: Boolean! # 是否公開顯示
   user: User! # 發布者
   tags: [String!] # 標籤列表
@@ -88,8 +91,8 @@ type Transaction {
   item: Item!
   borrower: User # 借閱者（可為空，若為贈送）
   status: TransactionStatus!
-  createdAt: String!
-  updatedAt: String!
+  createdAt: Date!
+  updatedAt: Date!
 }
 
 enum TransactionStatus {
@@ -97,6 +100,12 @@ enum TransactionStatus {
   APPROVED # 已確認
   COMPLETED # 已完成
   CANCELLED # 已取消
+}
+
+type SignedUrlResponse {
+  signedUrl: String!
+  gsUrl: String!
+  expires: Float!
 }
 
 # 查詢
@@ -206,6 +215,12 @@ type Mutation {
     tags: [String!]
   ): NewsPost!
   hideNewsPost(id: ID!): Boolean!
+
+  generateSignedUrl(
+    fileName: String!
+    contentType: String!
+    folder: String
+  ): SignedUrlResponse!
 }
 
 # 輸入類型

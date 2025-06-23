@@ -1,9 +1,16 @@
-import { LoginUser } from "./platform";
+import { LoginUser, GenerateSignedUrlForUpload } from "./platform";
 import { UserService } from "./userService";
 import { ItemService } from "./itemService";
 import { NewsService } from "./newsService";
 import { createMapService } from "./mapService";
-import { Resolvers, Item, User, NewsPost, Location } from "./generated/graphql";
+import {
+  Resolvers,
+  Item,
+  User,
+  NewsPost,
+  Location,
+  SignedUrlResponse,
+} from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
 
@@ -207,6 +214,24 @@ export const resolvers: Resolvers = {
         relatedItemIds,
         tags
       );
+    },
+    generateSignedUrl: async (
+      _: any,
+      { fileName, contentType, folder }: any,
+      { loginUser }: Context
+    ): Promise<SignedUrlResponse> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const rv = await GenerateSignedUrlForUpload(
+        loginUser.uid,
+        fileName,
+        contentType,
+        folder
+      );
+      return {
+        expires: rv.expires,
+        signedUrl: rv.signedUrl,
+        gsUrl: rv.gsUrl,
+      };
     },
   },
 };

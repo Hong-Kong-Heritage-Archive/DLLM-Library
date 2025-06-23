@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:3000", "https://dllm-libray.web.app/"],
+    "method": ["GET", "HEAD", "PUT", "POST", "DELETE"],
+    "responseHeader": ["Content-Type", "Access-Control-Allow-Origin", "x-goog-*"],
+    "maxAgeSeconds": 3600
+  }
+]
