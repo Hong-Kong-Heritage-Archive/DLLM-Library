@@ -70,6 +70,37 @@ type Item {
   createdAt: Date!
   updatedAt: Date!
   transactions: [Transaction!] # 相關交易紀錄
+
+  # Keep this disabled until implementation is ready.
+  # commentsConnection( first : Int, after : ID ) : ItemCommentsConnection!
+}
+
+type ItemComment {
+    content : String
+    # Connection for getting replies.
+    repliesConnection( first : Int, after : ID ) : ItemCommentsConnection!
+}
+
+# Connection object for item comments for pagination.
+type ItemCommentsConnection {
+  # Total number of comments in this "Page"
+  totalCount : Int
+  edges : [ItemCommentEdge]
+  comments : [ItemComment]
+  pageInfo : ItemCommentPageInfo
+}
+
+type ItemCommentEdge {
+  # A cursor used for pagination
+  cursor : ID!
+  # Comment represented by this edge.
+  comment : ItemComment
+}
+
+type ItemCommentPageInfo {
+  startCursor : ID!
+  endCursor   : ID!  
+  hasNextPage : Boolean!
 }
 
 type NewsPost {
