@@ -233,10 +233,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                  ...img,
-                  isUploading: true,
-                  uploadProgress: progress.percentage,
-                }
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                 : img
             )
           );
@@ -253,11 +253,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                  ...img,
-                  isUploading: false,
-                  uploadProgress: 100,
-                  gsUrl: gsUrl,
-                }
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                 : img
             )
           );
@@ -276,10 +276,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         prev.map((img, _) =>
           !img.gsUrl
             ? {
-              ...img,
-              isUploading: false,
-              uploadError: `Upload failed: ${error}`,
-            }
+                ...img,
+                isUploading: false,
+                uploadError: `Upload failed: ${error}`,
+              }
             : img
         )
       );
@@ -311,7 +311,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
       // Build variables object with required fields
       const variables: CreateItemMutationVariables = {
         name,
-        category: category.split(",").map((c) => c.trim()).filter(Boolean),
+        category: category
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
         condition,
         language,
         status,
@@ -326,7 +329,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         variables.images = uploadedImageUrls;
       }
 
-      if (publishedYear && publishedYear !== "") {
+      if (publishedYear !== "") {
         variables.publishedYear = Number(publishedYear);
       }
 
@@ -424,7 +427,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
 
               {isProcessingImages && (
                 <Box sx={{ mb: 2 }}>
-                  <LinearProgress variant="determinate" value={processingProgress} />
+                  <LinearProgress
+                    variant="determinate"
+                    value={processingProgress}
+                  />
                   <Box sx={{ textAlign: "center", mt: 1 }}>
                     Processing images... {processingProgress}%
                   </Box>
@@ -433,7 +439,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
 
               {isUploading && (
                 <Box sx={{ mb: 2 }}>
-                  <LinearProgress variant="determinate" value={uploadProgress} />
+                  <LinearProgress
+                    variant="determinate"
+                    value={uploadProgress}
+                  />
                   <Box sx={{ textAlign: "center", mt: 1 }}>
                     Uploading images... {uploadProgress}%
                   </Box>
@@ -443,7 +452,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               {imageFiles.length > 0 && (
                 <Grid container spacing={2} sx={{ mt: 1 }}>
                   {imageFiles.map((image, index) => (
-                    <Grid item xs={6} sm={4} md={3} key={index}>
+                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={index}>
                       <Card>
                         <CardMedia
                           component="img"
@@ -460,7 +469,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                             />
                           )}
                           {image.uploadError && (
-                            <Alert severity="error" sx={{ mb: 1, fontSize: '0.75rem' }}>
+                            <Alert
+                              severity="error"
+                              sx={{ mb: 1, fontSize: "0.75rem" }}
+                            >
                               {image.uploadError}
                             </Alert>
                           )}
@@ -541,10 +553,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               {isProcessingImages
                 ? "Processing Images..."
                 : isUploading
-                  ? "Uploading..."
-                  : loading
-                    ? "Creating..."
-                    : "Create Item"}
+                ? "Uploading..."
+                : loading
+                ? "Creating..."
+                : "Create Item"}
             </Button>
 
             <Button
