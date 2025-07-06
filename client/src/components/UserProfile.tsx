@@ -40,13 +40,25 @@ export const CREATE_USER_MUTATION = gql`
 
 interface UserProps {
   onUserCreated?: (data: CreateUserMutation) => void;
+  open?: boolean;
+  onClose?: () => void;
 }
 
-const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
-  const [open, setOpen] = useState(true);
+
+const CreateUser: React.FC<UserProps> = ({ onUserCreated,
+  open = true,
+  onClose
+}) => {
+  const [internalOpen, setInternalOpen] = useState(open);
+
+  const handleClose = () => {
+    setInternalOpen(false);
+    onClose?.();
+  };
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [nickname, setNickname] = useState("");
+  const [showCreateUser, setShowCreateUser] = useState(false);
   const [resolvedLocation, setResolvedLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -61,7 +73,7 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
   >(CREATE_USER_MUTATION, {
     onCompleted: (data) => {
       if (onUserCreated) onUserCreated(data);
-      setOpen(false);
+      setInternalOpen(false);
       setEmail("");
       setAddress("");
       setNickname("");
@@ -134,7 +146,12 @@ const CreateUser: React.FC<UserProps> = ({ onUserCreated }) => {
 
   return (
     <Box>
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={internalOpen}
+        onClose={handleClose}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle sx={{ textAlign: "center" }}>Create User</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>

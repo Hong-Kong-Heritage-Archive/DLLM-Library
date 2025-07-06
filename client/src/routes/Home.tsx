@@ -39,6 +39,9 @@ const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const { user, email } = useOutletContext<OutletContext>();
 
+  // State for controlling CreateUser dialog
+  const [showCreateUser, setShowCreateUser] = useState(false);
+
   const [location, setLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -83,25 +86,56 @@ const HomePage: React.FC = () => {
     await auth.signOut();
   };
 
+  const handleUserCreated = () => {
+    setShowCreateUser(false);
+    // Optionally refresh the page or refetch user data
+    window.location.reload();
+  };
+
   return (
     <List>
       <ListItem>
         {user ? (
-          <>
-            <Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <Typography sx={{ flex: 1 }}>
               {t("home.welcome", { nickname: user.nickname })}
             </Typography>
-            <Button onClick={signOut}>{t("auth.signOut")}</Button>
-          </>
+            <Button
+              variant="outlined"
+              onClick={() => setShowCreateUser(true)}
+            >
+              Edit Profile
+            </Button>
+            <Button
+              variant="contained"
+              onClick={signOut}
+            >
+              {t("auth.signOut")}
+            </Button>
+          </Box>
         ) : (
           email && (
-            <>
-              <CreateUser onUserCreated={() => {}} />
-              <Button onClick={signOut}>{t("auth.signOut")}</Button>
-            </>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+              <Typography sx={{ flex: 1 }}>
+                {t("home.welcome")} {email}
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => setShowCreateUser(true)}
+              >
+                Create Profile
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={signOut}
+              >
+                {t("auth.signOut")}
+              </Button>
+            </Box>
           )
         )}
       </ListItem>
+
       <ListItem>
         <RecentNewsBanner user={user} />
       </ListItem>
@@ -109,6 +143,7 @@ const HomePage: React.FC = () => {
       <ListItem>
         <RecentItemBanner user={user} category="" />
       </ListItem>
+
       <ListItem>
         <Button variant="contained" onClick={getLocation}>
           {t("home.displayNearbyItems")}
@@ -123,6 +158,7 @@ const HomePage: React.FC = () => {
           </>
         )}
       </ListItem>
+
       {itemsByLocationOutput.data && (
         <Box mt={2}>
           <Typography variant="h6">{t("home.itemsWithinRadius")}</Typography>
@@ -135,9 +171,11 @@ const HomePage: React.FC = () => {
           </List>
         </Box>
       )}
+
       {itemsByLocationOutput.loading && (
         <Typography>{t("common.loading")}</Typography>
       )}
+
       {itemsByLocationOutput.error && (
         <ListItem>
           <Typography>
@@ -146,6 +184,15 @@ const HomePage: React.FC = () => {
             })}
           </Typography>
         </ListItem>
+      )}
+
+      {/* CreateUser Dialog - Only render when needed */}
+      {showCreateUser && (
+        <CreateUser
+          onUserCreated={handleUserCreated}
+          open={showCreateUser}
+          onClose={() => setShowCreateUser(false)}
+        />
       )}
     </List>
   );
