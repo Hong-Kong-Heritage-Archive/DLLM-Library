@@ -102,47 +102,47 @@ enum TransactionStatus {
   CANCELLED # 已取消
 }
 
+type SignedUrlResponse {
+  signedUrl: String!
+  gsUrl: String!
+  expires: Float!
+}
+
 # 查詢
 type Query {
   # 用戶相關
   user(id: ID!): User
   me: User # 當前登錄用戶
   users(address: String, limit: Int, offset: Int): [User!]! # 按地區查找（備用）
-
   # 藏品相關
   item(id: ID!): Item
   items(
-    category: [String!],
-    address: String, # 備用字段
-    status: ItemStatus,
-    keyword: String,
-    limit: Int,
+    category: [String!]
+    address: String # 備用字段
+    status: ItemStatus
+    keyword: String
+    limit: Int
     offset: Int
   ): [Item!]! # 按條件篩選藏品（舊方式）
   itemsByLocation(
-    latitude: Float!,
-    longitude: Float!,
-    radiusKm: Float!, # 搜尋半徑（公里）
-    category: [String!],
-    status: ItemStatus,
-    keyword: String,
-    limit: Int,
+    latitude: Float!
+    longitude: Float!
+    radiusKm: Float! # 搜尋半徑（公里）
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+    limit: Int
     offset: Int
   ): [Item!]! # 基於當前位置的搜尋
   itemsByUser(
-    userId: ID!,
-    category: [String!],
-    status: ItemStatus,
-    keyword: String,
-    limit: Int,
+    userId: ID!
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+    limit: Int
     offset: Int
-  ): [Item!]! # 基於User的搜尋  
-  recentAddedItems(
-    limit: Int,
-    offset: Int
-  ): [Item!]! # 最近新增的藏品
-
-
+  ): [Item!]! # 基於User的搜尋
+  recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
   # 交易相關
   transaction(id: ID!): Transaction
   transactions(userId: ID, itemId: ID): [Transaction!]!
@@ -150,12 +150,11 @@ type Query {
   # 新聞相關
   newsPost(id: ID!): NewsPost
   newsRecentPosts(
-    keyword: String,
-    tags: [String!],
-    limit: Int,
+    keyword: String
+    tags: [String!]
+    limit: Int
     offset: Int
   ): [NewsPost!]! # 按關鍵字和標籤搜尋新聞
-
   # 地理編碼相關
   geocodeAddress(address: String!): Location
 }
@@ -163,37 +162,33 @@ type Query {
 # 變更
 type Mutation {
   # 用戶管理
-  createUser(
-    email: String!,
-    address: String,
-    nickname: String
-  ): User!
+  createUser(email: String!, address: String, nickname: String): User!
   updateUser(
-    nickname: String,
-    address: String,
+    nickname: String
+    address: String
     contactMethods: [ContactMethodInput!]
   ): User!
   deleteUser(id: ID!): Boolean!
 
   # 藏品管理
   createItem(
-    name: String!,
-    description: String,
-    condition: ItemCondition!,
-    category: [String!]!,
-    status: ItemStatus!,
-    images: [String!],
-    publishedYear: Int,
+    name: String!
+    description: String
+    condition: ItemCondition!
+    category: [String!]!
+    status: ItemStatus!
+    images: [String!]
+    publishedYear: Int
     language: Language!
   ): Item!
   updateItem(
-    id: ID!,
-    name: String,
-    description: String,
-    condition: ItemCondition,
-    category: [String!],
-    status: ItemStatus,
-    images: [String!],
+    id: ID!
+    name: String
+    description: String
+    condition: ItemCondition
+    category: [String!]
+    status: ItemStatus
+    images: [String!]
     publishedYear: Int
   ): Item!
   deleteItem(id: ID!): Boolean!
@@ -205,21 +200,27 @@ type Mutation {
 
   # 新聞管理 Only for Admin/Moderator
   createNewsPost(
-    title: String!,
-    content: String!,
-    images: [String!],
-    relatedItemIds: [ID!],
+    title: String!
+    content: String!
+    images: [String!]
+    relatedItemIds: [ID!]
     tags: [String!]
   ): NewsPost!
   updateNewsPost(
-    id: ID!,
-    title: String,
-    content: String,
-    images: [String!],
-    relatedItemIds: [ID!],
+    id: ID!
+    title: String
+    content: String
+    images: [String!]
+    relatedItemIds: [ID!]
     tags: [String!]
   ): NewsPost!
   hideNewsPost(id: ID!): Boolean!
+
+  generateSignedUrl(
+    fileName: String!
+    contentType: String!
+    folder: String
+  ): SignedUrlResponse!
 }
 
 # 輸入類型
