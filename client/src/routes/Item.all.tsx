@@ -16,10 +16,16 @@ import { gql, useQuery } from "@apollo/client";
 import {
   RecentAddedItemsQuery,
   RecentAddedItemsQueryVariables,
+  User,
 } from "../generated/graphql";
 import ItemPreview from "../components/ItemPreview";
 import ItemDetail from "../components/ItemDetail";
 import { useTranslation } from "react-i18next";
+import { useOutletContext } from "react-router-dom";
+
+interface OutletContext {
+  user?: User;
+}
 
 const ALL_COMICS_QUERY = gql`
   query RecentAddedItems($limit: Int, $offset: Int, $category: [String!]) {
@@ -39,6 +45,7 @@ const ALL_COMICS_QUERY = gql`
 `;
 
 const AllItemPage: React.FC = () => {
+  const { user } = useOutletContext<OutletContext>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -138,8 +145,8 @@ const AllItemPage: React.FC = () => {
 
       <ItemDetail
         itemId={selectedItemId}
-        open={!!selectedItemId}
-        onClose={handleCloseDialog}
+        user={user}
+        onBack={() => window.history.back()} // Optional custom back behavior
       />
     </Box>
   );

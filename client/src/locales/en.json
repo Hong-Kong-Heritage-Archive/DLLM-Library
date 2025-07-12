@@ -43,7 +43,13 @@
     "viewAll": "View All News"
   },
   "item": {
-    "recentlyAdded": "Recently Added {{category}}"
+    "recentlyAdded": "Recently Added {{category}}",
+    "request": "Request",
+    "confirmRequest": "Confirm Request",
+    "confirmRequestMessage": "Are you sure you want to request this item? This will create a transaction between you and the owner.",
+    "requestSuccess": "Request submitted successfully! The owner will be notified.",
+    "requestError": "Request failed",
+    "common.cancel": "Cancel"
   },
   "languages": {
     "en": "English",

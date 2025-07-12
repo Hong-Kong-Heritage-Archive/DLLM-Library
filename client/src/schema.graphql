@@ -58,6 +58,7 @@ type ContactMethod {
 type Item {
   id: ID!
   ownerId: ID! # 藏品擁有者
+  holderId: ID # 當前持有者（可為null，表示未轉讓）
   name: String! # 書名或物品名稱
   description: String # 可選描述
   condition: ItemCondition!

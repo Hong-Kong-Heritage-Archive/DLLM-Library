@@ -37,6 +37,7 @@ export type Item = {
   condition: ItemCondition;
   createdAt: Scalars['Date']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  holderId?: Maybe<Scalars['ID']['output']>;
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
   language: Language;
@@ -375,7 +376,14 @@ export type ItemQueryVariables = Exact<{
 }>;
 
 
-export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string } | null };
+export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null } | null };
+
+export type CreateTransactionMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type CreateTransactionMutation = { __typename?: 'Mutation', createTransaction: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any } };
 
 export type CreateItemMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -524,6 +532,7 @@ export const ItemDocument = gql`
     language
     createdAt
     ownerId
+    holderId
   }
 }
     `;
@@ -560,6 +569,42 @@ export type ItemQueryHookResult = ReturnType<typeof useItemQuery>;
 export type ItemLazyQueryHookResult = ReturnType<typeof useItemLazyQuery>;
 export type ItemSuspenseQueryHookResult = ReturnType<typeof useItemSuspenseQuery>;
 export type ItemQueryResult = Apollo.QueryResult<ItemQuery, ItemQueryVariables>;
+export const CreateTransactionDocument = gql`
+    mutation CreateTransaction($itemId: ID!) {
+  createTransaction(itemId: $itemId) {
+    id
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateTransactionMutationFn = Apollo.MutationFunction<CreateTransactionMutation, CreateTransactionMutationVariables>;
+
+/**
+ * __useCreateTransactionMutation__
+ *
+ * To run a mutation, you first call `useCreateTransactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTransactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createTransactionMutation, { data, loading, error }] = useCreateTransactionMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useCreateTransactionMutation(baseOptions?: Apollo.MutationHookOptions<CreateTransactionMutation, CreateTransactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateTransactionMutation, CreateTransactionMutationVariables>(CreateTransactionDocument, options);
+      }
+export type CreateTransactionMutationHookResult = ReturnType<typeof useCreateTransactionMutation>;
+export type CreateTransactionMutationResult = Apollo.MutationResult<CreateTransactionMutation>;
+export type CreateTransactionMutationOptions = Apollo.BaseMutationOptions<CreateTransactionMutation, CreateTransactionMutationVariables>;
 export const CreateItemDocument = gql`
     mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!) {
   createItem(
