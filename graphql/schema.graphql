@@ -89,7 +89,7 @@ type NewsPost {
 type Transaction {
   id: ID!
   item: Item!
-  borrower: User # 借閱者（可為空，若為贈送）
+  requestor: User #
   status: TransactionStatus!
   createdAt: Date!
   updatedAt: Date!
@@ -98,6 +98,7 @@ type Transaction {
 enum TransactionStatus {
   PENDING # 申請中
   APPROVED # 已確認
+  TRANSFERED # 已轉讓
   COMPLETED # 已完成
   CANCELLED # 已取消
 }
@@ -194,8 +195,10 @@ type Mutation {
   deleteItem(id: ID!): Boolean!
 
   # 交易管理
-  createTransaction(itemId: ID!, status: TransactionStatus!): Transaction!
-  updateTransaction(id: ID!, status: TransactionStatus!): Transaction!
+  createTransaction(itemId: ID!): Transaction!
+  approveTransaction(id: ID!): Transaction!
+  transferTransaction(id: ID!): Transaction!
+  receveTransaction(id: ID!): Transaction!
   cancelTransaction(id: ID!): Boolean!
 
   # 新聞管理 Only for Admin/Moderator

@@ -83,6 +83,7 @@ export type LocationInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  approveTransaction: Transaction;
   cancelTransaction: Scalars['Boolean']['output'];
   createItem: Item;
   createNewsPost: NewsPost;
@@ -92,10 +93,16 @@ export type Mutation = {
   deleteUser: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
+  receveTransaction: Transaction;
+  transferTransaction: Transaction;
   updateItem: Item;
   updateNewsPost: NewsPost;
-  updateTransaction: Transaction;
   updateUser: User;
+};
+
+
+export type MutationApproveTransactionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -127,7 +134,6 @@ export type MutationCreateNewsPostArgs = {
 
 export type MutationCreateTransactionArgs = {
   itemId: Scalars['ID']['input'];
-  status: TransactionStatus;
 };
 
 
@@ -160,6 +166,16 @@ export type MutationHideNewsPostArgs = {
 };
 
 
+export type MutationReceveTransactionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationTransferTransactionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationUpdateItemArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   condition?: InputMaybe<ItemCondition>;
@@ -179,12 +195,6 @@ export type MutationUpdateNewsPostArgs = {
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type MutationUpdateTransactionArgs = {
-  id: Scalars['ID']['input'];
-  status: TransactionStatus;
 };
 
 
@@ -325,10 +335,10 @@ export type SignedUrlResponse = {
 
 export type Transaction = {
   __typename?: 'Transaction';
-  borrower?: Maybe<User>;
   createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   item: Item;
+  requestor?: Maybe<User>;
   status: TransactionStatus;
   updatedAt: Scalars['Date']['output'];
 };
@@ -337,7 +347,8 @@ export enum TransactionStatus {
   Approved = 'APPROVED',
   Cancelled = 'CANCELLED',
   Completed = 'COMPLETED',
-  Pending = 'PENDING'
+  Pending = 'PENDING',
+  Transfered = 'TRANSFERED'
 }
 
 export type User = {
@@ -415,22 +426,20 @@ export type NewsRecentPostsQueryVariables = Exact<{
 
 export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null }> };
 
-export type CreateUserMutationVariables = Exact<{
-  email: Scalars['String']['input'];
+export type GeocodeAddressQueryVariables = Exact<{
+  address: Scalars['String']['input'];
+}>;
+
+
+export type GeocodeAddressQuery = { __typename?: 'Query', geocodeAddress?: { __typename?: 'Location', latitude: number, longitude: number, geohash?: string | null } | null };
+
+export type UpdateUserMutationVariables = Exact<{
   address?: InputMaybe<Scalars['String']['input']>;
   nickname?: InputMaybe<Scalars['String']['input']>;
 }>;
 
-export type UpdateUserMutationVariables = Exact<{
-  address: InputMaybe<Scalars['String']['input']>;
-  nickname: InputMaybe<Scalars['String']['input']>;
-  contactMethods?: InputMaybe<Array<ContactMethodInput> | ContactMethodInput>;
-}>;
 
-
-export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', id: string, email: string, address?: string | null, nickname?: string | null, createdAt: any, isActive: boolean, isVerified: boolean, role: Role } };
-
-export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: string, email: string, address?: string | null, nickname?: string | null, createdAt: any, isActive: boolean, isVerified: boolean, role: Role, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }, createMethods?: Array<{ __typename?: 'ContactMethod', type: string, value: string, isPublic: boolean }> | null };
+export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: string, address?: string | null, nickname?: string | null, createdAt: any, isVerified: boolean, isActive: boolean, location?: { __typename?: 'Location', latitude: number, longitude: number, geohash?: string | null } | null } };
 
 export type ItemsByLocationQueryVariables = Exact<{
   latitude: Scalars['Float']['input'];
@@ -486,17 +495,17 @@ export const MeDocument = gql`
  * });
  */
 export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-}
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+      }
 export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+        }
 export function useMeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeQuery, MeQueryVariables>) {
-  const options = baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions }
-  return Apollo.useSuspenseQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-}
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+        }
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
@@ -535,18 +544,18 @@ export const ItemDocument = gql`
  *   },
  * });
  */
-export function useItemQuery(baseOptions: Apollo.QueryHookOptions<ItemQuery, ItemQueryVariables> & ({ variables: ItemQueryVariables; skip?: boolean; } | { skip: boolean; })) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
-}
+export function useItemQuery(baseOptions: Apollo.QueryHookOptions<ItemQuery, ItemQueryVariables> & ({ variables: ItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
+      }
 export function useItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemQuery, ItemQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useLazyQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
+        }
 export function useItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemQuery, ItemQueryVariables>) {
-  const options = baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions }
-  return Apollo.useSuspenseQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
-}
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
+        }
 export type ItemQueryHookResult = ReturnType<typeof useItemQuery>;
 export type ItemLazyQueryHookResult = ReturnType<typeof useItemLazyQuery>;
 export type ItemSuspenseQueryHookResult = ReturnType<typeof useItemSuspenseQuery>;
@@ -651,18 +660,18 @@ export const NewsPostDocument = gql`
  *   },
  * });
  */
-export function useNewsPostQuery(baseOptions: Apollo.QueryHookOptions<NewsPostQuery, NewsPostQueryVariables> & ({ variables: NewsPostQueryVariables; skip?: boolean; } | { skip: boolean; })) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
-}
+export function useNewsPostQuery(baseOptions: Apollo.QueryHookOptions<NewsPostQuery, NewsPostQueryVariables> & ({ variables: NewsPostQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
+      }
 export function useNewsPostLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NewsPostQuery, NewsPostQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useLazyQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
+        }
 export function useNewsPostSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NewsPostQuery, NewsPostQueryVariables>) {
-  const options = baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions }
-  return Apollo.useSuspenseQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
-}
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NewsPostQuery, NewsPostQueryVariables>(NewsPostDocument, options);
+        }
 export type NewsPostQueryHookResult = ReturnType<typeof useNewsPostQuery>;
 export type NewsPostLazyQueryHookResult = ReturnType<typeof useNewsPostLazyQuery>;
 export type NewsPostSuspenseQueryHookResult = ReturnType<typeof useNewsPostSuspenseQuery>;
@@ -716,9 +725,9 @@ export type CreateNewsPostMutationFn = Apollo.MutationFunction<CreateNewsPostMut
  * });
  */
 export function useCreateNewsPostMutation(baseOptions?: Apollo.MutationHookOptions<CreateNewsPostMutation, CreateNewsPostMutationVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useMutation<CreateNewsPostMutation, CreateNewsPostMutationVariables>(CreateNewsPostDocument, options);
-}
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNewsPostMutation, CreateNewsPostMutationVariables>(CreateNewsPostDocument, options);
+      }
 export type CreateNewsPostMutationHookResult = ReturnType<typeof useCreateNewsPostMutation>;
 export type CreateNewsPostMutationResult = Apollo.MutationResult<CreateNewsPostMutation>;
 export type CreateNewsPostMutationOptions = Apollo.BaseMutationOptions<CreateNewsPostMutation, CreateNewsPostMutationVariables>;
@@ -758,17 +767,17 @@ export const RecentAddedItemsDocument = gql`
  * });
  */
 export function useRecentAddedItemsQuery(baseOptions?: Apollo.QueryHookOptions<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useQuery<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>(RecentAddedItemsDocument, options);
-}
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>(RecentAddedItemsDocument, options);
+      }
 export function useRecentAddedItemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useLazyQuery<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>(RecentAddedItemsDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>(RecentAddedItemsDocument, options);
+        }
 export function useRecentAddedItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>) {
-  const options = baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions }
-  return Apollo.useSuspenseQuery<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>(RecentAddedItemsDocument, options);
-}
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>(RecentAddedItemsDocument, options);
+        }
 export type RecentAddedItemsQueryHookResult = ReturnType<typeof useRecentAddedItemsQuery>;
 export type RecentAddedItemsLazyQueryHookResult = ReturnType<typeof useRecentAddedItemsLazyQuery>;
 export type RecentAddedItemsSuspenseQueryHookResult = ReturnType<typeof useRecentAddedItemsSuspenseQuery>;
@@ -803,63 +812,107 @@ export const NewsRecentPostsDocument = gql`
  * });
  */
 export function useNewsRecentPostsQuery(baseOptions?: Apollo.QueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
-}
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+      }
 export function useNewsRecentPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useLazyQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+        }
 export function useNewsRecentPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>) {
-  const options = baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions }
-  return Apollo.useSuspenseQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
-}
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>(NewsRecentPostsDocument, options);
+        }
 export type NewsRecentPostsQueryHookResult = ReturnType<typeof useNewsRecentPostsQuery>;
 export type NewsRecentPostsLazyQueryHookResult = ReturnType<typeof useNewsRecentPostsLazyQuery>;
 export type NewsRecentPostsSuspenseQueryHookResult = ReturnType<typeof useNewsRecentPostsSuspenseQuery>;
 export type NewsRecentPostsQueryResult = Apollo.QueryResult<NewsRecentPostsQuery, NewsRecentPostsQueryVariables>;
-export const CreateUserDocument = gql`
-    mutation CreateUser($email: String!, $address: String, $nickname: String) {
-  createUser(email: $email, address: $address, nickname: $nickname) {
-    id
-    email
-    address
-    nickname
-    createdAt
-    isActive
-    isVerified
-    role
+export const GeocodeAddressDocument = gql`
+    query GeocodeAddress($address: String!) {
+  geocodeAddress(address: $address) {
+    latitude
+    longitude
+    geohash
   }
 }
     `;
-export type CreateUserMutationFn = Apollo.MutationFunction<CreateUserMutation, CreateUserMutationVariables>;
 
 /**
- * __useCreateUserMutation__
+ * __useGeocodeAddressQuery__
  *
- * To run a mutation, you first call `useCreateUserMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateUserMutation` returns a tuple that includes:
+ * To run a query within a React component, call `useGeocodeAddressQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGeocodeAddressQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGeocodeAddressQuery({
+ *   variables: {
+ *      address: // value for 'address'
+ *   },
+ * });
+ */
+export function useGeocodeAddressQuery(baseOptions: Apollo.QueryHookOptions<GeocodeAddressQuery, GeocodeAddressQueryVariables> & ({ variables: GeocodeAddressQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GeocodeAddressQuery, GeocodeAddressQueryVariables>(GeocodeAddressDocument, options);
+      }
+export function useGeocodeAddressLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GeocodeAddressQuery, GeocodeAddressQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GeocodeAddressQuery, GeocodeAddressQueryVariables>(GeocodeAddressDocument, options);
+        }
+export function useGeocodeAddressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GeocodeAddressQuery, GeocodeAddressQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GeocodeAddressQuery, GeocodeAddressQueryVariables>(GeocodeAddressDocument, options);
+        }
+export type GeocodeAddressQueryHookResult = ReturnType<typeof useGeocodeAddressQuery>;
+export type GeocodeAddressLazyQueryHookResult = ReturnType<typeof useGeocodeAddressLazyQuery>;
+export type GeocodeAddressSuspenseQueryHookResult = ReturnType<typeof useGeocodeAddressSuspenseQuery>;
+export type GeocodeAddressQueryResult = Apollo.QueryResult<GeocodeAddressQuery, GeocodeAddressQueryVariables>;
+export const UpdateUserDocument = gql`
+    mutation UpdateUser($address: String, $nickname: String) {
+  updateUser(address: $address, nickname: $nickname) {
+    id
+    address
+    nickname
+    createdAt
+    location {
+      latitude
+      longitude
+      geohash
+    }
+    isVerified
+    isActive
+  }
+}
+    `;
+export type UpdateUserMutationFn = Apollo.MutationFunction<UpdateUserMutation, UpdateUserMutationVariables>;
+
+/**
+ * __useUpdateUserMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createUserMutation, { data, loading, error }] = useCreateUserMutation({
+ * const [updateUserMutation, { data, loading, error }] = useUpdateUserMutation({
  *   variables: {
- *      email: // value for 'email'
  *      address: // value for 'address'
  *      nickname: // value for 'nickname'
  *   },
  * });
  */
-export function useCreateUserMutation(baseOptions?: Apollo.MutationHookOptions<CreateUserMutation, CreateUserMutationVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useMutation<CreateUserMutation, CreateUserMutationVariables>(CreateUserDocument, options);
-}
-export type CreateUserMutationHookResult = ReturnType<typeof useCreateUserMutation>;
-export type CreateUserMutationResult = Apollo.MutationResult<CreateUserMutation>;
-export type CreateUserMutationOptions = Apollo.BaseMutationOptions<CreateUserMutation, CreateUserMutationVariables>;
+export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserMutation, UpdateUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUserMutation, UpdateUserMutationVariables>(UpdateUserDocument, options);
+      }
+export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
+export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
+export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
 export const ItemsByLocationDocument = gql`
     query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!) {
   itemsByLocation(latitude: $latitude, longitude: $longitude, radiusKm: $radiusKm) {
@@ -890,18 +943,18 @@ export const ItemsByLocationDocument = gql`
  *   },
  * });
  */
-export function useItemsByLocationQuery(baseOptions: Apollo.QueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables> & ({ variables: ItemsByLocationQueryVariables; skip?: boolean; } | { skip: boolean; })) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
-}
+export function useItemsByLocationQuery(baseOptions: Apollo.QueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables> & ({ variables: ItemsByLocationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+      }
 export function useItemsByLocationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useLazyQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
-}
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+        }
 export function useItemsByLocationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
-  const options = baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions }
-  return Apollo.useSuspenseQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
-}
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+        }
 export type ItemsByLocationQueryHookResult = ReturnType<typeof useItemsByLocationQuery>;
 export type ItemsByLocationLazyQueryHookResult = ReturnType<typeof useItemsByLocationLazyQuery>;
 export type ItemsByLocationSuspenseQueryHookResult = ReturnType<typeof useItemsByLocationSuspenseQuery>;
@@ -941,9 +994,9 @@ export type GenerateSignedUrlMutationFn = Apollo.MutationFunction<GenerateSigned
  * });
  */
 export function useGenerateSignedUrlMutation(baseOptions?: Apollo.MutationHookOptions<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>) {
-  const options = { ...defaultOptions, ...baseOptions }
-  return Apollo.useMutation<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>(GenerateSignedUrlDocument, options);
-}
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>(GenerateSignedUrlDocument, options);
+      }
 export type GenerateSignedUrlMutationHookResult = ReturnType<typeof useGenerateSignedUrlMutation>;
 export type GenerateSignedUrlMutationResult = Apollo.MutationResult<GenerateSignedUrlMutation>;
 export type GenerateSignedUrlMutationOptions = Apollo.BaseMutationOptions<GenerateSignedUrlMutation, GenerateSignedUrlMutationVariables>;
