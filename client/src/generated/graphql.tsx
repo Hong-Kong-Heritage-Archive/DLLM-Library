@@ -229,9 +229,13 @@ export type Query = {
   me?: Maybe<User>;
   newsPost?: Maybe<NewsPost>;
   newsRecentPosts: Array<NewsPost>;
+  openTransactionsByItem: Array<Transaction>;
+  openTransactionsByUser: Array<Transaction>;
   recentAddedItems: Array<Item>;
   transaction?: Maybe<Transaction>;
   transactions: Array<Transaction>;
+  transactionsByItem: Array<Transaction>;
+  transactionsByUser: Array<Transaction>;
   user?: Maybe<User>;
   users: Array<User>;
 };
@@ -292,6 +296,16 @@ export type QueryNewsRecentPostsArgs = {
 };
 
 
+export type QueryOpenTransactionsByItemArgs = {
+  itemId: Scalars['ID']['input'];
+};
+
+
+export type QueryOpenTransactionsByUserArgs = {
+  userId: Scalars['ID']['input'];
+};
+
+
 export type QueryRecentAddedItemsArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -307,6 +321,16 @@ export type QueryTransactionArgs = {
 export type QueryTransactionsArgs = {
   itemId?: InputMaybe<Scalars['ID']['input']>;
   userId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryTransactionsByItemArgs = {
+  itemId: Scalars['ID']['input'];
+};
+
+
+export type QueryTransactionsByUserArgs = {
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -384,6 +408,34 @@ export type CreateTransactionMutationVariables = Exact<{
 
 
 export type CreateTransactionMutation = { __typename?: 'Mutation', createTransaction: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any } };
+
+export type UserQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: string, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+
+export type OpenTransactionsByItemQueryVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type OpenTransactionsByItemQuery = { __typename?: 'Query', openTransactionsByItem: Array<{ __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any, requestor?: { __typename?: 'User', id: string, nickname?: string | null, email: string } | null }> };
+
+export type ApproveTransactionMutationVariables = Exact<{
+  transactionId: Scalars['ID']['input'];
+}>;
+
+
+export type ApproveTransactionMutation = { __typename?: 'Mutation', approveTransaction: { __typename?: 'Transaction', id: string, status: TransactionStatus, updatedAt: any } };
+
+export type CancelTransactionMutationVariables = Exact<{
+  transactionId: Scalars['ID']['input'];
+}>;
+
+
+export type CancelTransactionMutation = { __typename?: 'Mutation', cancelTransaction: boolean };
 
 export type CreateItemMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -605,6 +657,173 @@ export function useCreateTransactionMutation(baseOptions?: Apollo.MutationHookOp
 export type CreateTransactionMutationHookResult = ReturnType<typeof useCreateTransactionMutation>;
 export type CreateTransactionMutationResult = Apollo.MutationResult<CreateTransactionMutation>;
 export type CreateTransactionMutationOptions = Apollo.BaseMutationOptions<CreateTransactionMutation, CreateTransactionMutationVariables>;
+export const UserDocument = gql`
+    query User($userId: ID!) {
+  user(id: $userId) {
+    createdAt
+    email
+    id
+    nickname
+    contactMethods {
+      type
+      value
+      isPublic
+    }
+    address
+    location {
+      latitude
+      longitude
+    }
+  }
+}
+    `;
+
+/**
+ * __useUserQuery__
+ *
+ * To run a query within a React component, call `useUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useUserQuery(baseOptions: Apollo.QueryHookOptions<UserQuery, UserQueryVariables> & ({ variables: UserQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserQuery, UserQueryVariables>(UserDocument, options);
+      }
+export function useUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserQuery, UserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserQuery, UserQueryVariables>(UserDocument, options);
+        }
+export function useUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserQuery, UserQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UserQuery, UserQueryVariables>(UserDocument, options);
+        }
+export type UserQueryHookResult = ReturnType<typeof useUserQuery>;
+export type UserLazyQueryHookResult = ReturnType<typeof useUserLazyQuery>;
+export type UserSuspenseQueryHookResult = ReturnType<typeof useUserSuspenseQuery>;
+export type UserQueryResult = Apollo.QueryResult<UserQuery, UserQueryVariables>;
+export const OpenTransactionsByItemDocument = gql`
+    query OpenTransactionsByItem($itemId: ID!) {
+  openTransactionsByItem(itemId: $itemId) {
+    id
+    requestor {
+      id
+      nickname
+      email
+    }
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useOpenTransactionsByItemQuery__
+ *
+ * To run a query within a React component, call `useOpenTransactionsByItemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOpenTransactionsByItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOpenTransactionsByItemQuery({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useOpenTransactionsByItemQuery(baseOptions: Apollo.QueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables> & ({ variables: OpenTransactionsByItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
+      }
+export function useOpenTransactionsByItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
+        }
+export function useOpenTransactionsByItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
+        }
+export type OpenTransactionsByItemQueryHookResult = ReturnType<typeof useOpenTransactionsByItemQuery>;
+export type OpenTransactionsByItemLazyQueryHookResult = ReturnType<typeof useOpenTransactionsByItemLazyQuery>;
+export type OpenTransactionsByItemSuspenseQueryHookResult = ReturnType<typeof useOpenTransactionsByItemSuspenseQuery>;
+export type OpenTransactionsByItemQueryResult = Apollo.QueryResult<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>;
+export const ApproveTransactionDocument = gql`
+    mutation ApproveTransaction($transactionId: ID!) {
+  approveTransaction(id: $transactionId) {
+    id
+    status
+    updatedAt
+  }
+}
+    `;
+export type ApproveTransactionMutationFn = Apollo.MutationFunction<ApproveTransactionMutation, ApproveTransactionMutationVariables>;
+
+/**
+ * __useApproveTransactionMutation__
+ *
+ * To run a mutation, you first call `useApproveTransactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApproveTransactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approveTransactionMutation, { data, loading, error }] = useApproveTransactionMutation({
+ *   variables: {
+ *      transactionId: // value for 'transactionId'
+ *   },
+ * });
+ */
+export function useApproveTransactionMutation(baseOptions?: Apollo.MutationHookOptions<ApproveTransactionMutation, ApproveTransactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApproveTransactionMutation, ApproveTransactionMutationVariables>(ApproveTransactionDocument, options);
+      }
+export type ApproveTransactionMutationHookResult = ReturnType<typeof useApproveTransactionMutation>;
+export type ApproveTransactionMutationResult = Apollo.MutationResult<ApproveTransactionMutation>;
+export type ApproveTransactionMutationOptions = Apollo.BaseMutationOptions<ApproveTransactionMutation, ApproveTransactionMutationVariables>;
+export const CancelTransactionDocument = gql`
+    mutation CancelTransaction($transactionId: ID!) {
+  cancelTransaction(id: $transactionId)
+}
+    `;
+export type CancelTransactionMutationFn = Apollo.MutationFunction<CancelTransactionMutation, CancelTransactionMutationVariables>;
+
+/**
+ * __useCancelTransactionMutation__
+ *
+ * To run a mutation, you first call `useCancelTransactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCancelTransactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [cancelTransactionMutation, { data, loading, error }] = useCancelTransactionMutation({
+ *   variables: {
+ *      transactionId: // value for 'transactionId'
+ *   },
+ * });
+ */
+export function useCancelTransactionMutation(baseOptions?: Apollo.MutationHookOptions<CancelTransactionMutation, CancelTransactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CancelTransactionMutation, CancelTransactionMutationVariables>(CancelTransactionDocument, options);
+      }
+export type CancelTransactionMutationHookResult = ReturnType<typeof useCancelTransactionMutation>;
+export type CancelTransactionMutationResult = Apollo.MutationResult<CancelTransactionMutation>;
+export type CancelTransactionMutationOptions = Apollo.BaseMutationOptions<CancelTransactionMutation, CancelTransactionMutationVariables>;
 export const CreateItemDocument = gql`
     mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!) {
   createItem(

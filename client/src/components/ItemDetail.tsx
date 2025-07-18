@@ -108,13 +108,9 @@ const APPROVE_TRANSACTION_MUTATION = gql`
   }
 `;
 
-const REJECT_TRANSACTION_MUTATION = gql`
-  mutation RejectTransaction($transactionId: ID!) {
-    rejectTransaction(id: $transactionId) {
-      id
-      status
-      updatedAt
-    }
+const CANCEL_TRANSACTION_MUTATION = gql`
+  mutation CancelTransaction($transactionId: ID!) {
+    cancelTransaction(id: $transactionId)
   }
 `;
 
@@ -192,8 +188,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     }
   );
 
-  const [rejectTransaction, { loading: rejectLoading }] = useMutation(
-    REJECT_TRANSACTION_MUTATION,
+  const [cancelTransaction, { loading: cancelLoading }] = useMutation(
+    CANCEL_TRANSACTION_MUTATION,
     {
       onCompleted: () => {
         setSuccessSnackbarOpen(true);
@@ -279,7 +275,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   const handleRejectTransaction = async (transactionId: string) => {
     try {
-      await rejectTransaction({
+      await cancelTransaction({
         variables: { transactionId },
       });
     } catch (error) {
@@ -430,10 +426,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   onClick={() =>
                     handleRejectTransaction(oldestPendingTransaction.id)
                   }
-                  disabled={rejectLoading || approveLoading}
+                  disabled={cancelLoading || approveLoading}
                   size="large"
                 >
-                  {rejectLoading ? (
+                  {cancelLoading ? (
                     <CircularProgress size={20} />
                   ) : (
                     t("item.reject", "Reject")
@@ -447,7 +443,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   onClick={() =>
                     handleApproveTransaction(oldestPendingTransaction.id)
                   }
-                  disabled={approveLoading || rejectLoading}
+                  disabled={approveLoading || cancelLoading}
                   size="large"
                 >
                   {approveLoading ? (
