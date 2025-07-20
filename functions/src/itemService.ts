@@ -159,10 +159,10 @@ export class ItemService {
         owner.location.longitude,
       ]);
     }
-    
+
     let gsImageUrls: string[] | null = null;
     let publicImageUrls: string[] | null = null;
-    
+
     if (images && images.length > 0) {
       for (const image of images) {
         console.debug(`Processing image: ${image}`);
@@ -203,23 +203,23 @@ export class ItemService {
     if (description) {
       itemData.description = description;
     }
-    
+
     if (publicImageUrls && publicImageUrls.length > 0) {
       itemData.images = publicImageUrls;
     }
-    
+
     if (gsImageUrls && gsImageUrls.length > 0) {
       itemData.gsImageUrls = gsImageUrls;
     }
-    
+
     if (publishedYear) {
       itemData.publishedYear = publishedYear;
     }
-    
+
     if (owner?.location) {
       itemData.location = owner.location;
     }
-    
+
     if (hash) {
       itemData.geohash = hash;
     }
@@ -231,7 +231,7 @@ export class ItemService {
       updatedAt: itemData.updated.seconds * 1000,
       ...itemData,
     } as Item;
-    
+
     return rv;
   }
 
@@ -250,32 +250,71 @@ export class ItemService {
       );
       return;
     }
+    let updateTime = 0;
+    while (updateTime != 2) {
+      let query = db
+        .collection("items")
+        .where("ownerId", "==", userId)
+        .where("holderId", "==", null);
+      if (updateTime == 1) {
+        query = db.collection("items").where("holderId", "==", userId);
+      }
+      let itemsSnapshot = await query.get();
 
-    const query = db.collection("items").where("ownerId", "==", userId);
-    const itemsSnapshot = await query.get();
+      if (itemsSnapshot.empty) {
+        console.debug(`No items found for user ${userId}`);
+        return;
+      }
 
-    if (itemsSnapshot.empty) {
-      console.debug(`No items found for user ${userId}`);
-      return;
+      const updateData: any = {
+        updated: Timestamp.now(),
+        location: location,
+        geohash: geofire.geohashForLocation([
+          location.latitude,
+          location.longitude,
+        ]),
+      };
+
+      const batch = db.batch();
+      itemsSnapshot.docs.forEach((doc) => {
+        batch.update(doc.ref, updateData);
+      });
+      await batch.commit();
+      console.log(
+        `Updated location for ${itemsSnapshot.size} items belonging to user ${userId}`
+      );
+      updateTime++;
+    }
+  }
+
+  async updateItemHolder(itemId: string, holder: User): Promise<boolean> {
+    if (!holder.location) {
+      console.warn("Cannot update item holder: Missing location");
+      return false;
+    }
+    const itemRef = db.collection("items").doc(itemId);
+    const itemDoc = await itemRef.get();
+    if (!itemDoc.exists) {
+      throw new Error(`Item with ID ${itemId} does not exist`);
+    }
+    const updateData = itemDoc.data() as ItemModel;
+
+    if (holder && holder.id != updateData?.ownerId) {
+      updateData.holderId = holder.id;
+    } else {
+      updateData.holderId = null;
+    }
+    updateData.updated = Timestamp.now();
+    if (holder.location) {
+      updateData.location = holder.location;
+      updateData.geohash = geofire.geohashForLocation([
+        holder.location.latitude,
+        holder.location.longitude,
+      ]);
     }
 
-    const updateData: any = {
-      updated: Timestamp.now(),
-      location: location,
-      geohash: geofire.geohashForLocation([
-        location.latitude,
-        location.longitude,
-      ]),
-    };
-
-    const batch = db.batch();
-    itemsSnapshot.docs.forEach((doc) => {
-      batch.update(doc.ref, updateData);
-    });
-    await batch.commit();
-    console.log(
-      `Updated location for ${itemsSnapshot.size} items belonging to user ${userId}`
-    );
+    await itemRef.update(updateData);
+    return true;
   }
 
   async recentAddedItems(

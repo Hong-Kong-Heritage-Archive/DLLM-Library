@@ -113,7 +113,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   {data.newsPost.images.map((image, index) => (
-                    <SafeImage
+                    <img
                       key={index}
                       src={image}
                       alt={`News image ${index + 1}`}

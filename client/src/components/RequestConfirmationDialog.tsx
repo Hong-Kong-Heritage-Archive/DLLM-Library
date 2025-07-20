@@ -22,19 +22,7 @@ import {
   Schedule as ScheduleIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
-import { Item, User } from "../generated/graphql";
-
-interface Transaction {
-  id: string;
-  requestor: {
-    id: string;
-    nickname: string;
-    email?: string;
-  };
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Item, User, Transaction } from "../generated/graphql";
 
 interface RequestConfirmationDialogProps {
   open: boolean;
@@ -203,7 +191,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                         variant="subtitle2"
                         sx={{ fontWeight: "bold" }}
                       >
-                        {transaction.requestor.nickname}
+                        {transaction.requestor?.nickname}
                       </Typography>
                       <Chip
                         label={transaction.status}
@@ -213,7 +201,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                       />
                     </Box>
 
-                    {transaction.requestor.email && (
+                    {transaction.requestor?.email && (
                       <Typography
                         variant="body2"
                         color="text.secondary"

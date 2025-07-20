@@ -277,7 +277,9 @@ export const resolvers: Resolvers = {
       { loginUser }: Context
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
-      return transactionService.approveTransaction(id);
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("Owner not found");
+      return transactionService.approveTransaction(owner, id);
     },
     transferTransaction: async (
       _: any,
@@ -285,7 +287,9 @@ export const resolvers: Resolvers = {
       { loginUser }: Context
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
-      return transactionService.transferTransaction(id);
+      const holder = await userService.me(loginUser);
+      if (!holder) throw new Error("User not found");
+      return transactionService.transferTransaction(holder, id);
     },
 
     receiveTransaction: async (
@@ -294,7 +298,9 @@ export const resolvers: Resolvers = {
       { loginUser }: Context
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
-      return transactionService.receiveTransaction(id);
+      const requestor = await userService.me(loginUser);
+      if (!requestor) throw new Error("User not found");
+      return transactionService.receiveTransaction(requestor, id);
     },
     cancelTransaction: async (
       _: any,
@@ -302,7 +308,9 @@ export const resolvers: Resolvers = {
       { loginUser }: Context
     ): Promise<boolean> => {
       if (!loginUser) throw new Error("Not authenticated");
-      return transactionService.cancelTransaction(id);
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return transactionService.cancelTransaction(user, id);
     },
   },
 };

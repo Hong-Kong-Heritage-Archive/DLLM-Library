@@ -96,7 +96,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
           <Box
             sx={{ height: imageHeight, position: "relative", flexShrink: 0 }}
           >
-            <SafeImage
+            <img
               src={item.images![0]}
               alt={item.name}
               style={{

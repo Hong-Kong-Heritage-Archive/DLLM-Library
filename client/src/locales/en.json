@@ -70,7 +70,13 @@
     "lastUpdated": "Last updated", 
     "contact": "Contact",
     "approve": "Approve",
-    "reject": "Reject"    
+    "reject": "Reject",
+    "approvedTransfer": "Ready for Transfer",
+    "approvedForTransfer": "'s request has been approved",
+    "approvedOn": "Approved on",
+    "transferInstructions": "Please meet with the requestor in person to complete the transfer. Click 'Complete Transfer' once you have handed over the item.",
+    "completeTransfer": "Complete Transfer",
+    "actionSuccess": "Action completed successfully!"
   },
   "languages": {
     "en": "English",
