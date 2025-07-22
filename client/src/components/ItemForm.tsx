@@ -30,6 +30,7 @@ import {
   ProcessedImage,
 } from "../utils/ImageProcessor";
 import { GCSUploadService, UploadProgress } from "../services/UploadService";
+import { useTranslation } from "react-i18next";
 
 const CREATE_ITEM_MUTATION = gql`
   mutation CreateItem(
@@ -81,6 +82,7 @@ interface ImagePreview extends ProcessedImage {
 
 const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
   const apolloClient = useApolloClient();
+  const { t } = useTranslation();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -233,10 +235,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
+                  ...img,
+                  isUploading: true,
+                  uploadProgress: progress.percentage,
+                }
                 : img
             )
           );
@@ -253,11 +255,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
+                  ...img,
+                  isUploading: false,
+                  uploadProgress: 100,
+                  gsUrl: gsUrl,
+                }
                 : img
             )
           );
@@ -276,10 +278,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         prev.map((img, _) =>
           !img.gsUrl
             ? {
-                ...img,
-                isUploading: false,
-                uploadError: `Upload failed: ${error}`,
-              }
+              ...img,
+              isUploading: false,
+              uploadError: `Upload failed: ${error}`,
+            }
             : img
         )
       );
@@ -348,7 +350,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
   return (
     <Box>
       <Button variant="contained" onClick={handleClickOpen}>
-        Create Item
+        t("item.create")
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle sx={{ textAlign: "center" }}>Create New Item</DialogTitle>
@@ -415,7 +417,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                 disabled={isProcessingImages || isUploading}
                 sx={{ mb: 2 }}
               >
-                Add Images
+                Add Images{t("common.addImages")}
                 <input
                   type="file"
                   hidden
@@ -432,7 +434,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
                     value={processingProgress}
                   />
                   <Box sx={{ textAlign: "center", mt: 1 }}>
-                    Processing images... {processingProgress}%
+                    {t("common.processingImages")} {processingProgress}%
                   </Box>
                 </Box>
               )}
@@ -551,12 +553,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               disabled={loading || isProcessingImages || isUploading}
             >
               {isProcessingImages
-                ? "Processing Images..."
+                ? t("common.processingImages")
                 : isUploading
-                ? "Uploading..."
-                : loading
-                ? "Creating..."
-                : "Create Item"}
+                  ? t("common.loading")
+                  : loading
+                    ? t("common.creating")
+                    : t("item.create")}
             </Button>
 
             <Button
@@ -565,7 +567,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               sx={{ mt: 1 }}
               disabled={loading || isProcessingImages || isUploading}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
           </DialogContent>
         </form>

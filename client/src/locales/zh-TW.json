@@ -29,11 +29,17 @@
   },
   "common": {
     "loading": "加載中...",
+    "processing": "載入中...",
+    "uploading": "上載中...",
+    "creating": "製造中...",
     "error": "問題：{{message}}",
     "back": "返回",
     "close": "關閉",
     "cancel": "取消",
-    "language": "語言"
+    "language": "語言",
+    "images": "圖像...",
+    "processingImages": "載入圖像中...",
+    "addImages": "加入圖像"
   },
   "news": {
     "title": "新聞",
@@ -41,10 +47,12 @@
     "author": "作者",
     "publishedAt": "發佈時間",
     "create": "發佈新聞",
+    "createPost": "發佈文章",
     "viewAll": "查看所有新聞"
   },
   "item": {
     "recentlyAdded": "新番 {{category}}",
+    "create": "發佈新番",
     "request": "交易請求",
     "confirmRequest": "確認提交請求",
     "confirmRequestMessage": "您確定要對這件物品提交交易請求嗎？我們將向物件主人提供交易通知。",

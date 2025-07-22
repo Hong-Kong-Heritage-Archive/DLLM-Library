@@ -29,10 +29,17 @@
   },
   "common": {
     "loading": "Loading...",
+    "processing": "Processing...",
+    "uploading": "Uploading...",
+    "creating": "Creating...",
     "error": "Error: {{message}}",
     "back": "Back",
     "close": "Close",
-    "language": "Language"
+    "cancel": "Cancel",
+    "language": "Language",
+    "images": "Images...",
+    "processingImages": "Processing Images...",
+    "addImages": "Add Images"
   },
   "news": {
     "title": "News",
@@ -40,16 +47,17 @@
     "author": "Author",
     "publishedAt": "Published At",
     "create": "Create News",
+    "createPost": "Create Post",
     "viewAll": "View All News"
   },
   "item": {
     "recentlyAdded": "Recently Added {{category}}",
+    "create": "Create Item",
     "request": "Request",
     "confirmRequest": "Confirm Request",
     "confirmRequestMessage": "Are you sure you want to request this item? This will create a transaction between you and the owner.",
     "requestSuccess": "Request submitted successfully! The owner will be notified.",
     "requestError": "Request failed",
-    "common.cancel": "Cancel",
     "distance": "Distance",
     "away": "away",
     "peopleInvolved": "People Involved",
@@ -67,7 +75,7 @@
     "noExistingRequests": "No existing open requests for this item. You'll be the first!",
     "existingRequestsWarning": "There {count, plural, one {is # existing open request} other {are # existing open requests}} for this item. Your request will be added to the queue.",
     "requestedOn": "Requested on",
-    "lastUpdated": "Last updated", 
+    "lastUpdated": "Last updated",
     "contact": "Contact",
     "approve": "Approve",
     "reject": "Reject",
@@ -83,10 +91,10 @@
     "importantReminder": "Important Reminder",
     "receiveInstructions": "After clicking 'Received', you will become the new holder of this item. The item location will be updated to your address, and you will be responsible for:",
     "responsibility1": "Responding to future requests from other users",
-    "responsibility2": "Handing over the item to the next requestor when needed", 
+    "responsibility2": "Handing over the item to the next requestor when needed",
     "responsibility3": "Returning the item to the original owner if requested",
     "confirmReceiptInstructions": "Please only click 'Received' after you have physically received the item from the current holder.",
-    "received": "Received"    
+    "received": "Received"
   },
   "languages": {
     "en": "English",

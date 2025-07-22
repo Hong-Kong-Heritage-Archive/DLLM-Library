@@ -218,10 +218,10 @@ const NewsForm: React.FC<NewsFormProps> = ({
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
+                  ...img,
+                  isUploading: true,
+                  uploadProgress: progress.percentage,
+                }
                 : img
             )
           );
@@ -238,11 +238,11 @@ const NewsForm: React.FC<NewsFormProps> = ({
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
+                  ...img,
+                  isUploading: false,
+                  uploadProgress: 100,
+                  gsUrl: gsUrl,
+                }
                 : img
             )
           );
@@ -261,10 +261,10 @@ const NewsForm: React.FC<NewsFormProps> = ({
         prev.map((img, _) =>
           !img.gsUrl
             ? {
-                ...img,
-                isUploading: false,
-                uploadError: `Upload failed: ${error}`,
-              }
+              ...img,
+              isUploading: false,
+              uploadError: `Upload failed: ${error}`,
+            }
             : img
         )
       );
@@ -398,7 +398,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
             {/* Image Upload Section */}
             <Box sx={{ mt: 2, mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
-                Images
+                {t("common.images")}
                 <IconButton size="small" sx={{ ml: 1 }}>
                   <Info fontSize="small" />
                 </IconButton>
@@ -414,7 +414,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
               {isProcessingImages && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" color="textSecondary">
-                    Processing images...
+                    {t("common.processingImages")}
                   </Typography>
                   <LinearProgress
                     variant="determinate"
@@ -452,7 +452,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                 sx={{ mb: 2 }}
                 disabled={isProcessingImages || isUploading}
               >
-                Add Images
+                {t("common.addImages")}
                 <input
                   type="file"
                   hidden
@@ -657,13 +657,13 @@ const NewsForm: React.FC<NewsFormProps> = ({
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <CircularProgress size={20} sx={{ mr: 1 }} />
                   {isProcessingImages
-                    ? "Processing..."
+                    ? t("common.processingImages")
                     : isUploading
-                    ? "Uploading..."
-                    : "Creating..."}
+                      ? t("common.loading")
+                      : t("common.creating")}
                 </Box>
               ) : (
-                "Create Post"
+                t("news.createPost")
               )}
             </Button>
           </DialogActions>
