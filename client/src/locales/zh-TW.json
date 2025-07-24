@@ -43,11 +43,12 @@
   },
   "news": {
     "title": "新聞",
+    "trending": "最新情報",
     "content": "內容",
     "author": "作者",
     "publishedAt": "發佈時間",
-    "create": "發佈新聞",
-    "createPost": "發佈文章",
+    "create": "發佈文章",
+    "createPost": "發佈報道",
     "viewAll": "查看所有新聞"
   },
   "item": {
