@@ -27,10 +27,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npx tsc && npx vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "codegen": "graphql-codegen --config codegen.yml"
+    "codegen": "npx graphql-codegen --config codegen.yml"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.6",

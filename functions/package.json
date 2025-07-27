@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "prebuild": "graphql-codegen --config codegen.ts",
-    "build": "tsc --project tsconfig.json",
+    "prebuild": "npx graphql-codegen --config codegen.ts",
+    "build": "npx tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
     "start:inspect": "nodemon --exec \"node --require ts-node/register src/index.ts\"",
