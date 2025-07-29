@@ -73,6 +73,11 @@ type Item {
   transactions: [Transaction!] # 相關交易紀錄
 }
 
+type Category {
+  label: String! # 聯繫方式詳情
+  type: String! # 如 "WhatsApp", "Signal"
+}
+
 type NewsPost {
   id: ID!
   title: String!
@@ -144,7 +149,18 @@ type Query {
     limit: Int
     offset: Int
   ): [Item!]! # 基於User的搜尋
+  itemsByCategory(
+    category: [String!]!
+    status: ItemStatus
+    limit: Int
+    offset: Int
+  ): [Item!]!
   recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
+  category(categoryId: ID!): Category!
+  categorys(limit: Int, offset: Int): [Category!]!
+  createCategory(label: String!, type: String!): Category!
+  updateCategory(categoryId: ID!, label: String, type: String): Category!
+
   # 交易相關
   transaction(id: ID!): Transaction
   transactionsByItem(itemId: ID!): [Transaction!]! # 按藏品ID查詢交易

@@ -7,18 +7,23 @@ import {
   ItemStatus,
   Language,
   User,
+  Category,
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
 import { MapService, createMapService } from "./mapService";
 import firebase from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
-import { p } from "graphql-ws/dist/common-DY-PBNYy";
 
 type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
   created: Timestamp;
   updated: Timestamp;
   gsImageUrls?: string[];
+};
+
+type CategoryModel = Omit<Category, "id" | "createdAt" | "updatedAt"> & {
+  created: Timestamp;
+  updated: Timestamp;
 };
 
 export class ItemService {
@@ -32,14 +37,14 @@ export class ItemService {
     latitude: number,
     longitude: number,
     radiusKm: number,
-    category: string[],
-    status: string,
-    keyword: string,
+    category?: string[],
+    status?: string,
+    keyword?: string,
     limit: number = 20,
     offset: number = 0
   ): Promise<Item[]> {
     let query = db.collection("items").where("geohash", ">=", "");
-    if (category)
+    if (category && category.length > 0)
       query = query.where("category", "array-contains-any", category);
     if (status) query = query.where("status", "==", status);
     if (keyword)
@@ -111,9 +116,9 @@ export class ItemService {
 
   async itemsByUser(
     userId: string,
-    category: string[],
-    status: string,
-    keyword: string,
+    category?: string[],
+    status?: string,
+    keyword?: string,
     limit: number = 20,
     offset: number = 0
   ): Promise<Item[]> {
@@ -121,7 +126,7 @@ export class ItemService {
       .collection("items")
       .where("ownerId", "==", userId)
       .orderBy("id");
-    if (category)
+    if (category && category.length > 0)
       query = query.where("category", "array-contains-any", category);
     if (status) query = query.where("status", "==", status);
     if (keyword)
@@ -139,6 +144,89 @@ export class ItemService {
         } as Item)
     );
     return items;
+  }
+
+  async itemsByCategory(
+    category: string[],
+    status?: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Item[]> {
+    if (!category || category.length === 0) {
+      return [];
+    }
+
+    try {
+      let query = db
+        .collection("items")
+        .where("category", "array-contains-any", category)
+        .orderBy("created", "desc");
+
+      if (status) {
+        query = query.where("status", "==", status);
+      }
+
+      const snapshot = await query.limit(limit).offset(offset).get();
+
+      const items = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        createdAt: doc.data().created.seconds * 1000,
+        updatedAt: doc.data().updated.seconds * 1000,
+        ...doc.data(),
+      })) as Item[];
+
+      return items;
+    } catch (error) {
+      console.error(`Error fetching items by category:`, error);
+      throw error;
+    }
+  }
+
+  async category(categoryId: string): Promise<Category | null> {
+    if (!categoryId || categoryId.length === 0) {
+      return null;
+    }
+
+    try {
+      const categoryDoc = await db.collection("categories").doc(categoryId).get();
+
+      if (!categoryDoc.exists) return null;
+
+      const data = categoryDoc.data() as CategoryModel;
+
+      return {
+        id: categoryId,
+        label: data.label,
+        type: data.type,
+        createdAt: data.created.seconds * 1000,
+        updatedAt: data.updated.seconds * 1000,
+      } as Category;
+    } catch (error) {
+      console.error(`Error fetching category ${categoryId}:`, error);
+      throw error;
+    }
+  }
+
+  async categories(limit: number = 20, offset: number = 0): Promise<Category[]> {
+    try {
+      let query = db
+        .collection("categories")
+        .orderBy("created", "desc");
+
+      const snapshot = await query.limit(limit).offset(offset).get();
+
+      const categories = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        createdAt: doc.data().created.seconds * 1000,
+        updatedAt: doc.data().updated.seconds * 1000,
+        ...doc.data(),
+      })) as Category[];
+
+      return categories;
+    } catch (error) {
+      console.error(`Error fetching all categories:`, error);
+      throw error;
+    }
   }
 
   async createItem(
@@ -338,5 +426,84 @@ export class ItemService {
         } as Item)
     );
     return items;
+  }
+  async createCategory(label: string, type: string): Promise<Category> {
+    if (!label || !type) {
+      throw new Error("Label and type are required for creating a category");
+    }
+
+    try {
+      const categoryData: CategoryModel = {
+        label: label,
+        type: type,
+        created: Timestamp.now(),
+        updated: Timestamp.now(),
+      };
+
+      const docRef = await db.collection("categories").add(categoryData);
+
+      return {
+        id: docRef.id,
+        label: categoryData.label,
+        type: categoryData.type,
+        createdAt: categoryData.created.seconds * 1000,
+        updatedAt: categoryData.updated.seconds * 1000,
+      } as Category;
+    } catch (error) {
+      console.error(`Error creating category:`, error);
+      throw error;
+    }
+  }
+
+  async updateCategory(
+    categoryId: string,
+    label?: string | null,
+    type?: string | null
+  ): Promise<Category | null> {
+    if (!categoryId) {
+      throw new Error("Category ID is required for updating a category");
+    }
+
+    try {
+      const categoryRef = db.collection("categories").doc(categoryId);
+      const categoryDoc = await categoryRef.get();
+
+      if (!categoryDoc.exists) {
+        throw new Error(`Category with ID ${categoryId} does not exist`);
+      }
+
+      const updateData: any = {
+        updated: Timestamp.now(),
+      };
+
+      if (label !== null && label !== undefined) {
+        updateData.label = label;
+      }
+
+      if (type !== null && type !== undefined) {
+        updateData.type = type;
+      }
+
+      if (Object.keys(updateData).length === 1) {
+        console.warn(`No update fields provided for category ${categoryId}`);
+        return null;
+      }
+
+      await categoryRef.update(updateData);
+
+      const updatedDoc = await categoryRef.get();
+      const data = updatedDoc.data() as CategoryModel;
+
+      return {
+        id: categoryId,
+        label: data.label,
+        type: data.type,
+        createdAt: data.created.seconds * 1000,
+        updatedAt: data.updated.seconds * 1000,
+      } as Category;
+    } catch (error) {
+      console.error(`Error updating category ${categoryId}:`, error);
+      throw error;
+    }
   }
 }

@@ -13,6 +13,7 @@ import {
   SignedUrlResponse,
   Transaction,
   TransactionStatus,
+  Category
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
@@ -117,6 +118,13 @@ export const resolvers: Resolvers = {
         offset
       );
     },
+    itemsByCategory: async (
+      _: any,
+      { category, status, limit = 20, offset = 0 }: any,
+      { loginUser }: Context
+    ): Promise<Item[]> => {
+      return itemService.itemsByCategory();
+    },
     item: async (_: any, { id }: any, __: any): Promise<Item | null> => {
       return itemService.itemById(id);
     },
@@ -126,6 +134,18 @@ export const resolvers: Resolvers = {
       __: any
     ): Promise<Item[]> => {
       return itemService.recentAddedItems(limit, offset, category);
+    },
+    category: async (_: any, { categoryId }: any, __: any): Promise<Category | null> => {
+      return itemService.category(categoryId);
+    },
+    categories: async (_: any, { limit = 20, offset = 0 }: any, __: any): Promise<Category[] | null> => {
+      return itemService.categories(categoryId);
+    },
+    createCategory: async (_: any, { label, type }, __: any) => {
+      return await itemService.createCategory(label, type);
+    },
+    updateCategory: async (_: any, { categoryId, label, type }, __: any) => {
+      return await itemService.updateCategory(id, label, type);
     },
     user: async (
       _: any,
