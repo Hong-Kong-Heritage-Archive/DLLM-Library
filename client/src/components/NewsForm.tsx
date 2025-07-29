@@ -77,7 +77,7 @@ interface ImagePreview extends ProcessedImage {
 const NewsForm: React.FC<NewsFormProps> = ({
   onNewsCreated,
   maxImageSize = 2000,
-  imageQuality = 0.9,
+  imageQuality = 0.5,
 }) => {
   const { t } = useTranslation();
   const apolloClient = useApolloClient();

@@ -10,9 +10,9 @@ export interface ProcessedImage {
 
 export const processImage = (
   file: File,
-  maxSize: number = 2000,
-  quality: number = 0.6,
-  format: string = "image/jpeg"
+  maxSize: number = 1920,
+  quality: number = 0.5,
+  format: string = "image/jpg"
 ): Promise<ProcessedImage> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -105,8 +105,8 @@ const calculateDimensions = (
 
 export const batchProcessImages = async (
   files: File[],
-  maxSize: number = 2000,
-  quality: number = 0.6,
+  maxSize: number = 1920,
+  quality: number = 0.5,
   onProgress?: (processed: number, total: number) => void
 ): Promise<ProcessedImage[]> => {
   const processedImages: ProcessedImage[] = [];

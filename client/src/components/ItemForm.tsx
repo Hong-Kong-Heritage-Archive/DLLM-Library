@@ -103,7 +103,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
 
   // Image processing settings
   const maxImageSize = 1920;
-  const imageQuality = 0.8;
+  const imageQuality = 0.5;
 
   const [createItem, { data, loading, error }] = useMutation<
     CreateItemMutation,

@@ -127,7 +127,7 @@ export class GCSUploadService {
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const baseName = originalName.split(".")[0].replace(/[^a-zA-Z0-9]/g, "_");
-    return `${timestamp}_${randomString}_${baseName}.png`;
+    return `${timestamp}_${randomString}_${baseName}.jpg`;
   }
 
   async uploadToGCS(

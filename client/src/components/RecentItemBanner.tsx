@@ -47,7 +47,6 @@ interface RecentBannerProps {
 const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [cardsPerView, setCardsPerView] = useState(4);
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -141,9 +140,6 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
     navigate(`/item/${itemId}`);
   };
 
-  const handleCloseDialog = () => {
-    setSelectedItemId(null);
-  };
 
   const scrollLeft = () => {
     const newIndex = Math.max(0, currentIndex - cardsPerView);
@@ -256,12 +252,12 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",
@@ -365,12 +361,6 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
           </Typography>
         </Box>
       </Box>
-
-      <ItemDetail
-        itemId={selectedItemId}
-        user={user}
-        onBack={() => window.history.back()}
-      />
     </>
   );
 };
