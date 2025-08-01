@@ -98,7 +98,7 @@ const ItemAllPage: React.FC = () => {
   });
 
   const handleItemClick = (itemId: string) => {
-    navigate(`/items/${itemId}`);
+    navigate(`/item/${itemId}`);
   };
 
   const handleCategoryChange = (event: SelectChangeEvent<string>) => {

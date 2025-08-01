@@ -15,6 +15,7 @@ interface ItemSummaryProps {
 
 const ItemSummary: React.FC<ItemSummaryProps> = ({ item, onClick }) => {
   return (
+
     <ListItem
       sx={{
         borderBottom: "1px solid #eee",
@@ -24,7 +25,7 @@ const ItemSummary: React.FC<ItemSummaryProps> = ({ item, onClick }) => {
       onClick={() => onClick(item.id)}
     >
       <Box sx={{ width: "100%" }}>
-        {/* Date and Title on the same horizontal level */}
+        {/* Distance and Title */}
         <Box
           sx={{
             display: "flex",
@@ -51,35 +52,35 @@ const ItemSummary: React.FC<ItemSummaryProps> = ({ item, onClick }) => {
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              minWidth: 0, // Important for flex items to shrink properly
+              minWidth: 0,
             }}
           >
             {item.name}
           </Typography>
-
-          {/* Images */}
-          {item.images && item.images.length > 0 && (
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
-              {item.images.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`News image ${index + 1}`}
-                  style={{
-                    maxWidth: "100px",
-                    maxHeight: "50px",
-                    objectFit: "cover",
-                    borderRadius: "4px",
-                  }}
-                />
-              ))}
-            </Box>
-          )}
         </Box>
+
+        {/* Images */}
+        {item.images && item.images.length > 0 && (
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
+            {item.images.map((image, index) => (
+              <img
+                key={index}
+                src={image}
+                alt={`Item image ${index + 1}`}
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  objectFit: "cover",
+                  borderRadius: "4px",
+                }}
+              />
+            ))}
+          </Box>
+        )}
 
         {/* Tags */}
         {item.tags && item.tags.length > 0 && (
-          <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", mt: 1 }}>
             {item.tags.map((tag, index) => (
               <Typography
                 key={index}
