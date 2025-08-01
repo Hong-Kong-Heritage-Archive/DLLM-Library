@@ -10,15 +10,11 @@ import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { Link } from "react-router";
 import { gql, useQuery } from "@apollo/client";
 import {
-  Role,
   User,
-  Item,
   RecentAddedItemsQuery,
   RecentAddedItemsQueryVariables,
 } from "../generated/graphql";
-import ItemForm from "./ItemForm";
 import ItemPreview from "./ItemPreview";
-import ItemDetail from "./ItemDetail";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -40,11 +36,10 @@ const RECENT_ITEM_QUERY = gql`
 `;
 
 interface RecentBannerProps {
-  user: User | undefined;
   category: string;
 }
 
-const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
+const RecentItemBanner: React.FC<RecentBannerProps> = ({ category }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [cardsPerView, setCardsPerView] = useState(4);
@@ -132,14 +127,9 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
 
   const cardDimensions = getCardDimensions();
 
-  const handleItemCreated = () => {
-    refetch();
-  };
-
   const handleItemClick = (itemId: string) => {
     navigate(`/item/${itemId}`);
   };
-
 
   const scrollLeft = () => {
     const newIndex = Math.max(0, currentIndex - cardsPerView);
@@ -180,7 +170,7 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
           <Typography
             variant={isMobile ? "h6" : "h5"}
             component={Link}
-            to="/item/all"
+            to="/item/recent"
             sx={{
               textDecoration: "none",
               color: "primary.main",
@@ -192,8 +182,6 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
           >
             {t("item.recentlyAdded", { category: category })}
           </Typography>
-
-          {user?.isActive && <ItemForm onItemCreated={handleItemCreated} />}
         </Box>
 
         {/* Scrollable Comics Container */}
@@ -252,12 +240,12 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                            index < currentIndex + cardsPerView
+                          index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                            index < currentIndex + cardsPerView
+                          index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",
@@ -347,7 +335,7 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ user, category }) => {
           <Typography
             variant="body2"
             component={Link}
-            to="/item/all"
+            to="/item/recent"
             sx={{
               color: "primary.main",
               textDecoration: "none",

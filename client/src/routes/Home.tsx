@@ -5,7 +5,7 @@ import { Button, Box, Typography, List, ListItem } from "@mui/material";
 import { User, Item } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
-import Map from "../components/Map";
+import ItemForm from "../components/ItemForm";
 import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
@@ -14,40 +14,9 @@ import { useNavigate } from "react-router";
 import ItemSummary from "../components/ItemSummary";
 import { calculateDistance } from "../utils/geoProcessor";
 
-const ITEMS_QUERY = gql`
-  query ItemsByLocation(
-    $latitude: Float!
-    $longitude: Float!
-    $radiusKm: Float!
-  ) {
-    itemsByLocation(
-      latitude: $latitude
-      longitude: $longitude
-      radiusKm: $radiusKm
-    ) {
-      id
-      name
-      condition
-      status
-      location {
-        latitude
-        longitude
-      }
-      images
-      category
-    }
-  }
-`;
-
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
     recentUpdateCategories(limit: $limit)
-  }
-`;
-
-const HotCategoriesQuery = gql`
-  query HotCategories($limit: Int!) {
-    hotCategories(limit: $limit)
   }
 `;
 
@@ -67,8 +36,8 @@ const HomePage: React.FC = () => {
   // State for controlling UpdateUser dialog
   const [showUpdateUser, setShowUpdateUser] = useState(false);
 
-  const handleItemClick = (itemId: string) => {
-    navigate(`/item/${itemId}`);
+  const handleItemCreated = () => {
+    refetch();
   };
 
   const [location, setLocation] = useState<{
@@ -77,20 +46,16 @@ const HomePage: React.FC = () => {
   } | null>(null);
 
   // Query for recent categories
-  const { data: recentCategoriesData, loading: recentCategoriesLoading } =
-    useQuery<{
-      recentUpdateCategories: string[];
-    }>(RecentCategoriesQuery, {
-      variables: { limit: 3 },
-    });
-
-  const itemsByLocationOutput = useQuery<{ itemsByLocation: Item[] }>(
-    ITEMS_QUERY,
-    {
-      variables: location ? { ...location, radiusKm: 10 } : undefined,
-      skip: !location,
-    }
-  );
+  const {
+    data: recentCategoriesData,
+    loading: recentCategoriesLoading,
+    error,
+    refetch,
+  } = useQuery<{
+    recentUpdateCategories: string[];
+  }>(RecentCategoriesQuery, {
+    variables: { limit: 3 },
+  });
 
   const getLocation = () => {
     if (user?.location?.latitude) {
@@ -120,6 +85,10 @@ const HomePage: React.FC = () => {
     window.location.reload();
   };
 
+  const handleViewAllItems = () => {
+    navigate("/item/all");
+  };
+
   return (
     <List>
       <ListItem>
@@ -135,6 +104,7 @@ const HomePage: React.FC = () => {
             <Typography sx={{ flex: 1 }}>
               {t("home.welcome", { nickname: user.nickname })}
             </Typography>
+            {user?.isActive && <ItemForm onItemCreated={handleItemCreated} />}
             <Button variant="outlined" onClick={() => setShowUpdateUser(true)}>
               {t("auth.editProfile")}
             </Button>
@@ -179,7 +149,7 @@ const HomePage: React.FC = () => {
           {recentCategoriesData.recentUpdateCategories.map(
             (category, index) => (
               <ListItem key={`recent-category-${index}`}>
-                <RecentItemBanner user={user} category={category} />
+                <RecentItemBanner category={category} />
               </ListItem>
             )
           )}
@@ -194,54 +164,10 @@ const HomePage: React.FC = () => {
       )}
 
       <ListItem>
-        <Button variant="contained" onClick={getLocation}>
-          {t("home.displayNearbyItems")}
+        <Button variant="contained" onClick={handleViewAllItems}>
+          {t("navigation.viewAllItems")}
         </Button>
       </ListItem>
-
-      {itemsByLocationOutput.data && (
-        <Box mt={2}>
-          <Typography variant="h6">{t("home.itemsWithinRadius")}</Typography>
-          <List>
-            {itemsByLocationOutput.data.itemsByLocation.map((item) => (
-              <ItemSummary
-                key={item.id}
-                item={{
-                  id: item.id,
-                  name: item.name,
-                  distance:
-                    item.location && location
-                      ? calculateDistance(
-                        item.location?.latitude,
-                        item.location?.longitude,
-                        location.latitude,
-                        location.longitude
-                      )
-                      : 0,
-                  status: item.status,
-                  images: item.images,
-                  tags: item.category,
-                }}
-                onClick={handleItemClick}
-              />
-            ))}
-          </List>
-        </Box>
-      )}
-
-      {itemsByLocationOutput.loading && (
-        <Typography>{t("common.loading")}</Typography>
-      )}
-
-      {itemsByLocationOutput.error && (
-        <ListItem>
-          <Typography>
-            {t("common.error", {
-              message: itemsByLocationOutput.error.message,
-            })}
-          </Typography>
-        </ListItem>
-      )}
 
       {/* UpdateUser Dialog - Only render when needed */}
       {showUpdateUser && (

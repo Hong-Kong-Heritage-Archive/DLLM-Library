@@ -537,21 +537,22 @@ export type CreateUserMutationVariables = Exact<{
 
 export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', id: string, email: string, address?: string | null, nickname?: string | null, createdAt: any, isVerified: boolean, isActive: boolean, location?: { __typename?: 'Location', latitude: number, longitude: number, geohash?: string | null } | null } };
 
-export type ItemsByLocationQueryVariables = Exact<{
-  latitude: Scalars['Float']['input'];
-  longitude: Scalars['Float']['input'];
-  radiusKm: Scalars['Float']['input'];
-}>;
-
-
-export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, category: Array<string>, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
-
 export type RecentCategoriesQueryVariables = Exact<{
   limit: Scalars['Int']['input'];
 }>;
 
 
 export type RecentCategoriesQuery = { __typename?: 'Query', recentUpdateCategories: Array<string> };
+
+export type ItemsByLocationQueryVariables = Exact<{
+  latitude: Scalars['Float']['input'];
+  longitude: Scalars['Float']['input'];
+  radiusKm: Scalars['Float']['input'];
+  category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, category: Array<string>, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
 
 export type HotCategoriesQueryVariables = Exact<{
   limit: Scalars['Int']['input'];
@@ -1343,57 +1344,6 @@ export function useCreateUserMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreateUserMutationHookResult = ReturnType<typeof useCreateUserMutation>;
 export type CreateUserMutationResult = Apollo.MutationResult<CreateUserMutation>;
 export type CreateUserMutationOptions = Apollo.BaseMutationOptions<CreateUserMutation, CreateUserMutationVariables>;
-export const ItemsByLocationDocument = gql`
-    query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!) {
-  itemsByLocation(latitude: $latitude, longitude: $longitude, radiusKm: $radiusKm) {
-    id
-    name
-    condition
-    status
-    location {
-      latitude
-      longitude
-    }
-    images
-    category
-  }
-}
-    `;
-
-/**
- * __useItemsByLocationQuery__
- *
- * To run a query within a React component, call `useItemsByLocationQuery` and pass it any options that fit your needs.
- * When your component renders, `useItemsByLocationQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useItemsByLocationQuery({
- *   variables: {
- *      latitude: // value for 'latitude'
- *      longitude: // value for 'longitude'
- *      radiusKm: // value for 'radiusKm'
- *   },
- * });
- */
-export function useItemsByLocationQuery(baseOptions: Apollo.QueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables> & ({ variables: ItemsByLocationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
-      }
-export function useItemsByLocationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
-        }
-export function useItemsByLocationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
-        }
-export type ItemsByLocationQueryHookResult = ReturnType<typeof useItemsByLocationQuery>;
-export type ItemsByLocationLazyQueryHookResult = ReturnType<typeof useItemsByLocationLazyQuery>;
-export type ItemsByLocationSuspenseQueryHookResult = ReturnType<typeof useItemsByLocationSuspenseQuery>;
-export type ItemsByLocationQueryResult = Apollo.QueryResult<ItemsByLocationQuery, ItemsByLocationQueryVariables>;
 export const RecentCategoriesDocument = gql`
     query RecentCategories($limit: Int!) {
   recentUpdateCategories(limit: $limit)
@@ -1432,6 +1382,63 @@ export type RecentCategoriesQueryHookResult = ReturnType<typeof useRecentCategor
 export type RecentCategoriesLazyQueryHookResult = ReturnType<typeof useRecentCategoriesLazyQuery>;
 export type RecentCategoriesSuspenseQueryHookResult = ReturnType<typeof useRecentCategoriesSuspenseQuery>;
 export type RecentCategoriesQueryResult = Apollo.QueryResult<RecentCategoriesQuery, RecentCategoriesQueryVariables>;
+export const ItemsByLocationDocument = gql`
+    query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!, $category: [String!]) {
+  itemsByLocation(
+    latitude: $latitude
+    longitude: $longitude
+    radiusKm: $radiusKm
+    category: $category
+  ) {
+    id
+    name
+    condition
+    status
+    location {
+      latitude
+      longitude
+    }
+    images
+    category
+  }
+}
+    `;
+
+/**
+ * __useItemsByLocationQuery__
+ *
+ * To run a query within a React component, call `useItemsByLocationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useItemsByLocationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useItemsByLocationQuery({
+ *   variables: {
+ *      latitude: // value for 'latitude'
+ *      longitude: // value for 'longitude'
+ *      radiusKm: // value for 'radiusKm'
+ *      category: // value for 'category'
+ *   },
+ * });
+ */
+export function useItemsByLocationQuery(baseOptions: Apollo.QueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables> & ({ variables: ItemsByLocationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+      }
+export function useItemsByLocationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+        }
+export function useItemsByLocationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemsByLocationQuery, ItemsByLocationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ItemsByLocationQuery, ItemsByLocationQueryVariables>(ItemsByLocationDocument, options);
+        }
+export type ItemsByLocationQueryHookResult = ReturnType<typeof useItemsByLocationQuery>;
+export type ItemsByLocationLazyQueryHookResult = ReturnType<typeof useItemsByLocationLazyQuery>;
+export type ItemsByLocationSuspenseQueryHookResult = ReturnType<typeof useItemsByLocationSuspenseQuery>;
+export type ItemsByLocationQueryResult = Apollo.QueryResult<ItemsByLocationQuery, ItemsByLocationQueryVariables>;
 export const HotCategoriesDocument = gql`
     query HotCategories($limit: Int!) {
   hotCategories(limit: $limit)

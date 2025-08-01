@@ -13,7 +13,7 @@ const ItemDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
   if (!id) {
-    return <Navigate to="/item/all" replace />;
+    return <Navigate to="/item/recent" replace />;
   }
 
   return (
