@@ -68,7 +68,7 @@ const HomePage: React.FC = () => {
   const [showUpdateUser, setShowUpdateUser] = useState(false);
 
   const handleItemClick = (itemId: string) => {
-    navigate(`/items/${itemId}`);
+    navigate(`/item/${itemId}`);
   };
 
   const [location, setLocation] = useState<{
@@ -212,11 +212,11 @@ const HomePage: React.FC = () => {
                   distance:
                     item.location && location
                       ? calculateDistance(
-                          item.location?.latitude,
-                          item.location?.longitude,
-                          location.latitude,
-                          location.longitude
-                        )
+                        item.location?.latitude,
+                        item.location?.longitude,
+                        location.latitude,
+                        location.longitude
+                      )
                       : 0,
                   status: item.status,
                   images: item.images,

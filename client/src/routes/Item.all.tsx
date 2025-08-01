@@ -143,11 +143,11 @@ const AllItemPage: React.FC = () => {
         </Typography>
       )}
 
-      <ItemDetail
+      {/* <ItemDetail
         itemId={selectedItemId}
         user={user}
         onBack={() => window.history.back()} // Optional custom back behavior
-      />
+      /> */}
     </Box>
   );
 };

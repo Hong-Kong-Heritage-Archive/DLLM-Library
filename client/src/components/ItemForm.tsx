@@ -394,7 +394,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             >
               {Object.values(ItemCondition).map((cond) => (
                 <MenuItem key={cond} value={cond}>
-                  {t(`item.conditions.${cond}`) || cond}
+                  {cond}
                 </MenuItem>
               ))}
             </TextField>
@@ -506,7 +506,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             >
               {Object.values(Language).map((lang) => (
                 <MenuItem key={lang} value={lang}>
-                  {t(`languages.${lang}`) || lang}
+                  {lang}
                 </MenuItem>
               ))}
             </TextField>
@@ -536,7 +536,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             >
               {Object.values(ItemStatus).map((stat) => (
                 <MenuItem key={stat} value={stat}>
-                  {t(`item.statuses.${stat}`) || stat}
+                  {stat}
                 </MenuItem>
               ))}
             </TextField>
