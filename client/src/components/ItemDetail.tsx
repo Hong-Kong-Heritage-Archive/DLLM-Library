@@ -32,12 +32,15 @@ import {
   Transaction,
   User,
   TransactionStatus,
+  UpdateItemMutation,
+  UpdateItemMutationVariables,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import SafeImage from "./SafeImage";
 import RequestConfirmationDialog from "./RequestConfirmationDialog";
+import EditItemForm from "./EditItemForm";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -148,6 +151,10 @@ interface ItemDetailProps {
   onBack?: () => void;
 }
 
+interface ItemFormProps {
+  onItemUpdated?: (data: UpdateItemMutation) => void;
+}
+
 const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -157,6 +164,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Add edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data, loading, error } = useQuery<{ item: Item }>(ITEM_DETAIL_QUERY, {
     variables: { itemId: itemId! },
@@ -383,6 +393,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const handleEditSuccess = () => {
+    setSuccessSnackbarOpen(true);
+    // Refetch the item data to show updated information
+    window.location.reload(); // Simple refresh, or you could refetch the query
+  };
+
+  const handleEditError = (message: string) => {
+    setErrorMessage(message);
+    setErrorSnackbarOpen(true);
   };
 
   // Handle case when itemId is null
@@ -898,9 +919,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 variant="contained"
                 color="secondary"
                 size="large"
-                onClick={() => {
-                  console.log("Edit item clicked");
-                }}
+                onClick={() => setEditDialogOpen(true)}
               >
                 {t("item.editItem")}
               </Button>
@@ -922,6 +941,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           </Box>
         </Paper>
       )}
+
+      {/* Edit Item Dialog */}
+      <EditItemForm
+        open={editDialogOpen}
+        item={data?.item || null}
+        onClose={() => setEditDialogOpen(false)}
+        onSuccess={handleEditSuccess}
+        onError={handleEditError}
+      />
 
       {/* Request Confirmation Dialog - Pass transactions data */}
       <RequestConfirmationDialog

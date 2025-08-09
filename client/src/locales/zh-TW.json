@@ -51,7 +51,8 @@
     "unknown": "未知",
     "updated": "改造",
     "created": "發佈",
-    "optional": "可選"
+    "optional": "可選",
+    "save": "儲存"
   },
   "location": {
     "latitude": "緯度",

@@ -115,8 +115,6 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
     },
   });
 
-  const handleClickOpen = () => setOpen(true);
-
   const handleClose = () => {
     setOpen(false);
 
@@ -349,7 +347,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
 
   return (
     <Box>
-      <Button variant="contained" onClick={handleClickOpen}>
+      <Button variant="contained" onClick={() => setOpen(true)}>
         {t("item.create")}
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
@@ -575,12 +573,14 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         </form>
       </Dialog>
 
-      {data && (
-        <Alert severity="success" sx={{ mt: 2 }}>
-          {t("item.createSuccess")}
-        </Alert>
-      )}
-    </Box>
+      {
+        data && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            {t("item.createSuccess")}
+          </Alert>
+        )
+      }
+    </Box >
   );
 };
 

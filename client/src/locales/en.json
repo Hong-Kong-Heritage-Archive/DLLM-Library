@@ -51,7 +51,8 @@
     "unknown": "Unknown",
     "updated": "Updated",
     "created": "Created",
-    "optional": "Optional"
+    "optional": "Optional",
+    "save": "Save"
   },
   "location": {
     "latitude": "Latitude",
