@@ -2,9 +2,7 @@ import { db, LoginUser } from "./platform";
 import { User, ContactMethod, Location, Role } from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { MapService, createMapService } from "./mapService";
-import * as geofire from "geofire-common";
 import { Timestamp } from "firebase-admin/firestore";
-import { create } from "domain";
 
 type UserModel = Omit<User, "createdAt"> & {
   geohash?: string;
@@ -15,6 +13,9 @@ export class UserService {
   private mapService: MapService;
   private itemService: ItemService;
 
+  // all cache for user data
+  private userCache: Map<string, User> = new Map();
+
   constructor(itemService: ItemService) {
     this.mapService = createMapService();
     this.itemService = itemService;
@@ -23,24 +24,33 @@ export class UserService {
   async me(loginUser: LoginUser | null): Promise<User | null> {
     if (!loginUser) throw new Error("Not authenticated");
     // check if user's email is verified
-    const userDoc = await db.collection("users").doc(loginUser.uid).get();
-    if (!userDoc.exists) return null;
-    const data = userDoc.data() as UserModel;
-    if (!data.isVerified && loginUser.emailVerified) {
+    const user = await this.userById(loginUser.uid);
+    if (!user) return null;
+    if (!user.isVerified && loginUser.emailVerified) {
       // update user to verified if email is verified
       await db
         .collection("users")
         .doc(loginUser.uid)
         .update({ isVerified: true });
     }
-    return { createdAt: data.created.seconds * 1000, ...data } as User;
+    // return user data
+    return user;
   }
 
   async userById(userId: string): Promise<User | null> {
+    const cachedUser = this.userCache.get(userId);
+    if (cachedUser) return cachedUser;
+    return this._userById(userId);
+  }
+
+  async _userById(userId: string): Promise<User | null> {
+    // fetch user from database
     const userDoc = await db.collection("users").doc(userId).get();
     if (!userDoc.exists) return null;
     const data = userDoc.data() as UserModel;
-    return { createdAt: data.created.seconds * 1000, ...data } as User;
+    const user = { createdAt: data.created.seconds * 1000, ...data } as User;
+    this.userCache.set(userId, user);
+    return user;
   }
 
   async createUser(
@@ -140,6 +150,8 @@ export class UserService {
 
     const updatedDoc = await userRef.get();
     const data = updatedDoc.data() as UserModel;
-    return { createdAt: data.created.seconds * 1000, ...data } as User;
+    const updatedUser = { createdAt: data.created.seconds * 1000, ...data } as User;
+    this.userCache.set(loginUser.uid, updatedUser);
+    return updatedUser;
   }
 }

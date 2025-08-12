@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import ItemSummary from "../components/ItemSummary";
 import { calculateDistance } from "../utils/geoProcessor";
 import { useNavigate } from "react-router";
+import PaginationControls from "../components/PaginationControls";
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -61,6 +62,8 @@ interface OutletContext {
   user?: User;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 const ItemAllPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useOutletContext<OutletContext>();
@@ -72,6 +75,7 @@ const ItemAllPage: React.FC = () => {
   } | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
 
   // Query for hot categories
   const { data: hotCategoriesData, loading: categoriesLoading } = useQuery<{
@@ -80,7 +84,7 @@ const ItemAllPage: React.FC = () => {
     variables: { limit: 10 },
   });
 
-  // Query for items by location
+  // Query for items by location with pagination
   const {
     data: itemsData,
     loading: itemsLoading,
@@ -92,6 +96,8 @@ const ItemAllPage: React.FC = () => {
           ...location,
           radiusKm: 10,
           category: selectedCategory ? [selectedCategory] : null,
+          limit: ITEMS_PER_PAGE,
+          offset: (page - 1) * ITEMS_PER_PAGE,
         }
       : undefined,
     skip: !location,
@@ -103,6 +109,11 @@ const ItemAllPage: React.FC = () => {
 
   const handleCategoryChange = (event: SelectChangeEvent<string>) => {
     setSelectedCategory(event.target.value);
+    setPage(1); // Reset to page 1 when category changes
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
 
   const getLocation = () => {
@@ -139,12 +150,12 @@ const ItemAllPage: React.FC = () => {
     getLocation();
   }, [user]);
 
-  // Refetch items when category changes
+  // Refetch items when category, page, or location changes
   useEffect(() => {
     if (location) {
       refetchItems();
     }
-  }, [selectedCategory, refetchItems, location]);
+  }, [selectedCategory, page, refetchItems, location]);
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -290,6 +301,19 @@ const ItemAllPage: React.FC = () => {
                   ))}
                 </List>
               )}
+
+              {/* Pagination Controls */}
+              <PaginationControls
+                currentPage={page}
+                onPageChange={handlePageChange}
+                hasNextPage={
+                  itemsData.itemsByLocation.length === ITEMS_PER_PAGE
+                }
+                hasPrevPage={page > 1}
+                isLoading={itemsLoading}
+                itemsPerPage={ITEMS_PER_PAGE}
+                showPageInfo={true}
+              />
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                 {t("itemsAll.itemsCount", "Found {{count}} item(s)", {

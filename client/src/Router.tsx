@@ -7,6 +7,7 @@ import AllNewsPage from "./routes/News.all";
 import ItemDetailPage from "./routes/Item.$id";
 import ItemRecentPage from "./routes/Item.recent";
 import ItemAllPage from "./routes/Item.all";
+import UserDetailPage from "./routes/User.$id";
 import { User } from "./generated/graphql";
 
 /*
@@ -54,6 +55,15 @@ export const createRouter = (email?: string | undefined | null, user?: User) =>
             {
               path: ":id",
               element: <ItemDetailPage />,
+            },
+          ],
+        },
+        {
+          path: "user",
+          children: [
+            {
+              path: ":id",
+              element: <UserDetailPage />,
             },
           ],
         },

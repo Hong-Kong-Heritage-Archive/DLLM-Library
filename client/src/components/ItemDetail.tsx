@@ -298,6 +298,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     return formatDistance(distance);
   };
 
+  const handleUserClick = (userId: string) => {
+    navigate(`/user/${userId}`);
+  };
+
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -422,14 +426,42 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 sx={{ ml: 2 }}
               />
             ) : (
-              isHolder && (
-                <Chip
-                  label={t("item.holder", "Holder")}
-                  color="secondary"
-                  size="small"
-                  sx={{ ml: 2 }}
-                />
-              )
+              <>
+                {/* Show owner name if user is not the owner */}
+                {ownerData?.user && (
+                  <Chip
+                    label={`${t("item.owner", "Owner")}: ${
+                      ownerData.user.nickname || ownerData.user.email
+                    }`}
+                    color="primary"
+                    size="small"
+                    sx={{ ml: 2, cursor: "pointer" }}
+                    onClick={() => handleUserClick(ownerData.user.id)}
+                  />
+                )}
+                {/* Show holder name if user is not the holder and holder is different from owner */}
+                {isHolder && (
+                  <Chip
+                    label={t("item.holder", "Holder")}
+                    color="secondary"
+                    size="small"
+                    sx={{ ml: 2 }}
+                  />
+                )}
+                {!isHolder &&
+                  holderData?.user &&
+                  data.item.holderId !== data.item.ownerId && (
+                    <Chip
+                      label={`${t("item.holder", "Holder")}: ${
+                        holderData.user.nickname || holderData.user.email
+                      }`}
+                      color="secondary"
+                      size="small"
+                      sx={{ ml: 2, cursor: "pointer" }}
+                      onClick={() => handleUserClick(holderData.user.id)}
+                    />
+                  )}
+              </>
             )}
           </Typography>
         ) : (
@@ -790,10 +822,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                          ? "info"
-                          : data.item.status === "GIFT"
-                            ? "warning"
-                            : "default"
+                        ? "info"
+                        : data.item.status === "GIFT"
+                        ? "warning"
+                        : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}

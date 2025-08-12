@@ -56,15 +56,22 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
 
   const hasImage = showImage && item.images && item.images.length > 0;
 
-  // Calculate image height based on portrait mode
+  // Calculate image height based on portrait mode - more image-centric
   const imageHeight = isPortrait
-    ? `${Math.min(parseFloat(height.toString()) * 0.4, 80)}px`
-    : "40%";
-  const contentHeight = isPortrait
-    ? `calc(100% - ${imageHeight})`
+    ? hasImage
+      ? "80%" // 80% for image when available (vertical)
+      : "60%" // 60% for name display area when no image (horizontal assumption)
     : hasImage
-      ? "60%"
-      : "100%";
+    ? "75%" // 75% for image when available
+    : "60%"; // 60% for name display area when no image
+
+  const contentHeight = isPortrait
+    ? hasImage
+      ? "20%" // Only 20% for info when image exists (vertical)
+      : "40%" // 40% for description when no image
+    : hasImage
+    ? "25%" // 25% for info when image exists
+    : "40%"; // 40% for description when no image
 
   return (
     <Card
@@ -123,7 +130,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
           </Box>
         )}
 
-        {/* Placeholder for no image */}
+        {/* Placeholder for no image - Display name in image area */}
         {showImage && !item.images?.length && (
           <Box
             sx={{
@@ -131,21 +138,37 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "grey.200",
-              color: "grey.500",
+              backgroundColor: "grey.100",
+              color: "text.primary",
               flexShrink: 0,
               position: "relative",
+              p: 2,
             }}
           >
-            <ImageNotSupported fontSize={isPortrait ? "medium" : "large"} />
+            {/* Display item name prominently in the image area */}
+            <Typography
+              variant={isPortrait ? "h6" : "h5"}
+              sx={{
+                fontWeight: "bold",
+                textAlign: "center",
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                lineHeight: 1.2,
+              }}
+            >
+              {item.name}
+            </Typography>
+
             {/* Status Badge */}
             <Chip
               label={item.status}
               size="small"
               sx={{
                 position: "absolute",
-                top: 4,
-                right: 4,
+                top: 8,
+                right: 8,
                 backgroundColor:
                   item.status === "AVAILABLE" ? "success.main" : "warning.main",
                 color: "white",
@@ -156,11 +179,11 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
           </Box>
         )}
 
-        {/* Comic Content */}
+        {/* Content */}
         <CardContent
           sx={{
             height: contentHeight,
-            p: isPortrait ? 1 : 2,
+            p: hasImage ? (isPortrait ? 0.5 : 1) : isPortrait ? 1 : 2, // Less padding when image exists
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -168,84 +191,81 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
           }}
         >
           <Box sx={{ flex: 1 }}>
-            <Typography
-              variant={isPortrait ? "subtitle2" : "h6"}
-              sx={{
-                fontWeight: "bold",
-                fontSize: isPortrait ? "0.9rem" : "1.1rem",
-                lineHeight: 1.2,
-                mb: 0.5,
-                overflow: "hidden",
-                display: "-webkit-box",
-                WebkitLineClamp: isPortrait ? 2 : 2,
-                WebkitBoxOrient: "vertical",
-              }}
-            >
-              {truncateText(item.name, isPortrait ? 40 : 50)}
-            </Typography>
-
-            {/* Condition and Published Year */}
-            <Box
-              sx={{ display: "flex", gap: 0.5, mb: 1, alignItems: "center" }}
-            >
-              <Chip
-                label={item.condition}
-                size="small"
-                variant="outlined"
-                sx={{
-                  fontSize: isPortrait ? "0.6rem" : "0.7rem",
-                  height: isPortrait ? 16 : 20,
-                }}
-              />
-              {item.publishedYear && (
+            {/* For items with images - show minimal info */}
+            {hasImage ? (
+              <>
                 <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ fontSize: isPortrait ? "0.6rem" : "0.7rem" }}
+                  variant={isPortrait ? "caption" : "subtitle2"}
+                  sx={{
+                    fontWeight: "bold",
+                    fontSize: isPortrait ? "0.75rem" : "0.9rem",
+                    lineHeight: 1.1,
+                    mb: 0.5,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 1, // Single line only for items with images
+                    WebkitBoxOrient: "vertical",
+                  }}
                 >
-                  {item.publishedYear}
+                  {truncateText(item.name, isPortrait ? 25 : 35)}
                 </Typography>
-              )}
-            </Box>
 
-            {/* Date for non-image mode */}
-            {!showImage && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: "block", mb: 1 }}
-              >
-                {t("comics.addedOn", "Added")}: {formatDate(item.createdAt)}
-              </Typography>
-            )}
-
-            {/* Categories */}
-            {item.category && item.category.length > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 0.5,
-                  flexWrap: "wrap",
-                  mb: 1,
-                }}
-              >
-                {item.category
-                  .slice(1, isPortrait ? 2 : 3)
-                  .map((cat, index) => (
-                    <Chip
-                      key={index}
-                      label={cat}
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        fontSize: isPortrait ? "0.6rem" : "0.7rem",
-                        height: isPortrait ? 16 : 20,
-                      }}
-                    />
-                  ))}
-                {item.category.length > (isPortrait ? 2 : 3) && (
+                {/* Minimal info for items with images */}
+                <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
                   <Chip
-                    label={`+${item.category.length - (isPortrait ? 2 : 3)}`}
+                    label={item.condition}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      fontSize: isPortrait ? "0.5rem" : "0.6rem",
+                      height: isPortrait ? 14 : 16,
+                    }}
+                  />
+                  {item.publishedYear && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontSize: isPortrait ? "0.5rem" : "0.6rem" }}
+                    >
+                      {item.publishedYear}
+                    </Typography>
+                  )}
+                </Box>
+              </>
+            ) : (
+              /* For items without images - show description as name field */
+              <>
+                <Typography
+                  variant={isPortrait ? "subtitle2" : "subtitle1"}
+                  sx={{
+                    fontWeight: "medium",
+                    fontSize: isPortrait ? "0.85rem" : "1rem",
+                    lineHeight: 1.2,
+                    mb: 1,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 1, // Single line only
+                    WebkitBoxOrient: "vertical",
+                    color: "text.secondary",
+                  }}
+                >
+                  {item.description
+                    ? truncateText(item.description, isPortrait ? 40 : 60)
+                    : t("item.noDescription", "No description available")}
+                </Typography>
+
+                {/* Additional info for items without images */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 0.5,
+                    mb: 1,
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Chip
+                    label={item.condition}
                     size="small"
                     variant="outlined"
                     sx={{
@@ -253,23 +273,74 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
                       height: isPortrait ? 16 : 20,
                     }}
                   />
+                  {item.publishedYear && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontSize: isPortrait ? "0.6rem" : "0.7rem" }}
+                    >
+                      {item.publishedYear}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* Categories for items without images */}
+                {item.category && item.category.length > 0 && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 0.5,
+                      flexWrap: "wrap",
+                      mb: 1,
+                    }}
+                  >
+                    {item.category
+                      .slice(0, isPortrait ? 2 : 3)
+                      .map((cat, index) => (
+                        <Chip
+                          key={index}
+                          label={cat}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            fontSize: isPortrait ? "0.6rem" : "0.7rem",
+                            height: isPortrait ? 16 : 20,
+                          }}
+                        />
+                      ))}
+                    {item.category.length > (isPortrait ? 2 : 3) && (
+                      <Chip
+                        label={`+${
+                          item.category.length - (isPortrait ? 2 : 3)
+                        }`}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          fontSize: isPortrait ? "0.6rem" : "0.7rem",
+                          height: isPortrait ? 16 : 20,
+                        }}
+                      />
+                    )}
+                  </Box>
                 )}
-              </Box>
+              </>
             )}
           </Box>
 
-          {/* View More Link */}
-          <Typography
-            variant="caption"
-            color="primary"
-            sx={{
-              fontWeight: "medium",
-              fontSize: isPortrait ? "0.7rem" : "0.8rem",
-              alignSelf: "flex-start",
-            }}
-          >
-            {t("item.viewDetails", "View Details")} →
-          </Typography>
+          {/* View More Link - smaller for image-centric design */}
+          {hasImage && (
+            <Typography
+              variant="caption"
+              color="primary"
+              sx={{
+                fontWeight: "medium",
+                fontSize: isPortrait ? "0.6rem" : "0.7rem",
+                alignSelf: "flex-start",
+              }}
+            >
+              {t("item.viewDetails", "View Details")} →
+            </Typography>
+          )}
         </CardContent>
       </CardActionArea>
     </Card>

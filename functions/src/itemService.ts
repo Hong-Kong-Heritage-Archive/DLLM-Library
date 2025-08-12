@@ -13,7 +13,6 @@ import { MapService, createMapService } from "./mapService";
 import { CategoryService } from "./categoryService";
 import firebase from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
-import { p } from "graphql-ws/dist/common-DY-PBNYy";
 
 type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
@@ -123,25 +122,34 @@ export class ItemService {
     let query = db
       .collection("items")
       .where("ownerId", "==", userId)
-      .orderBy("id");
-    if (category)
+      .orderBy("updated", "desc");
+    if (category && category.length > 0)
       query = query.where("category", "array-contains-any", category);
     if (status) query = query.where("status", "==", status);
     if (keyword)
       query = query
         .where("name", ">=", keyword)
         .where("name", "<=", keyword + "\uf8ff");
+    console.log;
     const snapshot = await query.limit(limit).offset(offset).get();
-    const items = snapshot.docs.map(
-      (doc) =>
-        ({
+    console.log(`Total ${snapshot.docs.length} items found for user ${userId}`);
+    const results: Item[] = [];
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const data = doc.data() as ItemModel;
+        const item: Item = {
           id: doc.id,
-          createdAt: doc.data().created.seconds * 1000,
-          updatedAt: doc.data().updated.seconds * 1000,
-          ...doc.data(),
-        } as Item)
+          createdAt: data.created.seconds * 1000,
+          updatedAt: data.updated.seconds * 1000,
+          ...data,
+        };
+        results.push(item);
+      })
     );
-    return items;
+    console.debug(
+      `Found ${results.length} items for user ${userId} with category ${category}, status ${status}, keyword ${keyword}`
+    );
+    return results;
   }
 
   async createItem(
