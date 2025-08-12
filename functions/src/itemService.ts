@@ -132,7 +132,7 @@ export class ItemService {
     const results: Item[] = [];
     await Promise.all(
       snapshot.docs.map(async (doc) => {
-        const item = await this._itemModelToItem(doc);
+        const item = await this._itemQueryToItem(doc);
         results.push(item);
       })
     );

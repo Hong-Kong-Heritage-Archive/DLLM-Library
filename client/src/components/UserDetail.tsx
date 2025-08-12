@@ -63,6 +63,7 @@ const USER_ITEMS_QUERY = gql`
       condition
       status
       images
+      thumbnails
       category
       location {
         latitude
@@ -392,6 +393,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                             : 0,
                         status: item.status,
                         images: item.images,
+                        thumbnails: item.thumbnails,
                         tags: item.category,
                       }}
                       onClick={handleItemClick}

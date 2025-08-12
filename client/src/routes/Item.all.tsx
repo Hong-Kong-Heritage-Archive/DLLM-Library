@@ -46,6 +46,7 @@ const ITEMS_QUERY = gql`
         longitude
       }
       images
+      thumbnails
       category
     }
   }
