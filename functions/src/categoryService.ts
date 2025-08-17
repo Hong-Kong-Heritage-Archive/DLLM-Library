@@ -12,6 +12,7 @@ import * as geofire from "geofire-common";
 import firebase from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { p } from "graphql-ws/dist/common-DY-PBNYy";
+import { log } from "console";
 
 type CategoryModel = {
   count: number;
@@ -24,7 +25,7 @@ export class CategoryService {
 
   async upsertCategories(owner: User, categories: string[]): Promise<void> {
     if (!categories || categories.length === 0) {
-      console.warn("No categories provided for upsert");
+      console.log("No categories provided for upsert");
       return;
     }
 
@@ -44,10 +45,12 @@ export class CategoryService {
     }
 
     // Verify that the category is initialized before calling this.
-    // check here as we do not have access to ItemService.
+    // Do a check here as we do not have access to ItemService.
+    // Handle case where the user does not have any item categories.
     var itemCategory = await this.getUserItemCategory( owner.id );
-    if (!itemCategory || itemCategory.length === 0) {
-      throw new Error("User's item categories are not initialized");
+    if ( !itemCategory ) {
+      console.warn("User's item categories are not initialized: " + owner.id );
+      throw new Error("User's item categories are not initialized:" + owner.id );
     }
 
     // Update user's itemCategory subcollection
