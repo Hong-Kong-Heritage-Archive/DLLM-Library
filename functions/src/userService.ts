@@ -49,16 +49,11 @@ export class UserService {
     if (!userDoc.exists) return null;
     const data = userDoc.data() as UserModel;
 
-    // Convert itemCategoryCounts object to array if present
-    let itemCategoryCounts = undefined;
-    if (data.itemCategoryCounts && typeof data.itemCategoryCounts === "object") {
-      itemCategoryCounts = Object.entries(data.itemCategoryCounts).map(
-        ([category, count]) => ({
-          category,
-          count,
-        })
-      );
-    }
+    const categorySnapshot = await db.collection("users").doc(userId).collection("itemCategoryCount").get();
+    const itemCategoryCounts = categorySnapshot.docs.map(doc => ({
+      category: doc.id,
+      count: doc.data().count
+    }));
 
     const user = {
       createdAt: data.created.seconds * 1000,
