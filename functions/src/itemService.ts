@@ -146,7 +146,18 @@ export class ItemService {
   async itemCategoriesByUser(  userId: string )
   {
       // Assuming that we do not have anyone with large number of entries
-      const items = await this.itemsByUser(userId, [], "", "", 65535, 0);
+      let items: Item[] = [];
+      // Fetch all items by user by batch
+      let batchSize = 20;
+      let offset = 0;
+      while (true) {
+        const batchItems = await this.itemsByUser(userId, [], "", "", batchSize, offset);
+        if (!batchItems || batchItems.length === 0) break;
+        items.push(...batchItems);
+        offset += batchSize;
+        if (batchItems.length < batchSize) break;
+       // console.log(`Fetched ${items.length} items for user ${userId} so far...`);
+      }
 
       // Count categories
       const categoryCount: { [category: string]: number } = {};

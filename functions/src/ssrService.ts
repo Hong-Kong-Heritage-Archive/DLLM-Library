@@ -3,6 +3,7 @@ import { readFile } from 'fs';
 import path from 'path';
 import { db } from './platform';
 import * as fs from 'fs';
+import { isBotRequest, getBotType } from './botDetection';
 
 // Get Config
 const getConfig = () => {

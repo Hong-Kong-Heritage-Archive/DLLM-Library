@@ -12,6 +12,7 @@ import { resolvers } from './resolver';
 import { readFileSync } from "fs";
 import { getLoginUserFromToken } from './platform';
 import { handleHomePageSSR, handleItemDetailSSR } from './ssrService';
+import { isBotRequest, getBotType } from './botDetection';
 
 const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 
@@ -75,7 +76,30 @@ async function startApolloServer() {
 
   // Set up SSR routes
   app.get('/', handleHomePageSSR);
-  app.get('/item/:id', handleItemDetailSSR);
+  
+  // Handle /item and /item/:id with bot detection
+  app.get('/item/:id', (req, res) => {
+    if (isBotRequest(req)) {
+      console.log(`Bot detected (${getBotType(req)}) for /item/${req.params.id} - serving SSR`);
+      handleItemDetailSSR(req, res);
+    } else {
+      console.log(`Regular browser detected for /item/${req.params.id} - redirecting to CSR`);
+      // Redirect to the client-side app
+      res.redirect(302, `/?redirect=/item/${req.params.id}`);
+    }
+  });
+  
+  // Handle /item page (listing)
+  app.get('/item', (req, res) => {
+    if (isBotRequest(req)) {
+      console.log(`Bot detected (${getBotType(req)}) for /item - serving SSR home page`);
+      handleHomePageSSR(req, res);
+    } else {
+      console.log(`Regular browser detected for /item - redirecting to CSR`);
+      // Redirect to the client-side app
+      res.redirect(302, '/?redirect=/item');
+    }
+  });
 
   // For local development, we need to listen on a port
   if (process.env.NODE_ENV !== 'production') {

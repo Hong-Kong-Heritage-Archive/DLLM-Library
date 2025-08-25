@@ -13,6 +13,7 @@ import firebase from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { p } from "graphql-ws/dist/common-DY-PBNYy";
 import { log } from "console";
+import { b } from "graphql-ws/dist/server-CRG3y31G";
 
 type CategoryModel = {
   count: number;
@@ -89,9 +90,12 @@ export class CategoryService {
       return [];
     }
 
-    const batch = db.batch();
+    let batch = db.batch();
     const now = Timestamp.now();
 
+    const maxBatchSize = 20;
+    let batchCount = 0;
+    
     // Update global categories
     for (const [category, count] of Object.entries(categoriesMap)) {
       if (!category || typeof count !== "number") continue;
@@ -104,14 +108,26 @@ export class CategoryService {
         },
         { merge: true }
       );
+      batchCount++;
+      if (batchCount >= maxBatchSize) {
+        await batch.commit();
+        batch = db.batch();
+        batchCount = 0;
+      }
     }
 
+    if (batchCount > 0) await batch.commit();
+
+    batchCount = 0;
+
+    batch = db.batch();
+    // Reset batch for user categories
     // Update user's itemCategory subcollection
     const userCategoryCollection = db
       .collection("users")
       .doc(userId)
       .collection("itemCategory");
-
+    console.log("Initializing user categories for user: " + userId );
     for (const [category, count] of Object.entries(categoriesMap)) {
       if (!category || typeof count !== "number") continue;
       const userCategoryRef = userCategoryCollection.doc(category);
@@ -123,9 +139,16 @@ export class CategoryService {
         },
         { merge: true }
       );
+      batchCount++;
+      if (batchCount >= maxBatchSize) {
+        console.log("Committing batch of user categories for user: " + userId + " starting with " + category);
+        await batch.commit();
+        batch = db.batch();
+        batchCount = 0;
+      }
     }
 
-    await batch.commit();
+    if (batchCount > 0) await batch.commit();
     console.log(
       `Upserted categories with counts: ${Object.entries(categoriesMap)
         .map(([category, count]) => `${category} (+${count})`)

@@ -18,6 +18,12 @@ export type Scalars = {
   Date: { input: any; output: any; }
 };
 
+export type Category = {
+  __typename?: 'Category';
+  category: Scalars['String']['output'];
+  count: Scalars['Int']['output'];
+};
+
 export type ContactMethod = {
   __typename?: 'ContactMethod';
   isPublic: Scalars['Boolean']['output'];
@@ -399,6 +405,7 @@ export type User = {
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
   isVerified: Scalars['Boolean']['output'];
+  itemCategory?: Maybe<Array<Category>>;
   location?: Maybe<Location>;
   nickname?: Maybe<Scalars['String']['output']>;
   role: Role;
