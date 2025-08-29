@@ -376,7 +376,7 @@ export class ItemService {
     if (images && images.length > 0) {
       for (const image of images) {
         console.debug(`Processing image: ${image}`);
-        if (image.startsWith("gs://")) {
+        if (image.startsWith("gs://") && !existingData.gsImageUrls?.includes(image)) {
           try {
             let publicUrl = await GetPublicUrlForGSFile(image);
             console.debug(`Public URL for image ${image}: ${publicUrl}`);
@@ -445,17 +445,17 @@ export class ItemService {
         // Append to existing images
         let existingPublicImages = existingData.images || [];
         let existingGsImages = existingData.gsImageUrls || [];
-        updateData.images = [...existingPublicImages, ...publicImageUrls];
-        updateData.gsImageUrls = [...existingGsImages, ...gsImageUrls];
-        existingData.images = updateData.images;
-        existingData.gsImageUrls = updateData.gsImageUrls;
+        updateData.images = publicImageUrls; 
+        updateData.gsImageUrls = gsImageUrls;
+        existingData.images  = [...existingPublicImages, ...publicImageUrls];
+        existingData.gsImageUrls = [...existingGsImages, ...gsImageUrls];
       }
 
       // Clear thumbnails when images change - they'll be regenerated on next read
-      updateData.thumbnails = [];
-      updateData.gsThumbnailUrls = [];
-      existingData.thumbnails = [];
-      existingData.gsThumbnailUrls = [];
+      // updateData.thumbnails = [];
+      // updateData.gsThumbnailUrls = [];
+      // existingData.thumbnails = [];
+      // existingData.gsThumbnailUrls = [];
     }
 
     // Update the document
@@ -472,22 +472,12 @@ export class ItemService {
       }
     }
 
-    const rv: Item = await this._itemModelToItem({
-      id: itemId,
-      createdAt: existingData.created.seconds * 1000,
-      updatedAt: updateData.updated?.seconds
-        ? updateData.updated.seconds * 1000
-        : Date.now(),
-      ...existingData,
-    });
-    return rv;
-
     // Fetch and return the updated item
-    // const updatedItem = await this.itemById(itemId);
-    // if (!updatedItem) {
-    //   throw new Error(`Failed to fetch updated item with ID ${itemId}`);
-    // }
-    // return updatedItem;
+    const updatedItem = await this.itemById(itemId);
+    if (!updatedItem) {
+      throw new Error(`Failed to fetch updated item with ID ${itemId}`);
+    }
+    return updatedItem;
   }
 
   async updateUserItemsLocation(

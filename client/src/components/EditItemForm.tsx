@@ -463,8 +463,8 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
       // Check if images have changed (new images added or existing images removed)
       const hasImageChanges =
         newImages.length > 0 || // New images added
-        allImageUrls.length !== originalValues.images.length || // Images removed
-        JSON.stringify(allImageUrls.sort()) !== JSON.stringify(originalValues.images.sort()); // Images reordered
+        allImageUrls.length !== originalValues.images.length || // Images removed/added
+        JSON.stringify(allImageUrls) !== JSON.stringify(originalValues.images); // Images reordered or different
 
       if (hasImageChanges) {
         variables.images = allImageUrls;
@@ -625,13 +625,15 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
                             {image.uploadError}
                           </Alert>
                         )}
-                        <IconButton
-                          size="small"
-                          onClick={() => handleRemoveImage(index)}
-                          disabled={image.isUploading}
-                        >
-                          <Delete />
-                        </IconButton>
+                        {!image.isExisting && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemoveImage(index)}
+                            disabled={image.isUploading}
+                          >
+                            <Delete />
+                          </IconButton>
+                        )}
                       </Box>
                     </Card>
                   </Grid>
