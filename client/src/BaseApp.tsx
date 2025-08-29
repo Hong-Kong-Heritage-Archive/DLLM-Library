@@ -114,7 +114,7 @@ const BaseApp: React.FC = () => {
             onClose={() => setShowSignInForm(false)}
           >
             <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
-              t{("auth.signIn")}
+              {t("auth.signIn")}
             </DialogTitle>
             <form onSubmit={signInSubmit}>
               <DialogContent>

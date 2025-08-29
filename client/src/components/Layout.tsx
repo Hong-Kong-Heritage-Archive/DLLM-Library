@@ -17,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ email, user }) => {
     <>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={() => window.location.href = '/'}>
             {t("app.title")}
           </Typography>
           <LanguageSwitcher />

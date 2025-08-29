@@ -246,6 +246,27 @@ export const resolvers: Resolvers = {
         args.language
       );
     },
+    updateItem: async (
+      _: any,
+      args: any,
+      { loginUser }: Context
+    ): Promise<Item> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("Owner not found");
+      return itemService.updateItem(
+        args.id,
+        owner.id,
+        args.name,
+        args.condition,
+        args.category,
+        args.status,
+        args.publishedYear,
+        args.language,
+        args.description,
+        args.images
+      );
+    },
     createNewsPost: async (
       _: any,
       { title, content, images, relatedItemIds, tags }: any,

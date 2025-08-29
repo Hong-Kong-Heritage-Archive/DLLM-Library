@@ -7,6 +7,7 @@ yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
 dllm-libray-firebase-adminsdk.json
+dllm-client-config.json
 
 # Generated code
 functions/dist/
@@ -81,3 +82,5 @@ functions/package-lock.json
 
 # IntelliJ IDEA
 .idea
+.gitignore
+client/src/dllm-client-config.json

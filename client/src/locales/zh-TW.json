@@ -51,7 +51,8 @@
     "unknown": "未知",
     "updated": "改造",
     "created": "發佈",
-    "optional": "可選"
+    "optional": "可選",
+    "save": "儲存"
   },
   "location": {
     "latitude": "緯度",
@@ -166,10 +167,13 @@
     "images": "圖片",
     "categories": "類別",
     "available": "這個物品可供借用！",
-    "availableDescription": "可借用物品。",
+    "availableMessage": "這個物品可供借用！",
+    "availableDescription": "您可以聯繫物主以借用這個物品。",
     "exchangeable": "這個物品可供交換！",
+    "exchangeableMessage": "這個物品可供交換！",
     "exchangeableDescription": "您可以提供另一個物品來交換這個物品(以物易物)。",
     "gift": "這個物品為贈送物！",
+    "giftMessage": "這個物品為贈送物！",
     "giftDescription": "擁有者免費捐贈這物品。",
     "allItems": "所有物品",
     "reserved": "這個物品已被預留！",

@@ -44,6 +44,7 @@ import { useNavigate } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import SafeImage from "./SafeImage";
 import RequestConfirmationDialog from "./RequestConfirmationDialog";
+import EditItemForm from "./EditItemForm";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -165,11 +166,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Add edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   // State for image popup
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const { data, loading, error } = useQuery<{ item: Item }>(ITEM_DETAIL_QUERY, {
+  const { data, loading, error, refetch } = useQuery<{ item: Item }>(ITEM_DETAIL_QUERY, {
     variables: { itemId: itemId! },
     skip: !itemId,
   });
@@ -428,6 +431,18 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     });
   };
 
+  const handleEditSuccess = () => {
+    setSuccessSnackbarOpen(true);
+    // Refetch the item data to show updated information
+    refetch();
+    // window.location.reload(); // Simple refresh, or you could refetch the query
+  };
+
+  const handleEditError = (message: string) => {
+    setErrorMessage(message);
+    setErrorSnackbarOpen(true);
+  };
+
   // Handle case when itemId is null
   if (!itemId) {
     return (
@@ -437,11 +452,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
             <ArrowBack />
           </IconButton>
           <Typography variant="h4">
-            {t("item.details", "Item Details")}
+            {t("item.details")}
           </Typography>
         </Box>
         <Alert severity="error">
-          {t("item.noItemId", "No item ID provided")}
+          {t("item.noItemId")}
         </Alert>
       </Container>
     );
@@ -469,9 +484,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${
-                      ownerData.user.nickname || ownerData.user.email
-                    }`}
+                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
+                      }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -491,9 +505,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${
-                        holderData.user.nickname || holderData.user.email
-                      }`}
+                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
+                        }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -504,9 +517,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
             )}
           </Typography>
         ) : (
-          <Typography variant="h4" sx={{ flexGrow: 1 }}>
-            {t("item.detailsloading", "Item Loading")}
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress size={24} />
+            <Typography>{t("item.loadItems")}</Typography>
+          </Box>
         )}
       </Box>
 
@@ -520,7 +534,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       {/* Error State */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {t("item.errorLoading", "Error loading item details")}:{" "}
+          {t("item.errorLoading")}:{" "}
           {error.message}
         </Alert>
       )}
@@ -538,13 +552,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     <ScheduleIcon color="warning" sx={{ mr: 1 }} />
                     <Typography variant="h6" color="warning.dark">
-                      {t("item.pendingRequest", "Pending Request")}
+                      {t("item.pendingRequest")}
                     </Typography>
                   </Box>
 
                   <Typography variant="body1" sx={{ mb: 1 }}>
                     <strong>{oldestTransaction?.requestor?.nickname}</strong>
-                    {t("item.hasRequested", " has requested this item")}
+                    {t("item.hasRequested")}
                   </Typography>
 
                   <Typography
@@ -582,7 +596,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     {cancelLoading ? (
                       <CircularProgress size={20} />
                     ) : (
-                      t("item.reject", "Reject")
+                      t("item.reject")
                     )}
                   </Button>
 
@@ -599,7 +613,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     {approveLoading ? (
                       <CircularProgress size={20} />
                     ) : (
-                      t("item.approve", "Approve")
+                      t("item.approve")
                     )}
                   </Button>
                 </CardActions>
@@ -616,16 +630,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     <TransferIcon color="success" sx={{ mr: 1 }} />
                     <Typography variant="h6" color="success.dark">
-                      {t("item.approvedTransfer", "Ready for Transfer")}
+                      {t("item.approvedTransfer")}
                     </Typography>
                   </Box>
 
                   <Typography variant="body1" sx={{ mb: 1 }}>
                     <strong>{oldestTransaction?.requestor?.nickname}</strong>
-                    {t(
-                      "item.approvedForTransfer",
-                      "'s request has been approved"
-                    )}
+                    {t("item.approvedForTransfer")}
                   </Typography>
 
                   <Typography
@@ -633,7 +644,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     color="text.secondary"
                     sx={{ mb: 2 }}
                   >
-                    {t("item.approvedOn", "Approved on")}:{" "}
+                    {t("item.approvedOn")}:{" "}
                     {formatDate(oldestTransaction?.updatedAt)}
                   </Typography>
 
@@ -643,16 +654,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       color="text.secondary"
                       sx={{ mb: 2 }}
                     >
-                      {t("item.contact", "Contact")}:{" "}
+                      {t("item.contact")}:{" "}
                       {oldestTransaction?.requestor?.email}
                     </Typography>
                   )}
 
                   <Alert severity="info" sx={{ mt: 2 }}>
-                    {t(
-                      "item.transferInstructions",
-                      "Please meet with the requestor in person to complete the transfer. Click 'Complete Transfer' once you have handed over the item."
-                    )}
+                    {t("item.transferInstructions")}
                   </Alert>
                 </CardContent>
 
@@ -670,7 +678,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     {transferLoading ? (
                       <CircularProgress size={20} />
                     ) : (
-                      t("item.completeTransfer", "Complete Transfer")
+                      t("item.completeTransfer")
                     )}
                   </Button>
                 </CardActions>
@@ -687,15 +695,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     <ReceiveIcon color="info" sx={{ mr: 1 }} />
                     <Typography variant="h6" color="info.dark">
-                      {t("item.readyToReceive", "Ready to Receive")}
+                      {t("item.readyToReceive")}
                     </Typography>
                   </Box>
 
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {t(
-                      "item.itemTransferred",
-                      "The item has been transferred and is ready for you to receive."
-                    )}
+                    {t("item.itemTransferred")}
                   </Typography>
 
                   <Typography
@@ -703,7 +708,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     color="text.secondary"
                     sx={{ mb: 2 }}
                   >
-                    {t("item.transferredOn", "Transferred on")}:{" "}
+                    {t("item.transferredOn")}:{" "}
                     {formatDate(oldestTransaction?.updatedAt)}
                   </Typography>
 
@@ -716,18 +721,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       variant="body2"
                       sx={{ fontWeight: "bold", mb: 1 }}
                     >
-                      {t("item.importantReminder", "Important Reminder")}
+                      {t("item.importantReminder")}
                     </Typography>
                     <Typography variant="body2">
-                      {t(
-                        "item.receiveInstructions",
-                        "After clicking 'Received', you will become the new holder of this item. The item location will be updated to your address, and you will be responsible for:"
-                      )}
+                      {t("item.receiveInstructions")}
                     </Typography>
                     <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
                       <Typography component="li" variant="body2">
-                        {t(
-                          "item.responsibility1",
+                        {t("item.responsibility1",
                           "Responding to future requests from other users"
                         )}
                       </Typography>
@@ -747,10 +748,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   </Alert>
 
                   <Alert severity="info" sx={{ mt: 2 }}>
-                    {t(
-                      "item.confirmReceiptInstructions",
-                      "Please only click 'Received' after you have physically received the item from the current holder."
-                    )}
+                    {t("item.confirmReceiptInstructions")}
                   </Alert>
                 </CardContent>
 
@@ -766,7 +764,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     {receiveLoading ? (
                       <CircularProgress size={20} />
                     ) : (
-                      t("item.received", "Received")
+                      t("item.received")
                     )}
                   </Button>
                 </CardActions>
@@ -818,40 +816,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-            <Box sx={{ mb: 4 }}>
-              <Grid container spacing={2}>
-                {(data.item.thumbnails && data.item.thumbnails.length > 0
-                  ? data.item.thumbnails
-                  : data.item.images || []
-                ).map((image, index) => (
-                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                    <Paper
-                      elevation={2}
-                      sx={{
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "transform 0.2s",
-                        "&:hover": {
-                          transform: "scale(1.05)",
-                        },
-                      }}
-                      onClick={() => handleThumbnailClick(index)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "120px",
-                          objectFit: "cover",
+              <Box sx={{ mb: 4 }}>
+                <Grid container spacing={2}>
+                  {(data.item.thumbnails && data.item.thumbnails.length > 0
+                    ? data.item.thumbnails
+                    : data.item.images || []
+                  ).map((image, index) => (
+                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          transition: "transform 0.2s",
+                          "&:hover": {
+                            transform: "scale(1.05)",
+                          },
                         }}
-                      />
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
+                        onClick={() => handleThumbnailClick(index)}
+                      >
+                        <img
+                          src={image}
+                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                          style={{
+                            width: "100%",
+                            height: "120px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -876,10 +874,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                        ? "info"
-                        : data.item.status === "GIFT"
-                        ? "warning"
-                        : "default"
+                          ? "info"
+                          : data.item.status === "GIFT"
+                            ? "warning"
+                            : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}
@@ -888,21 +886,21 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               </Grid>
               <Grid size={6}>
                 <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.language", "Language")}:</strong>{" "}
+                  <strong>{t("common.language")}:</strong>{" "}
                   {data.item.language}
                 </Typography>
               </Grid>
               {data.item.publishedYear && (
                 <Grid size={6}>
                   <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.publishedYear", "Published")}:</strong>{" "}
+                    <strong>{t("item.publishedYear")}:</strong>{" "}
                     {data.item.publishedYear}
                   </Typography>
                 </Grid>
               )}
               <Grid size={user && getDistanceToOwner() ? 6 : 12}>
                 <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.addedOn", "Added on")}:</strong>{" "}
+                  <strong>{t("item.addedOn")}:</strong>{" "}
                   {new Date(data.item.createdAt).toLocaleDateString()}
                 </Typography>
               </Grid>
@@ -910,7 +908,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               {user && getDistanceToOwner() && (
                 <Grid size={6}>
                   <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.distance", "Distance")}:</strong>{" "}
+                    <strong>{t("item.distance")}:</strong>{" "}
                     <Chip
                       label={`${getDistanceToOwner()} ${t(
                         "item.away",
@@ -941,13 +939,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
             >
               <Typography variant="h6" color="success.dark">
                 🎉{" "}
-                {t("item.available", "This item is available for borrowing!")}
+                {t("item.availableMessage")}
               </Typography>
               <Typography variant="body2" color="success.dark" sx={{ mt: 1 }}>
-                {t(
-                  "item.availableDescription",
-                  "You can contact the owner to borrow this item."
-                )}
+                {t("item.availableDescription")}
               </Typography>
             </Box>
           )}
@@ -965,13 +960,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
             >
               <Typography variant="h6" color="info.dark">
                 🔄{" "}
-                {t("item.exchangeable", "This item is available for exchange!")}
+                {t("item.exchangeableMessage")}
               </Typography>
               <Typography variant="body2" color="info.dark" sx={{ mt: 1 }}>
-                {t(
-                  "item.exchangeableDescription",
-                  "You can offer another item in exchange for this one."
-                )}
+                {t("item.exchangeableDescription")}
               </Typography>
             </Box>
           )}
@@ -988,13 +980,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               }}
             >
               <Typography variant="h6" color="warning.dark">
-                🎁 {t("item.gift", "This item is available as a gift!")}
+                🎁 {t("item.gift")}
               </Typography>
               <Typography variant="body2" color="warning.dark" sx={{ mt: 1 }}>
-                {t(
-                  "item.giftDescription",
-                  "The owner is giving away this item for free."
-                )}
+                {t("item.giftDescription")}
               </Typography>
             </Box>
           )}
@@ -1008,11 +997,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 variant="contained"
                 color="secondary"
                 size="large"
-                onClick={() => {
-                  console.log("Edit item clicked");
-                }}
+                onClick={() => setEditDialogOpen(true)}
               >
-                {t("item.editItem", "Edit Item")}
+                {t("item.editItem")}
               </Button>
             )}
             {canCreateTransaction && (
@@ -1026,12 +1013,21 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {createTransactionLoading ? (
                   <CircularProgress size={20} sx={{ mr: 1 }} />
                 ) : null}
-                {t("item.request", "Request")}
+                {t("item.request")}
               </Button>
             )}
           </Box>
         </Paper>
       )}
+
+      {/* Edit Item Dialog */}
+      <EditItemForm
+        open={editDialogOpen}
+        item={data?.item || null}
+        onClose={() => setEditDialogOpen(false)}
+        onItemUpdated={handleEditSuccess}
+        onError={handleEditError}
+      />
 
       {/* Request Confirmation Dialog - Pass transactions data */}
       <RequestConfirmationDialog
@@ -1058,10 +1054,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           severity="success"
           sx={{ width: "100%" }}
         >
-          {t(
-            "item.requestSuccess",
-            "Request submitted successfully! The owner will be notified."
-          )}
+          {t("item.requestSuccess")}
         </Alert>
       </Snackbar>
 
@@ -1077,7 +1070,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           severity="error"
           sx={{ width: "100%" }}
         >
-          {t("item.requestError", "Request failed")}: {errorMessage}
+          {t("item.requestError")}: {errorMessage}
         </Alert>
       </Snackbar>
 

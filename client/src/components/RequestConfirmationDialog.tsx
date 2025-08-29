@@ -114,10 +114,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                   item.status === "AVAILABLE"
                     ? "success"
                     : item.status === "EXCHANGEABLE"
-                    ? "info"
-                    : item.status === "GIFT"
-                    ? "warning"
-                    : "default"
+                      ? "info"
+                      : item.status === "GIFT"
+                        ? "warning"
+                        : "default"
                 }
               />
             </Box>
@@ -142,9 +142,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
           {transactionsLoading ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
               <CircularProgress size={24} />
-              <Typography variant="body2" sx={{ ml: 2 }}>
-                {t("item.loadingRequests", "Loading existing requests...")}
-              </Typography>
+              <Typography variant="body2" sx={{ ml: 2 }}>{t("item.loadingRequests")}</Typography>
             </Box>
           ) : existingTransactions.length === 0 ? (
             <Alert severity="success" sx={{ mb: 2 }}>
@@ -158,10 +156,8 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
               <Alert severity="info" sx={{ mb: 2 }}>
                 {t(
                   "item.existingRequestsWarning",
-                  `There ${existingTransactions.length === 1 ? "is" : "are"} ${
-                    existingTransactions.length
-                  } existing open request${
-                    existingTransactions.length === 1 ? "" : "s"
+                  `There ${existingTransactions.length === 1 ? "is" : "are"} ${existingTransactions.length
+                  } existing open request${existingTransactions.length === 1 ? "" : "s"
                   } for this item. Your request will be added to the queue.`
                 )}
               </Alert>

@@ -5,6 +5,7 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
+  CircularProgress
 } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { Link } from "react-router";
@@ -151,7 +152,13 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ category }) => {
     ? currentIndex + cardsPerView < data.recentAddedItems.length
     : false;
 
-  if (loading) return <Typography>{t("item.loadItems")}</Typography>;
+  if (loading) {
+    return (<Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+      <CircularProgress size={24} />
+      <Typography>{t("item.loadItems")}</Typography>
+    </Box>
+    )
+  };
   if (error) return <Typography>{t("common.error", error.message)}</Typography>;
 
   return (
@@ -240,12 +247,12 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ category }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                          index < currentIndex + cardsPerView
+                            index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",

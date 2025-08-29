@@ -9,7 +9,7 @@ import {
   Select,
   FormControl,
   InputLabel,
-  Button,
+  CircularProgress
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -140,7 +140,7 @@ const ItemRecentPage: React.FC = () => {
       </Box>
 
       {/* Comics Grid */}
-      {loading && <Typography>{t("common.loading", "Loading...")}</Typography>}
+      {loading && <CircularProgress />}
 
       {error && (
         <Typography color="error">

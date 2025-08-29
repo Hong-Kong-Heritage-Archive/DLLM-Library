@@ -6,6 +6,7 @@ import {
   useMediaQuery,
   useTheme,
   List,
+  CircularProgress,
 } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { Link } from "react-router";
@@ -144,7 +145,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ user }) => {
     ? currentIndex + cardsPerView < data.newsRecentPosts.length
     : false;
 
-  if (loading) return <Typography>{t("common.loading")}</Typography>;
+  if (loading) return <CircularProgress />;
   if (error) return <Typography>Error: {error.message}</Typography>;
 
   return (

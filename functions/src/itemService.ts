@@ -29,7 +29,7 @@ export class ItemService {
   private mapService: MapService;
   private categoryService: CategoryService;
 
-  constructor(categoryService: CategoryService ) {
+  constructor(categoryService: CategoryService) {
     this.mapService = createMapService();
     this.categoryService = categoryService;
   }
@@ -73,6 +73,7 @@ export class ItemService {
     const itemDoc = await db.collection("items").doc(itemId).get();
     if (!itemDoc.exists) return null;
     let data = itemDoc.data();
+
     if (!data) return null;
     data.id = itemId;
     const item: Item = await this._itemModelToItem(data);
@@ -167,7 +168,8 @@ export class ItemService {
           }
         }
       }
-      return categoryCount;
+    }
+    return categoryCount;
   }
 
   async _itemQueryToItem(
@@ -338,15 +340,157 @@ export class ItemService {
     // Update category counts
     if (category && category.length > 0) {
       // If user category is empty, then initialize it
-      const itemCategory = await this.categoryService.getUserItemCategory(owner.id);
+      const itemCategory = await this.categoryService.getUserItemCategory(
+        owner.id
+      );
       if (!itemCategory || itemCategory.length === 0) {
-          const categoryCount = await this.itemCategoriesByUser(owner.id);
-          await this.categoryService.initializeUserCategories( owner.id, categoryCount );
+        const categoryCount = await this.itemCategoriesByUser(owner.id);
+        await this.categoryService.initializeUserCategories(
+          owner.id,
+          categoryCount
+        );
       }
       await this.categoryService.upsertCategories(owner, category);
     }
 
     return rv;
+  }
+
+  async updateItem(
+    itemId: string,
+    userId: string,
+    name?: string,
+    condition?: ItemCondition,
+    category?: string[],
+    status?: ItemStatus,
+    publishedYear?: number,
+    language?: Language,
+    description?: string,
+    images?: string[]
+  ): Promise<Item> {
+    // First, get the existing item to verify ownership
+    const itemDoc = await db.collection("items").doc(itemId).get();
+    if (!itemDoc.exists)
+      throw new Error(`Item with ID ${itemId} does not exist`);
+
+    let existingData = itemDoc.data() as ItemModel;
+
+    // Verify the user owns this item
+    if (existingData.ownerId !== userId) {
+      throw new Error(
+        `User ${userId} does not have permission to update item ${itemId}`
+      );
+    }
+
+    // Process new images if provided
+    let gsImageUrls: string[] = [];
+    let publicImageUrls: string[] = [];
+
+    if (images && images.length > 0) {
+      for (const image of images) {
+        console.debug(`Processing image: ${image}`);
+        if (image.startsWith("gs://") && !existingData.gsImageUrls?.includes(image)) {
+          try {
+            let publicUrl = await GetPublicUrlForGSFile(image);
+            console.debug(`Public URL for image ${image}: ${publicUrl}`);
+            publicImageUrls.push(publicUrl);
+            gsImageUrls.push(image);
+          } catch (error) {
+            console.error(
+              `Failed to get public URL for image ${image}:`,
+              error
+            );
+          }
+        } else {
+          publicImageUrls.push(image);
+        }
+      }
+    }
+
+    // Build update data object with only provided fields
+    let updateData: Partial<ItemModel> = {
+      updated: Timestamp.now(),
+    };
+
+    // Only update fields that were provided
+    if (name && existingData.name !== name) {
+      updateData.name = name;
+      existingData.name = name;
+    }
+    if (condition && existingData.condition !== condition) {
+      updateData.condition = condition;
+      existingData.condition = condition;
+    }
+    if (status && existingData.status !== status) {
+      updateData.status = status;
+      existingData.status = status;
+    }
+    if (description && existingData.description !== description) {
+      updateData.description = description;
+      existingData.description = description;
+    }
+    if (
+      category &&
+      JSON.stringify(existingData.category) !== JSON.stringify(category)
+    ) {
+      updateData.category = category;
+      existingData.category = category;
+    }
+    if (publishedYear && existingData.publishedYear !== publishedYear) {
+      updateData.publishedYear = publishedYear;
+      existingData.publishedYear = publishedYear;
+    }
+
+    if (language && existingData.language !== language) {
+      updateData.language = language;
+      existingData.language = language;
+    }
+
+    // Handle images - either replace entirely or append to existing
+    if (images !== undefined) {
+      if (images.length === 0) {
+        // Clear all images if empty array is provided
+        updateData.images = [];
+        updateData.gsImageUrls = [];
+        existingData.images = [];
+        existingData.gsImageUrls = [];
+      } else {
+        // Append to existing images
+        let existingPublicImages = existingData.images || [];
+        let existingGsImages = existingData.gsImageUrls || [];
+        updateData.images = publicImageUrls; 
+        updateData.gsImageUrls = gsImageUrls;
+        existingData.images  = [...existingPublicImages, ...publicImageUrls];
+        existingData.gsImageUrls = [...existingGsImages, ...gsImageUrls];
+      }
+
+      // Clear thumbnails when images change - they'll be regenerated on next read
+      // updateData.thumbnails = [];
+      // updateData.gsThumbnailUrls = [];
+      // existingData.thumbnails = [];
+      // existingData.gsThumbnailUrls = [];
+    }
+
+    // Update the document
+    await db.collection("items").doc(itemId).update(updateData);
+
+    // Handle category updates if category was changed
+    if (category !== undefined) {
+      // Get the owner data for category service
+      const owner = { id: userId } as User; // Minimal user object for category service
+
+      if (category.length > 0) {
+        // Update category counts for new categories
+        await this.categoryService.upsertCategories(owner, category);
+      }
+    }
+
+    // Fetch and return the updated item
+    const updatedItem = await this.itemById(itemId);
+    if (!updatedItem) {
+      throw new Error(`Failed to fetch updated item with ID ${itemId}`);
+    }
+    return updatedItem;
   }
 
   async updateUserItemsLocation(
@@ -535,15 +679,22 @@ export class ItemService {
         );
         uploadPath = `${pathDir}/${thumbnailFileName}`;
 
-        const gsUrl = await UploadBufferToGCS(uploadPath, thumbnailBuffer, "image/jpeg");
+        const gsUrl = await UploadBufferToGCS(
+          uploadPath,
+          thumbnailBuffer,
+          "image/jpeg"
+        );
         const publicUrl = await GetPublicUrlForGSFile(gsUrl);
 
         return { gs: gsUrl, url: publicUrl };
-
       } else {
         // Create upload path: thumbnails/{generated_filename}
         uploadPath = `thumbnails/${thumbnailFileName}`;
-        const gsUrl = await UploadBufferToGCS(uploadPath, thumbnailBuffer, "image/jpeg");
+        const gsUrl = await UploadBufferToGCS(
+          uploadPath,
+          thumbnailBuffer,
+          "image/jpeg"
+        );
         const publicUrl = await GetPublicUrlForGSFile(gsUrl);
 
         console.log(`Thumbnail generated successfully: ${gsUrl}`);

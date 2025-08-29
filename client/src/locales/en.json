@@ -51,7 +51,8 @@
     "unknown": "Unknown",
     "updated": "Updated",
     "created": "Created",
-    "optional": "Optional"
+    "optional": "Optional",
+    "save": "Save"
   },
   "location": {
     "latitude": "Latitude",
@@ -90,6 +91,7 @@
     "recentlyAdded": "Recently Added {{category}}",
     "create": "Create Item",
     "viewDetails": "View Details",
+    "details": "Item Details",
     "relatedItems": "Related Items",
     "loadItems": "Loading item...",
     "categoryCommaSeparated": "Category (comma-separated)",
@@ -107,6 +109,8 @@
     "uploadingImages": "Uploading images... {{progress}}%",
     "previewAlt": "Preview {{index}}",
     "createSuccess": "Item created successfully!",
+    "noItemId": "No item ID provided.",
+    "errorLoading": "Error loading item details",
     "conditions": {
       "New": "New",
       "LikeNew": "Like New",
@@ -143,10 +147,17 @@
     "loadingRequests": "Loading existing requests...",
     "noExistingRequests": "No existing open requests for this item. You'll be the first!",
     "existingRequestsWarning": "There {count, plural, one {is # existing open request} other {are # existing open requests}} for this item. Your request will be added to the queue.",
+    "addedOn": "Added on",
     "allItems": "All Items",
     "available": "Available",
+    "availableMessage": "This item is available for borrowing!",
+    "availableDescription": "You can contact the owner to borrow this item.",
     "exchangeable": "Exchangeable",
+    "exchangeableMessage": "This item is available for exchange!",
+    "exchangeableDescription": "You can offer another item in exchange for this one.",
     "gift": "Gift",
+    "giftMessage": "This item is available as a gift!",
+    "giftDescription": "The owner is giving away this item for free.",
     "reserved": "Reserved",
     "noComicsFound": "No comics found",
     "requestedOn": "Requested on",
@@ -170,7 +181,8 @@
     "responsibility2": "Handing over the item to the next requestor when needed",
     "responsibility3": "Returning the item to the original owner if requested",
     "confirmReceiptInstructions": "Please only click 'Received' after you have physically received the item from the current holder.",
-    "received": "Received"
+    "received": "Received",
+    "editItem": "Edit Item"
   },
   "languages": {
     "en": "English",
