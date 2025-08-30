@@ -196,6 +196,12 @@
     "currentAddress": "Current Address",
     "updateProfile": "Update Profile",
     "createSuccess": "User profile created successfully!",
-    "updateSuccess": "User profile updated successfully!"
+    "updateSuccess": "User profile updated successfully!",
+    "exchangePoints": "Exchange Points",
+    "exchangePointsHelper": "Select exchange points where you can meet for item handovers",
+    "loadingExchangePoints": "Loading exchange points...",
+    "selectedPoints": "{{count}} exchange point(s) selected",
+    "locationNotFound": "Could not find location for the address.",
+    "geocodeError": "Failed to resolve address location"
   }
 }

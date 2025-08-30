@@ -42,6 +42,7 @@ const USER_DETAIL_QUERY = gql`
       isVerified
       isActive
       role
+      exchangePoints
       contactMethods {
         type
         value

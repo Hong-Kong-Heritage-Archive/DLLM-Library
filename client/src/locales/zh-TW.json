@@ -198,7 +198,13 @@
     "currentAddress": "目前地址",
     "updateProfile": "更新個人資料",
     "createSuccess": "使用者資料已成功建立！",
-    "updateSuccess": "使用者資料已成功更新！"
+    "updateSuccess": "使用者資料已成功更新！",
+    "exchangePoints": "交換點",
+    "exchangePointsHelper": "選擇您可以進行物品交接的交換點",
+    "loadingExchangePoints": "載入交換點中...",
+    "selectedPoints": "已選擇 {{count}} 個交換點",
+    "locationNotFound": "找不到該地址的位置。",
+    "geocodeError": "無法解析地址位置"
   },
   "languages": {
     "en": "English",
