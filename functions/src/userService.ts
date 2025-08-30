@@ -268,7 +268,7 @@ export class UserService {
           }
           // remove item cache from removed exchange points
           for (const point of removedExchangePoints) {
-            this._RemoveItemCacheFromExchangePoint(
+            await this._RemoveItemCacheFromExchangePoint(
               point,
               Array.from(itemCacheModelMap.keys())
             );
@@ -291,7 +291,6 @@ export class UserService {
           );
         }
       }
-      updates.exchangePoints = validExchangePoints;
     }
 
     if (Object.keys(updates).length > 0) {
