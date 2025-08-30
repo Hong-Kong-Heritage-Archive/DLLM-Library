@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Architecture Overview
 
 ### Project Structure
-This is a full-stack application with a decentralized, open-source architecture designed for Hong Kong heritage preservation communities worldwide.
+This is a full-stack application with a decentralized, open-source architecture designed for physical copies preservation communities worldwide.
 
 **Core Components:**
 - **Client**: React 19 + Vite frontend with Material-UI components

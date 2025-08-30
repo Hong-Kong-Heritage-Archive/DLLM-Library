@@ -1,9 +1,8 @@
 scalar Date
 
-# 基本類型定義
 enum Language {
-  ZH_HK # 繁體中文
-  EN # 英文
+  ZH_HK
+  EN
 }
 
 enum ItemCondition {
@@ -14,14 +13,13 @@ enum ItemCondition {
 }
 
 enum ItemStatus {
-  AVAILABLE # 可借閱
-  EXCHANGEABLE # 可交換
-  GIFT # 可贈送
-  RESERVED # 已預留
-  TRANSFERRED # 已轉讓
+  AVAILABLE
+  EXCHANGEABLE
+  GIFT
+  RESERVED
+  TRANSFERRED
 }
 
-# 地點類型
 type Location {
   latitude: Float!
   longitude: Float!
@@ -39,76 +37,73 @@ type Category{
   count: Int!
 }
 
-# 用戶個人檔案
 type User {
   id: ID!
-  email: String! # 唯一必填，加密儲存
-  nickname: String # 可選暱稱
-  location: Location # 可選經緯度，用於搜尋
-  address: String # 可選地區，如 "London, UK"
-  role: Role! # 用戶角色
-  isActive: Boolean! # 是否啟用帳號
-  isVerified: Boolean! # 是否已驗證電子郵件
-  contactMethods: [ContactMethod!] # 其他聯繫方式
+  email: String!
+  nickname: String
+  location: Location
+  address: String
+  role: Role!
+  isActive: Boolean!
+  isVerified: Boolean!
+  contactMethods: [ContactMethod!]
   itemCategory: [Category!]
   createdAt: Date!
 }
 
 type ContactMethod {
-  type: String! # 如 "WhatsApp", "Signal"
-  value: String! # 聯繫方式詳情
-  isPublic: Boolean! # 是否公開
+  type: String!
+  value: String!
+  isPublic: Boolean!
 }
 
-# 藏品
 type Item {
   id: ID!
-  ownerId: ID! # 藏品擁有者
-  holderId: ID # 當前持有者（可為null，表示擁有者持有）
-  name: String! # 書名或物品名稱
-  description: String # 可選描述
+  ownerId: ID!
+  holderId: ID
+  name: String!
+  description: String
   condition: ItemCondition!
-  category: [String!]! # 分類標籤，如 ["小說", "歷史"]
+  category: [String!]!
   status: ItemStatus!
-  images: [String!] # 圖片URL列表
-  thumbnails: [String!] # 縮略圖URL列表
-  publishedYear: Int # 可選出版年份
-  language: Language! # 主要語言
-  location: Location # 藏品所在地（繼承自擁有者）
+  images: [String!]
+  thumbnails: [String!]
+  publishedYear: Int
+  language: Language!
+  location: Location
   createdAt: Date!
   updatedAt: Date!
-  transactions: [Transaction!] # 相關交易紀錄
+  transactions: [Transaction!]
 }
 
 type NewsPost {
   id: ID!
   title: String!
   content: String!
-  images: [String!] # 圖片URL列表
-  relatedItems: [Item!] # 相關藏品
+  images: [String!]
+  relatedItems: [Item!]
   createdAt: Date!
   updatedAt: Date!
-  isVisible: Boolean! # 是否公開顯示
-  user: User! # 發布者
-  tags: [String!] # 標籤列表
+  isVisible: Boolean!
+  user: User!
+  tags: [String!]
 }
 
-# 虛擬所有權轉移
 type Transaction {
   id: ID!
   item: Item!
-  requestor: User #
+  requestor: User
   status: TransactionStatus!
   createdAt: Date!
   updatedAt: Date!
 }
 
 enum TransactionStatus {
-  PENDING # 申請中
-  APPROVED # 已確認
-  TRANSFERED # 已轉讓
-  COMPLETED # 已完成
-  CANCELLED # 已取消
+  PENDING
+  APPROVED
+  TRANSFERED
+  COMPLETED
+  CANCELLED
 }
 
 type SignedUrlResponse {
@@ -117,32 +112,29 @@ type SignedUrlResponse {
   expires: Float!
 }
 
-# 查詢
 type Query {
-  # 用戶相關
   user(id: ID!): User
-  me: User # 當前登錄用戶
-  users(address: String, limit: Int, offset: Int): [User!]! # 按地區查找（備用）
-  # 藏品相關
+  me: User
+  users(address: String, limit: Int, offset: Int): [User!]!
   item(id: ID!): Item
   items(
     category: [String!]
-    address: String # 備用字段
+    address: String
     status: ItemStatus
     keyword: String
     limit: Int
     offset: Int
-  ): [Item!]! # 按條件篩選藏品（舊方式）
+  ): [Item!]!
   itemsByLocation(
     latitude: Float!
     longitude: Float!
-    radiusKm: Float! # 搜尋半徑（公里）
+    radiusKm: Float!
     category: [String!]
     status: ItemStatus
     keyword: String
     limit: Int
     offset: Int
-  ): [Item!]! # 基於當前位置的搜尋
+  ): [Item!]!
   itemsByUser(
     userId: ID!
     category: [String!]
@@ -150,36 +142,28 @@ type Query {
     keyword: String
     limit: Int
     offset: Int
-  ): [Item!]! # 基於User的搜尋
-  recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
-  # 交易相關
+  ): [Item!]!
+  recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]!
   transaction(id: ID!): Transaction
-  transactionsByItem(itemId: ID!): [Transaction!]! # 按藏品ID查詢交易
-  openTransactionsByItem(itemId: ID!): [Transaction!]! # 按藏品ID查詢開放交易
-  openTransactionsByUser(userId: ID!): [Transaction!]! # 按用戶ID查詢交易
-  transactionsByUser(userId: ID!): [Transaction!]! # 按用戶ID查詢交易
+  transactionsByItem(itemId: ID!): [Transaction!]!
+  openTransactionsByItem(itemId: ID!): [Transaction!]!
+  openTransactionsByUser(userId: ID!): [Transaction!]!
+  transactionsByUser(userId: ID!): [Transaction!]!
   transactions(userId: ID, itemId: ID): [Transaction!]!
-
-  # 新聞相關
   newsPost(id: ID!): NewsPost
   newsRecentPosts(
     keyword: String
     tags: [String!]
     limit: Int
     offset: Int
-  ): [NewsPost!]! # 按關鍵字和標籤搜尋新聞
-  # 地理編碼相關
+  ): [NewsPost!]!
   geocodeAddress(address: String!): Location
-
-  # 分類相關
-  recentUpdateCategories(limit: Int): [String!]! # 最近更新的分類列表
-  hotCategories(limit: Int): [String!]! # 熱門分類列表
-  defaultCategories: [String!]! # 預設分類列表
+  recentUpdateCategories(limit: Int): [String!]!
+  hotCategories(limit: Int): [String!]!
+  defaultCategories: [String!]!
 }
 
-# 變更
 type Mutation {
-  # 用戶管理
   createUser(email: String!, address: String, nickname: String): User!
   updateUser(
     nickname: String
@@ -187,8 +171,6 @@ type Mutation {
     contactMethods: [ContactMethodInput!]
   ): User!
   deleteUser(id: ID!): Boolean!
-
-  # 藏品管理
   createItem(
     name: String!
     description: String
@@ -211,15 +193,11 @@ type Mutation {
     language: Language
   ): Item!
   deleteItem(id: ID!): Boolean!
-
-  # 交易管理
   createTransaction(itemId: ID!): Transaction!
   approveTransaction(id: ID!): Transaction!
   transferTransaction(id: ID!): Transaction!
   receiveTransaction(id: ID!): Transaction!
   cancelTransaction(id: ID!): Boolean!
-
-  # 新聞管理 Only for Admin/Moderator
   createNewsPost(
     title: String!
     content: String!
@@ -236,7 +214,6 @@ type Mutation {
     tags: [String!]
   ): NewsPost!
   hideNewsPost(id: ID!): Boolean!
-
   generateSignedUrl(
     fileName: String!
     contentType: String!
@@ -244,7 +221,6 @@ type Mutation {
   ): SignedUrlResponse!
 }
 
-# 輸入類型
 input LocationInput {
   latitude: Float!
   longitude: Float!
