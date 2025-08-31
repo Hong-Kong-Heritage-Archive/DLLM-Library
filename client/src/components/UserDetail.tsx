@@ -34,7 +34,17 @@ import { useNavigate } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import ItemSummary from "./ItemSummary";
 import PaginationControls from "./PaginationControls";
-import { TagCloud } from "react-tagcloud";
+import {
+  ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  ZAxis,
+  Tooltip as RechartsTooltip,
+  CartesianGrid,
+  LabelList,
+} from "recharts";
 
 const USER_DETAIL_QUERY = gql`
   query User($userId: ID!) {
@@ -235,46 +245,40 @@ const UserDetail: React.FC<UserDetailProps> = ({
     });
   };
 
-  // Prepare data for TagCloud component
+  // Prepare data for bubble chart
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-        value: categoryItem.category,
-        count: categoryItem.count,
-      }))
+      value: categoryItem.category,
+      count: categoryItem.count,
+    }))
     : [];
 
-  // Custom renderer for TagCloud
-  const customRenderer = (tag: TagCloudData, size: number, color: string) => {
-    const isSelected = selectedCategory === tag.value;
+  // Convert tagCloudData to bubble chart points using a simple spiral layout
+  const bubbleData = tagCloudData.map((tag, i) => {
+    const n = tagCloudData.length || 1;
+    const angle = (i / n) * Math.PI * 2;
+    // increase radius spacing so bubbles don't cluster
+    const radius = 18 * Math.sqrt(i + 1);
+    // scale up z so bubbles render much larger for clearer labels
+    const baseSize = Math.max(tag.count, 1);
+    return {
+      name: tag.value,
+      value: tag.count,
+      x: radius * Math.cos(angle),
+      y: radius * Math.sin(angle),
+      z: baseSize * 250, // larger scale factor
+    };
+  });
 
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const p = payload[0].payload;
     return (
-      <Box
-        key={tag.value}
-        component="span"
-        sx={{
-          fontSize: `${size}px`,
-          color: isSelected ? "#1976d2" : color,
-          fontWeight: isSelected ? "bold" : "normal",
-          cursor: "pointer",
-          margin: "4px",
-          padding: "4px 8px",
-          borderRadius: "4px",
-          backgroundColor: isSelected
-            ? "rgba(25, 118, 210, 0.1)"
-            : "transparent",
-          border: isSelected ? "2px solid #1976d2" : "1px solid transparent",
-          display: "inline-block",
-          transition: "all 0.2s ease-in-out",
-          "&:hover": {
-            transform: "scale(1.05)",
-            backgroundColor: isSelected
-              ? "rgba(25, 118, 210, 0.2)"
-              : "rgba(0, 0, 0, 0.05)",
-          },
-        }}
-        title={`${tag.value} (${tag.count} items)`}
-      >
-        {tag.value} ({tag.count})
+      <Box sx={{ bgcolor: "background.paper", p: 1, borderRadius: 1, boxShadow: 3 }}>
+        <Typography variant="subtitle2">{p.name}</Typography>
+        <Typography variant="caption" color="text.secondary">
+          {p.value} items
+        </Typography>
       </Box>
     );
   };
@@ -538,7 +542,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   </Alert>
                 )}
 
-                {/* React TagCloud */}
+                {/* Bubble Chart (replaces TagCloud) */}
                 <Box
                   sx={{
                     minHeight: 200,
@@ -550,21 +554,33 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     borderRadius: 1,
                     p: 2,
                     bgcolor: "background.paper",
+                    width: "100%",
                   }}
                 >
-                  {tagCloudData.length > 0 ? (
-                    <TagCloud
-                      minSize={14}
-                      maxSize={32}
-                      tags={tagCloudData}
-                      onClick={(tag) => handleCategoryClick(tag)}
-                      renderer={customRenderer}
-                      shuffle={false}
-                      colorOptions={{
-                        luminosity: "dark",
-                        hue: "blue",
-                      }}
-                    />
+                  {bubbleData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <ScatterChart>
+                        <CartesianGrid />
+                        <XAxis type="number" dataKey="x" name="x" hide />
+                        <YAxis type="number" dataKey="y" name="y" hide />
+                        <ZAxis dataKey="z" range={[400, 3200]} />
+                        <RechartsTooltip content={<CustomTooltip />} />
+                        <Scatter
+                          data={bubbleData}
+                          fill="#1976d2"
+                          onClick={(d: any) =>
+                            handleCategoryClick({ value: d.name, count: d.value })
+                          }
+                        >
+                          <LabelList
+                            dataKey="name"
+                            position="inside"
+                            formatter={(val: string) => val}
+                            style={{ fill: "#fff", pointerEvents: "none", fontSize: 14, fontWeight: 600 }}
+                          />
+                        </Scatter>
+                      </ScatterChart>
+                    </ResponsiveContainer>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
                       {t("user.noCategories", "No categories available")}
@@ -624,16 +640,16 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Typography variant="h6" sx={{ mb: 2 }}>
                 {isCurrentUser
                   ? t("user.yourItemsInCategory", "Your {{category}} Items", {
-                      category: selectedCategory,
-                    })
+                    category: selectedCategory,
+                  })
                   : t(
-                      "user.userItemsInCategory",
-                      "{{name}}'s {{category}} Items",
-                      {
-                        name: userData.user.nickname || userData.user.email,
-                        category: selectedCategory,
-                      }
-                    )}
+                    "user.userItemsInCategory",
+                    "{{name}}'s {{category}} Items",
+                    {
+                      name: userData.user.nickname || userData.user.email,
+                      category: selectedCategory,
+                    }
+                  )}
                 {isExchangePointAdmin && includeExchangePointItems && (
                   <Chip
                     label={t(
@@ -665,11 +681,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
                           distance:
                             item.location && currentUser?.location
                               ? calculateDistance(
-                                  item.location.latitude,
-                                  item.location.longitude,
-                                  currentUser.location.latitude,
-                                  currentUser.location.longitude
-                                )
+                                item.location.latitude,
+                                item.location.longitude,
+                                currentUser.location.latitude,
+                                currentUser.location.longitude
+                              )
                               : 0,
                           status: item.status,
                           images: item.images,
@@ -698,19 +714,19 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 <Alert severity="info">
                   {isCurrentUser
                     ? t(
-                        "user.noItemsInCategoryYou",
-                        "You haven't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        }
-                      )
+                      "user.noItemsInCategoryYou",
+                      "You haven't added any {{category}} items yet.",
+                      {
+                        category: selectedCategory,
+                      }
+                    )
                     : t(
-                        "user.noItemsInCategoryUser",
-                        "This user hasn't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        }
-                      )}
+                      "user.noItemsInCategoryUser",
+                      "This user hasn't added any {{category}} items yet.",
+                      {
+                        category: selectedCategory,
+                      }
+                    )}
                 </Alert>
               )}
             </Paper>
