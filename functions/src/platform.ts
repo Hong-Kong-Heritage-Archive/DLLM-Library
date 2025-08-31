@@ -11,7 +11,7 @@ import { GetSignedUrlConfig } from "@google-cloud/storage";
 var serviceAccount = require("./dllm-libray-firebase-adminsdk.json");
 export const googleMapsApiKey = serviceAccount.google_maps_api_key ?? "";
 
-const projectId = process.env.GCLOUD_PROJECT || "dllm-libray";
+const projectId = process.env.GCLOUD_PROJECT || "lib-20min";
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });

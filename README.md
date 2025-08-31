@@ -1,4 +1,4 @@
-# De-centralised Library (DLLM-Library)
+# 20 Minutes Library (20-minute-Library)
 
 ## Table of Contents
 - [Project Background and Objectives](#project-background-and-objectives)
@@ -13,10 +13,10 @@
 - [Community Engagement](#community-engagement)
 - [Future Outlook](#future-outlook)
 
-The "De-centralised Library" empowers local communities through an open-source model, allowing each region to independently operate its own cultural preservation platform. Through transparent code and a decentralized architecture, we hope that every book and every artifact can find its home, collectively safeguarding the cultural memory.
+The "20 Minutes Library" empowers local communities through an open-source model, allowing each region to independently operate its own cultural preservation platform. Through transparent code and a decentralized architecture, we hope that every book and every artifact can find its home, collectively safeguarding the cultural memory.
 
 ## Project Background and Objectives
-The "De-centralised Library" is an open-source community platform designed for small local community, aiming to promote the preservation and inheritance of precious books and cultural artifacts. Given that personal collections may face the risk of being discarded due to space limitations or a lack of interest from the next generation with lack of cultural heritage, this project aims to empower the global community through a decentralized approach to:
+The "20 Minutes Library" is an open-source community platform designed for small local community, aiming to promote the preservation and inheritance of precious books and cultural artifacts. Given that personal collections may face the risk of being discarded due to space limitations or a lack of interest from the next generation with lack of cultural heritage, this project aims to empower the global community through a decentralized approach to:
 - **List and Share** personal collections of books or cultural items and connect with like-minded individuals;
 - **Borrow or Transfer** items to those who truly cherish them, preventing the loss of cultural heritage;
 - **Enable Communities** where different regional communities can set up their own servers to flexibly manage localized platforms.

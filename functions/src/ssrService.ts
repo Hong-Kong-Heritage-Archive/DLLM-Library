@@ -140,9 +140,9 @@ export const handleItemDetailSSR = async (req: Request, res: Response) => {
           // If item doesn't exist, still render the page but with generic OG tags and redirect
           const redirectScript = generateRedirectScript(itemId);
           const ogTags = `
-<title>Item Not Found - DLLM Library</title>
+<title>Item Not Found - 20 Minutes Library</title>
 <meta name="description" content="The requested item could not be found." />
-<meta property="og:title" content="Item Not Found - DLLM Library" />
+<meta property="og:title" content="Item Not Found - 20 Minutes Library" />
 <meta property="og:description" content="The requested item could not be found." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/item/${itemId}" />
@@ -174,9 +174,9 @@ ${redirectScript}
         const enhancedDescription = `${itemDescription.substring(0, 120)}${itemDescription.length > 120 ? '...' : ''} | Status: ${itemStatus}`;
 
         const ogTags = `
-<title>${itemName} - DLLM Library</title>
+<title>${itemName} - 20 Minutes Library</title>
 <meta name="description" content="${enhancedDescription}" />
-<meta property="og:title" content="${itemName} - DLLM Library" />
+<meta property="og:title" content="${itemName} - 20 Minutes Library" />
 <meta property="og:description" content="${enhancedDescription}" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="${getBaseUrl()}/item/${itemId}" />
@@ -192,10 +192,10 @@ ${redirectScript}
         // Fallback to generic tags with redirect
         const redirectScript = generateRedirectScript(itemId);
         const ogTags = `
-<title>DLLM Library Item</title>
-<meta name="description" content="View this item in the DLLM Library." />
-<meta property="og:title" content="DLLM Library Item" />
-<meta property="og:description" content="View this item in the DLLM Library." />
+<title>20 Minutes Library Item</title>
+<meta name="description" content="View this item in the 20 Minutes Library." />
+<meta property="og:title" content="20 Minutes Library Item" />
+<meta property="og:description" content="View this item in the 20 Minutes Library." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/item/${itemId}" />
 <meta property="og:image" content="${getLogoUrl()}" />

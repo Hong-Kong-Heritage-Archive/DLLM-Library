@@ -25,26 +25,6 @@ jobs:
         run: |
              echo '${{secrets.DLLM_ADMINSDK}}' > dllm-libray-firebase-adminsdk.json
         working-directory: ./functions/dist
-#      - name: save artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: dllm-libray-firebase-adminsdk.json
-#          path: ./functions/dist/dllm-libray-firebase-adminsdk.json
-#      - name: Deploy to firebase
-#        uses: FirebaseExtended/action-hosting-deploy@v0
-#        with:
-#          repoToken: ${{ secrets.GITHUB_TOKEN }}
-#          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DLLM_RABBIT }}
-#          channelId: live
-#          projectId: dllm-rabbit
-#        env:
-#          FIREBASE_CLI_EXPERIMENTS: webframeworks
-#      - name: Deploy to Firebase
-#        uses: jsryudev/deploy-firebase-functions@v20.0.1
-#        env:
-#          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-#          FIREBASE_PROJECT: dllm-rabbit
-#          FUNCTIONS_DIR: functions
       - name: My deploy to Firebase
         run: |
              npm install firebase-tools
