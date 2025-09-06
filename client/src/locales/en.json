@@ -91,6 +91,7 @@
   },
   "item": {
     "recentlyAdded": "Recently Added {{category}}",
+    "hotItem": "Hot {{category}}",
     "create": "Create Item",
     "viewDetails": "View Details",
     "details": "Item Details",

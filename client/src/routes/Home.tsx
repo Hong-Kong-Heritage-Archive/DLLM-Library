@@ -400,7 +400,7 @@ const HomePage: React.FC = () => {
           {recentCategoriesData.recentUpdateCategories.map(
             (category, index) => (
               <ListItem key={`recent-category-${index}`}>
-                <RecentItemBanner category={category} />
+                <RecentItemBanner category={category} isRecent={true} />
               </ListItem>
             )
           )}
@@ -419,7 +419,7 @@ const HomePage: React.FC = () => {
         <>
           {hotCategoriesData.hotCategories.map((category, index) => (
             <ListItem key={`hot-category-${index}`}>
-              <RecentItemBanner category={category} />
+              <RecentItemBanner category={category} isRecent={false} />
             </ListItem>
           ))}
         </>

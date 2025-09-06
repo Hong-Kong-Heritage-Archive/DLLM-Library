@@ -91,6 +91,7 @@
   },
   "item": {
     "recentlyAdded": "新番 {{category}}",
+    "hotItem": "熱門 {{category}}",
     "create": "發佈新番",
     "categoryCommaSeparated": "類別（逗號分隔）",
     "categoryHelper": "例如：書籍,雜誌",
