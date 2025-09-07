@@ -274,6 +274,16 @@ export class ItemService {
       }
     }
 
+    // check the description with hash tag or not. If not hash tag add all category with #
+    if (data.description && !data.description.includes("#")) {
+      data.description = `${data.description}\n\n#${data.category.join(" #")}`;
+      data.updated = Timestamp.now();
+      await db.collection("items").doc(itemId).update({
+        description: data.description,
+        updated: data.updated,
+      });
+    }
+
     const item: Item = {
       id: itemId,
       createdAt: data.created.seconds * 1000,

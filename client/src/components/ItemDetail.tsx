@@ -115,7 +115,7 @@ const OPEN_TRANSACTIONS_QUERY = gql`
 `;
 
 const APPROVE_TRANSACTION_MUTATION = gql`
-  mutation ApproveTransaction($transactionId: ID!) {
+  mutation ApproveTransactionForItem($transactionId: ID!) {
     approveTransaction(id: $transactionId) {
       id
       status
@@ -125,13 +125,13 @@ const APPROVE_TRANSACTION_MUTATION = gql`
 `;
 
 const CANCEL_TRANSACTION_MUTATION = gql`
-  mutation CancelTransaction($transactionId: ID!) {
+  mutation CancelTransactionForItem($transactionId: ID!) {
     cancelTransaction(id: $transactionId)
   }
 `;
 
 const TRANSFER_TRANSACTION_MUTATION = gql`
-  mutation TransferTransaction($transactionId: ID!) {
+  mutation TransferTransactionForItem($transactionId: ID!) {
     transferTransaction(id: $transactionId) {
       id
       status
@@ -141,7 +141,7 @@ const TRANSFER_TRANSACTION_MUTATION = gql`
 `;
 
 const RECEIVE_TRANSACTION_MUTATION = gql`
-  mutation ReceiveTransaction($transactionId: ID!) {
+  mutation ReceiveTransactionForItem($transactionId: ID!) {
     receiveTransaction(id: $transactionId) {
       id
       status
@@ -172,10 +172,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const { data, loading, error, refetch } = useQuery<{ item: Item }>(ITEM_DETAIL_QUERY, {
-    variables: { itemId: itemId! },
-    skip: !itemId,
-  });
+  const { data, loading, error, refetch } = useQuery<{ item: Item }>(
+    ITEM_DETAIL_QUERY,
+    {
+      variables: { itemId: itemId! },
+      skip: !itemId,
+    }
+  );
 
   // Query for owner details
   const { data: ownerData } = useQuery(USER_QUERY, {
@@ -451,13 +454,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           <IconButton onClick={handleBack} sx={{ mr: 2 }}>
             <ArrowBack />
           </IconButton>
-          <Typography variant="h4">
-            {t("item.details")}
-          </Typography>
+          <Typography variant="h4">{t("item.details")}</Typography>
         </Box>
-        <Alert severity="error">
-          {t("item.noItemId")}
-        </Alert>
+        <Alert severity="error">{t("item.noItemId")}</Alert>
       </Container>
     );
   }
@@ -484,8 +483,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                      }`}
+                    label={`${t("item.owner", "Owner")}: ${
+                      ownerData.user.nickname || ownerData.user.email
+                    }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -505,8 +505,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        }`}
+                      label={`${t("item.holder", "Holder")}: ${
+                        holderData.user.nickname || holderData.user.email
+                      }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -534,8 +535,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       {/* Error State */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {t("item.errorLoading")}:{" "}
-          {error.message}
+          {t("item.errorLoading")}: {error.message}
         </Alert>
       )}
 
@@ -654,8 +654,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       color="text.secondary"
                       sx={{ mb: 2 }}
                     >
-                      {t("item.contact")}:{" "}
-                      {oldestTransaction?.requestor?.email}
+                      {t("item.contact")}: {oldestTransaction?.requestor?.email}
                     </Typography>
                   )}
 
@@ -728,7 +727,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     </Typography>
                     <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
                       <Typography component="li" variant="body2">
-                        {t("item.responsibility1",
+                        {t(
+                          "item.responsibility1",
                           "Responding to future requests from other users"
                         )}
                       </Typography>
@@ -816,40 +816,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={{ mb: 4 }}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "transform 0.2s",
-                          "&:hover": {
-                            transform: "scale(1.05)",
-                          },
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={2}>
+                {(data.item.thumbnails && data.item.thumbnails.length > 0
+                  ? data.item.thumbnails
+                  : data.item.images || []
+                ).map((image, index) => (
+                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "transform 0.2s",
+                        "&:hover": {
+                          transform: "scale(1.05)",
+                        },
+                      }}
+                      onClick={() => handleThumbnailClick(index)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
                         }}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -874,10 +874,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                          ? "info"
-                          : data.item.status === "GIFT"
-                            ? "warning"
-                            : "default"
+                        ? "info"
+                        : data.item.status === "GIFT"
+                        ? "warning"
+                        : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}
@@ -886,8 +886,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               </Grid>
               <Grid size={6}>
                 <Typography variant="body1" color="text.secondary">
-                  <strong>{t("common.language")}:</strong>{" "}
-                  {data.item.language}
+                  <strong>{t("common.language")}:</strong> {data.item.language}
                 </Typography>
               </Grid>
               {data.item.publishedYear && (
@@ -938,8 +937,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               }}
             >
               <Typography variant="h6" color="success.dark">
-                🎉{" "}
-                {t("item.availableMessage")}
+                🎉 {t("item.availableMessage")}
               </Typography>
               <Typography variant="body2" color="success.dark" sx={{ mt: 1 }}>
                 {t("item.availableDescription")}
@@ -959,8 +957,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               }}
             >
               <Typography variant="h6" color="info.dark">
-                🔄{" "}
-                {t("item.exchangeableMessage")}
+                🔄 {t("item.exchangeableMessage")}
               </Typography>
               <Typography variant="body2" color="info.dark" sx={{ mt: 1 }}>
                 {t("item.exchangeableDescription")}

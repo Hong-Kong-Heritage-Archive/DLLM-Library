@@ -5,7 +5,7 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
-  CircularProgress
+  CircularProgress,
 } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { Link } from "react-router";
@@ -38,9 +38,13 @@ const RECENT_ITEM_QUERY = gql`
 
 interface RecentBannerProps {
   category: string;
+  isRecent?: boolean;
 }
 
-const RecentItemBanner: React.FC<RecentBannerProps> = ({ category }) => {
+const RecentItemBanner: React.FC<RecentBannerProps> = ({
+  category,
+  isRecent,
+}) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [cardsPerView, setCardsPerView] = useState(4);
@@ -153,12 +157,13 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ category }) => {
     : false;
 
   if (loading) {
-    return (<Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-      <CircularProgress size={24} />
-      <Typography>{t("item.loadItems")}</Typography>
-    </Box>
-    )
-  };
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+        <CircularProgress size={24} />
+        <Typography>{t("item.loadItems")}</Typography>
+      </Box>
+    );
+  }
   if (error) return <Typography>{t("common.error", error.message)}</Typography>;
 
   return (
@@ -187,7 +192,9 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ category }) => {
               },
             }}
           >
-            {t("item.recentlyAdded", { category: category })}
+            {isRecent
+              ? t("item.recentlyAdded", { category: category })
+              : t("item.hotItem", { category: category })}
           </Typography>
         </Box>
 
@@ -247,12 +254,12 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({ category }) => {
                       sx={{
                         opacity:
                           index >= currentIndex &&
-                            index < currentIndex + cardsPerView
+                          index < currentIndex + cardsPerView
                             ? 1
                             : 0,
                         visibility:
                           index >= currentIndex &&
-                            index < currentIndex + cardsPerView
+                          index < currentIndex + cardsPerView
                             ? "visible"
                             : "hidden",
                         transition: "opacity 0.3s ease-in-out",

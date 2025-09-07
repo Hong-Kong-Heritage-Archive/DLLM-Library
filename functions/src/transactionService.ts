@@ -58,45 +58,49 @@ export class TransactionService {
     return data;
   }
 
-  async transactionsByItemNotStatus(
-    itemId: string,
+  async transactionsNotStatus(
+    itemId: string | null,
+    userId: string | null,
     statuses: TransactionStatus[]
   ): Promise<Transaction[]> {
-    const transactionsMap = await this._transactionsByItemNotStatus(
+    const transactionsMap = await this._transactionsNotStatus(
       itemId,
+      null,
       statuses
     );
     const transactions: Transaction[] = [];
     for (const [id, data] of transactionsMap) {
       const item = await this.itemService.itemById(data.itemId);
-      if (!item) {
-        throw new Error(`Item with id ${data.itemId} not found`);
+      if (item && data.requestorId) {
+        const requestor = await this.userService.userById(data.requestorId);
+        transactions.push({
+          id: id,
+          item: item,
+          requestor: requestor,
+          status: data.status,
+          createdAt: data.created.seconds * 1000,
+          updatedAt: data.updated.seconds * 1000,
+        });
       }
-      if (!data.requestorId) {
-        throw new Error(`Requestor ID not found for transaction ${id}`);
-      }
-      const requestor = await this.userService.userById(data.requestorId);
-      transactions.push({
-        id: id,
-        item: item,
-        requestor: requestor,
-        status: data.status,
-        createdAt: data.created.seconds * 1000,
-        updatedAt: data.updated.seconds * 1000,
-      });
     }
     return transactions;
   }
 
-  async _transactionsByItemNotStatus(
-    itemId: string,
+  async _transactionsNotStatus(
+    itemId: string | null,
+    userId: string | null,
     statuses: TransactionStatus[]
   ): Promise<Map<string, TransactionModel>> {
-    let query = db.collection("transactions").where("itemId", "==", itemId);
+    let query = db.collection("transactions").orderBy("updated", "desc");
+    if (itemId) {
+      query = query.where("itemId", "==", itemId);
+    }
+    if (userId) {
+      query = query.where("requestorId", "==", userId);
+    }
     if (statuses.length > 0) {
       query = query.where("status", "not-in", statuses);
     }
-    query = query.orderBy("updated", "desc");
     const transactionDocs = await query.get();
     const transactions: Map<string, TransactionModel> = new Map();
     for (const doc of transactionDocs.docs) {
@@ -121,8 +125,9 @@ export class TransactionService {
     }
     const requestorId = requestor.id;
     // check if there is 2 open transactions for the item
-    const existingTransactions = await this._transactionsByItemNotStatus(
+    const existingTransactions = await this._transactionsNotStatus(
       itemId,
+      null,
       [TransactionStatus.Completed, TransactionStatus.Cancelled]
     );
     if (existingTransactions.size >= 2) {

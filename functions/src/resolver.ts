@@ -187,17 +187,34 @@ export const resolvers: Resolvers = {
       { itemId }: any,
       __: any
     ): Promise<Transaction[]> => {
-      return transactionService.transactionsByItemNotStatus(itemId, [
+      return transactionService.transactionsNotStatus(itemId, null, [
         TransactionStatus.Completed,
         TransactionStatus.Cancelled,
       ]);
+    },
+    openTransactionsByUser: async (
+      _: any,
+      { userId }: any,
+      __: any
+    ): Promise<Transaction[]> => {
+      return transactionService.transactionsNotStatus(null, userId, [
+        TransactionStatus.Completed,
+        TransactionStatus.Cancelled,
+      ]);
+    },
+    transactionsByUser: async (
+      _: any,
+      { userId }: any,
+      __: any
+    ): Promise<Transaction[]> => {
+      return transactionService.transactionsNotStatus(null, userId, []);
     },
     transactionsByItem: async (
       _: any,
       { itemId }: any,
       __: any
     ): Promise<Transaction[]> => {
-      return transactionService.transactionsByItemNotStatus(itemId, []);
+      return transactionService.transactionsNotStatus(itemId, null, []);
     },
     transaction: async (
       _: any,

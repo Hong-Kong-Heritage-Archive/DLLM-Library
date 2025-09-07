@@ -8,17 +8,25 @@ import ItemDetailPage from "./routes/Item.$id";
 import ItemRecentPage from "./routes/Item.recent";
 import ItemAllPage from "./routes/Item.all";
 import UserDetailPage from "./routes/User.$id";
+import TransactionsPage from "./routes/Transactions";
+import TransactionDetailPage from "./components/TransactionDetail";
 import { User } from "./generated/graphql";
 
 /*
  user={meOutput?.data?.me}
  */
 
-export const createRouter = (email?: string | undefined | null, user?: User) =>
+export const createRouter = (
+  email?: string | undefined | null,
+  emailVerified?: boolean,
+  user?: User
+) =>
   createBrowserRouter([
     {
       path: "/",
-      element: <Layout email={email} user={user} />,
+      element: (
+        <Layout email={email} emailVerified={emailVerified} user={user} />
+      ),
       children: [
         {
           index: true,
@@ -66,6 +74,14 @@ export const createRouter = (email?: string | undefined | null, user?: User) =>
               element: <UserDetailPage />,
             },
           ],
+        },
+        {
+          path: "transactions",
+          element: <TransactionsPage />,
+        },
+        {
+          path: "transaction/:transactionId",
+          element: <TransactionDetailPage />,
         },
       ],
     },

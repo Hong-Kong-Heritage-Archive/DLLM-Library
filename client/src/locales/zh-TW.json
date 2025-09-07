@@ -20,7 +20,7 @@
     "news": "新聞",
     "viewNews": "查看新聞",
     "viewAllNews": "查看所有新聞",
-    "viewAllItems": "查看所有物品",
+    "viewAllItems": "查看附近物品",
     "allNews": "新聞列表"
   },
   "home": {
@@ -91,6 +91,7 @@
   },
   "item": {
     "recentlyAdded": "新番 {{category}}",
+    "hotItem": "熱門 {{category}}",
     "create": "發佈新番",
     "categoryCommaSeparated": "類別（逗號分隔）",
     "categoryHelper": "例如：書籍,雜誌",
@@ -227,5 +228,39 @@
     "exchangePointItemsHelper": "啟用時，除了您的個人物品外，還包括在您的交換點快取的物品。",
     "selectCategoryToViewItems": "選擇下面的類別來查看物品。",
     "noCategories": "沒有可用的類別"
+  },
+  "transactions": {
+    "title": "我的交易",
+    "viewTransactions": "查看交易",
+    "openTransactions": "進行中交易",
+    "allTransactions": "所有交易",
+    "transactionDetail": "交易詳情",
+    "transactionInfo": "交易資訊",
+    "itemInfo": "物品資訊",
+    "requestorInfo": "申請者資訊",
+    "exchangeLocation": "交換地點",
+    "exchangePoint": "交換點",
+    "actions": "操作",
+    "created": "建立時間",
+    "updated": "更新時間",
+    "lastUpdated": "最後更新",
+    "requestedBy": "申請者",
+    "approve": "批准",
+    "transfer": "標記為已轉讓",
+    "receive": "確認已收到",
+    "cancel": "取消",
+    "cancelRequest": "取消申請",
+    "errorLoading": "載入交易時發生錯誤",
+    "notFound": "找不到交易",
+    "noOpenTransactions": "沒有進行中的交易。",
+    "noTransactions": "沒有找到交易。",
+    "noActionsAvailable": "此交易沒有可用的操作。",
+    "status": {
+      "pending": "待處理",
+      "approved": "已批准",
+      "transfered": "已轉讓",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    }
   }
 }

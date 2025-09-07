@@ -36,20 +36,24 @@ const App: React.FC<AppProps> = ({ user }) => {
   // Handle redirect from server-side routing
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const redirectPath = urlParams.get('redirect');
+    const redirectPath = urlParams.get("redirect");
 
     if (redirectPath) {
       // Remove the redirect parameter from URL and navigate to the intended path
       const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('redirect');
-      window.history.replaceState({}, '', newUrl.toString());
+      newUrl.searchParams.delete("redirect");
+      window.history.replaceState({}, "", newUrl.toString());
 
       // Navigate to the intended path
       window.location.href = redirectPath;
     }
   }, []);
 
-  const router = createRouter(user?.email, meOutput?.data?.me);
+  const router = createRouter(
+    user?.email,
+    user?.emailVerified,
+    meOutput?.data?.me
+  );
 
   return <RouterProvider router={router} />;
 };

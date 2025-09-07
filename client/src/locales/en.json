@@ -20,7 +20,7 @@
     "news": "News",
     "viewNews": "View News",
     "viewAllNews": "View All News",
-    "viewAllItems": "View All Items",
+    "viewAllItems": "View Nearby Items",
     "allNews": "All News"
   },
   "home": {
@@ -91,6 +91,7 @@
   },
   "item": {
     "recentlyAdded": "Recently Added {{category}}",
+    "hotItem": "Hot {{category}}",
     "create": "Create Item",
     "viewDetails": "View Details",
     "details": "Item Details",
@@ -221,5 +222,39 @@
     "exchangePointItemsHelper": "When enabled, includes items cached at your exchange point in addition to your personal items.",
     "selectCategoryToViewItems": "Select a category below to view items.",
     "noCategories": "No categories available"
+  },
+  "transactions": {
+    "title": "My Transactions",
+    "viewTransactions": "View Transactions",
+    "openTransactions": "Open Transactions",
+    "allTransactions": "All Transactions",
+    "transactionDetail": "Transaction Detail",
+    "transactionInfo": "Transaction Information",
+    "itemInfo": "Item Information",
+    "requestorInfo": "Requestor Information",
+    "exchangeLocation": "Exchange Location",
+    "exchangePoint": "Exchange Point",
+    "actions": "Actions",
+    "created": "Created",
+    "updated": "Updated",
+    "lastUpdated": "Last Updated",
+    "requestedBy": "Requested by",
+    "approve": "Approve",
+    "transfer": "Mark as Transferred",
+    "receive": "Confirm Received",
+    "cancel": "Cancel",
+    "cancelRequest": "Cancel Request",
+    "errorLoading": "Error loading transactions",
+    "notFound": "Transaction not found",
+    "noOpenTransactions": "No open transactions found.",
+    "noTransactions": "No transactions found.",
+    "noActionsAvailable": "No actions available for this transaction.",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "transfered": "Transferred",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
   }
 }

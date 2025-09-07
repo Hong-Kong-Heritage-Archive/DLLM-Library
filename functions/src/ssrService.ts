@@ -1,21 +1,32 @@
-import { Request, Response } from 'express';
-import { readFile } from 'fs';
-import path from 'path';
-import { db } from './platform';
-import * as fs from 'fs';
-import { isBotRequest, getBotType } from './botDetection';
+import { Request, Response } from "express";
+import { readFile } from "fs";
+import path from "path";
+
+import * as fs from "fs";
+import { isBotRequest, getBotType } from "./botDetection";
+import { CategoryService } from "./categoryService";
+import { ItemService } from "./itemService";
+
+const categoryService = new CategoryService();
+const itemService = new ItemService(categoryService);
 // Get Config
 const getConfig = () => {
-  const clientConfigPath = path.join(process.cwd(), '..', 'client', 'public', 'dllm-client-config.json');
+  const clientConfigPath = path.join(
+    process.cwd(),
+    "..",
+    "client",
+    "public",
+    "dllm-client-config.json"
+  );
   try {
     if (fs.existsSync(clientConfigPath)) {
-      const configData = fs.readFileSync(clientConfigPath, 'utf8');
+      const configData = fs.readFileSync(clientConfigPath, "utf8");
       return JSON.parse(configData);
     }
   } catch (error) {
-    console.error('Error reading client config:', error);
+    console.error("Error reading client config:", error);
   }
-  return { baseUrl: '${getBaseUrl()}' };
+  return { baseUrl: "${getBaseUrl()}" };
 };
 
 // Get base URL
@@ -29,9 +40,9 @@ const getBaseUrl = () => {
     return ngrokUrl;
   }
 
-  return process.env.NODE_ENV === 'production'
+  return process.env.NODE_ENV === "production"
     ? config.baseUrl
-    : 'http://localhost:3000';
+    : "http://localhost:3000";
 };
 
 // Get logo URL
@@ -42,13 +53,17 @@ const getLogoUrl = (): string => {
 /**
  * Helper function to render HTML with Open Graph tags
  */
-export const renderHtmlWithOgTags = (res: Response, htmlData: string, ogTags: string) => {
+export const renderHtmlWithOgTags = (
+  res: Response,
+  htmlData: string,
+  ogTags: string
+) => {
   let modifiedHtml = htmlData
-    .replace(/<title>.*?<\/title>/, '')
-    .replace(/<meta name="description" content=".*?"\s*\/?>/, '');
+    .replace(/<title>.*?<\/title>/, "")
+    .replace(/<meta name="description" content=".*?"\s*\/?>/, "");
 
-  modifiedHtml = modifiedHtml.replace('</head>', `${ogTags}</head>`);
-  res.setHeader('Content-Type', 'text/html');
+  modifiedHtml = modifiedHtml.replace("</head>", `${ogTags}</head>`);
+  res.setHeader("Content-Type", "text/html");
   res.send(modifiedHtml);
 };
 
@@ -56,11 +71,14 @@ export const renderHtmlWithOgTags = (res: Response, htmlData: string, ogTags: st
  * Handle home page SSR
  */
 export const handleHomePageSSR = (req: Request, res: Response) => {
-  const indexPath = path.join(__dirname, '..', 'index.html');
-  readFile(indexPath, 'utf8', (err, htmlData) => {
+  const indexPath = path.join(__dirname, "..", "index.html");
+  readFile(indexPath, "utf8", (err, htmlData) => {
     if (err) {
-      console.error('Error reading index.html from functions folder. Make sure it is copied during the build.', err);
-      return res.status(500).send('Could not load the page.');
+      console.error(
+        "Error reading index.html from functions folder. Make sure it is copied during the build.",
+        err
+      );
+      return res.status(500).send("Could not load the page.");
     }
 
     const newTitle = "無大台 Decentralized Local Library Module";
@@ -124,19 +142,19 @@ const generateRedirectScript = (itemId: string) => {
 export const handleItemDetailSSR = async (req: Request, res: Response) => {
   try {
     const itemId = req.params.id;
-    const indexPath = path.join(__dirname, '..', 'index.html');
+    const indexPath = path.join(__dirname, "..", "index.html");
 
     // Read the HTML template
-    readFile(indexPath, 'utf8', async (err, htmlData) => {
+    readFile(indexPath, "utf8", async (err, htmlData) => {
       if (err) {
-        console.error('Error reading index.html from functions folder.', err);
-        return res.status(500).send('Could not load the page.');
+        console.error("Error reading index.html from functions folder.", err);
+        return res.status(500).send("Could not load the page.");
       }
 
       try {
         // Get item data from Firestore
-        const itemDoc = await db.collection("items").doc(itemId).get();
-        if (!itemDoc.exists) {
+        const item = await itemService.itemById(itemId);
+        if (item === null) {
           // If item doesn't exist, still render the page but with generic OG tags and redirect
           const redirectScript = generateRedirectScript(itemId);
           const ogTags = `
@@ -154,24 +172,25 @@ ${redirectScript}
         }
 
         // Get item data
-        const itemData = itemDoc.data();
-        const itemName = itemData?.name || 'Item';
-        const itemDescription = itemData?.description || 'No description available';
-        const itemStatus = itemData?.status || 'Unknown';
+        const itemName = item.name;
+        const itemDescription = item.description || "No description available";
+        const itemStatus = item.status;
 
         // Get thumbnail or image URL
         let imageUrl = getLogoUrl(); // Default image
-        if (itemData?.thumbnails && itemData.thumbnails.length > 0) {
-          imageUrl = itemData.thumbnails[0];
-        } else if (itemData?.images && itemData.images.length > 0) {
-          imageUrl = itemData.images[0];
+        if (item.thumbnails && item.thumbnails.length > 0) {
+          imageUrl = item.thumbnails[0];
+        } else if (item?.images && item.images.length > 0) {
+          imageUrl = item.images[0];
         }
 
         // Create Open Graph tags with a client-side redirection script
         const redirectScript = generateRedirectScript(itemId);
 
         // Create an enhanced description with status
-        const enhancedDescription = `${itemDescription.substring(0, 120)}${itemDescription.length > 120 ? '...' : ''} | Status: ${itemStatus}`;
+        const enhancedDescription = `${itemDescription.substring(0, 120)}${
+          itemDescription.length > 120 ? "..." : ""
+        } | Status: ${itemStatus}`;
 
         const ogTags = `
 <title>${itemName} - DLLM Library</title>
@@ -186,9 +205,8 @@ ${redirectScript}
                 `;
 
         renderHtmlWithOgTags(res, htmlData, ogTags);
-
       } catch (error) {
-        console.error('Error generating item SSR content:', error);
+        console.error("Error generating item SSR content:", error);
         // Fallback to generic tags with redirect
         const redirectScript = generateRedirectScript(itemId);
         const ogTags = `
@@ -205,7 +223,7 @@ ${redirectScript}
       }
     });
   } catch (error) {
-    console.error('Error in item SSR route:', error);
-    res.status(500).send('Server error');
+    console.error("Error in item SSR route:", error);
+    res.status(500).send("Server error");
   }
 };
