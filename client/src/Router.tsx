@@ -16,11 +16,17 @@ import { User } from "./generated/graphql";
  user={meOutput?.data?.me}
  */
 
-export const createRouter = (email?: string | undefined | null, user?: User) =>
+export const createRouter = (
+  email?: string | undefined | null,
+  emailVerified?: boolean,
+  user?: User
+) =>
   createBrowserRouter([
     {
       path: "/",
-      element: <Layout email={email} user={user} />,
+      element: (
+        <Layout email={email} emailVerified={emailVerified} user={user} />
+      ),
       children: [
         {
           index: true,

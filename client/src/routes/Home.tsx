@@ -91,12 +91,13 @@ interface ExchangePoint {
 
 interface OutletContext {
   email?: string | undefined | null;
+  emailVerified?: boolean | undefined | null;
   user?: User;
 }
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
-  const { user, email } = useOutletContext<OutletContext>();
+  const { user, emailVerified, email } = useOutletContext<OutletContext>();
   const navigate = useNavigate();
 
   // State for controlling CreateUser dialog
@@ -280,12 +281,14 @@ const HomePage: React.FC = () => {
               <Typography sx={{ flex: 1 }}>
                 {t("home.welcome")} {email}
               </Typography>
-              <Button
-                variant="contained"
-                onClick={() => setShowCreateUser(true)}
-              >
-                {t("auth.createProfile")}
-              </Button>
+              {emailVerified && (
+                <Button
+                  variant="contained"
+                  onClick={() => setShowCreateUser(true)}
+                >
+                  {t("auth.createProfile")}
+                </Button>
+              )}
               <Button variant="outlined" onClick={signOut}>
                 {t("auth.signOut")}
               </Button>

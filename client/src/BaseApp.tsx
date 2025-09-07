@@ -11,6 +11,7 @@ import {
 import {
   User as fireUser,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth";
@@ -42,8 +43,8 @@ const BaseApp: React.FC = () => {
 
   const handleInputChange =
     (setter: React.Dispatch<React.SetStateAction<string>>) =>
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        setter(e.target.value);
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setter(e.target.value);
 
   const signInSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -62,8 +63,19 @@ const BaseApp: React.FC = () => {
     if (e) e.preventDefault();
     if (email && password) {
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
         console.log("Account created successfully");
+        // Send verification email to the newly created user
+        await sendEmailVerification(userCredential.user);
+
+        alert(t("auth.verificationEmailSent"));
+        console.log(
+          "Account created successfully and verification email sent."
+        );
         setShowSignUpForm(false);
       } catch (error) {
         alert(t("common.error", { message: error }));
