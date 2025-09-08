@@ -377,11 +377,7 @@ export class TransactionService {
     if (!item) {
       throw new Error(`Item with id ${data.itemId} not found`);
     }
-    if (item.holderId && item.holderId !== requestor.id) {
-      throw new Error(
-        `Item with id ${data.itemId} is already held by another user`
-      );
-    }
+
     const updated = await this.itemService.updateItemHolder(item.id, requestor);
     if (!updated) {
       throw new Error(
