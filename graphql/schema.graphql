@@ -80,6 +80,24 @@ type Item {
   createdAt: Date!
   updatedAt: Date!
   transactions: [Transaction!] # 相關交易紀錄
+  # Keep this disabled until implementation is ready.
+  commentsConnection( first : Int, after : ID ) : ItemCommentsConnection!
+}
+
+type ItemComment {
+    content : String
+}
+
+# Connection object for item comments for pagination.
+type ItemCommentsConnection {
+  comments : [ItemComment]
+  pageInfo : ItemCommentPageInfo
+}
+
+type ItemCommentPageInfo {
+  startCursor : ID!
+  endCursor   : ID!
+  hasNextPage : Boolean!
 }
 
 type NewsPost {
