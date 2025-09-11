@@ -275,11 +275,20 @@ export class ItemService {
     }
 
     // check the description with hash tag or not. If not hash tag add all category with #
-    if (data.description && !data.description.includes("#")) {
-      data.description = `${data.description}\n\n#${data.category.join(" #")}`;
+    let updateDescription = null;
+    if (data.description) {
+      if (!data.description.includes("#")) {
+        updateDescription = `${data.description}\n\n#${data.category.join(
+          " #"
+        )}`;
+      }
+    } else {
+      updateDescription = `#${data.category.join(" #")}`;
+    }
+    if (updateDescription !== null) {
       data.updated = Timestamp.now();
       await db.collection("items").doc(itemId).update({
-        description: data.description,
+        description: updateDescription,
         updated: data.updated,
       });
     }

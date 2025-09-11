@@ -8,12 +8,8 @@ import {
   Language,
   User,
 } from "./generated/graphql";
-import * as geofire from "geofire-common";
 import firebase from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
-import { p } from "graphql-ws/dist/common-DY-PBNYy";
-import { log } from "console";
-import { b } from "graphql-ws/dist/server-CRG3y31G";
 
 type CategoryModel = {
   count: number;
@@ -189,6 +185,7 @@ export class CategoryService {
       .collection("users")
       .doc(userId)
       .collection("itemCategory")
+      .orderBy("count", "desc")
       .get();
 
     let itemCategory = categorySnapshot.docs.map((doc) => ({
@@ -201,6 +198,7 @@ export class CategoryService {
       .collection("users")
       .doc(userId)
       .collection("itemCategoryCache")
+      .orderBy("count", "desc")
       .get();
 
     if (!cacheSnapshot.empty) {

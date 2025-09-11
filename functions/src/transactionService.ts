@@ -5,6 +5,7 @@ import {
   Transaction,
   TransactionStatus,
   User,
+  TransactionLocation,
 } from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { UserService } from "./userService";
@@ -112,16 +113,65 @@ export class TransactionService {
 
   async createTransaction(
     requestor: User,
-    itemId: string
+    itemId: string,
+    locationType: TransactionLocation,
+    locationIndex: number
   ): Promise<Transaction> {
     // Logic to create a transaction
     const item = await this.itemService.itemById(itemId);
     if (!item) {
       throw new Error(`Item with id ${itemId} not found`);
     }
-    const userToNotify = item.holderId ? item.holderId : item.ownerId;
-    if (!userToNotify) {
-      throw new Error(`No user to notify for item with id ${itemId}`);
+    let toList = [requestor.email];
+    let holder: User | null = null;
+    if (item.holderId) {
+      holder = await this.userService.userById(item.holderId);
+      if (holder) {
+        toList.push(holder.email);
+      }
+    }
+    const owner = await this.userService.userById(item.ownerId);
+    if (owner) {
+      if (holder === null) {
+        holder = owner;
+      }
+      toList.push(owner.email);
+    } else {
+      throw new Error(`Owner with id ${item.ownerId} not found`);
+    }
+    let location = holder.location;
+    switch (locationType) {
+      case TransactionLocation.HolderLocation:
+        location = holder.location;
+        break;
+      case TransactionLocation.RequestorLocation:
+        if (
+          requestor.exchangePoints &&
+          requestor.exchangePoints.length > locationIndex
+        ) {
+          const exchangeId = requestor.exchangePoints[locationIndex];
+          const exchangePoint = await this.userService.userById(exchangeId);
+          if (exchangePoint) {
+            location = exchangePoint.location;
+          } else {
+            throw new Error(`Exchange point with id ${exchangeId} not found`);
+          }
+        }
+        break;
+      case TransactionLocation.HolderPublicExchangePoint:
+        if (
+          holder.exchangePoints &&
+          holder.exchangePoints.length > locationIndex
+        ) {
+          const exchangeId = holder.exchangePoints[locationIndex];
+          const exchangePoint = await this.userService.userById(exchangeId);
+          if (exchangePoint) {
+            location = exchangePoint.location;
+          } else {
+            throw new Error(`Exchange point with id ${exchangeId} not found`);
+          }
+        }
+        break;
     }
     const requestorId = requestor.id;
     // check if there is 2 open transactions for the item
@@ -140,6 +190,7 @@ export class TransactionService {
       itemId: itemId,
       created: Timestamp.now(),
       updated: Timestamp.now(),
+      location: location,
       status: TransactionStatus.Pending,
     };
     // Save transaction to the database
@@ -151,18 +202,9 @@ export class TransactionService {
     }
 
     // Notify the user
-    let toList = [requestor.email];
+
     let ccList: string[] = [];
-    const owner = await this.userService.userById(item.ownerId);
-    if (owner) {
-      toList.push(owner.email);
-    }
-    if (item.holderId) {
-      const holder = await this.userService.userById(item.holderId);
-      if (holder) {
-        toList.push(holder.email);
-      }
-    }
+
     sendNotificationViaEmail(
       toList,
       ccList,

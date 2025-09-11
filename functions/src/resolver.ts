@@ -343,13 +343,18 @@ export const resolvers: Resolvers = {
     },
     createTransaction: async (
       _: any,
-      { itemId }: any,
+      { itemId, location, locationIndex }: any,
       { loginUser }: Context
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
       const requestor = await userService.me(loginUser);
       if (!requestor) throw new Error("Owner not found");
-      return transactionService.createTransaction(requestor, itemId);
+      return transactionService.createTransaction(
+        requestor,
+        itemId,
+        location,
+        locationIndex
+      );
     },
     approveTransaction: async (
       _: any,

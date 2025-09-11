@@ -100,6 +100,7 @@ type Transaction {
   id: ID!
   item: Item!
   requestor: User #
+  location: Location # 交易地點
   status: TransactionStatus!
   createdAt: Date!
   updatedAt: Date!
@@ -111,6 +112,13 @@ enum TransactionStatus {
   TRANSFERED # 已轉讓
   COMPLETED # 已完成
   CANCELLED # 已取消
+}
+
+enum TransactionLocation {
+  HOLDER_LOCATION
+  HOLDER_PUBLIC_EXCHANGE_POINT
+  REQUESTOR_PUBLIC_EXCHANGE_POINT
+  REQUESTOR_LOCATION
 }
 
 type SignedUrlResponse {
@@ -219,7 +227,11 @@ type Mutation {
   deleteItem(id: ID!): Boolean!
 
   # 交易管理
-  createTransaction(itemId: ID!): Transaction!
+  createTransaction(
+    itemId: ID!
+    location: TransactionLocation! = HOLDER_LOCATION
+    locationIndex: Int! = 0
+  ): Transaction!
   approveTransaction(id: ID!): Transaction!
   transferTransaction(id: ID!): Transaction!
   receiveTransaction(id: ID!): Transaction!
