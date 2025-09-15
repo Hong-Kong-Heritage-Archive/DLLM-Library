@@ -243,7 +243,7 @@ export const resolvers: Resolvers = {
     defaultCategories: async (_: any, __: any): Promise<string[]> => {
       return categoryService.getDefaultCategories();
     },
-      commentsByItemId: async (
+    commentsByItemId: async (
       _: any,
       { itemId, first = 10, after }: any,
       __: any

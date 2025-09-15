@@ -94,8 +94,8 @@ type ItemCommentsConnection {
 }
 
 type ItemCommentPageInfo {
-  startCursor : ID!
-  endCursor   : ID!
+  startCursor : ID
+  endCursor   : ID
   hasNextPage : Boolean!
 }
 
