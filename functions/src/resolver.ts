@@ -243,7 +243,7 @@ export const resolvers: Resolvers = {
     defaultCategories: async (_: any, __: any): Promise<string[]> => {
       return categoryService.getDefaultCategories();
     },
-      commentsByItemId: async (
+    commentsByItemId: async (
       _: any,
       { itemId, first = 10, after }: any,
       __: any
@@ -406,6 +406,20 @@ export const resolvers: Resolvers = {
       const user = await userService.me(loginUser);
       if (!user) throw new Error("User not found");
       return transactionService.cancelTransaction(user, id);
+    },
+    addItemComment: async (
+      _: any,
+      { itemId, content }: any,
+      __: any
+    ): Promise<string> => {
+      return commentService.addItemComment(itemId, content);
+    },
+    deleteItemComment: async (
+      _: any,
+      { itemId, commentId }: any,
+      __: any
+    ): Promise<boolean> => {
+      return commentService.deleteItemComment(itemId, commentId);
     },
   },
 };

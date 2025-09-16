@@ -94,8 +94,8 @@ type ItemCommentsConnection {
 }
 
 type ItemCommentPageInfo {
-  startCursor : ID!
-  endCursor   : ID!
+  startCursor : ID
+  endCursor   : ID
   hasNextPage : Boolean!
 }
 
@@ -248,6 +248,9 @@ type Mutation {
     language: Language
   ): Item!
   deleteItem(id: ID!): Boolean!
+
+  addItemComment( itemId : ID!, content : String! ) : ID!
+  deleteItemComment( itemId : ID!, commentId : ID! ): Boolean!
 
   # 交易管理
   createTransaction(
