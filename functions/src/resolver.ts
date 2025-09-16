@@ -407,5 +407,19 @@ export const resolvers: Resolvers = {
       if (!user) throw new Error("User not found");
       return transactionService.cancelTransaction(user, id);
     },
+    addItemComment: async (
+      _: any,
+      { itemId, content }: any,
+      __: any
+    ): Promise<string> => {
+      return commentService.addItemComment(itemId, content);
+    },
+    deleteItemComment: async (
+      _: any,
+      { itemId, commentId }: any,
+      __: any
+    ): Promise<boolean> => {
+      return commentService.deleteItemComment(itemId, commentId);
+    },
   },
 };

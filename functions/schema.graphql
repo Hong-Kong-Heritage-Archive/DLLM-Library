@@ -249,6 +249,9 @@ type Mutation {
   ): Item!
   deleteItem(id: ID!): Boolean!
 
+  addItemComment( itemId : ID!, content : String! ) : ID!
+  deleteItemComment( itemId : ID!, commentId : ID! ): Boolean!
+
   # 交易管理
   createTransaction(
     itemId: ID!

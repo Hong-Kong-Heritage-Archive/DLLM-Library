@@ -2,15 +2,6 @@ import { ItemCommentsConnection, ItemCommentPageInfo, ItemComment } from "./gene
 import { db } from "./platform";
 
 export class CommentService {
-  private dummyComments: ItemComment[];
-
-  constructor() {
-    // Generate 100 dummy comments
-    this.dummyComments = Array.from({ length: 100 }, (_, i) => ({
-      id: String(i),
-      content: `Dummy comment #${i}`,
-    }));
-  }
 
   // Placeholder allow us to select implementation for testing.
   async commentsByItemId(
@@ -18,74 +9,9 @@ export class CommentService {
     first: number = 10,
     after?: string
   ): Promise<ItemCommentsConnection> {
-    return this.getCommentsFromDB(itemId, first, after);
-  }
-
-  // Dummy for testing only.
-  // TODO: Delete later
-  async dummyCommentsByItemId(
-    itemId: string,
-    first: number = 10,
-    after?: string
-  ): Promise<ItemCommentsConnection> {
-    // Find the starting index based on after cursor
-    let startIdx = 0;
-    if (after) {
-      const idx = parseInt(after, 10);
-      if (!isNaN(idx) && idx >= 0 && idx < this.dummyComments.length) {
-        startIdx = idx + 1;
-      }
-    }
-
-    const comments = this.dummyComments.slice(startIdx, startIdx + first);
-    const endIdx = startIdx + comments.length - 1;
-
-    const pageInfo: ItemCommentPageInfo = {
-      startCursor: String(startIdx),
-      endCursor: String(endIdx),
-      hasNextPage: endIdx < this.dummyComments.length - 1,
-    };
-
-    return {
-      comments,
-      pageInfo,
-    };
-  }
-
-  // Creating a single item.
-  // TODO: Delete later
-  async singleCommentsByItemId(
-    itemId: string,
-    first: number = 10,
-    after?: string
-  ): Promise<ItemCommentsConnection> {
-    const comment = {
-      id: String(1),
-      content: "Dummy comment",
-    };
-    const pageInfo: ItemCommentPageInfo = {
-      startCursor: String(1),
-      endCursor: String(1),
-      hasNextPage: false,
-    };
-    const comments = [comment];
-    return {
-      comments,
-      pageInfo,
-    };
-  }
-
- 
-  // Placeholder
-  async getCommentsFromDB(
-    itemId: string,
-    first: number = 10,
-    after?: string
-  ): Promise<ItemCommentsConnection> {
 
     const results: ItemComment[] = [];
 
-    // Use xdTqRAC8a5eAyyjaihnJ as example
     //Use startAt() and endAt() to limit contents.
     const dbComments = await this.queryCommentFromDB(itemId, first, after);
 
@@ -98,9 +24,9 @@ export class CommentService {
     });
 
     const pageInfo: ItemCommentPageInfo = {
-      startCursor: String(1),
-      endCursor: String(1),
-      hasNextPage: false,
+      startCursor: results.length > 0 ? results[0].id : null,
+      endCursor: results.length > 0 ? results[results.length - 1].id : null,
+      hasNextPage: dbComments.size === first,
     };
     
     return {
@@ -115,20 +41,53 @@ export class CommentService {
     after?: string
   ): Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>> {
 
-      if (after) {
-        const dbComments = await db.collection("items").doc(itemId)
-        .collection("comments")
-        .startAt(after)
+    const commentsRef = db.collection("items").doc(itemId).collection("comments");
+    if (after) {
+      // Get the document to retrieve its createdAt value
+      const afterDoc = await commentsRef.doc(after).get();
+      const afterCreatedAt = afterDoc.get("createdAt");
+      const dbComments = await commentsRef
+        .orderBy("createdAt")
+        .startAfter(afterCreatedAt)
         .limit(first)
         .get();
-        return dbComments;
-      }
-      else {
-        const dbComments = await db.collection("items").doc(itemId)
-        .collection("comments")
+      return dbComments;
+    } else {
+      const dbComments = await commentsRef
+        .orderBy("createdAt")
         .limit(first)
         .get();
-        return dbComments;
-      }
+      return dbComments;
+    }
+  }
+
+  // Add a comment to an item
+  async addItemComment(itemId: string, content: string): Promise<string> {
+    const commentRef = await db
+      .collection("items")
+      .doc(itemId)
+      .collection("comments")
+      .add({
+        content,
+        createdAt: new Date(),
+      });
+    return commentRef.id;
+  }
+
+  // Delete a comment from an item
+  async deleteItemComment(itemId: string, commentId: string): Promise<boolean> {
+    try {
+      await db
+        .collection("items")
+        .doc(itemId)
+        .collection("comments")
+        .doc(commentId)
+        .delete(); 
+        // returns true here regardless of whether the document existed or not
+      return true;
+    } catch (e) {
+      console.error("Failed to delete comment:", e);
+      return false;
+    }
   }
 }
