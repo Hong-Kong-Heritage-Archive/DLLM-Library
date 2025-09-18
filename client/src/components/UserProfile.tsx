@@ -285,7 +285,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     <Box>
       <Dialog open={internalOpen} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle sx={{ textAlign: "center" }}>
-          {isCreateUser ? t("auth.createProfile") : t("auth.editProfile")}
+          {isCreateUser ? t("auth.createProfile") : t("user.editProfile")}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
@@ -482,19 +482,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <DialogActions
             sx={{
               flexDirection: "column",
-              alignItems: "stretch",
+              alignItems: "flex-end",
               gap: 1,
               p: 3,
             }}
           >
-            <Button
-              onClick={handleClose}
-              variant="outlined"
-              fullWidth
-              disabled={loading}
-            >
-              {t("auth.cancel")}
-            </Button>
             <Button
               type="submit"
               variant="contained"
@@ -511,8 +503,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   ? t("common.creating")
                   : t("common.updating")
                 : isCreateUser
-                ? t("auth.createProfile")
-                : t("userProfile.updateProfile")}
+                  ? t("auth.createProfile")
+                  : t("userProfile.updateProfile")}
+            </Button>
+            <Button
+              onClick={handleClose}
+              variant="outlined"
+              fullWidth
+              disabled={loading}
+            >
+              {t("auth.cancel")}
             </Button>
           </DialogActions>
         </form>

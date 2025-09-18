@@ -328,6 +328,15 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
       // Only add optional fields if they have actual values
       if (description?.trim()) {
         variables.description = description.trim();
+        const hashtags = description
+          .split("#")
+          .slice(1) // Remove the first element (text before first #)
+          .map((c) => c.split(/\s/)[0].trim()) // Get only the hashtag part (before any space)
+          .filter(Boolean); // Remove empty strings
+
+        if (hashtags.length > 0) {
+          variables.category = [...variables.category, ...hashtags];
+        }
       }
 
       if (uploadedImageUrls.length > 0) {

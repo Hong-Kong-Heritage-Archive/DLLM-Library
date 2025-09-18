@@ -312,10 +312,18 @@ const NewsForm: React.FC<NewsFormProps> = ({
         .split(",")
         .map((id) => id.trim())
         .filter((id) => id);
-      const tagsArray = tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag);
+
+      const tagsArray = [
+        ...tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag),
+        ...content
+          .split("#")
+          .slice(1)
+          .map((c) => c.split(/\s/)[0].trim())
+          .filter(Boolean)
+      ];
 
       // Create news post with GS URLs
       const result = await createNewsPost({

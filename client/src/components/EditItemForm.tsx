@@ -452,6 +452,15 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
       const originalDescription = originalValues.description?.trim() || null;
       if (currentDescription !== originalDescription) {
         variables.description = currentDescription;
+        const hashtags = description
+          .split("#")
+          .slice(1) // Remove the first element (text before first #)
+          .map((c) => c.split(/\s/)[0].trim()) // Get only the hashtag part (before any space)
+          .filter(Boolean); // Remove empty strings
+
+        if (hashtags.length > 0) {
+          variables.category = [...(variables.category || []), ...hashtags];
+        }
       }
 
       const currentPublishedYear = publishedYear === "" ? null : Number(publishedYear);
