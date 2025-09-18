@@ -28,7 +28,7 @@ const itemService = new ItemService(categoryService);
 const userService = new UserService(itemService, categoryService);
 const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
-const commentService = new CommentService();
+const commentService = new CommentService( userService );
 
 export const DateScalar = new GraphQLScalarType({
   name: "Date",
@@ -409,17 +409,28 @@ export const resolvers: Resolvers = {
     },
     addItemComment: async (
       _: any,
-      { itemId, content }: any,
-      __: any
+      args: any,
+      { loginUser }: Context
     ): Promise<string> => {
-      return commentService.addItemComment(itemId, content);
+      if (!loginUser) throw new Error("Not authenticated");
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("Owner not found");
+      return commentService.addItemComment(
+        owner,
+        args.itemId,
+        args.content,
+      );
     },
     deleteItemComment: async (
       _: any,
-      { itemId, commentId }: any,
-      __: any
+      args: any,
+      { loginUser }: Context
     ): Promise<boolean> => {
-      return commentService.deleteItemComment(itemId, commentId);
+      if (!loginUser) throw new Error("Not authenticated");
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("Owner not found");
+      const { itemId, commentId } = args;
+      return commentService.deleteItemComment(owner, itemId, commentId);
     },
   },
 };

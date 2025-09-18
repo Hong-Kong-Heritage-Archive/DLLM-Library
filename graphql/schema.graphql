@@ -84,7 +84,10 @@ type Item {
 
 type ItemComment {
     id      : ID!
+    userId  : ID!
+    userNickname : String!
     content : String!
+    createdAt: Date!
 }
 
 # Connection object for item comments for pagination.

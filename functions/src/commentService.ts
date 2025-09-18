@@ -1,7 +1,15 @@
-import { ItemCommentsConnection, ItemCommentPageInfo, ItemComment } from "./generated/graphql";
+import { 
+  User, 
+  ItemCommentsConnection, 
+  ItemCommentPageInfo, 
+  ItemComment 
+} from "./generated/graphql";
+import { UserService } from "./userService";
 import { db } from "./platform";
 
 export class CommentService {
+
+  constructor(private userService: UserService) {}
 
   // Placeholder allow us to select implementation for testing.
   async commentsByItemId(
@@ -17,12 +25,23 @@ export class CommentService {
 
     dbComments.forEach((doc) => {
       const data = doc.data();
+      
       results.push({
         id: doc.id,
+        userId: data.userId,
+        userNickname: "Unknown",
+        createdAt: data.createdAt.toDate().toISOString(),
         content: data.content,
       });
-    });
 
+      for (const result of results) {
+        this.userService.userById(result.userId).then(user => {
+          if (user) {
+            result.userNickname = user.nickname ?? "Unknown";
+          }
+        });
+      }
+    });
     const pageInfo: ItemCommentPageInfo = {
       startCursor: results.length > 0 ? results[0].id : null,
       endCursor: results.length > 0 ? results[results.length - 1].id : null,
@@ -62,12 +81,13 @@ export class CommentService {
   }
 
   // Add a comment to an item
-  async addItemComment(itemId: string, content: string): Promise<string> {
+  async addItemComment(currentUser: User, itemId: string, content: string): Promise<string> {
     const commentRef = await db
       .collection("items")
       .doc(itemId)
       .collection("comments")
       .add({
+        userId: currentUser.id,
         content,
         createdAt: new Date(),
       });
@@ -75,19 +95,31 @@ export class CommentService {
   }
 
   // Delete a comment from an item
-  async deleteItemComment(itemId: string, commentId: string): Promise<boolean> {
+  // Now checks userID before deleting
+  async deleteItemComment(currentUser: User, itemId: string, commentId: string): Promise<boolean> {
     try {
-      await db
+      const commentDocRef = db
         .collection("items")
         .doc(itemId)
         .collection("comments")
-        .doc(commentId)
-        .delete(); 
-        // returns true here regardless of whether the document existed or not
+        .doc(commentId);
+
+      const commentDoc = await commentDocRef.get();
+
+      if (!commentDoc.exists) {
+        throw new Error("Comment does not exist.");
+      }
+
+      const commentData = commentDoc.data();
+      if (!commentData || commentData.userId !== currentUser.id) {
+        throw new Error("You do not have permission to delete this comment.");
+      }
+
+      await commentDocRef.delete();
       return true;
     } catch (e) {
       console.error("Failed to delete comment:", e);
-      return false;
+      throw e;
     }
   }
 }
