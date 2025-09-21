@@ -245,11 +245,11 @@ export const resolvers: Resolvers = {
     },
     commentsByItemId: async (
       _: any,
-      { itemId, first = 10, after }: any,
+      { itemId, first = 10, startAfterId, startAfterDate }: any,
       __: any
     ) => {
       // Returns dummy comments for any itemId
-      return commentService.commentsByItemId(itemId, first, after);
+      return commentService.commentsByItemId(itemId, first, startAfterId, startAfterDate);
     },
   },
   Mutation: {
