@@ -7,6 +7,7 @@ import {
 import { UserService } from "./userService";
 import { db } from "./platform";
 import { FieldPath } from "firebase-admin/firestore";
+import { log } from "console";
 
 export class CommentService {
 
@@ -16,13 +17,14 @@ export class CommentService {
   async commentsByItemId(
     itemId: string,
     first: number = 10,
-    after?: string
+    startAfterId?: string,
+    startAfterDate?: Date,
   ): Promise<ItemCommentsConnection> {
 
     const results: ItemComment[] = [];
 
     //Use startAt() and endAt() to limit contents.
-    const dbComments = await this.queryCommentFromDB(itemId, first, after);
+    const dbComments = await this.queryCommentFromDB(itemId, first, startAfterId, startAfterDate );
 
     dbComments.forEach((doc) => {
       const data = doc.data();
@@ -58,21 +60,16 @@ export class CommentService {
   async queryCommentFromDB(
     itemId: string,
     first: number = 10,
-    after?: string
+    startAfterId?: string,
+    startAfterDate?: Date
   ): Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>> {
 
     const commentsRef = db.collection("items").doc(itemId).collection("comments");
-    if (after) {
-      // Get the document to retrieve its createdAt value
-      const afterDoc = await commentsRef.doc(after).get();
-      const afterCreatedAt = afterDoc.get("createdAt");
-      if (!afterCreatedAt) {
-        throw new Error("Invalid cursor: comment not found or missing createdAt");
-      }
+    if (startAfterId && startAfterDate) {
       const dbComments = await commentsRef
         .orderBy("createdAt", "desc")
         .orderBy(FieldPath.documentId(), "desc")
-        .startAfter(afterCreatedAt, after)
+        .startAfter(startAfterDate, startAfterId)
         .limit(first)
         .get();
       return dbComments;
