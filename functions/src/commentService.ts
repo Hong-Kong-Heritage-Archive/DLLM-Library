@@ -6,6 +6,7 @@ import {
 } from "./generated/graphql";
 import { UserService } from "./userService";
 import { db } from "./platform";
+import { FieldPath } from "firebase-admin/firestore";
 
 export class CommentService {
 
@@ -65,15 +66,20 @@ export class CommentService {
       // Get the document to retrieve its createdAt value
       const afterDoc = await commentsRef.doc(after).get();
       const afterCreatedAt = afterDoc.get("createdAt");
+      if (!afterCreatedAt) {
+        throw new Error("Invalid cursor: comment not found or missing createdAt");
+      }
       const dbComments = await commentsRef
-        .orderBy("createdAt", "desc") // changed to descending
-        .startAfter(afterCreatedAt)
+        .orderBy("createdAt", "desc")
+        .orderBy(FieldPath.documentId(), "desc")
+        .startAfter(afterCreatedAt, after)
         .limit(first)
         .get();
       return dbComments;
     } else {
       const dbComments = await commentsRef
-        .orderBy("createdAt", "desc") // changed to descending
+        .orderBy("createdAt", "desc")
+        .orderBy(FieldPath.documentId(), "desc")
         .limit(first)
         .get();
       return dbComments;
