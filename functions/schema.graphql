@@ -212,8 +212,8 @@ type Query {
 
   # Query comments by itemId
   # first - the number of comments to return.
-  # after - The ID of the first comment to return. Use null to return the first comment.
-  commentsByItemId( itemId : ID!, first : Int!, after: ID ) : ItemCommentsConnection!
+  # startAfterId, startAfterDate - Key used in pagination to figure out the next item.
+  commentsByItemId( itemId : ID!, first : Int!, startAfterId: ID, startAfterDate: Date ) : ItemCommentsConnection!
 }
 
 # 變更
