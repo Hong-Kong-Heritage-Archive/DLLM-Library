@@ -66,14 +66,14 @@ export class CommentService {
       const afterDoc = await commentsRef.doc(after).get();
       const afterCreatedAt = afterDoc.get("createdAt");
       const dbComments = await commentsRef
-        .orderBy("createdAt")
+        .orderBy("createdAt", "desc") // changed to descending
         .startAfter(afterCreatedAt)
         .limit(first)
         .get();
       return dbComments;
     } else {
       const dbComments = await commentsRef
-        .orderBy("createdAt")
+        .orderBy("createdAt", "desc") // changed to descending
         .limit(first)
         .get();
       return dbComments;
