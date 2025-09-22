@@ -200,7 +200,9 @@
     "holderExchangePoint": "持有者的交換點",
     "requestorExchangePoint": "您的交換點",
     "selectExchangePoint": "選擇交換點",
-    "alreadyRequested": "您已經申請過此物品。"
+    "alreadyRequested": "您已經申請過此物品。",
+    "deposite": "押金",
+    "descriptionHelper": "可選：支援標籤（例如 #tag1 #tag2）以便分類。"
   },
   "userProfile": {
     "nickname": "暱稱",

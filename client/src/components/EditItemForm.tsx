@@ -48,6 +48,7 @@ const EDIT_ITEM_MUTATION = gql`
     $language: Language
     $publishedYear: Int
     $status: ItemStatus
+    $deposite: Int
   ) {
     updateItem(
       id: $id
@@ -59,6 +60,7 @@ const EDIT_ITEM_MUTATION = gql`
       language: $language
       publishedYear: $publishedYear
       status: $status
+      deposite: $deposite
     ) {
       id
       name
@@ -72,6 +74,7 @@ const EDIT_ITEM_MUTATION = gql`
       createdAt
       ownerId
       updatedAt
+      deposite
     }
   }
 `;
@@ -111,6 +114,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
   const [formError, setFormError] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>(Language.En);
+  const [deposite, setDeposite] = useState<number>(0);
 
   // Store original values for comparison
   const [originalValues, setOriginalValues] = useState<{
@@ -167,6 +171,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
       setPublishedYear(itemPublishedYear);
       setStatus(itemStatus);
       setLanguage(itemLanguage);
+      setDeposite(item.deposite || 0);
 
       // Store original values for comparison
       setOriginalValues({
@@ -217,11 +222,14 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
     setProcessingProgress(0);
     setIsUploading(false);
     setUploadProgress(0);
+    setDeposite(0);
     setLanguage(Language.En);
     onClose();
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -305,7 +313,9 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
     });
   };
 
-  const uploadNewImages = async (newImages: ImagePreview[]): Promise<string[]> => {
+  const uploadNewImages = async (
+    newImages: ImagePreview[]
+  ): Promise<string[]> => {
     const gcsService = new GCSUploadService(apolloClient);
     const totalFiles = newImages.length;
 
@@ -320,15 +330,15 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
           setImageFiles((prev) =>
             prev.map((img, idx) => {
               // Find the index of this new image in the full array
-              const newImageStartIndex = prev.findIndex(p => !p.isExisting);
+              const newImageStartIndex = prev.findIndex((p) => !p.isExisting);
               const actualIndex = newImageStartIndex + fileIndex;
 
               return idx === actualIndex
                 ? {
-                  ...img,
-                  isUploading: true,
-                  uploadProgress: progress.percentage,
-                }
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                 : img;
             })
           );
@@ -343,16 +353,16 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
           // Mark file as completed
           setImageFiles((prev) =>
             prev.map((img, idx) => {
-              const newImageStartIndex = prev.findIndex(p => !p.isExisting);
+              const newImageStartIndex = prev.findIndex((p) => !p.isExisting);
               const actualIndex = newImageStartIndex + fileIndex;
 
               return idx === actualIndex
                 ? {
-                  ...img,
-                  isUploading: false,
-                  uploadProgress: 100,
-                  gsUrl: gsUrl,
-                }
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                 : img;
             })
           );
@@ -370,10 +380,10 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
         prev.map((img, _) =>
           !img.isExisting && !img.gsUrl
             ? {
-              ...img,
-              isUploading: false,
-              uploadError: `Upload failed: ${error}`,
-            }
+                ...img,
+                isUploading: false,
+                uploadError: `Upload failed: ${error}`,
+              }
             : img
         )
       );
@@ -398,8 +408,8 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
 
     try {
       // Separate existing and new images
-      const existingImages = imageFiles.filter(img => img.isExisting);
-      const newImages = imageFiles.filter(img => !img.isExisting);
+      const existingImages = imageFiles.filter((img) => img.isExisting);
+      const newImages = imageFiles.filter((img) => !img.isExisting);
 
       // Upload new images if any
       let newImageUrls: string[] = [];
@@ -409,8 +419,8 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
 
       // Combine existing and new image URLs
       const allImageUrls = [
-        ...existingImages.map(img => img.gsUrl || img.url),
-        ...newImageUrls
+        ...existingImages.map((img) => img.gsUrl || img.url),
+        ...newImageUrls,
       ];
 
       // Build variables object with only changed fields
@@ -432,7 +442,10 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
         .map((c) => c.trim())
         .filter(Boolean);
 
-      if (JSON.stringify(currentCategory) !== JSON.stringify(originalCategoryArray)) {
+      if (
+        JSON.stringify(currentCategory) !==
+        JSON.stringify(originalCategoryArray)
+      ) {
         variables.category = currentCategory;
       }
 
@@ -446,6 +459,10 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
 
       if (language !== originalValues.language) {
         variables.language = language;
+      }
+
+      if (deposite !== item.deposite) {
+        variables.deposite = deposite;
       }
 
       const currentDescription = description?.trim() || null;
@@ -463,8 +480,12 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
         }
       }
 
-      const currentPublishedYear = publishedYear === "" ? null : Number(publishedYear);
-      const originalPublishedYearValue = originalValues.publishedYear === "" ? null : Number(originalValues.publishedYear);
+      const currentPublishedYear =
+        publishedYear === "" ? null : Number(publishedYear);
+      const originalPublishedYearValue =
+        originalValues.publishedYear === ""
+          ? null
+          : Number(originalValues.publishedYear);
       if (currentPublishedYear !== originalPublishedYearValue) {
         variables.publishedYear = currentPublishedYear;
       }
@@ -556,7 +577,18 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            helperText={t("common.optional")}
+            helperText={t("item.descriptionHelper")}
+          />
+
+          <TextField
+            label={t("item.desposite")}
+            fullWidth
+            margin="normal"
+            required
+            type="number"
+            value={deposite}
+            onChange={(e) => setDeposite(Number(e.target.value))}
+            helperText={t("item.despositeHelper")}
           />
 
           {/* Image Upload Section */}
@@ -592,10 +624,7 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
 
             {isUploading && (
               <Box sx={{ mb: 2 }}>
-                <LinearProgress
-                  variant="determinate"
-                  value={uploadProgress}
-                />
+                <LinearProgress variant="determinate" value={uploadProgress} />
                 <Box sx={{ textAlign: "center", mt: 1 }}>
                   {t("item.uploadingImages", { progress: uploadProgress })}
                 </Box>
@@ -707,10 +736,10 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
             {isProcessingImages
               ? t("common.processingImages")
               : isUploading
-                ? t("common.uploading")
-                : updateLoading
-                  ? t("common.updating")
-                  : t("common.save")}
+              ? t("common.uploading")
+              : updateLoading
+              ? t("common.updating")
+              : t("common.save")}
           </Button>
 
           <Button

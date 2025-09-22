@@ -28,7 +28,7 @@ const itemService = new ItemService(categoryService);
 const userService = new UserService(itemService, categoryService);
 const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
-const commentService = new CommentService( userService );
+const commentService = new CommentService(userService);
 
 export const DateScalar = new GraphQLScalarType({
   name: "Date",
@@ -249,7 +249,12 @@ export const resolvers: Resolvers = {
       __: any
     ) => {
       // Returns dummy comments for any itemId
-      return commentService.commentsByItemId(itemId, first, startAfterId, startAfterDate);
+      return commentService.commentsByItemId(
+        itemId,
+        first,
+        startAfterId,
+        startAfterDate
+      );
     },
   },
   Mutation: {
@@ -290,7 +295,8 @@ export const resolvers: Resolvers = {
         args.status,
         args.images,
         args.publishedYear,
-        args.language
+        args.language,
+        args.deposite
       );
       await userService.addItemToUser(owner, newItem);
       return newItem;
@@ -313,7 +319,8 @@ export const resolvers: Resolvers = {
         args.publishedYear,
         args.language,
         args.description,
-        args.images
+        args.images,
+        args.deposite
       );
     },
     createNewsPost: async (
@@ -415,11 +422,7 @@ export const resolvers: Resolvers = {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
       if (!owner) throw new Error("Owner not found");
-      return commentService.addItemComment(
-        owner,
-        args.itemId,
-        args.content,
-      );
+      return commentService.addItemComment(owner, args.itemId, args.content);
     },
     deleteItemComment: async (
       _: any,

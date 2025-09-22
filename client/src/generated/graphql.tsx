@@ -42,6 +42,7 @@ export type Item = {
   category: Array<Scalars['String']['output']>;
   condition: ItemCondition;
   createdAt: Scalars['Date']['output'];
+  deposite?: Maybe<Scalars['Int']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   holderId?: Maybe<Scalars['ID']['output']>;
   id: Scalars['ID']['output'];
@@ -55,6 +56,28 @@ export type Item = {
   thumbnails?: Maybe<Array<Scalars['String']['output']>>;
   transactions?: Maybe<Array<Transaction>>;
   updatedAt: Scalars['Date']['output'];
+};
+
+export type ItemComment = {
+  __typename?: 'ItemComment';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['Date']['output'];
+  id: Scalars['ID']['output'];
+  userId: Scalars['ID']['output'];
+  userNickname: Scalars['String']['output'];
+};
+
+export type ItemCommentPageInfo = {
+  __typename?: 'ItemCommentPageInfo';
+  endCursor?: Maybe<Scalars['ID']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  startCursor?: Maybe<Scalars['ID']['output']>;
+};
+
+export type ItemCommentsConnection = {
+  __typename?: 'ItemCommentsConnection';
+  comments?: Maybe<Array<Maybe<ItemComment>>>;
+  pageInfo?: Maybe<ItemCommentPageInfo>;
 };
 
 export enum ItemCondition {
@@ -91,6 +114,7 @@ export type LocationInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addItemComment: Scalars['ID']['output'];
   approveTransaction: Transaction;
   cancelTransaction: Scalars['Boolean']['output'];
   createItem: Item;
@@ -98,6 +122,7 @@ export type Mutation = {
   createTransaction: Transaction;
   createUser: User;
   deleteItem: Scalars['Boolean']['output'];
+  deleteItemComment: Scalars['Boolean']['output'];
   deleteUser: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
@@ -106,6 +131,12 @@ export type Mutation = {
   updateItem: Item;
   updateNewsPost: NewsPost;
   updateUser: User;
+};
+
+
+export type MutationAddItemCommentArgs = {
+  content: Scalars['String']['input'];
+  itemId: Scalars['ID']['input'];
 };
 
 
@@ -122,6 +153,7 @@ export type MutationCancelTransactionArgs = {
 export type MutationCreateItemArgs = {
   category: Array<Scalars['String']['input']>;
   condition: ItemCondition;
+  deposite?: Scalars['Int']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   images?: InputMaybe<Array<Scalars['String']['input']>>;
   language: Language;
@@ -159,6 +191,12 @@ export type MutationDeleteItemArgs = {
 };
 
 
+export type MutationDeleteItemCommentArgs = {
+  commentId: Scalars['ID']['input'];
+  itemId: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteUserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -189,6 +227,7 @@ export type MutationTransferTransactionArgs = {
 export type MutationUpdateItemArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   condition?: InputMaybe<ItemCondition>;
+  deposite?: InputMaybe<Scalars['Int']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -232,6 +271,7 @@ export type NewsPost = {
 
 export type Query = {
   __typename?: 'Query';
+  commentsByItemId: ItemCommentsConnection;
   defaultCategories: Array<Scalars['String']['output']>;
   exchangePoints: Array<User>;
   exchangePointsCount: Scalars['Int']['output'];
@@ -254,6 +294,14 @@ export type Query = {
   transactionsByUser: Array<Transaction>;
   user?: Maybe<User>;
   users: Array<User>;
+};
+
+
+export type QueryCommentsByItemIdArgs = {
+  first: Scalars['Int']['input'];
+  itemId: Scalars['ID']['input'];
+  startAfterDate?: InputMaybe<Scalars['Date']['input']>;
+  startAfterId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -450,17 +498,18 @@ export type UpdateItemMutationVariables = Exact<{
   language?: InputMaybe<Language>;
   publishedYear?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<ItemStatus>;
+  deposite?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any } };
+export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposite?: number | null } };
 
 export type ItemQueryVariables = Exact<{
   itemId: Scalars['ID']['input'];
 }>;
 
 
-export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null } | null };
+export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposite?: number | null } | null };
 
 export type CreateTransactionMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -494,10 +543,11 @@ export type CreateItemMutationVariables = Exact<{
   language: Language;
   publishedYear?: InputMaybe<Scalars['Int']['input']>;
   status: ItemStatus;
+  deposite?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type CreateItemMutation = { __typename?: 'Mutation', createItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any } };
+export type CreateItemMutation = { __typename?: 'Mutation', createItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposite?: number | null } };
 
 export type NewsPostQueryVariables = Exact<{
   newsPostId: Scalars['ID']['input'];
@@ -740,7 +790,7 @@ export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const UpdateItemDocument = gql`
-    mutation UpdateItem($id: ID!, $name: String, $category: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus) {
+    mutation UpdateItem($id: ID!, $name: String, $category: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus, $deposite: Int) {
   updateItem(
     id: $id
     name: $name
@@ -751,6 +801,7 @@ export const UpdateItemDocument = gql`
     language: $language
     publishedYear: $publishedYear
     status: $status
+    deposite: $deposite
   ) {
     id
     name
@@ -764,6 +815,7 @@ export const UpdateItemDocument = gql`
     createdAt
     ownerId
     updatedAt
+    deposite
   }
 }
     `;
@@ -791,6 +843,7 @@ export type UpdateItemMutationFn = Apollo.MutationFunction<UpdateItemMutation, U
  *      language: // value for 'language'
  *      publishedYear: // value for 'publishedYear'
  *      status: // value for 'status'
+ *      deposite: // value for 'deposite'
  *   },
  * });
  */
@@ -817,6 +870,7 @@ export const ItemDocument = gql`
     createdAt
     ownerId
     holderId
+    deposite
   }
 }
     `;
@@ -998,7 +1052,7 @@ export type OpenTransactionsByItemLazyQueryHookResult = ReturnType<typeof useOpe
 export type OpenTransactionsByItemSuspenseQueryHookResult = ReturnType<typeof useOpenTransactionsByItemSuspenseQuery>;
 export type OpenTransactionsByItemQueryResult = Apollo.QueryResult<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>;
 export const CreateItemDocument = gql`
-    mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!) {
+    mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!, $deposite: Int) {
   createItem(
     name: $name
     category: $category
@@ -1008,6 +1062,7 @@ export const CreateItemDocument = gql`
     language: $language
     publishedYear: $publishedYear
     status: $status
+    deposite: $deposite
   ) {
     id
     name
@@ -1021,6 +1076,7 @@ export const CreateItemDocument = gql`
     createdAt
     ownerId
     updatedAt
+    deposite
   }
 }
     `;
@@ -1047,6 +1103,7 @@ export type CreateItemMutationFn = Apollo.MutationFunction<CreateItemMutation, C
  *      language: // value for 'language'
  *      publishedYear: // value for 'publishedYear'
  *      status: // value for 'status'
+ *      deposite: // value for 'deposite'
  *   },
  * });
  */

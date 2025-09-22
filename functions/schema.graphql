@@ -72,6 +72,7 @@ type Item {
   condition: ItemCondition!
   category: [String!]! # 分類標籤，如 ["小說", "香港歷史"]
   status: ItemStatus!
+  deposite: Int # 押金（如適用）
   images: [String!] # 圖片URL列表
   thumbnails: [String!] # 縮略圖URL列表
   publishedYear: Int # 可選出版年份
@@ -83,23 +84,23 @@ type Item {
 }
 
 type ItemComment {
-    id      : ID!
-    userId  : ID!
-    userNickname : String!
-    content : String!
-    createdAt: Date!
+  id: ID!
+  userId: ID!
+  userNickname: String!
+  content: String!
+  createdAt: Date!
 }
 
 # Connection object for item comments for pagination.
 type ItemCommentsConnection {
-  comments : [ItemComment]
-  pageInfo : ItemCommentPageInfo
+  comments: [ItemComment]
+  pageInfo: ItemCommentPageInfo
 }
 
 type ItemCommentPageInfo {
-  startCursor : ID
-  endCursor   : ID
-  hasNextPage : Boolean!
+  startCursor: ID
+  endCursor: ID
+  hasNextPage: Boolean!
 }
 
 type NewsPost {
@@ -209,11 +210,15 @@ type Query {
   recentUpdateCategories(limit: Int): [String!]! # 最近更新的分類列表
   hotCategories(limit: Int): [String!]! # 熱門分類列表
   defaultCategories: [String!]! # 預設分類列表
-
   # Query comments by itemId
   # first - the number of comments to return.
   # startAfterId, startAfterDate - Key used in pagination to figure out the next item.
-  commentsByItemId( itemId : ID!, first : Int!, startAfterId: ID, startAfterDate: Date ) : ItemCommentsConnection!
+  commentsByItemId(
+    itemId: ID!
+    first: Int!
+    startAfterId: ID
+    startAfterDate: Date
+  ): ItemCommentsConnection!
 }
 
 # 變更
@@ -238,6 +243,7 @@ type Mutation {
     images: [String!]
     publishedYear: Int
     language: Language!
+    deposite: Int! = 0
   ): Item!
   updateItem(
     id: ID!
@@ -248,12 +254,13 @@ type Mutation {
     status: ItemStatus
     images: [String!]
     publishedYear: Int
+    deposite: Int
     language: Language
   ): Item!
   deleteItem(id: ID!): Boolean!
 
-  addItemComment( itemId : ID!, content : String! ) : ID!
-  deleteItemComment( itemId : ID!, commentId : ID! ): Boolean!
+  addItemComment(itemId: ID!, content: String!): ID!
+  deleteItemComment(itemId: ID!, commentId: ID!): Boolean!
 
   # 交易管理
   createTransaction(

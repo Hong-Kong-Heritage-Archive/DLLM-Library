@@ -62,6 +62,7 @@ const ITEM_DETAIL_QUERY = gql`
       createdAt
       ownerId
       holderId
+      deposite
     }
   }
 `;
@@ -392,6 +393,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       onClick={() => handleUserClick(holderData.user.id)}
                     />
                   )}
+                <Chip
+                  label={`${t("item.deposite", "Deposite")}: ${
+                    data.item.deposite
+                  }`}
+                  color="secondary"
+                  size="small"
+                  sx={{ ml: 2, cursor: "pointer" }}
+                />
               </>
             )}
           </Typography>

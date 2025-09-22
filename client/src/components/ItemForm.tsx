@@ -42,6 +42,7 @@ const CREATE_ITEM_MUTATION = gql`
     $language: Language!
     $publishedYear: Int
     $status: ItemStatus!
+    $deposite: Int
   ) {
     createItem(
       name: $name
@@ -52,6 +53,7 @@ const CREATE_ITEM_MUTATION = gql`
       language: $language
       publishedYear: $publishedYear
       status: $status
+      deposite: $deposite
     ) {
       id
       name
@@ -65,6 +67,7 @@ const CREATE_ITEM_MUTATION = gql`
       createdAt
       ownerId
       updatedAt
+      deposite
     }
   }
 `;
@@ -89,6 +92,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
   const [category, setCategory] = useState<string>("");
   const [condition, setCondition] = useState<ItemCondition>(ItemCondition.New);
   const [description, setDescription] = useState("");
+  const [deposite, setDeposite] = useState<number>(0);
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
   const [language, setLanguage] = useState<Language>(Language.En);
   const [publishedYear, setPublishedYear] = useState<number | "">("");
@@ -136,6 +140,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
     setProcessingProgress(0);
     setIsUploading(false);
     setUploadProgress(0);
+    setDeposite(0);
   };
 
   const handleFileSelect = async (
@@ -238,10 +243,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                  ...img,
-                  isUploading: true,
-                  uploadProgress: progress.percentage,
-                }
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                 : img
             )
           );
@@ -258,11 +263,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
             prev.map((img, idx) =>
               idx === fileIndex
                 ? {
-                  ...img,
-                  isUploading: false,
-                  uploadProgress: 100,
-                  gsUrl: gsUrl,
-                }
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                 : img
             )
           );
@@ -281,10 +286,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         prev.map((img, _) =>
           !img.gsUrl
             ? {
-              ...img,
-              isUploading: false,
-              uploadError: `Upload failed: ${error}`,
-            }
+                ...img,
+                isUploading: false,
+                uploadError: `Upload failed: ${error}`,
+              }
             : img
         )
       );
@@ -323,6 +328,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         condition,
         language,
         status,
+        deposite,
       };
 
       // Only add optional fields if they have actual values
@@ -419,7 +425,18 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              helperText={t("common.optional")}
+              helperText={t("item.descriptionHelper")}
+            />
+
+            <TextField
+              label={t("item.desposite")}
+              fullWidth
+              margin="normal"
+              required
+              type="number"
+              value={deposite}
+              onChange={(e) => setDeposite(Number(e.target.value))}
+              helperText={t("item.despositeHelper")}
             />
 
             {/* Image Upload Section */}
@@ -569,10 +586,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
               {isProcessingImages
                 ? t("common.processingImages")
                 : isUploading
-                  ? t("common.uploading")
-                  : loading
-                    ? t("common.creating")
-                    : t("item.create")}
+                ? t("common.uploading")
+                : loading
+                ? t("common.creating")
+                : t("item.create")}
             </Button>
 
             <Button
@@ -587,14 +604,12 @@ const ItemForm: React.FC<ItemFormProps> = ({ onItemCreated }) => {
         </form>
       </Dialog>
 
-      {
-        data && (
-          <Alert severity="success" sx={{ mt: 2 }}>
-            {t("item.createSuccess")}
-          </Alert>
-        )
-      }
-    </Box >
+      {data && (
+        <Alert severity="success" sx={{ mt: 2 }}>
+          {t("item.createSuccess")}
+        </Alert>
+      )}
+    </Box>
   );
 };
 

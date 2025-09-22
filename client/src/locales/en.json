@@ -197,7 +197,9 @@
     "holderExchangePoint": "Holder's Exchange Point",
     "requestorExchangePoint": "Your Exchange Point",
     "selectExchangePoint": "Select Exchange Point",
-    "alreadyRequested": "You have already requested this item."
+    "alreadyRequested": "You have already requested this item.",
+    "deposite": "Deposite",
+    "descriptionHelper": "Optional: Support Hash Tags (e.g. #tag1 #tag2) for categorization."
   },
   "languages": {
     "en": "English",
