@@ -651,10 +651,18 @@ export type ItemsByLocationQueryVariables = Exact<{
   longitude: Scalars['Float']['input'];
   radiusKm: Scalars['Float']['input'];
   category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
+export type ItemsByLocationQuery = { __typename?: 'Query', itemsByLocation: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, publishedYear?: number | null, language: Language, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
+
+export type DefaultCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DefaultCategoriesQuery = { __typename?: 'Query', defaultCategories: Array<string> };
 
 export type GetUserTransactionsQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1951,15 +1959,19 @@ export type GetUserOpenTransactionsForCountLazyQueryHookResult = ReturnType<type
 export type GetUserOpenTransactionsForCountSuspenseQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountSuspenseQuery>;
 export type GetUserOpenTransactionsForCountQueryResult = Apollo.QueryResult<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>;
 export const ItemsByLocationDocument = gql`
-    query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!, $category: [String!]) {
+    query ItemsByLocation($latitude: Float!, $longitude: Float!, $radiusKm: Float!, $category: [String!], $keyword: String, $limit: Int, $offset: Int) {
   itemsByLocation(
     latitude: $latitude
     longitude: $longitude
     radiusKm: $radiusKm
     category: $category
+    keyword: $keyword
+    limit: $limit
+    offset: $offset
   ) {
     id
     name
+    description
     condition
     status
     location {
@@ -1969,6 +1981,8 @@ export const ItemsByLocationDocument = gql`
     images
     thumbnails
     category
+    publishedYear
+    language
   }
 }
     `;
@@ -1989,6 +2003,9 @@ export const ItemsByLocationDocument = gql`
  *      longitude: // value for 'longitude'
  *      radiusKm: // value for 'radiusKm'
  *      category: // value for 'category'
+ *      keyword: // value for 'keyword'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */
@@ -2008,6 +2025,43 @@ export type ItemsByLocationQueryHookResult = ReturnType<typeof useItemsByLocatio
 export type ItemsByLocationLazyQueryHookResult = ReturnType<typeof useItemsByLocationLazyQuery>;
 export type ItemsByLocationSuspenseQueryHookResult = ReturnType<typeof useItemsByLocationSuspenseQuery>;
 export type ItemsByLocationQueryResult = Apollo.QueryResult<ItemsByLocationQuery, ItemsByLocationQueryVariables>;
+export const DefaultCategoriesDocument = gql`
+    query DefaultCategories {
+  defaultCategories
+}
+    `;
+
+/**
+ * __useDefaultCategoriesQuery__
+ *
+ * To run a query within a React component, call `useDefaultCategoriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDefaultCategoriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDefaultCategoriesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDefaultCategoriesQuery(baseOptions?: Apollo.QueryHookOptions<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>(DefaultCategoriesDocument, options);
+      }
+export function useDefaultCategoriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>(DefaultCategoriesDocument, options);
+        }
+export function useDefaultCategoriesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>(DefaultCategoriesDocument, options);
+        }
+export type DefaultCategoriesQueryHookResult = ReturnType<typeof useDefaultCategoriesQuery>;
+export type DefaultCategoriesLazyQueryHookResult = ReturnType<typeof useDefaultCategoriesLazyQuery>;
+export type DefaultCategoriesSuspenseQueryHookResult = ReturnType<typeof useDefaultCategoriesSuspenseQuery>;
+export type DefaultCategoriesQueryResult = Apollo.QueryResult<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>;
 export const GetUserTransactionsDocument = gql`
     query GetUserTransactions($userId: ID!) {
   transactionsByUser(userId: $userId) {

@@ -1,6 +1,10 @@
-import {Location} from "./generated/graphql";
+import { Location } from "./generated/graphql";
 import * as geofire from "geofire-common";
-import {Client, GeocodeRequest, GeocodeResponseData} from "@googlemaps/google-maps-services-js";
+import {
+  Client,
+  GeocodeRequest,
+  GeocodeResponseData,
+} from "@googlemaps/google-maps-services-js";
 import { googleMapsApiKey } from "./platform";
 
 // Interface for external map API services
@@ -15,7 +19,9 @@ export class GoogleMapsAPI implements IExternalMapAPI {
 
   constructor(apiKey: string) {
     if (!apiKey) {
-      console.warn("Google Maps API key is required for GoogleMapsAPI service.");
+      console.warn(
+        "Google Maps API key is required for GoogleMapsAPI service."
+      );
     }
     this.apiKey = apiKey;
     this.client = new Client({});
@@ -41,10 +47,9 @@ export class GoogleMapsAPI implements IExternalMapAPI {
   }
 }
 
-
 export class MapService {
   private externalApi: IExternalMapAPI;
-  
+
   constructor(externalApi: IExternalMapAPI) {
     this.externalApi = externalApi;
   }
@@ -54,13 +59,19 @@ export class MapService {
       const geocodeResult = await this.externalApi.geocode(address);
 
       if (!this.isValidGeocodeResult(geocodeResult)) {
-        console.warn(`Could not resolve address "${address}" to a valid location (no results in response).`);
-        throw new Error(`Could not resolve address "${address}" to a valid location (no results in response).`);
+        console.warn(
+          `Could not resolve address "${address}" to a valid location (no results in response).`
+        );
+        throw new Error(
+          `Could not resolve address "${address}" to a valid location (no results in response).`
+        );
       }
 
       return this.createLocationFromGeocodeResult(geocodeResult);
     } catch (error) {
-      console.error(`Geocoding failed for address "${address}" in resolveLocationAndGeohash.`);
+      console.error(
+        `Geocoding failed for address "${address}" in resolveLocationAndGeohash.`
+      );
       throw error;
     }
   }
@@ -70,7 +81,7 @@ export class MapService {
    */
   private isValidGeocodeResult(result: GeocodeResponseData): boolean {
     return Boolean(
-        result.results &&
+      result.results &&
         result.results.length > 0 &&
         result.results[0].geometry &&
         result.results[0].geometry.location
@@ -80,7 +91,9 @@ export class MapService {
   /**
    * Creates a location object from valid geocode result
    */
-  private createLocationFromGeocodeResult(result: GeocodeResponseData): Location {
+  private createLocationFromGeocodeResult(
+    result: GeocodeResponseData
+  ): Location {
     const location = result.results[0].geometry.location;
     const coordinates: [number, number] = [location.lat, location.lng];
     const geohash = geofire.geohashForLocation(coordinates);
@@ -95,7 +108,9 @@ export class MapService {
   async getLocationsByRadius(
     query: FirebaseFirestore.Query,
     geolocation: Location,
-    radiusKm: number
+    radiusKm: number,
+    limit: number,
+    offset: number
   ): Promise<FirebaseFirestore.DocumentData[]> {
     let center: geofire.Geopoint = [
       geolocation.latitude,
@@ -104,7 +119,12 @@ export class MapService {
     const radiusInM = radiusKm * 1000;
     const bounds = geofire.geohashQueryBounds(center, radiusInM);
     const promises = bounds.map((b) => {
-      const q = query.orderBy("geohash").startAt(b[0]).endAt(b[1]);
+      const q = query
+        .orderBy("geohash")
+        .startAt(b[0])
+        .endAt(b[1])
+        .limit(limit)
+        .offset(offset);
       return q.get();
     });
     const snapshots = await Promise.all(promises);
@@ -129,10 +149,12 @@ export class MapService {
 
 // Factory function to create MapService with Google Maps
 export const createMapService = (): MapService => {
-   const apiKey = googleMapsApiKey;
+  const apiKey = googleMapsApiKey;
 
   if (!apiKey) {
-    console.warn("CRITICAL: googleMapsApiKey not found in platform.ts. MapService geocoding will fail.");
+    console.warn(
+      "CRITICAL: googleMapsApiKey not found in platform.ts. MapService geocoding will fail."
+    );
   }
   const googleMapsApi = new GoogleMapsAPI(apiKey);
   return new MapService(googleMapsApi);

@@ -116,13 +116,46 @@ const generateRedirectScript = (itemId: string) => {
       userAgent.includes('crawler') ||
       userAgent.includes('spider') ||
       userAgent.includes('facebookexternalhit') ||
+      userAgent.includes('facebot') ||
       userAgent.includes('twitterbot') ||
       userAgent.includes('whatsapp') ||
       userAgent.includes('telegrambot') ||
       userAgent.includes('linkedinbot') ||
-      userAgent.includes('slack')
+      userAgent.includes('slack') ||
+      userAgent.includes('discordbot') ||
+      userAgent.includes('applebot') ||
+      userAgent.includes('bingbot') ||
+      userAgent.includes('yandexbot') ||
+      userAgent.includes('duckduckbot') ||
+      userAgent.includes('baiduspider') ||
+      userAgent.includes('pinterestbot') ||
+      userAgent.includes('embedly') ||
+      userAgent.includes('quora link preview') ||
+      userAgent.includes('outbrain') ||
+      userAgent.includes('w3c_validator') ||
+      userAgent.includes('redditbot') ||
+      userAgent.includes('flipboardproxy') ||
+      userAgent.includes('vkshare') ||
+      userAgent.includes('mediapartners-google') ||
+      userAgent.includes('googlebot') ||
+      userAgent.includes('slurp') || // Yahoo
+      
+      // Other crawlers
+      userAgent.includes('ia_archiver') || // Internet Archive
+      userAgent.includes('wayback') ||
+      userAgent.includes('archive.org_bot') ||
+      userAgent.includes('semrushbot') ||
+      userAgent.includes('ahrefsbot') ||
+      userAgent.includes('mj12bot') ||
+      userAgent.includes('dotbot') ||
+      userAgent.includes('sogou') ||
+
+      // Preview generators
+      userAgent.includes('previewbot') ||
+      userAgent.includes('preview')
     );
   }
+
   
   // Redirect real browsers to the frontend app
   if (isBrowserNotCrawler()) {

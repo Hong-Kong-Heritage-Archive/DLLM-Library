@@ -343,25 +343,6 @@ const RecentItemBanner: React.FC<RecentBannerProps> = ({
             ))}
           </Box>
         )}
-
-        {/* See All Link */}
-        <Box sx={{ textAlign: "center", mt: 2 }}>
-          <Typography
-            variant="body2"
-            component={Link}
-            to="/item/recent"
-            sx={{
-              color: "primary.main",
-              textDecoration: "none",
-              fontWeight: "medium",
-              "&:hover": {
-                textDecoration: "underline",
-              },
-            }}
-          >
-            {t("navigation.viewAllItems")} →
-          </Typography>
-        </Box>
       </Box>
     </>
   );

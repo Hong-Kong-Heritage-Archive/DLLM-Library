@@ -60,7 +60,9 @@ export class ItemService {
     const items = this.mapService.getLocationsByRadius(
       query,
       { latitude, longitude },
-      radiusKm
+      radiusKm,
+      limit,
+      offset
     );
     const filteredItems: Item[] = [];
     await Promise.all(

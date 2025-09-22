@@ -33,11 +33,11 @@
     ],
     "rewrites": [
       {
-        "source": "/item/**",
+        "source": "/graphql*",
         "function": "graphql"
       },
       {
-        "source": "/graphql",
+        "source": "/item/**",
         "function": "graphql"
       },
       {
