@@ -198,7 +198,8 @@
     "requestorExchangePoint": "Your Exchange Point",
     "selectExchangePoint": "Select Exchange Point",
     "alreadyRequested": "You have already requested this item.",
-    "deposit": "deposit",
+    "deposit": "Deposit",
+    "depositHelper": "Required: Set a deposit amount to secure the item.",
     "descriptionHelper": "Optional: Support Hash Tags (e.g. #tag1 #tag2) for categorization."
   },
   "languages": {

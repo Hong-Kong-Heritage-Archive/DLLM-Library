@@ -202,6 +202,7 @@
     "selectExchangePoint": "選擇交換點",
     "alreadyRequested": "您已經申請過此物品。",
     "deposit": "押金",
+    "depositHelper": "必填：設定押金金額以確保物品安全。",
     "descriptionHelper": "可選：支援標籤（例如 #tag1 #tag2）以便分類。"
   },
   "userProfile": {
