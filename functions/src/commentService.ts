@@ -28,12 +28,12 @@ export class CommentService {
 
     dbComments.forEach((doc) => {
       const data = doc.data();
-      
       results.push({
         id: doc.id,
         userId: data.userId,
         userNickname: "Unknown",
         createdAt: data.createdAt.toDate().toISOString(),
+        updatedAt: data.updatedAt ? data.updatedAt.toDate().toISOString() : data.createdAt.toDate().toISOString(),
         content: data.content,
       });
 
@@ -85,6 +85,7 @@ export class CommentService {
 
   // Add a comment to an item
   async addItemComment(currentUser: User, itemId: string, content: string): Promise<string> {
+    const now = new Date();
     const commentRef = await db
       .collection("items")
       .doc(itemId)
@@ -92,7 +93,8 @@ export class CommentService {
       .add({
         userId: currentUser.id,
         content,
-        createdAt: new Date(),
+        createdAt: now,
+        updatedAt: now,
       });
     return commentRef.id;
   }
@@ -122,6 +124,37 @@ export class CommentService {
       return true;
     } catch (e) {
       console.error("Failed to delete comment:", e);
+      throw e;
+    }
+  }
+
+  // Edit a comment on an item
+  async editItemComment(currentUser: User, itemId: string, commentId: string, content: string): Promise<boolean> {
+    try {
+      const commentDocRef = db
+        .collection("items")
+        .doc(itemId)
+        .collection("comments")
+        .doc(commentId);
+
+      const commentDoc = await commentDocRef.get();
+
+      if (!commentDoc.exists) {
+        throw new Error("Comment does not exist.");
+      }
+
+      const commentData = commentDoc.data();
+      if (!commentData || commentData.userId !== currentUser.id) {
+        throw new Error("You do not have permission to edit this comment.");
+      }
+
+      await commentDocRef.update({
+        content,
+        updatedAt: new Date(),
+      });
+      return true;
+    } catch (e) {
+      console.error("Failed to edit comment:", e);
       throw e;
     }
   }

@@ -435,5 +435,16 @@ export const resolvers: Resolvers = {
       const { itemId, commentId } = args;
       return commentService.deleteItemComment(owner, itemId, commentId);
     },
+    editItemComment: async (
+      _: any,
+      args: any,
+      { loginUser }: Context
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("Owner not found");
+      const { itemId, commentId, content } = args;
+      return commentService.editItemComment(owner, itemId, commentId, content);
+    },
   },
 };

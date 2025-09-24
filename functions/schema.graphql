@@ -89,6 +89,7 @@ type ItemComment {
   userNickname: String!
   content: String!
   createdAt: Date!
+  updatedAt: Date!
 }
 
 # Connection object for item comments for pagination.
@@ -261,6 +262,7 @@ type Mutation {
 
   addItemComment(itemId: ID!, content: String!): ID!
   deleteItemComment(itemId: ID!, commentId: ID!): Boolean!
+  editItemComment(itemId: ID!, commentId: ID!, content: String!): Boolean!
 
   # 交易管理
   createTransaction(
