@@ -162,6 +162,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
     isPublic: false,
   });
 
+  // Add validation states
+  const [contactMethodError, setContactMethodError] = useState<string | null>(
+    null
+  );
+
   const [resolvedLocation, setResolvedLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -344,58 +349,274 @@ const UserProfile: React.FC<UserProfileProps> = ({
     setContactMethods((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateHttpsUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  const validateContactMethod = (
+    type: ContactMethodType,
+    value: string
+  ): { isValid: boolean; error?: string } => {
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+      return {
+        isValid: false,
+        error: t("userProfile.validation.required", "This field is required"),
+      };
+    }
+
+    switch (type) {
+      case ContactMethodType.Email:
+        if (!validateEmail(trimmedValue)) {
+          return {
+            isValid: false,
+            error: t(
+              "userProfile.validation.invalidEmail",
+              "Please enter a valid email address"
+            ),
+          };
+        }
+        break;
+
+      case ContactMethodType.Whatsapp:
+        if (!validateHttpsUrl(trimmedValue)) {
+          return {
+            isValid: false,
+            error: t(
+              "userProfile.validation.invalidWhatsappUrl",
+              "Please enter a valid WhatsApp HTTPS link (e.g., https://wa.me/1234567890)"
+            ),
+          };
+        }
+        // Additional check for WhatsApp format
+        if (
+          !trimmedValue.includes("wa.me") &&
+          !trimmedValue.includes("whatsapp.com")
+        ) {
+          return {
+            isValid: false,
+            error: t(
+              "userProfile.validation.whatsappFormat",
+              "Please use a WhatsApp link format (wa.me or whatsapp.com)"
+            ),
+          };
+        }
+        break;
+
+      case ContactMethodType.Signal:
+        if (!validateHttpsUrl(trimmedValue)) {
+          return {
+            isValid: false,
+            error: t(
+              "userProfile.validation.invalidSignalUrl",
+              "Please enter a valid Signal HTTPS link (e.g., https://signal.me/#p/+1234567890)"
+            ),
+          };
+        }
+        // Additional check for Signal format
+        if (
+          !trimmedValue.includes("signal.me") &&
+          !trimmedValue.includes("signal.org")
+        ) {
+          return {
+            isValid: false,
+            error: t(
+              "userProfile.validation.signalFormat",
+              "Please use a Signal link format (signal.me or signal.org)"
+            ),
+          };
+        }
+        break;
+
+      case ContactMethodType.Telegram:
+        if (!validateHttpsUrl(trimmedValue)) {
+          return {
+            isValid: false,
+            error: t(
+              "userProfile.validation.invalidTelegramUrl",
+              "Please enter a valid Telegram HTTPS link (e.g., https://t.me/username)"
+            ),
+          };
+        }
+        // Additional check for Telegram format
+        if (
+          !trimmedValue.includes("t.me") &&
+          !trimmedValue.includes("telegram.me")
+        ) {
+          return {
+            isValid: false,
+            error: t(
+              "userProfile.validation.telegramFormat",
+              "Please use a Telegram link format (t.me or telegram.me)"
+            ),
+          };
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    return { isValid: true };
+  };
+
+  const getContactMethodPlaceholder = (type: ContactMethodType): string => {
+    switch (type) {
+      case ContactMethodType.Email:
+        return t("userProfile.emailPlaceholder", "e.g., user@example.com");
+      case ContactMethodType.Whatsapp:
+        return t(
+          "userProfile.whatsappPlaceholder",
+          "e.g., https://wa.me/1234567890"
+        );
+      case ContactMethodType.Signal:
+        return t(
+          "userProfile.signalPlaceholder",
+          "e.g., https://signal.me/#p/+1234567890"
+        );
+      case ContactMethodType.Telegram:
+        return t(
+          "userProfile.telegramPlaceholder",
+          "e.g., https://t.me/username"
+        );
+      default:
+        return t("userProfile.socialPlaceholder", "Enter contact information");
+    }
+  };
+
+  const getContactMethodHelper = (type: ContactMethodType): string => {
+    switch (type) {
+      case ContactMethodType.Email:
+        return t("userProfile.emailHelper", "Enter a valid email address");
+      case ContactMethodType.Whatsapp:
+        return t(
+          "userProfile.whatsappHelper",
+          "Enter your WhatsApp link (https://wa.me/your-number)"
+        );
+      case ContactMethodType.Signal:
+        return t(
+          "userProfile.signalHelper",
+          "Enter your Signal link (https://signal.me/#p/your-number)"
+        );
+      case ContactMethodType.Telegram:
+        return t(
+          "userProfile.telegramHelper",
+          "Enter your Telegram link (https://t.me/username)"
+        );
+      default:
+        return t("userProfile.socialHelper", "Enter your contact information");
+    }
+  };
+
+  const handleContactMethodValueChange = (value: string) => {
+    setNewContactMethod((prev) => ({
+      ...prev,
+      value: value,
+    }));
+
+    // Clear error when user starts typing
+    if (contactMethodError) {
+      setContactMethodError(null);
+    }
+  };
+
+  const handleContactMethodTypeChange = (type: ContactMethodType) => {
+    setNewContactMethod((prev) => ({
+      ...prev,
+      type: type,
+      value: "", // Clear value when type changes
+    }));
+
+    // Clear error when type changes
+    if (contactMethodError) {
+      setContactMethodError(null);
+    }
+  };
+
   const handleSaveContactMethod = () => {
-    if (!newContactMethod.value.trim()) return;
+    const validation = validateContactMethod(
+      newContactMethod.type,
+      newContactMethod.value
+    );
+
+    if (!validation.isValid) {
+      setContactMethodError(validation.error || "Invalid input");
+      return;
+    }
+
+    // Check for duplicates
+    const isDuplicate = contactMethods.some(
+      (cm, index) =>
+        index !== editingContactMethodIndex &&
+        cm.type === newContactMethod.type &&
+        cm.value.trim().toLowerCase() ===
+          newContactMethod.value.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      setContactMethodError(
+        t(
+          "userProfile.validation.duplicate",
+          "This contact method already exists"
+        )
+      );
+      return;
+    }
 
     if (editingContactMethodIndex !== null) {
       // Editing existing contact method
       setContactMethods((prev) =>
         prev.map((cm, index) =>
-          index === editingContactMethodIndex ? newContactMethod : cm
+          index === editingContactMethodIndex
+            ? {
+                ...newContactMethod,
+                value: newContactMethod.value.trim(),
+              }
+            : cm
         )
       );
     } else {
       // Adding new contact method
-      setContactMethods((prev) => [...prev, newContactMethod]);
+      setContactMethods((prev) => [
+        ...prev,
+        {
+          ...newContactMethod,
+          value: newContactMethod.value.trim(),
+        },
+      ]);
     }
 
     setContactMethodDialogOpen(false);
     setEditingContactMethodIndex(null);
+    setContactMethodError(null);
   };
 
   const handleCloseContactMethodDialog = () => {
     setContactMethodDialogOpen(false);
     setEditingContactMethodIndex(null);
+    setContactMethodError(null);
   };
 
-  const getContactMethodIcon = (type: ContactMethodType) => {
-    switch (type) {
-      case ContactMethodType.Whatsapp:
-        return <PhoneIcon fontSize="small" />;
-      case ContactMethodType.Email:
-        return <EmailIcon fontSize="small" />;
-      case ContactMethodType.Signal:
-        return <SignalIcon fontSize="small" />;
-      case ContactMethodType.Telegram:
-        return <TelegramIcon fontSize="small" />;
-      default:
-        return <ChatIcon fontSize="small" />;
-    }
-  };
-
-  const getContactMethodLabel = (type: ContactMethodType) => {
-    switch (type) {
-      case ContactMethodType.Whatsapp:
-        return t("contactMethod.whatsapp", "WhatsApp");
-      case ContactMethodType.Email:
-        return t("contactMethod.email", "Email");
-      case ContactMethodType.Signal:
-        return t("contactMethod.signal", "Signal");
-      case ContactMethodType.Telegram:
-        return t("contactMethod.telegram", "Telegram");
-      default:
-        return type;
-    }
+  // Check if save button should be enabled
+  const isSaveDisabled = () => {
+    if (!newContactMethod.value.trim()) return true;
+    const validation = validateContactMethod(
+      newContactMethod.type,
+      newContactMethod.value
+    );
+    return !validation.isValid;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -572,10 +793,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
                                 gap: 1,
                               }}
                             >
-                              {getContactMethodIcon(method.type)}
-                              <Typography variant="body1">
-                                {getContactMethodLabel(method.type)}
-                              </Typography>
                               <Chip
                                 icon={
                                   method.isPublic ? (
@@ -792,33 +1009,32 @@ const UserProfile: React.FC<UserProfileProps> = ({
               value={newContactMethod.type}
               label={t("userProfile.contactMethodType", "Type")}
               onChange={(e) =>
-                setNewContactMethod((prev) => ({
-                  ...prev,
-                  type: e.target.value as ContactMethodType,
-                }))
+                handleContactMethodTypeChange(
+                  e.target.value as ContactMethodType
+                )
               }
             >
-              <MenuItem value={ContactMethodType.Whatsapp}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <PhoneIcon fontSize="small" />
-                  {t("contactMethod.whatsapp", "WhatsApp")}
-                </Box>
-              </MenuItem>
               <MenuItem value={ContactMethodType.Email}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <EmailIcon fontSize="small" />
                   {t("contactMethod.email", "Email")}
                 </Box>
               </MenuItem>
+              <MenuItem value={ContactMethodType.Whatsapp}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <PhoneIcon fontSize="small" />
+                  {t("contactMethod.whatsapp", "WhatsApp")}
+                </Box>
+              </MenuItem>
               <MenuItem value={ContactMethodType.Signal}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <ChatIcon fontSize="small" />
+                  <SignalIcon fontSize="small" />
                   {t("contactMethod.signal", "Signal")}
                 </Box>
               </MenuItem>
               <MenuItem value={ContactMethodType.Telegram}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <ChatIcon fontSize="small" />
+                  <TelegramIcon fontSize="small" />
                   {t("contactMethod.telegram", "Telegram")}
                 </Box>
               </MenuItem>
@@ -829,23 +1045,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
             fullWidth
             margin="normal"
             label={t("userProfile.contactValue", "Contact Value")}
-            placeholder={
-              newContactMethod.type === ContactMethodType.Whatsapp
-                ? t("userProfile.phonePlaceholder", "e.g., +1234567890")
-                : newContactMethod.type === ContactMethodType.Email
-                ? t("userProfile.emailPlaceholder", "e.g., user@example.com")
-                : t(
-                    "userProfile.socialPlaceholder",
-                    "e.g., @username, telegram ID"
-                  )
+            placeholder={getContactMethodPlaceholder(newContactMethod.type)}
+            helperText={
+              contactMethodError ||
+              getContactMethodHelper(newContactMethod.type)
             }
             value={newContactMethod.value}
-            onChange={(e) =>
-              setNewContactMethod((prev) => ({
-                ...prev,
-                value: e.target.value,
-              }))
-            }
+            onChange={(e) => handleContactMethodValueChange(e.target.value)}
+            error={Boolean(contactMethodError)}
             required
           />
 
@@ -889,7 +1096,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <Button
             onClick={handleSaveContactMethod}
             variant="contained"
-            disabled={!newContactMethod.value.trim()}
+            disabled={isSaveDisabled()}
           >
             {editingContactMethodIndex !== null
               ? t("common.update")

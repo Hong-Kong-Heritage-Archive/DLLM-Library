@@ -235,9 +235,26 @@
     "makePublic": "公開",
     "publicContactHelp": "此聯絡方法將對所有用戶可見",
     "privateContactHelp": "此聯絡方法僅在交易期間共享",
-    "phonePlaceholder": "例如：+1234567890",
+    "validation": {
+      "required": "此欄位為必填項",
+      "invalidEmail": "請輸入有效的電子郵件地址",
+      "invalidWhatsappUrl": "請輸入有效的 WhatsApp HTTPS 連結（例如：https://wa.me/1234567890）",
+      "invalidSignalUrl": "請輸入有效的 Signal HTTPS 連結（例如：https://signal.me/#p/+1234567890）",
+      "invalidTelegramUrl": "請輸入有效的 Telegram HTTPS 連結（例如：https://t.me/username）",
+      "whatsappFormat": "請使用 WhatsApp 連結格式（wa.me 或 whatsapp.com）",
+      "signalFormat": "請使用 Signal 連結格式（signal.me 或 signal.org）",
+      "telegramFormat": "請使用 Telegram 連結格式（t.me 或 telegram.me）",
+      "duplicate": "此聯絡方法已存在"
+    },
     "emailPlaceholder": "例如：user@example.com",
-    "socialPlaceholder": "例如：@username, telegram ID"
+    "whatsappPlaceholder": "例如：https://wa.me/1234567890",
+    "signalPlaceholder": "例如：https://signal.me/#p/+1234567890",
+    "telegramPlaceholder": "例如：https://t.me/username",
+    "emailHelper": "請輸入有效的電子郵件地址",
+    "whatsappHelper": "請輸入您的 WhatsApp 連結（https://wa.me/your-number）",
+    "signalHelper": "請輸入您的 Signal 連結（https://signal.me/#p/your-number）",
+    "telegramHelper": "請輸入您的 Telegram 連結（https://t.me/username）",
+    "socialHelper": "請輸入您的聯絡資訊（例如：Facebook, Instagram）"
   },
   "contactMethod": {
     "phone": "電話",

@@ -236,9 +236,26 @@
     "makePublic": "Make Public",
     "publicContactHelp": "This contact method will be visible to all users",
     "privateContactHelp": "This contact method will only be shared during transactions",
-    "phonePlaceholder": "e.g., +1234567890",
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidWhatsappUrl": "Please enter a valid WhatsApp HTTPS link (e.g., https://wa.me/1234567890)",
+      "invalidSignalUrl": "Please enter a valid Signal HTTPS link (e.g., https://signal.me/#p/+1234567890)",
+      "invalidTelegramUrl": "Please enter a valid Telegram HTTPS link (e.g., https://t.me/username)",
+      "whatsappFormat": "Please use a WhatsApp link format (wa.me or whatsapp.com)",
+      "signalFormat": "Please use a Signal link format (signal.me or signal.org)",
+      "telegramFormat": "Please use a Telegram link format (t.me or telegram.me)",
+      "duplicate": "This contact method already exists"
+    },
     "emailPlaceholder": "e.g., user@example.com",
-    "socialPlaceholder": "e.g., @username, telegram ID"
+    "whatsappPlaceholder": "e.g., https://wa.me/1234567890",
+    "signalPlaceholder": "e.g., https://signal.me/#p/+1234567890",
+    "telegramPlaceholder": "e.g., https://t.me/username",
+    "emailHelper": "Enter a valid email address",
+    "whatsappHelper": "Enter your WhatsApp link (https://wa.me/your-number)",
+    "signalHelper": "Enter your Signal link (https://signal.me/#p/your-number)",
+    "telegramHelper": "Enter your Telegram link (https://t.me/username)",
+    "socialHelper": "Enter your contact information"
   },
   "user": {
     "itemCategories": "Item Categories",
