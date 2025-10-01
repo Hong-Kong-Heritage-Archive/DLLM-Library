@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Button,
   Dialog,
@@ -16,8 +16,19 @@ import {
   IconButton,
   LinearProgress,
   Snackbar,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from "@mui/material";
-import { CloudUpload, Delete, PhotoCamera } from "@mui/icons-material";
+import {
+  CloudUpload,
+  Delete,
+  PhotoCamera,
+  PhotoLibrary,
+  CameraAlt,
+  ExpandMore as ArrowDropDownIcon,
+} from "@mui/icons-material";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
 import {
   CreateItemMutation,
@@ -95,6 +106,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const apolloClient = useApolloClient();
   const { t } = useTranslation();
 
+  // Refs for file inputs
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
   const [dialogOpen, setDialogOpen] = useState(open);
   const [name, setName] = useState("");
   const [condition, setCondition] = useState<ItemCondition>(ItemCondition.New);
@@ -106,6 +121,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
   const [formError, setFormError] = useState<string | null>(null);
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
+
+  // Image menu states
+  const [imageMenuAnchor, setImageMenuAnchor] = useState<null | HTMLElement>(
+    null
+  );
 
   // Image processing states
   const [isProcessingImages, setIsProcessingImages] = useState(false);
@@ -130,7 +150,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   const handleClose = () => {
     onClose?.();
-
     setDialogOpen(false);
 
     // Cleanup object URLs
@@ -138,6 +157,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
       URL.revokeObjectURL(image.url);
     });
 
+    // Reset form state
     setName("");
     setCondition(ItemCondition.New);
     setDescription("");
@@ -151,16 +171,33 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setIsUploading(false);
     setUploadProgress(0);
     setdeposit(0);
+    setImageMenuAnchor(null);
   };
 
   const handleCloseSuccessSnackbar = () => {
     setShowSuccessSnackbar(false);
   };
 
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
+  // Handle image menu
+  const handleImageMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setImageMenuAnchor(event.currentTarget);
+  };
+
+  const handleImageMenuClose = () => {
+    setImageMenuAnchor(null);
+  };
+
+  const handleSelectFromGallery = () => {
+    handleImageMenuClose();
+    fileInputRef.current?.click();
+  };
+
+  const handleTakePhoto = () => {
+    handleImageMenuClose();
+    cameraInputRef.current?.click();
+  };
+
+  const processFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     setFormError(null);
@@ -174,13 +211,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
         const file = files[i];
 
         if (!file.type.startsWith("image/")) {
-          setFormError(t("item.fileTooLarge", { fileName: file.name }));
+          setFormError(t("item.invalidFileType", { fileName: file.name }));
           continue;
         }
 
         if (file.size > 50 * 1024 * 1024) {
           // 50MB limit before processing
-          setFormError(`File ${file.name} is too large. Maximum size is 50MB`);
+          setFormError(t("item.fileTooLarge", { fileName: file.name }));
           continue;
         }
 
@@ -222,7 +259,22 @@ const ItemForm: React.FC<ItemFormProps> = ({
       setIsProcessingImages(false);
       setProcessingProgress(0);
     }
+  };
 
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    await processFiles(files);
+    // Clear input
+    event.target.value = "";
+  };
+
+  const handleCameraCapture = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    await processFiles(files);
     // Clear input
     event.target.value = "";
   };
@@ -379,12 +431,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
     }
   };
 
-  const handleSuccess = () => {
-    if (data) {
-      onItemCreated?.(data);
-    }
-    onClose?.();
-    // Reset form or other cleanup
+  // Check if camera is available
+  const isCameraAvailable = () => {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   };
 
   return (
@@ -410,16 +459,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
-
-              {/* <TextField
-              label={t("item.categoryCommaSeparated")}
-              fullWidth
-              margin="normal"
-              required
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              helperText={t("item.categoryHelper")}
-            /> */}
 
               <TextField
                 select
@@ -463,20 +502,68 @@ const ItemForm: React.FC<ItemFormProps> = ({
               <Box sx={{ mt: 2 }}>
                 <Button
                   variant="outlined"
-                  component="label"
+                  onClick={handleImageMenuClick}
                   startIcon={<PhotoCamera />}
+                  endIcon={<ArrowDropDownIcon />}
                   disabled={isProcessingImages || isUploading}
                   sx={{ mb: 2 }}
                 >
-                  {t("common.addImages")}
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileSelect}
-                  />
+                  {t("item.addImages", "Add Images")}
                 </Button>
+
+                {/* Image Source Menu */}
+                <Menu
+                  anchorEl={imageMenuAnchor}
+                  open={Boolean(imageMenuAnchor)}
+                  onClose={handleImageMenuClose}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                >
+                  <MenuItem onClick={handleSelectFromGallery}>
+                    <ListItemIcon>
+                      <PhotoLibrary fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      {t("item.selectFromGallery", "Select from Gallery")}
+                    </ListItemText>
+                  </MenuItem>
+
+                  {isCameraAvailable() && (
+                    <MenuItem onClick={handleTakePhoto}>
+                      <ListItemIcon>
+                        <CameraAlt fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>
+                        {t("item.takePhoto", "Take Photo")}
+                      </ListItemText>
+                    </MenuItem>
+                  )}
+                </Menu>
+
+                {/* Hidden file inputs */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                />
+
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  capture="environment" // Use rear camera by default
+                  onChange={handleCameraCapture}
+                />
 
                 {isProcessingImages && (
                   <Box sx={{ mb: 2 }}>
@@ -598,7 +685,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
             </DialogContent>
             <DialogActions>
               <Button onClick={onClose}>{t("common.cancel")}</Button>
-              <Button type="submit" variant="contained">
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isProcessingImages || isUploading || loading}
+              >
                 {isProcessingImages
                   ? t("common.processingImages")
                   : isUploading
@@ -615,6 +706,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
           {t("item.create")}
         </Button>
       )}
+
       <Snackbar
         open={showSuccessSnackbar}
         autoHideDuration={4000}
