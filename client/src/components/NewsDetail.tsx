@@ -16,6 +16,7 @@ import { gql, useQuery } from "@apollo/client";
 import { useNewsPostQuery, NewsPostQueryVariables } from "../generated/graphql";
 import SafeImage from "./SafeImage";
 import { useTranslation } from "react-i18next";
+import { convertLinksToClickable } from "../utils/helpers";
 
 const DETAIL_NEWS_QUERY = gql`
   query NewsPost($newsPostId: ID!) {
@@ -106,7 +107,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
             </Box>
 
             <Typography variant="body1" sx={{ mb: 3, whiteSpace: "pre-wrap" }}>
-              {data.newsPost.content}
+              {convertLinksToClickable(data.newsPost.content)}
             </Typography>
 
             {data.newsPost.images && data.newsPost.images.length > 0 && (
