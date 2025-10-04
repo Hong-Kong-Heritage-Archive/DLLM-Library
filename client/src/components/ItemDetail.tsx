@@ -45,6 +45,7 @@ import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import SafeImage from "./SafeImage";
 import RequestConfirmationDialog from "./RequestConfirmationDialog";
 import EditItemForm from "./EditItemForm";
+import { convertLinksToClickable } from "../utils/helpers";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -620,7 +621,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   borderColor: "grey.200",
                 }}
               >
-                {data.item.description?.replace(/#Uncategorized\b/gi, '')}
+                {convertLinksToClickable(
+                  data.item.description?.replace(/#Uncategorized\b/gi, '') || ''
+                )}
               </Typography>
             </Box>
           )}
