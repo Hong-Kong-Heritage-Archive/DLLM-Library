@@ -13,6 +13,13 @@ enum ItemCondition {
   POOR
 }
 
+enum ContactMethodType {
+  WHATSAPP
+  SIGNAL
+  TELEGRAM
+  EMAIL
+}
+
 enum ItemStatus {
   AVAILABLE # 可借閱
   EXCHANGEABLE # 可交換
@@ -57,7 +64,7 @@ type User {
 }
 
 type ContactMethod {
-  type: String! # 如 "WhatsApp", "Signal"
+  type: ContactMethodType!
   value: String! # 聯繫方式詳情
   isPublic: Boolean! # 是否公開
 }
@@ -187,6 +194,14 @@ type Query {
     offset: Int
     isExchangePointItem: Boolean
   ): [Item!]! # 基於User的搜尋
+  itemsOnLoanByUser(
+    userId: ID!
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+    limit: Int
+    offset: Int
+  ): [Item!]! # 查詢用戶借出的藏品
   recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
   # 交易相關
   transaction(id: ID!): Transaction

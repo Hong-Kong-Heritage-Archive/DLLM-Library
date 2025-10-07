@@ -70,6 +70,7 @@ export type ItemComment = {
   content: Scalars['String']['output'];
   createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
+  updatedAt: Scalars['Date']['output'];
   userId: Scalars['ID']['output'];
   userNickname: Scalars['String']['output'];
 };
@@ -131,6 +132,7 @@ export type Mutation = {
   deleteItem: Scalars['Boolean']['output'];
   deleteItemComment: Scalars['Boolean']['output'];
   deleteUser: Scalars['Boolean']['output'];
+  editItemComment: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
   receiveTransaction: Transaction;
@@ -206,6 +208,13 @@ export type MutationDeleteItemCommentArgs = {
 
 export type MutationDeleteUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationEditItemCommentArgs = {
+  commentId: Scalars['ID']['input'];
+  content: Scalars['String']['input'];
+  itemId: Scalars['ID']['input'];
 };
 
 
@@ -288,6 +297,7 @@ export type Query = {
   items: Array<Item>;
   itemsByLocation: Array<Item>;
   itemsByUser: Array<Item>;
+  itemsOnLoanByUser: Array<Item>;
   me?: Maybe<User>;
   newsPost?: Maybe<NewsPost>;
   newsRecentPosts: Array<NewsPost>;
@@ -358,6 +368,16 @@ export type QueryItemsByLocationArgs = {
 export type QueryItemsByUserArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   isExchangePointItem?: InputMaybe<Scalars['Boolean']['input']>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<ItemStatus>;
+  userId: Scalars['ID']['input'];
+};
+
+
+export type QueryItemsOnLoanByUserArgs = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -721,6 +741,22 @@ export type DefaultCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type DefaultCategoriesQuery = { __typename?: 'Query', defaultCategories: Array<string> };
+
+export type GetOnLoanItemsQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+}>;
+
+
+export type GetOnLoanItemsQuery = { __typename?: 'Query', itemsOnLoanByUser: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, images?: Array<string> | null, updatedAt: any, createdAt: any, ownerId: string, holderId?: string | null, status: ItemStatus, deposit?: number | null }> };
+
+export type GetUserQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, nickname?: string | null, email: string } | null };
 
 export type GetUserTransactionsQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -2134,6 +2170,100 @@ export type DefaultCategoriesQueryHookResult = ReturnType<typeof useDefaultCateg
 export type DefaultCategoriesLazyQueryHookResult = ReturnType<typeof useDefaultCategoriesLazyQuery>;
 export type DefaultCategoriesSuspenseQueryHookResult = ReturnType<typeof useDefaultCategoriesSuspenseQuery>;
 export type DefaultCategoriesQueryResult = Apollo.QueryResult<DefaultCategoriesQuery, DefaultCategoriesQueryVariables>;
+export const GetOnLoanItemsDocument = gql`
+    query GetOnLoanItems($userId: ID!, $limit: Int!, $offset: Int!) {
+  itemsOnLoanByUser(userId: $userId, limit: $limit, offset: $offset) {
+    id
+    name
+    description
+    condition
+    images
+    updatedAt
+    createdAt
+    ownerId
+    holderId
+    status
+    deposit
+  }
+}
+    `;
+
+/**
+ * __useGetOnLoanItemsQuery__
+ *
+ * To run a query within a React component, call `useGetOnLoanItemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOnLoanItemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOnLoanItemsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetOnLoanItemsQuery(baseOptions: Apollo.QueryHookOptions<GetOnLoanItemsQuery, GetOnLoanItemsQueryVariables> & ({ variables: GetOnLoanItemsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOnLoanItemsQuery, GetOnLoanItemsQueryVariables>(GetOnLoanItemsDocument, options);
+      }
+export function useGetOnLoanItemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOnLoanItemsQuery, GetOnLoanItemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOnLoanItemsQuery, GetOnLoanItemsQueryVariables>(GetOnLoanItemsDocument, options);
+        }
+export function useGetOnLoanItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetOnLoanItemsQuery, GetOnLoanItemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetOnLoanItemsQuery, GetOnLoanItemsQueryVariables>(GetOnLoanItemsDocument, options);
+        }
+export type GetOnLoanItemsQueryHookResult = ReturnType<typeof useGetOnLoanItemsQuery>;
+export type GetOnLoanItemsLazyQueryHookResult = ReturnType<typeof useGetOnLoanItemsLazyQuery>;
+export type GetOnLoanItemsSuspenseQueryHookResult = ReturnType<typeof useGetOnLoanItemsSuspenseQuery>;
+export type GetOnLoanItemsQueryResult = Apollo.QueryResult<GetOnLoanItemsQuery, GetOnLoanItemsQueryVariables>;
+export const GetUserDocument = gql`
+    query GetUser($id: ID!) {
+  user(id: $id) {
+    id
+    nickname
+    email
+  }
+}
+    `;
+
+/**
+ * __useGetUserQuery__
+ *
+ * To run a query within a React component, call `useGetUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetUserQuery(baseOptions: Apollo.QueryHookOptions<GetUserQuery, GetUserQueryVariables> & ({ variables: GetUserQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserQuery, GetUserQueryVariables>(GetUserDocument, options);
+      }
+export function useGetUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserQuery, GetUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserQuery, GetUserQueryVariables>(GetUserDocument, options);
+        }
+export function useGetUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserQuery, GetUserQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserQuery, GetUserQueryVariables>(GetUserDocument, options);
+        }
+export type GetUserQueryHookResult = ReturnType<typeof useGetUserQuery>;
+export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
+export type GetUserSuspenseQueryHookResult = ReturnType<typeof useGetUserSuspenseQuery>;
+export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
 export const GetUserTransactionsDocument = gql`
     query GetUserTransactions($userId: ID!) {
   transactionsByUser(userId: $userId) {

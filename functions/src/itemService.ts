@@ -76,6 +76,38 @@ export class ItemService {
     return filteredItems;
   }
 
+  async itemsOnLoanByUser(
+    userId: string,
+    category: string[],
+    status?: string,
+    keyword?: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Item[]> {
+    let query = db
+      .collection("items")
+      .where("ownerId", "==", userId)
+      .where("holderId", "!=", null)
+      .orderBy("holderId")
+      .orderBy("updated", "desc");
+    if (category && category.length > 0)
+      query = query.where("category", "array-contains-any", category);
+    if (status) query = query.where("status", "==", status);
+    if (keyword)
+      query = query
+        .where("name", ">=", keyword)
+        .where("name", "<=", keyword + "\uf8ff");
+    const snapshot = await query.limit(limit).offset(offset).get();
+    const results: Item[] = [];
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const item = await this._itemQueryToItem(doc);
+        results.push(item);
+      })
+    );
+    return results;
+  }
+
   async itemById(itemId: string): Promise<Item | null> {
     const itemDoc = await db.collection("items").doc(itemId).get();
     if (!itemDoc.exists) return null;

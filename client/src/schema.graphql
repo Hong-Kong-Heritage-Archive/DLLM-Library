@@ -96,6 +96,7 @@ type ItemComment {
   userNickname: String!
   content: String!
   createdAt: Date!
+  updatedAt: Date!
 }
 
 # Connection object for item comments for pagination.
@@ -193,6 +194,14 @@ type Query {
     offset: Int
     isExchangePointItem: Boolean
   ): [Item!]! # 基於User的搜尋
+  itemsOnLoanByUser(
+    userId: ID!
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+    limit: Int
+    offset: Int
+  ): [Item!]! # 查詢用戶借出的藏品
   recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
   # 交易相關
   transaction(id: ID!): Transaction
@@ -268,6 +277,7 @@ type Mutation {
 
   addItemComment(itemId: ID!, content: String!): ID!
   deleteItemComment(itemId: ID!, commentId: ID!): Boolean!
+  editItemComment(itemId: ID!, commentId: ID!, content: String!): Boolean!
 
   # 交易管理
   createTransaction(

@@ -11,6 +11,7 @@
     "@mui/material": "^7.1.0",
     "@mui/styled-engine-sc": "^7.1.0",
     "@types/react-tagcloud": "^2.3.2",
+    "date-fns": "^4.1.0",
     "firebase": "^12.2.1",
     "graphql": "^16.11.0",
     "i18next": "^25.2.1",

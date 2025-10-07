@@ -60,7 +60,9 @@
     "public": "公開",
     "private": "私有",
     "add": "添加",
-    "update": "更新"
+    "update": "更新",
+    "loginRequired": "請登入以查看您的借用物品",
+    "retry": "重試"
   },
   "location": {
     "latitude": "緯度",
@@ -212,7 +214,18 @@
     "alreadyRequested": "您已經申請過此物品。",
     "deposit": "押金",
     "depositHelper": "必填：設定押金金額以確保物品安全。",
-    "descriptionHelper": "可選：支援標籤（例如 #tag1 #tag2）以便分類。"
+    "descriptionHelper": "可選：支援標籤（例如 #tag1 #tag2）以便分類。",
+    "onLoanItems": "我借出的物品",
+    "loadingOnLoanItems": "載入我借出的物品中...",
+    "errorLoadingOnLoanItems": "載入我借出的物品時出現錯誤",
+    "noBorrowedItems": "您目前沒有借出的物品",
+    "noBorrowedItemsDescription": "當您從其他用戶那裡借用物品時，它們將顯示在這裡。",
+    "borrowedItemsCount": "您有 {{count}} 件借出的物品",
+    "showingResults": "顯示 {{start}}-{{end}} 的 {{total}} 項結果",
+    "owner": "物主",
+    "previousHolder": "前持有者",
+    "lastUpdated": "最近更新",
+    "browseItems": "瀏覽可用物品"
   },
   "userProfile": {
     "nickname": "暱稱",

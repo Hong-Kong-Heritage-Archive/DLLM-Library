@@ -21,6 +21,7 @@ import {
   Add as AddIcon,
   Article as NewsIcon,
   ExitToApp as LogoutIcon,
+  Bookmark as BookmarkIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -41,6 +42,7 @@ import LanguageSwitcher from "./components/LanguageSwitcher";
 import ItemForm from "./components/ItemForm";
 import NewsForm from "./components/NewsForm";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
+import OnLoanItemsView from "./routes/OnLoanItemsView";
 
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
@@ -116,6 +118,11 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
     navigate("/transactions");
   };
 
+  const handleOnLoanItems = () => {
+    navigate("/items/on-loan");
+    handleMenuClose();
+  };
+
   const handleItemCreated = () => {
     setShowItemForm(false);
     // Refresh the home page if needed
@@ -144,7 +151,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
           >
             {t("app.title", "DLLM Library")}
           </Typography>
-
+          <LanguageSwitcher />
           {/* Notification Bell - only show for authenticated users */}
           {user && (
             <IconButton
@@ -161,29 +168,29 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
 
           {/* Menu Button - only show for authenticated users */}
 
-          <>
-            <IconButton
-              color="inherit"
-              onClick={handleMenuClick}
-              title={t("common.menu", "Menu")}
-            >
-              <MenuIcon />
-            </IconButton>
+          {user && user.isActive && (
+            <>
+              <IconButton
+                color="inherit"
+                onClick={handleMenuClick}
+                title={t("common.menu", "Menu")}
+              >
+                <MenuIcon />
+              </IconButton>
 
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-            >
-              {user && user.isActive && (
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+              >
                 <MenuItem onClick={handleUserProfile}>
                   <ListItemIcon>
                     <PersonIcon fontSize="small" />
@@ -192,37 +199,39 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                     {t("user.profile", "User Profile")}
                   </ListItemText>
                 </MenuItem>
-              )}
 
-              {user && user.isActive && (
+                <MenuItem onClick={handleOnLoanItems}>
+                  <ListItemIcon>
+                    <BookmarkIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>
+                    {t("item.onLoanItems", "Items On Loan")}
+                  </ListItemText>
+                </MenuItem>
+
                 <MenuItem onClick={handleAddItem}>
                   <ListItemIcon>
                     <AddIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>{t("item.add", "Add Item")}</ListItemText>
                 </MenuItem>
-              )}
 
-              {user && user.role === Role.Admin && (
                 <MenuItem onClick={handleAddNews}>
                   <ListItemIcon>
                     <NewsIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>{t("news.add", "Add News")}</ListItemText>
                 </MenuItem>
-              )}
 
-              {user && user.isActive && (
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>
                     <LogoutIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>{t("auth.signOut", "Sign Out")}</ListItemText>
                 </MenuItem>
-              )}
-              <LanguageSwitcher />
-            </Menu>
-          </>
+              </Menu>
+            </>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -317,6 +326,10 @@ export const createRouter = (
         {
           path: "transaction/:transactionId",
           element: <TransactionDetailPage />,
+        },
+        {
+          path: "items/on-loan",
+          element: <OnLoanItemsView />,
         },
       ],
     },
