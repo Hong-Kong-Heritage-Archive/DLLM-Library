@@ -1,9 +1,17 @@
 import { db, LoginUser } from "./platform";
-import { User, ContactMethod, Location, Role, Item } from "./generated/graphql";
+import {
+  User,
+  ContactMethod,
+  Location,
+  Role,
+  Item,
+  RecommendationType,
+} from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { MapService, createMapService } from "./mapService";
 import { Timestamp } from "firebase-admin/firestore";
 import { CategoryService } from "./categoryService";
+import { RecommendService } from "./recommendService";
 import { user } from "firebase-functions/v1/auth";
 
 const userCollection = db.collection("users");
@@ -71,7 +79,11 @@ export class UserService {
     return user;
   }
 
-  async pinItem(userModel: UserModel, itemId: string): Promise<boolean> {
+  async pinItem(
+    userModel: UserModel,
+    itemId: string,
+    recommendService: RecommendService
+  ): Promise<boolean> {
     const item = await this.itemService.itemById(itemId);
     if (!item) {
       throw new Error("Item not found.");
@@ -96,6 +108,11 @@ export class UserService {
       .doc(userModel.id)
       .update({ pinItemIds: userModel.pinItemIds });
     this.updateCache(userModel); // update cache
+    await recommendService.updateRecommendation(
+      userModel.id,
+      RecommendationType.UserPicked,
+      item
+    );
     return true;
   }
 

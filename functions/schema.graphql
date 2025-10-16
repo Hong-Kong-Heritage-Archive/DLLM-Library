@@ -187,9 +187,8 @@ type Query {
   ): [Item!]! # 按條件篩選藏品（舊方式）
   recommendedItems(
     type: RecommendationType!
-    category: [String!]
+    category: String
     limit: Int
-    offset: Int
   ): [Item!]! # 推薦藏品
   itemsByLocation(
     latitude: Float!

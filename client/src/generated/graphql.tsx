@@ -434,9 +434,8 @@ export type QueryRecentUpdateCategoriesArgs = {
 
 
 export type QueryRecommendedItemsArgs = {
-  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  category?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
   type: RecommendationType;
 };
 
@@ -568,6 +567,50 @@ export type UpdateItemMutationVariables = Exact<{
 
 
 export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposit?: number | null } };
+
+export type ItemQueryVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposit?: number | null } | null };
+
+export type CreateTransactionMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+  location: TransactionLocation;
+  locationIndex?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type CreateTransactionMutation = { __typename?: 'Mutation', createTransaction: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any } };
+
+export type GetUserForItemQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type GetUserForItemQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, exchangePoints?: Array<string> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null, pinItems?: Array<{ __typename?: 'Item', id: string }> | null } | null };
+
+export type OpenTransactionsByItemQueryVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type OpenTransactionsByItemQuery = { __typename?: 'Query', openTransactionsByItem: Array<{ __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any, requestor: { __typename?: 'User', id: string, nickname?: string | null, email: string } }> };
+
+export type PinItemMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type PinItemMutation = { __typename?: 'Mutation', pinItem: boolean };
+
+export type UnpinItemMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type UnpinItemMutation = { __typename?: 'Mutation', unpinItem: boolean };
 
 export type CreateItemMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -719,6 +762,14 @@ export type HotCategoriesQueryVariables = Exact<{
 
 
 export type HotCategoriesQuery = { __typename?: 'Query', hotCategories: Array<string> };
+
+export type RecommendedItemsQueryVariables = Exact<{
+  type: RecommendationType;
+  limit: Scalars['Int']['input'];
+}>;
+
+
+export type RecommendedItemsQuery = { __typename?: 'Query', recommendedItems: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, condition: ItemCondition, ownerId: string, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
 
 export type GetExchangePointsCountQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -945,6 +996,268 @@ export function useUpdateItemMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateItemMutationHookResult = ReturnType<typeof useUpdateItemMutation>;
 export type UpdateItemMutationResult = Apollo.MutationResult<UpdateItemMutation>;
 export type UpdateItemMutationOptions = Apollo.BaseMutationOptions<UpdateItemMutation, UpdateItemMutationVariables>;
+export const ItemDocument = gql`
+    query Item($itemId: ID!) {
+  item(id: $itemId) {
+    id
+    name
+    description
+    condition
+    category
+    status
+    images
+    thumbnails
+    publishedYear
+    language
+    createdAt
+    ownerId
+    holderId
+    deposit
+  }
+}
+    `;
+
+/**
+ * __useItemQuery__
+ *
+ * To run a query within a React component, call `useItemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useItemQuery({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useItemQuery(baseOptions: Apollo.QueryHookOptions<ItemQuery, ItemQueryVariables> & ({ variables: ItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
+      }
+export function useItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemQuery, ItemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
+        }
+export function useItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemQuery, ItemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ItemQuery, ItemQueryVariables>(ItemDocument, options);
+        }
+export type ItemQueryHookResult = ReturnType<typeof useItemQuery>;
+export type ItemLazyQueryHookResult = ReturnType<typeof useItemLazyQuery>;
+export type ItemSuspenseQueryHookResult = ReturnType<typeof useItemSuspenseQuery>;
+export type ItemQueryResult = Apollo.QueryResult<ItemQuery, ItemQueryVariables>;
+export const CreateTransactionDocument = gql`
+    mutation CreateTransaction($itemId: ID!, $location: TransactionLocation!, $locationIndex: Int) {
+  createTransaction(
+    itemId: $itemId
+    location: $location
+    locationIndex: $locationIndex
+  ) {
+    id
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateTransactionMutationFn = Apollo.MutationFunction<CreateTransactionMutation, CreateTransactionMutationVariables>;
+
+/**
+ * __useCreateTransactionMutation__
+ *
+ * To run a mutation, you first call `useCreateTransactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTransactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createTransactionMutation, { data, loading, error }] = useCreateTransactionMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *      location: // value for 'location'
+ *      locationIndex: // value for 'locationIndex'
+ *   },
+ * });
+ */
+export function useCreateTransactionMutation(baseOptions?: Apollo.MutationHookOptions<CreateTransactionMutation, CreateTransactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateTransactionMutation, CreateTransactionMutationVariables>(CreateTransactionDocument, options);
+      }
+export type CreateTransactionMutationHookResult = ReturnType<typeof useCreateTransactionMutation>;
+export type CreateTransactionMutationResult = Apollo.MutationResult<CreateTransactionMutation>;
+export type CreateTransactionMutationOptions = Apollo.BaseMutationOptions<CreateTransactionMutation, CreateTransactionMutationVariables>;
+export const GetUserForItemDocument = gql`
+    query GetUserForItem($userId: ID!) {
+  user(id: $userId) {
+    createdAt
+    email
+    id
+    nickname
+    contactMethods {
+      type
+      value
+      isPublic
+    }
+    address
+    exchangePoints
+    location {
+      latitude
+      longitude
+    }
+    pinItems {
+      id
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserForItemQuery__
+ *
+ * To run a query within a React component, call `useGetUserForItemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserForItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserForItemQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetUserForItemQuery(baseOptions: Apollo.QueryHookOptions<GetUserForItemQuery, GetUserForItemQueryVariables> & ({ variables: GetUserForItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserForItemQuery, GetUserForItemQueryVariables>(GetUserForItemDocument, options);
+      }
+export function useGetUserForItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserForItemQuery, GetUserForItemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserForItemQuery, GetUserForItemQueryVariables>(GetUserForItemDocument, options);
+        }
+export function useGetUserForItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserForItemQuery, GetUserForItemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserForItemQuery, GetUserForItemQueryVariables>(GetUserForItemDocument, options);
+        }
+export type GetUserForItemQueryHookResult = ReturnType<typeof useGetUserForItemQuery>;
+export type GetUserForItemLazyQueryHookResult = ReturnType<typeof useGetUserForItemLazyQuery>;
+export type GetUserForItemSuspenseQueryHookResult = ReturnType<typeof useGetUserForItemSuspenseQuery>;
+export type GetUserForItemQueryResult = Apollo.QueryResult<GetUserForItemQuery, GetUserForItemQueryVariables>;
+export const OpenTransactionsByItemDocument = gql`
+    query OpenTransactionsByItem($itemId: ID!) {
+  openTransactionsByItem(itemId: $itemId) {
+    id
+    requestor {
+      id
+      nickname
+      email
+    }
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useOpenTransactionsByItemQuery__
+ *
+ * To run a query within a React component, call `useOpenTransactionsByItemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOpenTransactionsByItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOpenTransactionsByItemQuery({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useOpenTransactionsByItemQuery(baseOptions: Apollo.QueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables> & ({ variables: OpenTransactionsByItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
+      }
+export function useOpenTransactionsByItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
+        }
+export function useOpenTransactionsByItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
+        }
+export type OpenTransactionsByItemQueryHookResult = ReturnType<typeof useOpenTransactionsByItemQuery>;
+export type OpenTransactionsByItemLazyQueryHookResult = ReturnType<typeof useOpenTransactionsByItemLazyQuery>;
+export type OpenTransactionsByItemSuspenseQueryHookResult = ReturnType<typeof useOpenTransactionsByItemSuspenseQuery>;
+export type OpenTransactionsByItemQueryResult = Apollo.QueryResult<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>;
+export const PinItemDocument = gql`
+    mutation PinItem($itemId: ID!) {
+  pinItem(itemId: $itemId)
+}
+    `;
+export type PinItemMutationFn = Apollo.MutationFunction<PinItemMutation, PinItemMutationVariables>;
+
+/**
+ * __usePinItemMutation__
+ *
+ * To run a mutation, you first call `usePinItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePinItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pinItemMutation, { data, loading, error }] = usePinItemMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function usePinItemMutation(baseOptions?: Apollo.MutationHookOptions<PinItemMutation, PinItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PinItemMutation, PinItemMutationVariables>(PinItemDocument, options);
+      }
+export type PinItemMutationHookResult = ReturnType<typeof usePinItemMutation>;
+export type PinItemMutationResult = Apollo.MutationResult<PinItemMutation>;
+export type PinItemMutationOptions = Apollo.BaseMutationOptions<PinItemMutation, PinItemMutationVariables>;
+export const UnpinItemDocument = gql`
+    mutation UnpinItem($itemId: ID!) {
+  unpinItem(itemId: $itemId)
+}
+    `;
+export type UnpinItemMutationFn = Apollo.MutationFunction<UnpinItemMutation, UnpinItemMutationVariables>;
+
+/**
+ * __useUnpinItemMutation__
+ *
+ * To run a mutation, you first call `useUnpinItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnpinItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unpinItemMutation, { data, loading, error }] = useUnpinItemMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useUnpinItemMutation(baseOptions?: Apollo.MutationHookOptions<UnpinItemMutation, UnpinItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnpinItemMutation, UnpinItemMutationVariables>(UnpinItemDocument, options);
+      }
+export type UnpinItemMutationHookResult = ReturnType<typeof useUnpinItemMutation>;
+export type UnpinItemMutationResult = Apollo.MutationResult<UnpinItemMutation>;
+export type UnpinItemMutationOptions = Apollo.BaseMutationOptions<UnpinItemMutation, UnpinItemMutationVariables>;
 export const CreateItemDocument = gql`
     mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!, $deposit: Int) {
   createItem(
@@ -1846,6 +2159,58 @@ export type HotCategoriesQueryHookResult = ReturnType<typeof useHotCategoriesQue
 export type HotCategoriesLazyQueryHookResult = ReturnType<typeof useHotCategoriesLazyQuery>;
 export type HotCategoriesSuspenseQueryHookResult = ReturnType<typeof useHotCategoriesSuspenseQuery>;
 export type HotCategoriesQueryResult = Apollo.QueryResult<HotCategoriesQuery, HotCategoriesQueryVariables>;
+export const RecommendedItemsDocument = gql`
+    query RecommendedItems($type: RecommendationType!, $limit: Int!) {
+  recommendedItems(type: $type, limit: $limit) {
+    id
+    name
+    category
+    status
+    images
+    thumbnails
+    condition
+    location {
+      latitude
+      longitude
+    }
+    ownerId
+  }
+}
+    `;
+
+/**
+ * __useRecommendedItemsQuery__
+ *
+ * To run a query within a React component, call `useRecommendedItemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRecommendedItemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRecommendedItemsQuery({
+ *   variables: {
+ *      type: // value for 'type'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useRecommendedItemsQuery(baseOptions: Apollo.QueryHookOptions<RecommendedItemsQuery, RecommendedItemsQueryVariables> & ({ variables: RecommendedItemsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RecommendedItemsQuery, RecommendedItemsQueryVariables>(RecommendedItemsDocument, options);
+      }
+export function useRecommendedItemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RecommendedItemsQuery, RecommendedItemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RecommendedItemsQuery, RecommendedItemsQueryVariables>(RecommendedItemsDocument, options);
+        }
+export function useRecommendedItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RecommendedItemsQuery, RecommendedItemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RecommendedItemsQuery, RecommendedItemsQueryVariables>(RecommendedItemsDocument, options);
+        }
+export type RecommendedItemsQueryHookResult = ReturnType<typeof useRecommendedItemsQuery>;
+export type RecommendedItemsLazyQueryHookResult = ReturnType<typeof useRecommendedItemsLazyQuery>;
+export type RecommendedItemsSuspenseQueryHookResult = ReturnType<typeof useRecommendedItemsSuspenseQuery>;
+export type RecommendedItemsQueryResult = Apollo.QueryResult<RecommendedItemsQuery, RecommendedItemsQueryVariables>;
 export const GetExchangePointsCountDocument = gql`
     query GetExchangePointsCount {
   exchangePointsCount
