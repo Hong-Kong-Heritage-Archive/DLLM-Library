@@ -97,10 +97,29 @@ type Item {
   updatedAt: Date!
 }
 
-type ItemComment {
+interface ItemCommentBase {
+  content: String!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+# This is for querying ItemComments by Item
+type ItemComment implements ItemCommentBase {
   id: ID!
   userId: ID!
   userNickname: String!
+
+  # Content from interface
+  content: String!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type ItemCommentByUser implements ItemCommentBase {
+  itemId: ID!
+  commentId: ID!
+
+  # Content from interface
   content: String!
   createdAt: Date!
   updatedAt: Date!
@@ -116,6 +135,11 @@ type ItemCommentPageInfo {
   startCursor: ID
   endCursor: ID
   hasNextPage: Boolean!
+}
+
+type ItemCommentsByUserConnection {
+  comments: [ItemCommentByUser]
+  pageInfo: ItemCommentPageInfo
 }
 
 type NewsPost {
@@ -241,6 +265,7 @@ type Query {
   recentUpdateCategories(limit: Int): [String!]! # 最近更新的分類列表
   hotCategories(limit: Int): [String!]! # 熱門分類列表
   defaultCategories: [String!]! # 預設分類列表
+
   # Query comments by itemId
   # first - the number of comments to return.
   # startAfterId, startAfterDate - Key used in pagination to figure out the next item.
@@ -250,6 +275,16 @@ type Query {
     startAfterId: ID
     startAfterDate: Date
   ): ItemCommentsConnection!
+
+  # Query comments by itemId
+  # first - the number of comments to return.
+  # startAfterId, startAfterDate - Key used in pagination to figure out the next item.
+  commentsByUserId(
+    userId: ID!
+    first: Int!
+    startAfterId: ID
+    startAfterDate: Date
+  ): ItemCommentsByUserConnection!
 }
 
 # 變更

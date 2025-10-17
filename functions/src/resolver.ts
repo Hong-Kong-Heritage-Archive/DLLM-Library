@@ -279,6 +279,19 @@ export const resolvers: Resolvers = {
         startAfterDate
       );
     },
+    commentsByUserId: async (
+      _: any,
+      { userId, first = 10, startAfterId, startAfterDate }: any,
+      __: any
+    ) => {
+      // Returns dummy comments for any userId
+      return commentService.commentsByUserId(
+        userId,
+        first,
+        startAfterId,
+        startAfterDate
+      );
+    },
   },
   Mutation: {
     createUser: async (
