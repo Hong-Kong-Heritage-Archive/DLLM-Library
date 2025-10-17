@@ -91,9 +91,6 @@ export class UserService {
     if (item.ownerId !== userModel.id) {
       throw new Error("Cannot pin item not owned by user.");
     }
-    if (userModel.pinItemIds && userModel.pinItemIds.includes(itemId)) {
-      throw new Error("Item already pinned.");
-    }
 
     if (!userModel.pinItemIds) {
       userModel.pinItemIds = [];
@@ -107,7 +104,7 @@ export class UserService {
     await userCollection
       .doc(userModel.id)
       .update({ pinItemIds: userModel.pinItemIds });
-    this.updateCache(userModel); // update cache
+    await this.updateCache(userModel); // update cache
     await recommendService.updateRecommendation(
       userModel.id,
       RecommendationType.UserPicked,
@@ -129,7 +126,7 @@ export class UserService {
     await userCollection
       .doc(userModel.id)
       .update({ pinItemIds: userModel.pinItemIds });
-    this.updateCache(userModel); // update cache
+    await this.updateCache(userModel); // update cache
     return true;
   }
 

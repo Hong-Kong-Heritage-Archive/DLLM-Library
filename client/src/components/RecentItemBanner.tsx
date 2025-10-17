@@ -16,6 +16,7 @@ import {
   User,
   RecentAddedItemsQuery,
   RecentAddedItemsQueryVariables,
+  RecommendationType,
   Item,
 } from "../generated/graphql";
 import ItemPreview from "./ItemPreview";
@@ -44,7 +45,7 @@ const RECENT_ITEM_QUERY = gql`
 interface RecentItemBannerProps {
   category?: string;
   isRecent?: boolean;
-  recommendationType?: string;
+  recommendationType?: RecommendationType;
   recommendedItems?: Item[]; // Add this prop
   titleOverride?: string; // Add this for custom titles
   descriptionOverride?: string; // Add this for custom descriptions
@@ -111,7 +112,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
         cards = Math.max(3, Math.min(6, cards));
       }
 
-      const maxCards = data?.recentAddedItems.length || 10;
+      const maxCards = items?.length || 10;
       setCardsPerView(Math.max(1, Math.min(cards, maxCards)));
     };
 
@@ -119,7 +120,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
     window.addEventListener("resize", calculateLayout);
 
     return () => window.removeEventListener("resize", calculateLayout);
-  }, [data?.recentAddedItems.length, isMobile, isPortrait, isLandscape]);
+  }, [items?.length, isMobile, isPortrait, isLandscape]);
 
   // Calculate container height based on device and orientation
   const getContainerHeight = () => {
@@ -167,26 +168,28 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   };
 
   const scrollRight = () => {
-    const maxIndex = Math.max(
-      0,
-      (data?.recentAddedItems.length || 0) - cardsPerView
-    );
+    const maxIndex = Math.max(0, (items?.length || 0) - cardsPerView);
     const newIndex = Math.min(maxIndex, currentIndex + cardsPerView);
     setCurrentIndex(newIndex);
   };
 
   // Check if we can scroll left or right
   const canScrollLeft = currentIndex > 0;
-  const canScrollRight = data?.recentAddedItems.length
-    ? currentIndex + cardsPerView < data.recentAddedItems.length
+  const canScrollRight = items
+    ? currentIndex + cardsPerView < items.length
     : false;
-
   // Get title
   const getTitle = () => {
     if (titleOverride) return titleOverride;
     if (recommendationType) {
+      const key = {
+        ADMIN_PICKED: "adminPicked",
+        USER_PICKED: "userPicked",
+        NEW_ARRIVALS: "newArrivals",
+        POPULAR: "popular",
+      }[recommendationType];
       return t(
-        `home.recommendation.${recommendationType}`,
+        `home.recommendation.${key}`,
         `Recommended ${category || "Items"}`
       );
     }
@@ -199,7 +202,13 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   const getDescription = () => {
     if (descriptionOverride) return descriptionOverride;
     if (recommendationType) {
-      return t(`home.${recommendationType}Description`, "");
+      const key = {
+        ADMIN_PICKED: "adminPicked",
+        USER_PICKED: "userPicked",
+        NEW_ARRIVALS: "newArrivals",
+        POPULAR: "popular",
+      }[recommendationType];
+      return t(`home.${key}Description`, "");
     }
     return "";
   };
@@ -404,24 +413,6 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
               )
             : t("item.noItemsFound", "No items found in this category.")}
         </Alert>
-      )}
-
-      {/* View more button */}
-      {items && items.length > 0 && (
-        <Box sx={{ textAlign: "center", mt: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              if (category) {
-                navigate(`/item/all?category=${encodeURIComponent(category)}`);
-              } else {
-                navigate("/item/all");
-              }
-            }}
-          >
-            {t("common.viewMore", "View More")}
-          </Button>
-        </Box>
       )}
     </Box>
   );

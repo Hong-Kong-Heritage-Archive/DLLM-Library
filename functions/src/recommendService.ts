@@ -1,5 +1,5 @@
 import { db } from "./platform";
-import { RecommendationType, User, Item } from "./generated/graphql";
+import { RecommendationType, Item } from "./generated/graphql";
 import firebase from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { ItemService } from "./itemService";
