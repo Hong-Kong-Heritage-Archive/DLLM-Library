@@ -82,7 +82,9 @@
     "loginRequired": "Please log in to view your borrowed items",
     "retry": "Retry",
     "viewMore": "View More",
-    "null": "null"
+    "null": "null",
+    "copy": "Copy",
+    "close": "Close"
   },
   "location": {
     "latitude": "Latitude",
@@ -291,7 +293,16 @@
     },
     "details": "Transaction Details",
     "showRaw": "Show Raw JSON",
-    "showFormatted": "Show Formatted"
+    "showFormatted": "Show Formatted",
+    "share": "Share",
+    "shareTransaction": "Share Transaction",
+    "shareInstructions": "Share this transaction link with the other party for face-to-face exchange. They can scan the QR code or use the link to view the transaction details.",
+    "transactionLink": "Transaction Link",
+    "shareMessage": "Check out this transaction for {{itemName}}",
+    "shareTitle": "Transaction Details",
+    "shareVia": "Share via...",
+    "shareViaApps": "Share via Messaging Apps",
+    "linkCopied": "Link copied to clipboard!"
   },
   "itemsAll": {
     "title": "Search Items",
