@@ -14,6 +14,7 @@ import {
   InputLabel,
   Input,
   FormHelperText,
+  Pagination,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -68,6 +69,7 @@ const ItemComments: React.FC<ItemCommentsProps> = ({ itemId, currentUser }) => {
   const [page, setPage] = useState(1);
   const [isExpanded, setIsExpanded] = useState(false);
   const commentsPerPage = 10;
+  const maxChar = 1000;
 
   // Fetch comments - only when expanded
   const { data, loading, error, refetch, fetchMore } = useGetItemCommentsQuery({
@@ -121,6 +123,9 @@ const ItemComments: React.FC<ItemCommentsProps> = ({ itemId, currentUser }) => {
   const handleToggleComments = () => {
     setIsExpanded(!isExpanded);
   };
+
+  const totalCount = data?.commentsByItemId?.comments?.length || 0;
+  const totalPages = commentsPerPage > 0 ? Math.ceil(totalCount / commentsPerPage) : 0;
 
   const comments = data?.commentsByItemId.comments || [];
   const hasNextPage = data?.commentsByItemId.pageInfo?.hasNextPage || false;
@@ -191,7 +196,7 @@ const ItemComments: React.FC<ItemCommentsProps> = ({ itemId, currentUser }) => {
                         },
                         '&.Mui-focused': {
                           borderColor: 'primary.main',
-                          boxShadow: `0 0 0 2px primary`,
+                          boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.5)',
                         },
                         '&.Mui-disabled': {
                           backgroundColor: 'grey.100',
@@ -201,8 +206,8 @@ const ItemComments: React.FC<ItemCommentsProps> = ({ itemId, currentUser }) => {
                     />
                     <FormHelperText id="comment-helper-text">
                       {newComment.length > 0 && (
-                        <span style={{ color: newComment.length > 500 ? 'red' : 'inherit' }}>
-                          {newComment.length}/1000 {t('comments.characters', 'characters')}
+                        <span style={{ color: newComment.length > maxChar ? 'red' : 'inherit' }}>
+                          {newComment.length}/maxChar {t('comments.characters', 'characters')}
                         </span>
                       )}
                       {newComment.length === 0 && t('comments.helperText', 'Share your thoughts about this item')}
@@ -213,7 +218,7 @@ const ItemComments: React.FC<ItemCommentsProps> = ({ itemId, currentUser }) => {
                     <Button
                       type="submit"
                       variant="contained"
-                      disabled={!newComment.trim() || addingComment || newComment.length > 1000}
+                      disabled={!newComment.trim() || addingComment || newComment.length > maxChar}
                       startIcon={addingComment ? <CircularProgress size={16} /> : <SendIcon />}
                     >
                       {addingComment ? t('comments.posting', 'Posting...') : t('comments.post', 'Post Comment')}
@@ -313,6 +318,21 @@ const ItemComments: React.FC<ItemCommentsProps> = ({ itemId, currentUser }) => {
                 </Box>
               )}
             </>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Pagination
+                count={totalPages}
+                page={page + 1}
+                onChange={(_event, value) => setPage(value - 1)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                disabled={loading}
+              />
+            </Box>
           )}
         </Box>
       </Collapse>

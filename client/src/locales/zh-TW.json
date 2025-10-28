@@ -412,6 +412,12 @@
     "confirmDelete": "確定要刪除此評論嗎？",
     "loginRequired": "請登入以發布評論",
     "noComments": "尚無評論，成為第一個評論的人！",
-    "anonymousUser": "匿名用戶"
+    "anonymousUser": "匿名用戶",
+    "previous": "前一頁",
+    "next": "下一頁",
+    "pageInfo": "{{current}}頁",
+    "show": "顯示",
+    "perPage": "每頁",
+    "showing": "顯示 {{start}}-{{end}} 共 {{total}} 條"
   }
 }
