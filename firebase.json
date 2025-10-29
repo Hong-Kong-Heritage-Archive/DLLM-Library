@@ -41,6 +41,14 @@
         "function": "graphql"
       },
       {
+        "source": "/user/**",
+        "function": "graphql"
+      },
+      {
+        "source": "/transaction/**",
+        "function": "graphql"
+      },
+      {
         "source": "/",
         "function": "graphql"
       },

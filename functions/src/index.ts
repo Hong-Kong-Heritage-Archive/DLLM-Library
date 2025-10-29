@@ -74,16 +74,48 @@ async function startApolloServer() {
   );
 
   // Set up SSR routes
-  app.get("/", handleHomePageSSR);
+  app.get('/', (req, res) => handleHomePageSSR(req, res));
 
   // Handle /item and /item/:id with bot detection
-  app.get("/item/:id", (req, res) => {
-    handleItemDetailSSR(req, res);
+  app.get('/item/:id', (req, res) => {
+    if (isBotRequest(req)) {
+      handleItemDetailSSR(req, res);
+    } else {
+      // Serve the index.html with the redirect parameter embedded in the URL
+      handleHomePageSSR(req, res, `/item/${req.params.id}`);
+    }
   });
+
   // Handle /item page (listing)
-  app.get("/item", (req, res) => {
-    handleHomePageSSR(req, res);
+  app.get('/item', (req, res) => {
+    if (isBotRequest(req)) {
+      handleHomePageSSR(req, res);
+    } else {
+      // Serve the index.html with the redirect parameter embedded in the URL
+      handleHomePageSSR(req, res, '/item');
+    }
   });
+
+  // Handle /user/:id with bot detection
+  app.get('/user/:id', (req, res) => {
+    if (isBotRequest(req)) {
+      handleUserProfileSSR(req, res);
+    } else {
+      // Serve the index.html with the redirect parameter embedded in the URL
+      handleHomePageSSR(req, res, `/user/${req.params.id}`);
+    }
+  });
+
+  // Handle /transaction/:id with bot detection
+  app.get('/transaction/:id', (req, res) => {
+    if (isBotRequest(req)) {
+      handleTransactionDetailSSR(req, res);
+    } else {
+      // Serve the index.html with the redirect parameter embedded in the URL
+      handleHomePageSSR(req, res, `/transaction/${req.params.id}`);
+    }
+  });
+
   // For local development, we need to listen on a port
   if (process.env.NODE_ENV !== "production") {
     await new Promise<void>((resolve) =>

@@ -263,7 +263,8 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
 export const createRouter = (
   email?: string | null,
   emailVerified?: boolean | null,
-  user?: User
+  user?: User,
+  initialPath?: string | null
 ) =>
   createBrowserRouter([
     {
@@ -274,7 +275,7 @@ export const createRouter = (
       children: [
         {
           index: true,
-          element: <Home />,
+          element: initialPath ? <Navigate to={initialPath} replace /> : <Home />,
         },
         {
           path: "news",

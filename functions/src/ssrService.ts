@@ -6,9 +6,13 @@ import * as fs from "fs";
 import { isBotRequest, getBotType } from "./botDetection";
 import { CategoryService } from "./categoryService";
 import { ItemService } from "./itemService";
+import { UserService } from "./userService";
+import { TransactionService } from "./transactionService";
 
 const categoryService = new CategoryService();
 const itemService = new ItemService(categoryService);
+const userService = new UserService(itemService, categoryService);
+const transactionService = new TransactionService(itemService, userService);
 // Get Config
 const getConfig = () => {
   const clientConfigPath = path.join(
@@ -32,14 +36,6 @@ const getConfig = () => {
 // Get base URL
 const getBaseUrl = () => {
   const config = getConfig();
-
-  // Check if we're running behind ngrok
-  const ngrokUrl = process.env.NGROK_URL;
-
-  if (ngrokUrl) {
-    return ngrokUrl;
-  }
-
   return process.env.NODE_ENV === "production"
     ? config.baseUrl
     : "http://localhost:3000";
@@ -58,10 +54,17 @@ export const renderHtmlWithOgTags = (
   htmlData: string,
   ogTags: string
 ) => {
+  // Add base tag for correct path resolution
+  const baseUrl = getBaseUrl();
+
   let modifiedHtml = htmlData
     .replace(/<title>.*?<\/title>/, "")
     .replace(/<meta name="description" content=".*?"\s*\/?>/, "");
 
+  // Add base tag to ensure correct path resolution
+  const baseTag = `<base href="${baseUrl}/">`;
+
+  modifiedHtml = modifiedHtml.replace("<head>", `<head>\n${baseTag}`);
   modifiedHtml = modifiedHtml.replace("</head>", `${ogTags}</head>`);
   res.setHeader("Content-Type", "text/html");
   res.send(modifiedHtml);
@@ -70,7 +73,7 @@ export const renderHtmlWithOgTags = (
 /**
  * Handle home page SSR
  */
-export const handleHomePageSSR = (req: Request, res: Response) => {
+export const handleHomePageSSR = (req: Request, res: Response, redirectPath?: string) => {
   const indexPath = path.join(__dirname, "..", "index.html");
   readFile(indexPath, "utf8", (err, htmlData) => {
     if (err) {
@@ -85,6 +88,19 @@ export const handleHomePageSSR = (req: Request, res: Response) => {
     const newDescription = "香港・雪梨・無大台圖書館模組";
     const newImageUrl = getLogoUrl();
 
+    // Create redirect script if redirectPath is provided
+    let redirectScript = '';
+    if (redirectPath) {
+      redirectScript = `
+<script type="text/javascript">
+  // Store the intended path in sessionStorage for client-side routing
+  window.addEventListener('DOMContentLoaded', function() {
+    sessionStorage.setItem('redirectPath', ${JSON.stringify(redirectPath)});
+  });
+</script>
+        `;
+    }
+
     const ogTags = `
 <title>${newTitle}</title>
 <meta name="description" content="${newDescription}" />
@@ -95,6 +111,7 @@ export const handleHomePageSSR = (req: Request, res: Response) => {
 <meta property="og:image" content="${newImageUrl}" />
 <meta property="og:image:width" content="512" />
 <meta property="og:image:height" content="512" />
+${redirectScript}
         `;
 
     renderHtmlWithOgTags(res, htmlData, ogTags);
@@ -104,69 +121,218 @@ export const handleHomePageSSR = (req: Request, res: Response) => {
 /**
  * Generate client-side redirection script
  */
-const generateRedirectScript = (itemId: string) => {
+const generateRedirectScript = (itemId: string, req: Request) => {
   return `
-<!-- Client detection and redirection script -->
+<!-- Client-side redirection script -->
 <script type="text/javascript">
-  // Check if this is a real browser (not a crawler)
-  function isBrowserNotCrawler() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    return !(
-      userAgent.includes('bot') ||
-      userAgent.includes('crawler') ||
-      userAgent.includes('spider') ||
-      userAgent.includes('facebookexternalhit') ||
-      userAgent.includes('facebot') ||
-      userAgent.includes('twitterbot') ||
-      userAgent.includes('whatsapp') ||
-      userAgent.includes('telegrambot') ||
-      userAgent.includes('linkedinbot') ||
-      userAgent.includes('slack') ||
-      userAgent.includes('discordbot') ||
-      userAgent.includes('applebot') ||
-      userAgent.includes('bingbot') ||
-      userAgent.includes('yandexbot') ||
-      userAgent.includes('duckduckbot') ||
-      userAgent.includes('baiduspider') ||
-      userAgent.includes('pinterestbot') ||
-      userAgent.includes('embedly') ||
-      userAgent.includes('quora link preview') ||
-      userAgent.includes('outbrain') ||
-      userAgent.includes('w3c_validator') ||
-      userAgent.includes('redditbot') ||
-      userAgent.includes('flipboardproxy') ||
-      userAgent.includes('vkshare') ||
-      userAgent.includes('mediapartners-google') ||
-      userAgent.includes('googlebot') ||
-      userAgent.includes('slurp') || // Yahoo
-      
-      // Other crawlers
-      userAgent.includes('ia_archiver') || // Internet Archive
-      userAgent.includes('wayback') ||
-      userAgent.includes('archive.org_bot') ||
-      userAgent.includes('semrushbot') ||
-      userAgent.includes('ahrefsbot') ||
-      userAgent.includes('mj12bot') ||
-      userAgent.includes('dotbot') ||
-      userAgent.includes('sogou') ||
-
-      // Preview generators
-      userAgent.includes('previewbot') ||
-      userAgent.includes('preview')
-    );
-  }
-
-  
-  // Redirect real browsers to the frontend app
-  if (isBrowserNotCrawler()) {
-    // Check if we're not already on the frontend app
-    if (window.location.href.indexOf('/graphql') > -1 || window.location.href.indexOf(':4000') > -1 || window.location.href.indexOf('ngrok') > -1 || window.location.href.indexOf(':5002') > -1) {
-      // If we're on the SSR server, redirect to the frontend app
-      window.location.href = '${getBaseUrl()}/item/${itemId}';
-    }
-  }
+  // Store the item ID for the client app to use
+  sessionStorage.setItem('viewItemId', '${itemId}');
 </script>
-    `;
+  `;
+};
+
+/**
+ * Generate client-side redirection script for user profile
+ */
+const generateUserRedirectScript = (userId: string, req: Request) => {
+  return `
+<!-- Client-side redirection script -->
+<script type="text/javascript">
+  // Store the user ID for the client app to use
+  sessionStorage.setItem('viewUserId', '${userId}');
+</script>
+  `;
+};
+
+/**
+ * Generate client-side redirection script for transaction
+ */
+const generateTransactionRedirectScript = (transactionId: string, req: Request) => {
+  return `
+<!-- Client-side redirection script -->
+<script type="text/javascript">
+  // Store the transaction ID for the client app to use
+  sessionStorage.setItem('viewTransactionId', '${transactionId}');
+</script>
+  `;
+};
+
+/**
+ * Handle user profile page SSR
+ */
+export const handleUserProfileSSR = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const indexPath = path.join(__dirname, "..", "index.html");
+
+    // Read the HTML template
+    readFile(indexPath, "utf8", async (err, htmlData) => {
+      if (err) {
+        console.error("Error reading index.html from functions folder.", err);
+        return res.status(500).send("Could not load the page.");
+      }
+
+      try {
+        // Get user data from Firestore
+        const user = await userService.userById(userId);
+        if (user === null) {
+          // If user doesn't exist, still render the page but with generic OG tags and redirect
+          const redirectScript = generateUserRedirectScript(userId, req);
+          const ogTags = `
+<title>User Not Found - DLLM Library</title>
+<meta name="description" content="The requested user profile could not be found." />
+<meta property="og:title" content="User Not Found - DLLM Library" />
+<meta property="og:description" content="The requested user profile could not be found." />
+<meta property="og:type" content="profile" />
+<meta property="og:url" content="${getBaseUrl()}/user/${userId}" />
+<meta property="og:image" content="${getLogoUrl()}" />
+${redirectScript}
+          `;
+          renderHtmlWithOgTags(res, htmlData, ogTags);
+          return;
+        }
+
+        // Get user data
+        const userName = user.nickname || user.email;
+        const userEmail = user.email || 'Email not available';
+        const userStatus = user.isActive ? (user.isVerified ? 'Active & Verified' : 'Active') : 'Inactive';
+
+        // Get profile image or use default
+        let imageUrl = getLogoUrl(); // Default image
+        // Note: User type doesn't have profileImage field, using default logo
+
+        // Create Open Graph tags with a client-side redirection script
+        const redirectScript = generateUserRedirectScript(userId, req);
+
+        // Create an enhanced description with email and status
+        const enhancedDescription = `Email: ${userEmail} | Status: ${userStatus}`;
+
+        const ogTags = `
+<title>${userName} - DLLM Library</title>
+<meta name="description" content="${enhancedDescription}" />
+<meta property="og:title" content="${userName} - DLLM Library" />
+<meta property="og:description" content="${enhancedDescription}" />
+<meta property="og:type" content="profile" />
+<meta property="og:url" content="${getBaseUrl()}/user/${userId}" />
+<meta property="og:image" content="${imageUrl}" />
+<meta property="profile:first_name" content="${userName.split(' ')[0] || userName}" />
+<meta property="profile:last_name" content="${userName.split(' ').slice(1).join(' ') || ''}" />
+${redirectScript}
+        `;
+
+        renderHtmlWithOgTags(res, htmlData, ogTags);
+      } catch (error) {
+        console.error("Error generating user SSR content:", error);
+        // Fallback to generic tags with redirect
+        const redirectScript = generateUserRedirectScript(userId, req);
+        const ogTags = `
+<title>DLLM Library User</title>
+<meta name="description" content="View this user profile in the DLLM Library." />
+<meta property="og:title" content="DLLM Library User" />
+<meta property="og:description" content="View this user profile in the DLLM Library." />
+<meta property="og:type" content="profile" />
+<meta property="og:url" content="${getBaseUrl()}/user/${userId}" />
+<meta property="og:image" content="${getLogoUrl()}" />
+${redirectScript}
+        `;
+        renderHtmlWithOgTags(res, htmlData, ogTags);
+      }
+    });
+  } catch (error) {
+    console.error("Error in user SSR route:", error);
+    res.status(500).send("Server error");
+  }
+};
+
+/**
+ * Handle transaction detail page SSR
+ */
+export const handleTransactionDetailSSR = async (req: Request, res: Response) => {
+  try {
+    const transactionId = req.params.id;
+    const indexPath = path.join(__dirname, "..", "index.html");
+
+    // Read the HTML template
+    readFile(indexPath, "utf8", async (err, htmlData) => {
+      if (err) {
+        console.error("Error reading index.html from functions folder.", err);
+        return res.status(500).send("Could not load the page.");
+      }
+
+      try {
+        // Get transaction data from Firestore
+        const transaction = await transactionService.transactionById(transactionId);
+        if (transaction === null) {
+          // If transaction doesn't exist, still render the page but with generic OG tags and redirect
+          const redirectScript = generateTransactionRedirectScript(transactionId, req);
+          const ogTags = `
+<title>Transaction Not Found - DLLM Library</title>
+<meta name="description" content="The requested transaction could not be found." />
+<meta property="og:title" content="Transaction Not Found - DLLM Library" />
+<meta property="og:description" content="The requested transaction could not be found." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${getBaseUrl()}/transaction/${transactionId}" />
+<meta property="og:image" content="${getLogoUrl()}" />
+${redirectScript}
+          `;
+          renderHtmlWithOgTags(res, htmlData, ogTags);
+          return;
+        }
+
+        // Get transaction data
+        const itemName = transaction.item?.name || 'Unknown Item';
+        const transactionStatus = transaction.status;
+        const requestorName = transaction.requestor?.nickname || transaction.requestor?.email || 'Unknown User';
+        const holderName = 'Unknown Holder'; // Transaction type doesn't have holder field
+
+        // Create description based on transaction details
+        const transactionDescription = `Transaction for ${itemName} - Requested by ${requestorName}, Held by ${holderName} | Status: ${transactionStatus}`;
+
+        // Get item image or use default
+        let imageUrl = getLogoUrl(); // Default image
+        if (transaction.item?.thumbnails && transaction.item.thumbnails.length > 0) {
+          imageUrl = transaction.item.thumbnails[0];
+        } else if (transaction.item?.images && transaction.item.images.length > 0) {
+          imageUrl = transaction.item.images[0];
+        }
+
+        // Create Open Graph tags with a client-side redirection script
+        const redirectScript = generateTransactionRedirectScript(transactionId, req);
+
+        const ogTags = `
+<title>Transaction: ${itemName} - DLLM Library</title>
+<meta name="description" content="${transactionDescription}" />
+<meta property="og:title" content="Transaction: ${itemName} - DLLM Library" />
+<meta property="og:description" content="${transactionDescription}" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="${getBaseUrl()}/transaction/${transactionId}" />
+<meta property="og:image" content="${imageUrl}" />
+<meta property="article:section" content="Status: ${transactionStatus}" />
+${redirectScript}
+        `;
+
+        renderHtmlWithOgTags(res, htmlData, ogTags);
+      } catch (error) {
+        console.error("Error generating transaction SSR content:", error);
+        // Fallback to generic tags with redirect
+        const redirectScript = generateTransactionRedirectScript(transactionId, req);
+        const ogTags = `
+<title>DLLM Library Transaction</title>
+<meta name="description" content="View this transaction in the DLLM Library." />
+<meta property="og:title" content="DLLM Library Transaction" />
+<meta property="og:description" content="View this transaction in the DLLM Library." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${getBaseUrl()}/transaction/${transactionId}" />
+<meta property="og:image" content="${getLogoUrl()}" />
+${redirectScript}
+        `;
+        renderHtmlWithOgTags(res, htmlData, ogTags);
+      }
+    });
+  } catch (error) {
+    console.error("Error in transaction SSR route:", error);
+    res.status(500).send("Server error");
+  }
 };
 
 /**
@@ -189,7 +355,7 @@ export const handleItemDetailSSR = async (req: Request, res: Response) => {
         const item = await itemService.itemById(itemId);
         if (item === null) {
           // If item doesn't exist, still render the page but with generic OG tags and redirect
-          const redirectScript = generateRedirectScript(itemId);
+          const redirectScript = generateRedirectScript(itemId, req);
           const ogTags = `
 <title>Item Not Found - DLLM Library</title>
 <meta name="description" content="The requested item could not be found." />
@@ -218,12 +384,11 @@ ${redirectScript}
         }
 
         // Create Open Graph tags with a client-side redirection script
-        const redirectScript = generateRedirectScript(itemId);
+        const redirectScript = generateRedirectScript(itemId, req);
 
         // Create an enhanced description with status
-        const enhancedDescription = `${itemDescription.substring(0, 120)}${
-          itemDescription.length > 120 ? "..." : ""
-        } | Status: ${itemStatus}`;
+        const enhancedDescription = `${itemDescription.substring(0, 120)}${itemDescription.length > 120 ? "..." : ""
+          } | Status: ${itemStatus}`;
 
         const ogTags = `
 <title>${itemName} - DLLM Library</title>
@@ -241,7 +406,7 @@ ${redirectScript}
       } catch (error) {
         console.error("Error generating item SSR content:", error);
         // Fallback to generic tags with redirect
-        const redirectScript = generateRedirectScript(itemId);
+        const redirectScript = generateRedirectScript(itemId, req);
         const ogTags = `
 <title>DLLM Library Item</title>
 <meta name="description" content="View this item in the DLLM Library." />
