@@ -30,6 +30,7 @@ import {
   Close as CloseIcon,
   NavigateBefore as PrevIcon,
   NavigateNext as NextIcon,
+  PushPin as PinIcon, // Add this import
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
@@ -105,6 +106,9 @@ const USER_QUERY = gql`
         latitude
         longitude
       }
+      pinItems {
+        id
+      }
     }
   }
 `;
@@ -124,6 +128,19 @@ const OPEN_TRANSACTIONS_QUERY = gql`
     }
   }
 `;
+
+const PIN_ITEM_MUTATION = gql`
+  mutation PinItem($itemId: ID!) {
+    pinItem(itemId: $itemId)
+  }
+`;
+
+const UNPIN_ITEM_MUTATION = gql`
+  mutation UnpinItem($itemId: ID!) {
+    unpinItem(itemId: $itemId)
+  }
+`;
+
 interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
@@ -155,7 +172,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   );
 
   // Query for owner details
-  const { data: ownerData } = useQuery(USER_QUERY, {
+  const { data: ownerData, refetch: refetchOwner } = useQuery(USER_QUERY, {
     variables: { userId: data?.item.ownerId },
     skip: !data?.item.ownerId,
   });
@@ -191,6 +208,37 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         console.error("Transaction creation error:", error);
       },
     });
+
+  const [pinItem, { loading: pinLoading }] = useMutation(PIN_ITEM_MUTATION, {
+    onCompleted: () => {
+      setSuccessSnackbarOpen(true);
+      // Refetch owner data to update pinItems
+      if (data?.item.ownerId) {
+        refetchOwner(); // Use refetchOwner instead of refetch
+      }
+    },
+    onError: (error) => {
+      setErrorMessage(error.message);
+      setErrorSnackbarOpen(true);
+    },
+  });
+
+  const [unpinItem, { loading: unpinLoading }] = useMutation(
+    UNPIN_ITEM_MUTATION,
+    {
+      onCompleted: () => {
+        setSuccessSnackbarOpen(true);
+        // Refetch owner data to update pinItems
+        if (data?.item.ownerId) {
+          refetchOwner(); // Use refetchOwner instead of refetch
+        }
+      },
+      onError: (error) => {
+        setErrorMessage(error.message);
+        setErrorSnackbarOpen(true);
+      },
+    }
+  );
 
   const isOwner = user && data?.item.ownerId === user.id;
   const isHolder =
@@ -326,6 +374,31 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     setErrorSnackbarOpen(true);
   };
 
+  // Check if item is pinned by the current user (owner)
+  const isItemPinned = () => {
+    if (!user || !isOwner || !ownerData?.user?.pinItems) {
+      return false;
+    }
+    return ownerData.user.pinItems.some(
+      (pinItem: Item) => pinItem.id === itemId
+    );
+  };
+
+  // Handle pin/unpin toggle
+  const handlePinToggle = async () => {
+    if (!itemId) return;
+
+    try {
+      if (isItemPinned()) {
+        await unpinItem({ variables: { itemId } });
+      } else {
+        await pinItem({ variables: { itemId } });
+      }
+    } catch (error) {
+      console.error("Error toggling pin status:", error);
+    }
+  };
+
   // Handle case when itemId is null
   if (!itemId) {
     return (
@@ -352,19 +425,54 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           <Typography variant="h4" sx={{ flexGrow: 1 }}>
             {data.item.name}
             {isOwner ? (
-              <Chip
-                label={t("item.owner", "Owner")}
-                color="primary"
-                size="small"
-                sx={{ ml: 2 }}
-              />
+              <>
+                <Chip
+                  label={t("item.owner", "Owner")}
+                  color="primary"
+                  size="small"
+                  sx={{ ml: 2 }}
+                />
+                {/* Pin/Unpin Toggle Button */}
+                <IconButton
+                  onClick={handlePinToggle}
+                  disabled={pinLoading || unpinLoading}
+                  sx={{
+                    ml: 1,
+                    color: isItemPinned() ? "primary.main" : "action.disabled",
+                    "&:hover": {
+                      backgroundColor: isItemPinned()
+                        ? "primary.light"
+                        : "action.hover",
+                    },
+                  }}
+                  title={
+                    isItemPinned()
+                      ? t("item.unpinItem", "Unpin item")
+                      : t("item.pinItem", "Pin item")
+                  }
+                >
+                  {pinLoading || unpinLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <PinIcon
+                      sx={{
+                        transform: isItemPinned()
+                          ? "rotate(45deg)"
+                          : "rotate(0deg)",
+                        transition: "transform 0.2s ease-in-out",
+                      }}
+                    />
+                  )}
+                </IconButton>
+              </>
             ) : (
               <>
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                      }`}
+                    label={`${t("item.owner", "Owner")}: ${
+                      ownerData.user.nickname || ownerData.user.email
+                    }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -384,8 +492,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        }`}
+                      label={`${t("item.holder", "Holder")}: ${
+                        holderData.user.nickname || holderData.user.email
+                      }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -393,8 +502,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
-                    }`}
+                  label={`${t("item.deposit", "deposit")}: ${
+                    data.item.deposit
+                  }`}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -622,7 +732,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 }}
               >
                 {convertLinksToClickable(
-                  data.item.description?.replace(/#Uncategorized\b/gi, '') || ''
+                  data.item.description?.replace(/#Uncategorized\b/gi, "") || ""
                 )}
               </Typography>
             </Box>
@@ -631,40 +741,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={{ mb: 4 }}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "transform 0.2s",
-                          "&:hover": {
-                            transform: "scale(1.05)",
-                          },
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={2}>
+                {(data.item.thumbnails && data.item.thumbnails.length > 0
+                  ? data.item.thumbnails
+                  : data.item.images || []
+                ).map((image, index) => (
+                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "transform 0.2s",
+                        "&:hover": {
+                          transform: "scale(1.05)",
+                        },
+                      }}
+                      onClick={() => handleThumbnailClick(index)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
                         }}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -689,10 +799,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                          ? "info"
-                          : data.item.status === "GIFT"
-                            ? "warning"
-                            : "default"
+                        ? "info"
+                        : data.item.status === "GIFT"
+                        ? "warning"
+                        : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}
@@ -805,14 +915,27 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
             sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}
           >
             {isOwner && (
-              <Button
-                variant="contained"
-                color="secondary"
-                size="large"
-                onClick={() => setEditDialogOpen(true)}
-              >
-                {t("item.editItem")}
-              </Button>
+              <>
+                {/* Pin Status Indicator (optional - shows current pin count) */}
+                {ownerData?.user?.pinItems && (
+                  <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t("item.pinnedItemsStatus", "Pinned: {{count}}/5", {
+                        count: ownerData.user.pinItems.length,
+                      })}
+                    </Typography>
+                  </Box>
+                )}
+
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  onClick={() => setEditDialogOpen(true)}
+                >
+                  {t("item.editItem")}
+                </Button>
+              </>
             )}
             {canCreateTransaction && (
               <Button

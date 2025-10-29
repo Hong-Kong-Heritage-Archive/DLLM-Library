@@ -29,7 +29,22 @@
     "welcome": "歡迎，{{nickname}}",
     "displayNearbyItems": "顯示附近物品",
     "itemsWithinRadius": "10公里內的物品",
-    "createUserPrompt": "請填寫您的個人檔案"
+    "createUserPrompt": "請填寫您的個人檔案",
+    "userPickedItems": "為您推薦",
+    "newArrivals": "新番",
+    "popularItems": "熱門項目",
+    "userPickedDescription": "根據您的興趣和活動",
+    "newArrivalsDescription": "最近添加的您可能喜歡的項目",
+    "popularDescription": "在社區中流行的項目",
+    "loadingRecommendations": "加載推薦中...",
+    "recommendationsError": "無法加載某些推薦",
+    "noRecommendations": "目前沒有可用的推薦。瀏覽項目以幫助我們了解您的偏好！",
+    "noRecommendationItems": "目前沒有可推薦的項目。",
+    "recommendation": {
+      "userPicked": "為您推薦",
+      "newArrivals": "新番",
+      "popular": "熱門項目"
+    }
   },
   "common": {
     "name": "名稱",
@@ -62,7 +77,8 @@
     "add": "添加",
     "update": "更新",
     "loginRequired": "請登入以查看您的借用物品",
-    "retry": "重試"
+    "retry": "重試",
+    "viewMore": "查看更多"
   },
   "location": {
     "latitude": "緯度",
@@ -315,7 +331,13 @@
     "includeExchangePointItems": "包含交換點快取物品",
     "exchangePointItemsHelper": "啟用時，除了您的個人物品外，還包括在您的交換點快取的物品。",
     "selectCategoryToViewItems": "選擇下面的類別來查看物品。",
-    "noCategories": "沒有可用的類別"
+    "noCategories": "沒有可用的類別",
+    "pinnedItems": "已釘選物品",
+    "loadingPinnedItems": "載入已釘選物品中...",
+    "errorLoadingPinnedItems": "載入已釘選物品時發生錯誤",
+    "noPinnedItemsYou": "您尚未釘選任何物品。",
+    "noPinnedItemsUser": "此用戶尚未釘選任何物品。",
+    "pinnedItemsCount": "{{count}} 個已釘選物品"
   },
   "transactions": {
     "title": "我的交易",

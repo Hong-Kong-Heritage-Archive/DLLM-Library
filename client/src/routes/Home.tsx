@@ -13,7 +13,7 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { User, Item } from "../generated/graphql";
+import { User, Item, RecommendationType } from "../generated/graphql";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import RecentItemBanner from "../components/RecentItemBanner";
 import { useOutletContext } from "react-router-dom";
@@ -31,6 +31,25 @@ const RecentCategoriesQuery = gql`
 const HotCategoriesQuery = gql`
   query HotCategories($limit: Int!) {
     hotCategories(limit: $limit)
+  }
+`;
+
+const RecommendedItemsQuery = gql`
+  query RecommendedItems($type: RecommendationType!, $limit: Int!) {
+    recommendedItems(type: $type, limit: $limit) {
+      id
+      name
+      category
+      status
+      images
+      thumbnails
+      condition
+      location {
+        latitude
+        longitude
+      }
+      ownerId
+    }
   }
 `;
 
@@ -77,16 +96,14 @@ const HomePage: React.FC = () => {
   const { user, emailVerified, email } = useOutletContext<OutletContext>();
   const navigate = useNavigate();
 
-  // State for controlling CreateUser dialog
   const [showCreateUser, setShowCreateUser] = useState(false);
-
-  // State for exchange points pagination
   const [exchangePointsPage, setExchangePointsPage] = useState(1);
   const exchangePointsPerPage = 5;
 
   const handleItemCreated = () => {
     recentCategoriesRefetch();
     hotCategoriesRefetch();
+    userPickedRefetch();
   };
 
   const [location, setLocation] = useState<{
@@ -94,11 +111,27 @@ const HomePage: React.FC = () => {
     longitude: number;
   } | null>(null);
 
+  // Query for USER_PICKED recommendations only
+  const {
+    data: userPickedData,
+    loading: userPickedLoading,
+    error: userPickedError,
+    refetch: userPickedRefetch,
+  } = useQuery<{
+    recommendedItems: Item[];
+  }>(RecommendedItemsQuery, {
+    variables: {
+      type: RecommendationType.UserPicked,
+      limit: 5,
+    },
+    skip: !user?.isActive,
+    errorPolicy: "all",
+  });
+
   // Query for recent categories
   const {
     data: recentCategoriesData,
     loading: recentCategoriesLoading,
-    error: recentCategoriesError,
     refetch: recentCategoriesRefetch,
   } = useQuery<{
     recentUpdateCategories: string[];
@@ -110,7 +143,6 @@ const HomePage: React.FC = () => {
   const {
     data: hotCategoriesData,
     loading: hotCategoriesLoading,
-    error: errorHotCategories,
     refetch: hotCategoriesRefetch,
   } = useQuery<{
     hotCategories: string[];
@@ -136,7 +168,6 @@ const HomePage: React.FC = () => {
   const { data: exchangePointsCountData } = useQuery<{
     exchangePointsCount: number;
   }>(GET_EXCHANGE_POINTS_COUNT);
-
   const getLocation = () => {
     if (user?.location?.latitude) {
       setLocation({
@@ -161,7 +192,6 @@ const HomePage: React.FC = () => {
 
   const handleUserCreated = () => {
     setShowCreateUser(false);
-    // Optionally refresh the page or refetch user data
     window.location.reload();
   };
 
@@ -177,7 +207,6 @@ const HomePage: React.FC = () => {
     setExchangePointsPage(value);
   };
 
-  // Calculate total pages for exchange points
   const totalExchangePointsPages = exchangePointsCountData?.exchangePointsCount
     ? Math.ceil(
         exchangePointsCountData.exchangePointsCount / exchangePointsPerPage
@@ -298,7 +327,6 @@ const HomePage: React.FC = () => {
                 ))}
               </Box>
 
-              {/* Pagination */}
               {totalExchangePointsPages > 1 && (
                 <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                   <Pagination
@@ -345,6 +373,72 @@ const HomePage: React.FC = () => {
         </Button>
       </ListItem>
 
+      {/* User Picked Recommendations Section - Only for active users */}
+      {user?.isActive && (
+        <>
+          {userPickedLoading && (
+            <ListItem>
+              <Box
+                sx={{ display: "flex", alignItems: "center", width: "100%" }}
+              >
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                <Typography>
+                  {t(
+                    "home.loadingRecommendations",
+                    "Loading recommendations..."
+                  )}
+                </Typography>
+              </Box>
+            </ListItem>
+          )}
+
+          {userPickedError && (
+            <ListItem>
+              <Alert severity="warning" sx={{ width: "100%" }}>
+                {t(
+                  "home.recommendationsError",
+                  "Unable to load recommendations"
+                )}
+                <Typography variant="caption" display="block">
+                  {userPickedError.message}
+                </Typography>
+              </Alert>
+            </ListItem>
+          )}
+
+          {userPickedData?.recommendedItems &&
+            userPickedData.recommendedItems.length > 0 && (
+              <ListItem>
+                <RecentItemBanner
+                  recommendationType={RecommendationType.UserPicked}
+                  recommendedItems={userPickedData.recommendedItems}
+                  titleOverride={t(
+                    "home.userPickedItems",
+                    "Recommended for You"
+                  )}
+                  descriptionOverride={t(
+                    "home.userPickedDescription",
+                    "Based on your interests and activity"
+                  )}
+                />
+              </ListItem>
+            )}
+
+          {!userPickedLoading &&
+            !userPickedData?.recommendedItems?.length &&
+            !userPickedError && (
+              <ListItem>
+                <Alert severity="info" sx={{ width: "100%" }}>
+                  {t(
+                    "home.noRecommendations",
+                    "No recommendations available at the moment. Browse items to help us learn your preferences!"
+                  )}
+                </Alert>
+              </ListItem>
+            )}
+        </>
+      )}
+
       {/* Recent Categories Section */}
       {recentCategoriesData?.recentUpdateCategories && (
         <>
@@ -358,7 +452,6 @@ const HomePage: React.FC = () => {
         </>
       )}
 
-      {/* Loading state for recent categories */}
       {recentCategoriesLoading && (
         <ListItem>
           <Typography>{t("common.loading")}</Typography>
@@ -376,14 +469,12 @@ const HomePage: React.FC = () => {
         </>
       )}
 
-      {/* Loading state for hot categories */}
       {hotCategoriesLoading && (
         <ListItem>
           <Typography>{t("common.loading")}</Typography>
         </ListItem>
       )}
 
-      {/* Create User Dialog */}
       {showCreateUser && (
         <UpdateUser
           email={email}

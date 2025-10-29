@@ -1,15 +1,27 @@
 import { db, LoginUser } from "./platform";
-import { User, ContactMethod, Location, Role, Item } from "./generated/graphql";
+import {
+  User,
+  ContactMethod,
+  Location,
+  Role,
+  Item,
+  RecommendationType,
+} from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { MapService, createMapService } from "./mapService";
 import { Timestamp } from "firebase-admin/firestore";
 import { CategoryService } from "./categoryService";
+import { RecommendService } from "./recommendService";
+import { user } from "firebase-functions/v1/auth";
 
 const userCollection = db.collection("users");
 
-type UserModel = Omit<User, "createdAt"> & {
+const MAX_PINNED_ITEMS = 5;
+
+type UserModel = Omit<User, "createdAt" | "pinItems"> & {
   geohash?: string;
   created: Timestamp;
+  pinItemIds?: string[];
 };
 
 type ItemCacheModel = {
@@ -52,22 +64,70 @@ export class UserService {
     return this._userById(userId);
   }
 
-  async _userById(userId: string): Promise<User | null> {
-    // fetch user from database
+  async userModelById(userId: string): Promise<UserModel | null> {
     const userDoc = await userCollection.doc(userId).get();
     if (!userDoc.exists) return null;
     const data = userDoc.data() as UserModel;
+    return data;
+  }
 
-    const itemCategory = await this.getOrComputeUserItemCategory(userId);
-
-    const user = {
-      createdAt: data.created.seconds * 1000,
-      ...data,
-      ...(itemCategory && { itemCategory }),
-    } as User;
-
-    this.userCache.set(userId, user);
+  async _userById(userId: string): Promise<User | null> {
+    // fetch user from database
+    const data = await this.userModelById(userId);
+    if (!data) return null;
+    const user = await this.updateCache(data);
     return user;
+  }
+
+  async pinItem(
+    userModel: UserModel,
+    itemId: string,
+    recommendService: RecommendService
+  ): Promise<boolean> {
+    const item = await this.itemService.itemById(itemId);
+    if (!item) {
+      throw new Error("Item not found.");
+    }
+    if (item.ownerId !== userModel.id) {
+      throw new Error("Cannot pin item not owned by user.");
+    }
+
+    if (!userModel.pinItemIds) {
+      userModel.pinItemIds = [];
+    } else if (userModel.pinItemIds.includes(itemId)) {
+      throw new Error("Item already pinned.");
+    } else if (userModel.pinItemIds.length >= MAX_PINNED_ITEMS) {
+      userModel.pinItemIds.shift(); // remove the oldest pinned item
+    }
+
+    userModel.pinItemIds.push(itemId);
+    await userCollection
+      .doc(userModel.id)
+      .update({ pinItemIds: userModel.pinItemIds });
+    await this.updateCache(userModel); // update cache
+    await recommendService.updateRecommendation(
+      userModel.id,
+      RecommendationType.UserPicked,
+      item
+    );
+    return true;
+  }
+
+  async unpinItem(userModel: UserModel, itemId: string): Promise<boolean> {
+    if (!userModel.pinItemIds || userModel.pinItemIds.length === 0) {
+      throw new Error("No items pinned.");
+    }
+    const itemIndex = userModel.pinItemIds.indexOf(itemId);
+    if (itemIndex === -1) {
+      throw new Error("Item not pinned.");
+    }
+
+    userModel.pinItemIds.splice(itemIndex, 1);
+    await userCollection
+      .doc(userModel.id)
+      .update({ pinItemIds: userModel.pinItemIds });
+    await this.updateCache(userModel); // update cache
+    return true;
   }
 
   /**
@@ -308,11 +368,7 @@ export class UserService {
 
     const updatedDoc = await userRef.get();
     const data = updatedDoc.data() as UserModel;
-    const updatedUser = {
-      createdAt: data.created.seconds * 1000,
-      ...data,
-    } as User;
-    this.userCache.set(loginUser.uid, updatedUser);
+    const updatedUser = await this.updateCache(data);
     return updatedUser;
   }
 
@@ -384,5 +440,22 @@ export class UserService {
     );
 
     return itemIds;
+  }
+
+  async updateCache(userModel: UserModel): Promise<User> {
+    // get all pinned items
+    let pinItems: Item[] = [];
+    if (userModel.pinItemIds && userModel.pinItemIds.length > 0) {
+      pinItems = await this.itemService.itemsByIds(userModel.pinItemIds);
+    }
+    const itemCategory = await this.getOrComputeUserItemCategory(userModel.id);
+    const updatedUser = {
+      createdAt: userModel.created.seconds * 1000,
+      pinItems,
+      ...userModel,
+      ...(itemCategory && { itemCategory }),
+    } as User;
+    this.userCache.set(userModel.id, updatedUser);
+    return updatedUser;
   }
 }

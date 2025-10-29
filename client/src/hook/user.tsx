@@ -25,6 +25,19 @@ export const USER_DETAIL_QUERY = gql`
         latitude
         longitude
       }
+      pinItems {
+        id
+        name
+        condition
+        status
+        images
+        thumbnails
+        category
+        location {
+          latitude
+          longitude
+        }
+      }
     }
   }
 `;

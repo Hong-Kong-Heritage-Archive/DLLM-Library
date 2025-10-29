@@ -18,6 +18,7 @@ import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
 import { CategoryService } from "./categoryService";
 import { CommentService } from "./commentService";
+import { RecommendService } from "./recommendService";
 
 interface Context {
   loginUser: LoginUser | null;
@@ -29,6 +30,7 @@ const userService = new UserService(itemService, categoryService);
 const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
 const commentService = new CommentService(userService);
+const recommendService = new RecommendService(itemService);
 
 export const DateScalar = new GraphQLScalarType({
   name: "Date",
@@ -257,6 +259,13 @@ export const resolvers: Resolvers = {
     defaultCategories: async (_: any, __: any): Promise<string[]> => {
       return categoryService.getDefaultCategories();
     },
+    recommendedItems: async (
+      _: any,
+      { type, category, limit = 10 }: any,
+      __: any
+    ): Promise<Item[]> => {
+      return recommendService.recommendationItems(type, category, limit);
+    },
     commentsByItemId: async (
       _: any,
       { itemId, first = 10, startAfterId, startAfterDate }: any,
@@ -349,6 +358,26 @@ export const resolvers: Resolvers = {
         args.images,
         args.deposit
       );
+    },
+    pinItem: async (
+      _: any,
+      { itemId }: any,
+      { loginUser }: Context
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.userModelById(loginUser.uid);
+      if (!user) throw new Error("User not found");
+      return userService.pinItem(user, itemId, recommendService);
+    },
+    unpinItem: async (
+      _: any,
+      { itemId }: any,
+      { loginUser }: Context
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.userModelById(loginUser.uid);
+      if (!user) throw new Error("User not found");
+      return userService.unpinItem(user, itemId);
     },
     createNewsPost: async (
       _: any,

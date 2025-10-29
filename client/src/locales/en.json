@@ -29,7 +29,22 @@
     "welcome": "Welcome, {{nickname}}",
     "displayNearbyItems": "Display nearby items",
     "itemsWithinRadius": "Items within 10km",
-    "createUserPrompt": "Please create your user profile"
+    "createUserPrompt": "Please create your user profile",
+    "userPickedItems": "Recommended for You",
+    "newArrivals": "New Arrivals", 
+    "popularItems": "Popular Items",
+    "userPickedDescription": "Based on your interests and activity",
+    "newArrivalsDescription": "Recently added items you might like",
+    "popularDescription": "Items trending in the community",
+    "loadingRecommendations": "Loading recommendations...",
+    "recommendationsError": "Unable to load some recommendations",
+    "noRecommendations": "No recommendations available at the moment. Browse items to help us learn your preferences!",
+    "noRecommendationItems": "No recommended items available at the moment.",
+    "recommendation": {
+      "userPicked": "Recommended for You",
+      "newArrivals": "New Arrivals", 
+      "popular": "Popular Items"
+    }
   },
   "common": {
     "name": "Name",
@@ -65,7 +80,8 @@
     "add": "Add",
     "update": "Update",
     "loginRequired": "Please log in to view your borrowed items",
-    "retry": "Retry"
+    "retry": "Retry",
+    "viewMore": "View More"
   },
   "location": {
     "latitude": "Latitude",
@@ -136,7 +152,8 @@
     "owner": "Owner",
     "previousHolder": "Previous Holder",
     "lastUpdated": "Last Updated",
-    "browseItems": "Browse Available Items"
+    "browseItems": "Browse Available Items",
+    "away": "away"
   },
   "languages": {
     "en": "English",
@@ -218,7 +235,13 @@
     "exchangePointItemsHelper": "When enabled, includes items cached at your exchange point in addition to your personal items.",
     "selectCategoryToViewItems": "Select a category below to view items.",
     "noCategories": "No categories available",
-    "addressNotSet": "Exchange Address not set"
+    "addressNotSet": "Exchange Address not set",
+    "pinnedItems": "Pinned Items",
+    "loadingPinnedItems": "Loading pinned items...",
+    "errorLoadingPinnedItems": "Error loading pinned items",
+    "noPinnedItemsYou": "You haven't pinned any items yet.",
+    "noPinnedItemsUser": "This user hasn't pinned any items.",
+    "pinnedItemsCount": "{{count}} pinned item(s)"
   },
   "transactions": {
     "title": "My Transactions",

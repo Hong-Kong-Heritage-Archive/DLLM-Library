@@ -430,6 +430,73 @@ const UserDetail: React.FC<UserDetailProps> = ({
             </AccordionDetails>
           </Accordion>
 
+          {/* Pinned Items Section - using existing userData */}
+          <Grid size={{ xs: 12 }}>
+            <Box sx={{ mt: 3 }}>
+              <Typography
+                variant="h6"
+                sx={{ mb: 2, display: "flex", alignItems: "center" }}
+              >
+                <LabelIcon sx={{ mr: 1 }} />
+                {t("user.pinnedItems", "Pinned Items")}
+              </Typography>
+
+              {userData.user.pinItems && userData.user.pinItems.length > 0 ? (
+                <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
+                  <List>
+                    {userData.user.pinItems.map((item) => (
+                      <ItemSummary
+                        key={item.id}
+                        item={{
+                          id: item.id,
+                          name: item.name,
+                          distance:
+                            item.location && currentUser?.location
+                              ? calculateDistance(
+                                  item.location.latitude,
+                                  item.location.longitude,
+                                  currentUser.location.latitude,
+                                  currentUser.location.longitude
+                                )
+                              : 0,
+                          status: item.status,
+                          images: item.images,
+                          thumbnails: item.thumbnails,
+                          tags: item.category,
+                        }}
+                        onClick={handleItemClick}
+                      />
+                    ))}
+                  </List>
+                </Box>
+              ) : (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  {isCurrentUser
+                    ? t(
+                        "user.noPinnedItemsYou",
+                        "You haven't pinned any items yet."
+                      )
+                    : t(
+                        "user.noPinnedItemsUser",
+                        "This user hasn't pinned any items."
+                      )}
+                </Alert>
+              )}
+
+              {userData.user.pinItems && userData.user.pinItems.length > 0 && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  {t("user.pinnedItemsCount", "{{count}} pinned item(s)", {
+                    count: userData.user.pinItems.length,
+                  })}
+                </Typography>
+              )}
+            </Box>
+          </Grid>
+
           {/* Contact Methods in read-only mode */}
           {userData.user.contactMethods &&
             userData.user.contactMethods.length > 0 && (

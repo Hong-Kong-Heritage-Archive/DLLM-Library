@@ -47,6 +47,13 @@ type Category {
   count: Int!
 }
 
+enum RecommendationType {
+  USER_PICKED
+  NEW_ARRIVALS
+  POPULAR
+  ADMIN_PICKED
+}
+
 # 用戶個人檔案
 type User {
   id: ID!
@@ -60,6 +67,7 @@ type User {
   contactMethods: [ContactMethod!] # 其他聯繫方式
   exchangePoints: [String!] # 可選的交換點
   itemCategory: [Category!]
+  pinItems: [Item!] # 用戶置頂的藏品 Max 5個
   createdAt: Date!
 }
 
@@ -87,7 +95,6 @@ type Item {
   location: Location # 藏品所在地（繼承自擁有者）
   createdAt: Date!
   updatedAt: Date!
-  transactions: [Transaction!] # 相關交易紀錄
 }
 
 interface ItemCommentBase {
@@ -156,6 +163,9 @@ type Transaction {
   receiver: User # 最終接收者
   location: Location # 交易地點
   status: TransactionStatus!
+  details: String # 可選交易詳情 如 "Deposit amount or special notes in JSON format"
+  images: [String!] # 圖片URL列表
+  thumbnails: [String!] # 縮略圖URL列表
   createdAt: Date!
   updatedAt: Date!
 }
@@ -199,6 +209,11 @@ type Query {
     limit: Int
     offset: Int
   ): [Item!]! # 按條件篩選藏品（舊方式）
+  recommendedItems(
+    type: RecommendationType!
+    category: String
+    limit: Int
+  ): [Item!]! # 推薦藏品
   itemsByLocation(
     latitude: Float!
     longitude: Float!
@@ -309,6 +324,8 @@ type Mutation {
     language: Language
   ): Item!
   deleteItem(id: ID!): Boolean!
+  pinItem(itemId: ID!): Boolean!
+  unpinItem(itemId: ID!): Boolean!
 
   addItemComment(itemId: ID!, content: String!): ID!
   deleteItemComment(itemId: ID!, commentId: ID!): Boolean!

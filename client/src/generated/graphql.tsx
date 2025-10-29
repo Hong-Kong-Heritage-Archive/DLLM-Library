@@ -61,7 +61,6 @@ export type Item = {
   publishedYear?: Maybe<Scalars['Int']['output']>;
   status: ItemStatus;
   thumbnails?: Maybe<Array<Scalars['String']['output']>>;
-  transactions?: Maybe<Array<Transaction>>;
   updatedAt: Scalars['Date']['output'];
 };
 
@@ -135,8 +134,10 @@ export type Mutation = {
   editItemComment: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
+  pinItem: Scalars['Boolean']['output'];
   receiveTransaction: Transaction;
   transferTransaction: Transaction;
+  unpinItem: Scalars['Boolean']['output'];
   updateItem: Item;
   updateNewsPost: NewsPost;
   updateUser: User;
@@ -230,6 +231,11 @@ export type MutationHideNewsPostArgs = {
 };
 
 
+export type MutationPinItemArgs = {
+  itemId: Scalars['ID']['input'];
+};
+
+
 export type MutationReceiveTransactionArgs = {
   id: Scalars['ID']['input'];
 };
@@ -237,6 +243,11 @@ export type MutationReceiveTransactionArgs = {
 
 export type MutationTransferTransactionArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationUnpinItemArgs = {
+  itemId: Scalars['ID']['input'];
 };
 
 
@@ -305,6 +316,7 @@ export type Query = {
   openTransactionsByUser: Array<Transaction>;
   recentAddedItems: Array<Item>;
   recentUpdateCategories: Array<Scalars['String']['output']>;
+  recommendedItems: Array<Item>;
   transaction?: Maybe<Transaction>;
   transactions: Array<Transaction>;
   transactionsByItem: Array<Transaction>;
@@ -421,6 +433,13 @@ export type QueryRecentUpdateCategoriesArgs = {
 };
 
 
+export type QueryRecommendedItemsArgs = {
+  category?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  type: RecommendationType;
+};
+
+
 export type QueryTransactionArgs = {
   id: Scalars['ID']['input'];
 };
@@ -453,6 +472,13 @@ export type QueryUsersArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export enum RecommendationType {
+  AdminPicked = 'ADMIN_PICKED',
+  NewArrivals = 'NEW_ARRIVALS',
+  Popular = 'POPULAR',
+  UserPicked = 'USER_PICKED'
+}
+
 export enum Role {
   Admin = 'ADMIN',
   ExchangePointAdmin = 'EXCHANGE_POINT_ADMIN',
@@ -470,12 +496,15 @@ export type SignedUrlResponse = {
 export type Transaction = {
   __typename?: 'Transaction';
   createdAt: Scalars['Date']['output'];
+  details?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  images?: Maybe<Array<Scalars['String']['output']>>;
   item: Item;
   location?: Maybe<Location>;
   receiver?: Maybe<User>;
   requestor: User;
   status: TransactionStatus;
+  thumbnails?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['Date']['output'];
 };
 
@@ -507,6 +536,7 @@ export type User = {
   itemCategory?: Maybe<Array<Category>>;
   location?: Maybe<Location>;
   nickname?: Maybe<Scalars['String']['output']>;
+  pinItems?: Maybe<Array<Item>>;
   role: Role;
 };
 
@@ -559,7 +589,7 @@ export type GetUserForItemQueryVariables = Exact<{
 }>;
 
 
-export type GetUserForItemQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, exchangePoints?: Array<string> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+export type GetUserForItemQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, exchangePoints?: Array<string> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null, pinItems?: Array<{ __typename?: 'Item', id: string }> | null } | null };
 
 export type OpenTransactionsByItemQueryVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -567,6 +597,20 @@ export type OpenTransactionsByItemQueryVariables = Exact<{
 
 
 export type OpenTransactionsByItemQuery = { __typename?: 'Query', openTransactionsByItem: Array<{ __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any, requestor: { __typename?: 'User', id: string, nickname?: string | null, email: string } }> };
+
+export type PinItemMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type PinItemMutation = { __typename?: 'Mutation', pinItem: boolean };
+
+export type UnpinItemMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type UnpinItemMutation = { __typename?: 'Mutation', unpinItem: boolean };
 
 export type CreateItemMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -676,7 +720,7 @@ export type UserQueryVariables = Exact<{
 }>;
 
 
-export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, isVerified: boolean, isActive: boolean, role: Role, exchangePoints?: Array<string> | null, itemCategory?: Array<{ __typename?: 'Category', category: string, count: number }> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, isVerified: boolean, isActive: boolean, role: Role, exchangePoints?: Array<string> | null, itemCategory?: Array<{ __typename?: 'Category', category: string, count: number }> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null, pinItems?: Array<{ __typename?: 'Item', id: string, name: string, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> | null } | null };
 
 export type UpdateUserMutationVariables = Exact<{
   address?: InputMaybe<Scalars['String']['input']>;
@@ -718,6 +762,14 @@ export type HotCategoriesQueryVariables = Exact<{
 
 
 export type HotCategoriesQuery = { __typename?: 'Query', hotCategories: Array<string> };
+
+export type RecommendedItemsQueryVariables = Exact<{
+  type: RecommendationType;
+  limit: Scalars['Int']['input'];
+}>;
+
+
+export type RecommendedItemsQuery = { __typename?: 'Query', recommendedItems: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, condition: ItemCondition, ownerId: string, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
 
 export type GetExchangePointsCountQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1057,6 +1109,9 @@ export const GetUserForItemDocument = gql`
       latitude
       longitude
     }
+    pinItems {
+      id
+    }
   }
 }
     `;
@@ -1141,6 +1196,68 @@ export type OpenTransactionsByItemQueryHookResult = ReturnType<typeof useOpenTra
 export type OpenTransactionsByItemLazyQueryHookResult = ReturnType<typeof useOpenTransactionsByItemLazyQuery>;
 export type OpenTransactionsByItemSuspenseQueryHookResult = ReturnType<typeof useOpenTransactionsByItemSuspenseQuery>;
 export type OpenTransactionsByItemQueryResult = Apollo.QueryResult<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>;
+export const PinItemDocument = gql`
+    mutation PinItem($itemId: ID!) {
+  pinItem(itemId: $itemId)
+}
+    `;
+export type PinItemMutationFn = Apollo.MutationFunction<PinItemMutation, PinItemMutationVariables>;
+
+/**
+ * __usePinItemMutation__
+ *
+ * To run a mutation, you first call `usePinItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePinItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pinItemMutation, { data, loading, error }] = usePinItemMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function usePinItemMutation(baseOptions?: Apollo.MutationHookOptions<PinItemMutation, PinItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PinItemMutation, PinItemMutationVariables>(PinItemDocument, options);
+      }
+export type PinItemMutationHookResult = ReturnType<typeof usePinItemMutation>;
+export type PinItemMutationResult = Apollo.MutationResult<PinItemMutation>;
+export type PinItemMutationOptions = Apollo.BaseMutationOptions<PinItemMutation, PinItemMutationVariables>;
+export const UnpinItemDocument = gql`
+    mutation UnpinItem($itemId: ID!) {
+  unpinItem(itemId: $itemId)
+}
+    `;
+export type UnpinItemMutationFn = Apollo.MutationFunction<UnpinItemMutation, UnpinItemMutationVariables>;
+
+/**
+ * __useUnpinItemMutation__
+ *
+ * To run a mutation, you first call `useUnpinItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnpinItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unpinItemMutation, { data, loading, error }] = useUnpinItemMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useUnpinItemMutation(baseOptions?: Apollo.MutationHookOptions<UnpinItemMutation, UnpinItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnpinItemMutation, UnpinItemMutationVariables>(UnpinItemDocument, options);
+      }
+export type UnpinItemMutationHookResult = ReturnType<typeof useUnpinItemMutation>;
+export type UnpinItemMutationResult = Apollo.MutationResult<UnpinItemMutation>;
+export type UnpinItemMutationOptions = Apollo.BaseMutationOptions<UnpinItemMutation, UnpinItemMutationVariables>;
 export const CreateItemDocument = gql`
     mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!, $deposit: Int) {
   createItem(
@@ -1766,6 +1883,19 @@ export const UserDocument = gql`
       latitude
       longitude
     }
+    pinItems {
+      id
+      name
+      condition
+      status
+      images
+      thumbnails
+      category
+      location {
+        latitude
+        longitude
+      }
+    }
   }
 }
     `;
@@ -2029,6 +2159,58 @@ export type HotCategoriesQueryHookResult = ReturnType<typeof useHotCategoriesQue
 export type HotCategoriesLazyQueryHookResult = ReturnType<typeof useHotCategoriesLazyQuery>;
 export type HotCategoriesSuspenseQueryHookResult = ReturnType<typeof useHotCategoriesSuspenseQuery>;
 export type HotCategoriesQueryResult = Apollo.QueryResult<HotCategoriesQuery, HotCategoriesQueryVariables>;
+export const RecommendedItemsDocument = gql`
+    query RecommendedItems($type: RecommendationType!, $limit: Int!) {
+  recommendedItems(type: $type, limit: $limit) {
+    id
+    name
+    category
+    status
+    images
+    thumbnails
+    condition
+    location {
+      latitude
+      longitude
+    }
+    ownerId
+  }
+}
+    `;
+
+/**
+ * __useRecommendedItemsQuery__
+ *
+ * To run a query within a React component, call `useRecommendedItemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRecommendedItemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRecommendedItemsQuery({
+ *   variables: {
+ *      type: // value for 'type'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useRecommendedItemsQuery(baseOptions: Apollo.QueryHookOptions<RecommendedItemsQuery, RecommendedItemsQueryVariables> & ({ variables: RecommendedItemsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RecommendedItemsQuery, RecommendedItemsQueryVariables>(RecommendedItemsDocument, options);
+      }
+export function useRecommendedItemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RecommendedItemsQuery, RecommendedItemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RecommendedItemsQuery, RecommendedItemsQueryVariables>(RecommendedItemsDocument, options);
+        }
+export function useRecommendedItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RecommendedItemsQuery, RecommendedItemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RecommendedItemsQuery, RecommendedItemsQueryVariables>(RecommendedItemsDocument, options);
+        }
+export type RecommendedItemsQueryHookResult = ReturnType<typeof useRecommendedItemsQuery>;
+export type RecommendedItemsLazyQueryHookResult = ReturnType<typeof useRecommendedItemsLazyQuery>;
+export type RecommendedItemsSuspenseQueryHookResult = ReturnType<typeof useRecommendedItemsSuspenseQuery>;
+export type RecommendedItemsQueryResult = Apollo.QueryResult<RecommendedItemsQuery, RecommendedItemsQueryVariables>;
 export const GetExchangePointsCountDocument = gql`
     query GetExchangePointsCount {
   exchangePointsCount
