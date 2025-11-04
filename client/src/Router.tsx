@@ -209,19 +209,23 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                   </ListItemText>
                 </MenuItem>
 
-                <MenuItem onClick={handleAddItem}>
-                  <ListItemIcon>
-                    <AddIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>{t("item.add", "Add Item")}</ListItemText>
-                </MenuItem>
+                {user?.isVerified && ( // Only show add options if user is verified
+                  <MenuItem onClick={handleAddItem}>
+                    <ListItemIcon>
+                      <AddIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>{t("item.add", "Add Item")}</ListItemText>
+                  </MenuItem>
+                )}
 
-                <MenuItem onClick={handleAddNews}>
-                  <ListItemIcon>
-                    <NewsIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>{t("news.add", "Add News")}</ListItemText>
-                </MenuItem>
+                {user?.role === Role.Admin && ( // Only show add news option for admin users
+                  <MenuItem onClick={handleAddNews}>
+                    <ListItemIcon>
+                      <NewsIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>{t("news.add", "Add News")}</ListItemText>
+                  </MenuItem>
+                )}
 
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>
@@ -275,7 +279,11 @@ export const createRouter = (
       children: [
         {
           index: true,
-          element: initialPath ? <Navigate to={initialPath} replace /> : <Home />,
+          element: initialPath ? (
+            <Navigate to={initialPath} replace />
+          ) : (
+            <Home />
+          ),
         },
         {
           path: "news",

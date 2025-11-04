@@ -47,8 +47,9 @@ import SafeImage from "./SafeImage";
 import RequestConfirmationDialog from "./RequestConfirmationDialog";
 import EditItemForm from "./EditItemForm";
 import FaceToFaceConfirmDialog from "./FaceToFaceConfirmDialog";
-import ItemComments from './ItemComments';
+import ItemComments from "./ItemComments";
 import { convertLinksToClickable } from "../utils/helpers";
+import { AuthDialog } from "./Auth";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -172,6 +173,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Simplified auth state
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authDefaultSignUp, setAuthDefaultSignUp] = useState(false);
+  const [pendingRequestAction, setPendingRequestAction] = useState(false);
 
   // Add edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -327,7 +333,33 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
   };
 
   const handleRequestClick = () => {
+    if (!user) {
+      setAuthDefaultSignUp(false); // Default to sign in
+      setAuthDialogOpen(true);
+      setPendingRequestAction(true);
+      return;
+    }
+
     setRequestDialogOpen(true);
+  };
+
+  const handleAuthSuccess = () => {
+    setAuthDialogOpen(false);
+
+    setTimeout(() => {
+      if (pendingRequestAction) {
+        setRequestDialogOpen(true);
+      }
+    }, 500);
+  };
+
+  const handleCloseAuthDialog = () => {
+    setAuthDialogOpen(false);
+    setPendingRequestAction(false);
+  };
+
+  const handleSwitchAuthMode = () => {
+    setAuthDefaultSignUp(!authDefaultSignUp);
   };
 
   const handleFaceToFaceClick = () => {
@@ -536,8 +568,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                      }`}
+                    label={`${t("item.owner", "Owner")}: ${
+                      ownerData.user.nickname || ownerData.user.email
+                    }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -557,8 +590,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        }`}
+                      label={`${t("item.holder", "Holder")}: ${
+                        holderData.user.nickname || holderData.user.email
+                      }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -566,8 +600,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
-                    }`}
+                  label={`${t("item.deposit", "deposit")}: ${
+                    data.item.deposit
+                  }`}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -804,40 +839,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={{ mb: 4 }}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "transform 0.2s",
-                          "&:hover": {
-                            transform: "scale(1.05)",
-                          },
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={2}>
+                {(data.item.thumbnails && data.item.thumbnails.length > 0
+                  ? data.item.thumbnails
+                  : data.item.images || []
+                ).map((image, index) => (
+                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "transform 0.2s",
+                        "&:hover": {
+                          transform: "scale(1.05)",
+                        },
+                      }}
+                      onClick={() => handleThumbnailClick(index)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
                         }}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -862,10 +897,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                          ? "info"
-                          : data.item.status === "GIFT"
-                            ? "warning"
-                            : "default"
+                        ? "info"
+                        : data.item.status === "GIFT"
+                        ? "warning"
+                        : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}
@@ -1015,7 +1050,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
               </>
             )}
 
-            {canCreateTransaction && (
+            {(canCreateTransaction || !user) && (
               <Button
                 variant="contained"
                 color="primary"
@@ -1040,6 +1075,22 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         onClose={() => setEditDialogOpen(false)}
         onItemUpdated={handleEditSuccess}
         onError={handleEditError}
+      />
+
+      {/* Unified Authentication Dialog */}
+      <AuthDialog
+        open={authDialogOpen}
+        onClose={handleCloseAuthDialog}
+        onSuccess={handleAuthSuccess}
+        onForgotPassword={() => {
+          alert(
+            t(
+              "auth.resetPasswordInfo",
+              "Please contact support to reset your password."
+            )
+          );
+        }}
+        defaultIsSignUp={authDefaultSignUp}
       />
 
       {/* Request Confirmation Dialog - Pass transactions data */}
@@ -1186,7 +1237,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {selectedImageIndex + 1} / {data.item.images.length}
               </Typography>
             )}
-
           </Box>
         </Fade>
       </Modal>

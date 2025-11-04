@@ -218,7 +218,7 @@ const HomePage: React.FC = () => {
       {/* Welcome Section */}
       <ListItem>
         <Box sx={{ width: "100%" }}>
-          {user ? (
+          {user?.isVerified ? (
             <Box>
               <Typography variant="h5" sx={{ mb: 2 }}>
                 {t("home.welcome", { nickname: user.nickname })}

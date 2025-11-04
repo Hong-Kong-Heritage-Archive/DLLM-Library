@@ -48,8 +48,14 @@ export class UserService {
   async me(loginUser: LoginUser | null): Promise<User | null> {
     if (!loginUser) throw new Error("Not authenticated");
     // check if user's email is verified
-    const user = await this.userById(loginUser.uid);
-    if (!user) return null;
+    let user = await this.userById(loginUser.uid);
+    if (!user) {
+      user = await this.createUser(
+        loginUser,
+        loginUser.email,
+        "" // default empty address
+      );
+    }
     if (!user.isVerified && loginUser.emailVerified) {
       // update user to verified if email is verified
       await userCollection.doc(loginUser.uid).update({ isVerified: true });
@@ -179,29 +185,30 @@ export class UserService {
 
     let resolvedLocation: Location | undefined | null = undefined;
 
-    if (address) {
+    if (address && address.trim().length > 0) {
       resolvedLocation = await this.mapService.resolveLocationAndGeohash(
         address
       );
     }
 
-    const userData: UserModel = {
+    let userData: UserModel = {
       id: loginUser.uid,
       email: loginUser.email,
       nickname: nickname || undefined,
-      location: resolvedLocation
-        ? {
-            latitude: resolvedLocation.latitude,
-            longitude: resolvedLocation.longitude,
-          }
-        : undefined,
-      address: address || undefined,
       role: Role.User,
       isActive: true,
       isVerified: false,
       created: Timestamp.now(),
-      geohash: resolvedLocation?.geohash || undefined,
     };
+    if (resolvedLocation && resolvedLocation.geohash) {
+      userData.geohash = resolvedLocation.geohash;
+      userData.address = address;
+      userData.location = {
+        latitude: resolvedLocation.latitude,
+        longitude: resolvedLocation.longitude,
+      };
+    }
+
     await userCollection.doc(loginUser.uid).set(userData);
     return { createdAt: userData.created.seconds * 1000, ...userData } as User;
   }
