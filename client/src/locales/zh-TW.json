@@ -244,7 +244,7 @@
     "loadingOnLoanItems": "載入我借出的物品中...",
     "errorLoadingOnLoanItems": "載入我借出的物品時出現錯誤",
     "noBorrowedItems": "您目前沒有借出的物品",
-    "noBorrowedItemsDescription": "當您從其他用戶那裡借用物品時，它們將顯示在這裡。",
+    "noBorrowedItemsDescription": "當您向其他用戶借出物品時，它們將顯示在這裡。",
     "borrowedItemsCount": "您有 {{count}} 件借出的物品",
     "showingResults": "顯示 {{start}}-{{end}} 的 {{total}} 項結果",
     "previousHolder": "前持有者",
