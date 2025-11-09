@@ -257,7 +257,7 @@ type Query {
     keyword: String
     isExchangePointItem: Boolean
   ): Int! # 基於User的藏品總數
-  itemsOnLoanByUser(
+  itemsOnLoanByUser( 
     userId: ID!
     category: [String!]
     status: ItemStatus

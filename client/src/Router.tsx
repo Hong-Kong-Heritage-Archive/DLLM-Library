@@ -48,6 +48,7 @@ import MainLayout from "./components/MainLayout";
 import ExchangePointsPage from "./routes/ExchangePoints";
 import ProfilePage from "./routes/Profile";
 
+
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
     openTransactionsByUser(userId: $userId) {

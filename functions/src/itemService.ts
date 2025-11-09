@@ -76,6 +76,7 @@ export class ItemService {
     return filteredItems;
   }
 
+
   async totalItemsCountByLocation(
     latitude: number,
     longitude: number,
