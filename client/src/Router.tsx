@@ -41,9 +41,13 @@ import LanguageSwitcher from "./components/LanguageSwitcher";
 
 import ItemForm from "./components/ItemForm";
 import NewsForm from "./components/NewsForm";
-import { gql, useMutation, useApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
 import OnLoanItemsView from "./routes/OnLoanItemsView";
 import BorrowedItemsView from "./routes/BorrowedItemsView";
+import MainLayout from "./components/MainLayout";
+import ExchangePointsPage from "./routes/ExchangePoints";
+import ProfilePage from "./routes/Profile";
+
 
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
@@ -123,7 +127,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
     navigate("/items/on-loan");
     handleMenuClose();
   };
-  
+
   const handleBorrowedItems = () => {
     navigate("/items/borrowed-items");
     handleMenuClose();
