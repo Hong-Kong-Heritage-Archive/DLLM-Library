@@ -306,7 +306,8 @@ export class TransactionService {
       toList,
       ccList,
       "New Transaction Request",
-      `You have a new transaction request for item ${item.name} from ${requestor.nickname}.`
+      `You have a new transaction request for item ${item.name} from ${requestor.nickname}.`,
+      "transaction/" + transactionRef.id
     );
     let rv: Transaction = {
       id: transactionRef.id,
@@ -544,7 +545,8 @@ export class TransactionService {
         toList,
         ccList,
         emailDetail.subject,
-        emailDetail.body
+        emailDetail.body,
+        "transaction/" + id
       );
     }
     let rv: Transaction = {
