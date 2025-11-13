@@ -79,8 +79,8 @@ const ExchangePointsPage: React.FC = () => {
 
   const totalPages = exchangePointsCountData?.exchangePointsCount
     ? Math.ceil(
-        exchangePointsCountData.exchangePointsCount / exchangePointsPerPage
-      )
+      exchangePointsCountData.exchangePointsCount / exchangePointsPerPage
+    )
     : 0;
 
   return (
@@ -97,7 +97,7 @@ const ExchangePointsPage: React.FC = () => {
 
       {exchangePointsError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {t("home.exchangePointsError", "Error loading exchange points")}:{" "}
+          {t("userProfile.exchangePointsError", "Error loading exchange points")}:{" "}
           {exchangePointsError.message}
         </Alert>
       )}
@@ -149,7 +149,7 @@ const ExchangePointsPage: React.FC = () => {
             sx={{ mt: 2, textAlign: "center" }}
           >
             {t(
-              "home.exchangePointsCount",
+              "userProfile.exchangePointsCount",
               "{{current}} of {{total}} exchange points",
               {
                 current: exchangePointsData.exchangePoints.length,
@@ -163,10 +163,10 @@ const ExchangePointsPage: React.FC = () => {
       {!exchangePointsLoading &&
         exchangePointsData?.exchangePoints?.length === 0 && (
           <Alert severity="info">
-            {t("home.noExchangePoints", "No exchange points available.")}
-          </Alert>
+            {t("userProfile.noExchangePoints", "No exchange points available.")}
+          </Alert >
         )}
-    </Container>
+    </Container >
   );
 };
 

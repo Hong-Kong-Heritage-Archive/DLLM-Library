@@ -132,7 +132,7 @@ const ItemPreview2: React.FC<ItemPreview2Props> = ({ item, onClick }) => {
 
           {/* Status Badge - Top Right */}
           <Chip
-            label={t(`item.${item.status.toLowerCase()}`, item.status)}
+            label={t(`shortStatus.${item.status}`, item.status)}
             size="small"
             sx={{
               position: "absolute",

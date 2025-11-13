@@ -225,9 +225,9 @@ const TransactionsPage: React.FC = () => {
         <Alert severity="info" sx={{ mt: 2 }}>
           {activeTab === 0
             ? t(
-                "transactions.noOpenTransactions",
-                "No open transactions found."
-              )
+              "transactions.noOpenTransactions",
+              "No open transactions found."
+            )
             : t("transactions.noTransactions", "No transactions found.")}
         </Alert>
       );

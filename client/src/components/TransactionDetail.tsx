@@ -675,9 +675,9 @@ const TransactionDetailPage: React.FC = () => {
         <Alert severity="error">
           {error
             ? `${t(
-                "transactions.errorLoading",
-                "Error loading transaction"
-              )}: ${error.message}`
+              "transactions.errorLoading",
+              "Error loading transaction"
+            )}: ${error.message}`
             : t("transactions.notFound", "Transaction not found")}
         </Alert>
       </Container>
@@ -754,7 +754,7 @@ const TransactionDetailPage: React.FC = () => {
 
   // Generate the full transaction URL
   const transactionUrl = `${window.location.origin}/transaction/${transactionId}`;
-
+  console.log("transactionDetails:", transactionDetails);
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       {/* Header */}
@@ -820,11 +820,22 @@ const TransactionDetailPage: React.FC = () => {
               />
             </ListItem>
           </Grid>
+
+          <Grid>
+            {transactionDetails &&
+              Object.entries(transactionDetails).map(([key, value]) => (
+                <ListItem key={key} sx={{ px: 0 }}>
+                  <ListItemText
+                    primary={t(`transactions.transactionDetails.${key}`, key)}
+                    secondary={String(value)}
+                  />
+                </ListItem>
+              ))}</Grid>
         </Grid>
       </Paper>
 
       {/* Transaction Details Section - Add this new section */}
-      {transactionDetails && (
+      {/* {transactionDetails && (
         <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
           <Box
             sx={{
@@ -893,7 +904,7 @@ const TransactionDetailPage: React.FC = () => {
             </Box>
           )}
         </Paper>
-      )}
+      )} */}
 
       {/* Item Info */}
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -1142,9 +1153,9 @@ const TransactionDetailPage: React.FC = () => {
                     secondary={
                       holder
                         ? t(
-                            "transactions.holderIsRequestor",
-                            "Requestor has the item"
-                          )
+                          "transactions.holderIsRequestor",
+                          "Requestor has the item"
+                        )
                         : t("transactions.ownerHasItem", "Owner has the item")
                     }
                   />
@@ -1156,49 +1167,52 @@ const TransactionDetailPage: React.FC = () => {
       </Paper>
 
       {/* Exchange Location Map */}
-      {location && (
-        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-          <Typography
-            variant="h6"
-            sx={{ mb: 2, display: "flex", alignItems: "center" }}
-          >
-            <LocationOnIcon sx={{ mr: 1 }} />
-            {t("transactions.exchangeLocation", "Exchange Location")}
-          </Typography>
-
-          <Box
-            sx={{
-              height: 300,
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 1,
-            }}
-          >
-            <MapContainer
-              center={[location.latitude, location.longitude]}
-              zoom={15}
-              style={{ height: "100%", width: "100%" }}
+      {
+        location && (
+          <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+            <Typography
+              variant="h6"
+              sx={{ mb: 2, display: "flex", alignItems: "center" }}
             >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={[location.latitude, location.longitude]}>
-                <Popup>
-                  <Typography variant="body2">
-                    {t("transactions.exchangePoint", "Exchange Point")}
-                    <br />
-                    {transaction.item.name}
-                  </Typography>
-                </Popup>
-              </Marker>
-            </MapContainer>
-          </Box>
-        </Paper>
-      )}
+              <LocationOnIcon sx={{ mr: 1 }} />
+              {t("transactions.exchangeLocation", "Exchange Location")}
+            </Typography>
+
+            <Box
+              sx={{
+                height: 300,
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+              }}
+            >
+              <MapContainer
+                center={[location.latitude, location.longitude]}
+                zoom={15}
+                style={{ height: "100%", width: "100%" }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={[location.latitude, location.longitude]}>
+                  <Popup>
+                    <Typography variant="body2">
+                      {t("transactions.exchangePoint", "Exchange Point")}
+                      <br />
+                      {transaction.item.name}
+                    </Typography>
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            </Box>
+          </Paper>
+        )
+      }
 
       {/* Add Receipt Images Section - Show when completed */}
-      {transaction.status === TransactionStatus.Completed &&
+      {
+        transaction.status === TransactionStatus.Completed &&
         transaction.images &&
         transaction.images.length > 0 && (
           <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -1250,7 +1264,8 @@ const TransactionDetailPage: React.FC = () => {
               ))}
             </ImageList>
           </Paper>
-        )}
+        )
+      }
 
       {/* Action Buttons */}
       <Paper elevation={1} sx={{ p: 3 }}>
@@ -1402,13 +1417,13 @@ const TransactionDetailPage: React.FC = () => {
             ((isReceiver || isQuickExchange) &&
               transaction.status === TransactionStatus.Transfered)
           ) && (
-            <Alert severity="info" sx={{ width: "100%" }}>
-              {t(
-                "transactions.noActionsAvailable",
-                "No actions available for this transaction."
-              )}
-            </Alert>
-          )}
+              <Alert severity="info" sx={{ width: "100%" }}>
+                {t(
+                  "transactions.noActionsAvailable",
+                  "No actions available for this transaction."
+                )}
+              </Alert>
+            )}
         </Box>
       </Paper>
 
@@ -1443,7 +1458,7 @@ const TransactionDetailPage: React.FC = () => {
         transactionUrl={transactionUrl}
         itemName={transaction.item?.name || ""}
       />
-    </Container>
+    </Container >
   );
 };
 

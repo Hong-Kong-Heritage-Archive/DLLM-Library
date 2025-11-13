@@ -42,19 +42,19 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
         disabled={!hasPrevPage || isLoading}
         size="small"
       >
-        {t("pagination.prev", "Previous")}
+        {t("common.previous", "Previous")}
       </Button>
 
       {showPageInfo && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Typography variant="body2">
-            {t("pagination.page", "Page")} {currentPage}
+            {t("common.pageNum", { page: currentPage })}
           </Typography>
           {totalItems !== undefined && (
             <Typography variant="body2" color="text.secondary">
               (
               {t(
-                "pagination.showing",
+                "common.showing",
                 "showing {{start}}-{{end}} of {{total}}",
                 {
                   start: (currentPage - 1) * itemsPerPage + 1,
@@ -74,7 +74,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
         disabled={!hasNextPage || isLoading}
         size="small"
       >
-        {t("pagination.next", "Next")}
+        {t("common.next", "Next")}
       </Button>
     </Box>
   );

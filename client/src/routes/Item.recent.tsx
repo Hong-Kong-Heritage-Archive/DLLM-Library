@@ -125,44 +125,48 @@ const ItemRecentPage: React.FC = () => {
       </Box>
 
       <Container maxWidth="lg">
-        {/* Filters */}
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            gap: 2,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>{t("item.status")}</InputLabel>
-            <Select
-              value={statusFilter}
-              label={t("item.status")}
-              onChange={(e) => setStatusFilter(e.target.value)}
+        {!loading && (
+          <>
+            {/* Filters */}
+            <Box
+              sx={{
+                mb: 3,
+                display: "flex",
+                gap: 2,
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
             >
-              <MenuItem value="">{t("common.all", "All")}</MenuItem>
-              <MenuItem value="AVAILABLE">{t("item.available")}</MenuItem>
-              <MenuItem value="EXCHANGEABLE">{t("item.exchangeable")}</MenuItem>
-              <MenuItem value="GIFT">{t("item.gift")}</MenuItem>
-              <MenuItem value="RESERVED">{t("item.reserved")}</MenuItem>
-            </Select>
-          </FormControl>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>{t("item.status")}</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label={t("item.status")}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="">{t("common.all", "All")}</MenuItem>
+                  <MenuItem value="AVAILABLE">{t("item.available")}</MenuItem>
+                  <MenuItem value="EXCHANGEABLE">
+                    {t("item.exchangeable")}
+                  </MenuItem>
+                  <MenuItem value="GIFT">{t("item.gift")}</MenuItem>
+                  <MenuItem value="RESERVED">{t("item.reserved")}</MenuItem>
+                </Select>
+              </FormControl>
 
-          {/* Results count */}
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ ml: "auto" }}
-          >
-            {loading
-              ? t("common.loading", "Loading...")
-              : t("item.itemsFound", "{{count}} items found", {
+              {/* Results count */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: "auto" }}
+              >
+                {t("itemsAll.itemsFound", "{{count}} items found", {
                   count: filteredItems.length,
                 })}
-          </Typography>
-        </Box>
+              </Typography>
+            </Box>
+          </>
+        )}
 
         {/* Loading State */}
         {loading && (
@@ -225,12 +229,12 @@ const ItemRecentPage: React.FC = () => {
             }}
           >
             <Typography variant="h6" color="text.secondary">
-              {t("item.noItemsFound", "No items found")}
+              {t("itemsAll.noItemsFound", "No items found")}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {statusFilter || selectedCategory
-                ? t("item.tryDifferentFilters", "Try adjusting your filters")
-                : t("item.noItemsYet", "No items available yet")}
+                ? t("itemsAll.tryDifferentFilters", "Try adjusting your filters")
+                : t("itemsAll.noItemsYet", "No items available yet")}
             </Typography>
           </Box>
         )}

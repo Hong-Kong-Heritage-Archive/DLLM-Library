@@ -240,7 +240,7 @@ const ItemComments: React.FC<ItemCommentsProps> = ({ itemId, currentUser }) => {
                               newComment.length > maxChar ? "red" : "inherit",
                           }}
                         >
-                          {newComment.length}/maxChar{" "}
+                          {newComment.length}/{maxChar}{" "}
                           {t("comments.characters", "characters")}
                         </span>
                       )}

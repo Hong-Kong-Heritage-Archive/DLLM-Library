@@ -161,7 +161,6 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
           >
             {t("app.title", "DLLM Library")}
           </Typography>
-          <LanguageSwitcher />
           {/* Notification Bell - only show for authenticated users */}
           {user && (
             <IconButton
@@ -206,7 +205,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                     <PersonIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>
-                    {t("user.profile", "User Profile")}
+                    {t("home.profile", "User Profile")}
                   </ListItemText>
                 </MenuItem>
 
@@ -233,7 +232,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                     <ListItemIcon>
                       <AddIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>{t("item.add", "Add Item")}</ListItemText>
+                    <ListItemText>{t("item.create", "Add Item")}</ListItemText>
                   </MenuItem>
                 )}
 
@@ -242,7 +241,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                     <ListItemIcon>
                       <NewsIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>{t("news.add", "Add News")}</ListItemText>
+                    <ListItemText>{t("news.create", "Add News")}</ListItemText>
                   </MenuItem>
                 )}
 
@@ -252,6 +251,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
                   </ListItemIcon>
                   <ListItemText>{t("auth.signOut", "Sign Out")}</ListItemText>
                 </MenuItem>
+
               </Menu>
             </>
           )}
@@ -263,23 +263,27 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
       </Container>
 
       {/* Item Form Dialog */}
-      {showItemForm && (
-        <ItemForm
-          open={showItemForm}
-          onClose={() => setShowItemForm(false)}
-          onItemCreated={handleItemCreated}
-        />
-      )}
+      {
+        showItemForm && (
+          <ItemForm
+            open={showItemForm}
+            onClose={() => setShowItemForm(false)}
+            onItemCreated={handleItemCreated}
+          />
+        )
+      }
 
       {/* News Form Dialog */}
-      {showNewsForm && (
-        <NewsForm
-          open={showNewsForm}
-          onClose={() => setShowNewsForm(false)}
-          onNewsCreated={handleNewsCreated}
-        />
-      )}
-    </Box>
+      {
+        showNewsForm && (
+          <NewsForm
+            open={showNewsForm}
+            onClose={() => setShowNewsForm(false)}
+            onNewsCreated={handleNewsCreated}
+          />
+        )
+      }
+    </Box >
   );
 };
 

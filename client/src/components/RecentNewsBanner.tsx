@@ -200,7 +200,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
               },
             }}
           >
-            {t("news.viewAll")} →
+            {t("news.viewAll")} ↓
           </Typography>
         </Box>
       </Box>

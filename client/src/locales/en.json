@@ -16,6 +16,7 @@
     "createProfile": "Create Profile",
     "cancel": "Cancel",
     "submit": "Submit",
+    "loginRequired": "Please log in to view your transactions.",
     "confirmPassword": "Confirm Password",
     "passwordsDoNotMatch": "Passwords do not match",
     "passwordTooShort": "Password must be at least 6 characters long",
@@ -42,6 +43,9 @@
     "displayNearbyItems": "Display nearby items",
     "itemsWithinRadius": "Items within 10km",
     "createUserPrompt": "Please create your user profile",
+    "profile": "User Profile",
+    "onLoanItems": "Items on Loan",
+    "onBorrowItems": "Items I've borrowed",
     "userPickedItems": "Recommended for You",
     "newArrivals": "New Arrivals",
     "popularItems": "Popular Items",
@@ -96,7 +100,10 @@
     "viewMore": "View More",
     "null": "null",
     "copy": "Copy",
-    "close": "Close",
+    "pageNum": "Page {{page}}",
+    "previous": "previous",
+    "next": "Next",
+    "showing": "showing {{start}}-{{end}} of {{total}}",
     "or": "or"
   },
   "location": {
@@ -140,6 +147,18 @@
     "relatedItemIds": "Related Item IDs (comma-separated)",
     "relatedItemIdsHelper": "e.g., itemID1,itemID2",
     "tagsHelper": "e.g., announcement,update"
+  },
+  "shortStatus": {
+    "available": "Available",
+    "exchangeable": "Exchangeable",
+    "gift": "Gift",
+    "reserved": "Reserved",
+    "transferred": "Transferred",
+    "AVAILABLE": "Available",
+    "EXCHANGEABLE": "Exchangeable",
+    "GIFT": "Gift",
+    "RESERVED": "Reserved",
+    "TRANSFERRED": "Transferred"
   },
   "item": {
     "recentlyAdded": "Recently Added {{category}}",
@@ -280,8 +299,11 @@
     "updateSuccess": "User profile updated successfully!",
     "exchangePoints": "Exchange Points",
     "exchangePointsHelper": "Select exchange points where you can meet for item handovers",
+    "exchangePointsError": "Error loading exchange points",
+    "noExchangePoints": "No exchange points available.",
     "loadingExchangePoints": "Loading exchange points...",
-    "selectedPoints": "{{count}} exchange point(s) selected",
+    "selecPtedPoints": "{{count}} exchange point(s) selected",
+    "exchangePointsCount": "{{current}} of {{total}} exchange points",
     "locationNotFound": "Could not find location for the address.",
     "geocodeError": "Failed to resolve address location",
     "contactMethods": {
@@ -345,13 +367,28 @@
     "exchangePointItemsHelper": "When enabled, includes items cached at your exchange point in addition to your personal items.",
     "selectCategoryToViewItems": "Select a category below to view items.",
     "noCategories": "No categories available",
+    "viewProfile": "View user profile",
     "addressNotSet": "Exchange Address not set",
     "pinnedItems": "Pinned Items",
     "loadingPinnedItems": "Loading pinned items...",
     "errorLoadingPinnedItems": "Error loading pinned items",
     "noPinnedItemsYou": "You haven't pinned any items yet.",
     "noPinnedItemsUser": "This user hasn't pinned any items.",
-    "pinnedItemsCount": "{{count}} pinned item(s)"
+    "pinnedItemsCount": "{{count}} pinned item(s)",
+    "basicInfo": "Basic Information",
+    "loadingProfile": "Profile Loading",
+    "email": "Email",
+    "joinedOn": "Joined On",
+    "status": {
+      "title": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "address": "Address",
+    "distance": "Distance from you",
+    "contactMethods": "Contact Methods",
+    "nickname": "Nickname",
+    "notSet": "Not Set"
   },
   "transactions": {
     "title": "My Transactions",
@@ -361,7 +398,6 @@
     "transactionDetail": "Transaction Detail",
     "transactionInfo": "Transaction Information",
     "itemInfo": "Item Information",
-    "requestorInfo": "Requestor Information",
     "exchangeLocation": "Exchange Location",
     "exchangePoint": "Exchange Point",
     "actions": "Actions",
@@ -387,6 +423,9 @@
       "cancelled": "Cancelled"
     },
     "details": "Transaction Details",
+    "transactionDetails": {
+      "deposit": "Deposit"
+    },
     "showRaw": "Show Raw JSON",
     "showFormatted": "Show Formatted",
     "share": "Share",
@@ -398,6 +437,17 @@
     "shareVia": "Share via...",
     "shareViaApps": "Share via Messaging Apps",
     "linkCopied": "Link copied to clipboard!",
+    "requestorInfo": "Requestor Information",
+    "receiverInfo": "Receiver Information",
+    "holderInfo": "Current Holder",
+    "ownerInfo": "Owner",
+    "receiptImages": "Item Condition at Receipt",
+    "receiptImagesDescription": "Photos taken when the item was received, documenting its condition.",
+    "receiptImage": "Receipt Image {{number}}",
+    "receiveError": "Failed to confirm receipt",
+    "holderIsRequestor": "Requestor has the item",
+    "ownerHasItem": "Owner has the item",
+    "participants": "Participants",
     "authRequired": "Authentication Required",
     "authRequiredMessage": "To confirm receipt of this item, please sign in to your account or create a new one.",
     "signInToConfirm": "Please sign in or create an account to confirm receipt of this item."
@@ -408,6 +458,10 @@
     "keywordPlaceholder": "Enter book title prefix...",
     "keywordRequired": "Keyword is required to search",
     "selectCategory": "Category (Optional)",
+    "itemsFound": "{{count}} items found",
+    "noItemsFound": "No items found",
+    "tryDifferentFilters": "Try adjusting your filters",
+    "noItemsYet": "No items available yet",
     "allCategories": "All Categories",
     "activeFilters": "Active filters:",
     "searchResults": "Search results for \"{{keyword}}\"",
@@ -440,6 +494,9 @@
     "pageInfo": "Page {{current}}",
     "show": "Show",
     "perPage": "per page",
-    "showing": "Showing {{start}}-{{end}} of {{total}}"
+    "showing": "Showing {{start}}-{{end}} of {{total}}",
+    "inputLabel": "Your Comment",
+    "helperText": "Share your thoughts about this item",
+    "characters": "characters"
   }
 }

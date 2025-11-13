@@ -568,9 +568,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${
-                      ownerData.user.nickname || ownerData.user.email
-                    }`}
+                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
+                      }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -590,9 +589,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${
-                        holderData.user.nickname || holderData.user.email
-                      }`}
+                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
+                        }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -600,9 +598,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${
-                    data.item.deposit
-                  }`}
+                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
+                    }`}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -839,40 +836,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-            <Box sx={{ mb: 4 }}>
-              <Grid container spacing={2}>
-                {(data.item.thumbnails && data.item.thumbnails.length > 0
-                  ? data.item.thumbnails
-                  : data.item.images || []
-                ).map((image, index) => (
-                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                    <Paper
-                      elevation={2}
-                      sx={{
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "transform 0.2s",
-                        "&:hover": {
-                          transform: "scale(1.05)",
-                        },
-                      }}
-                      onClick={() => handleThumbnailClick(index)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "120px",
-                          objectFit: "cover",
+              <Box sx={{ mb: 4 }}>
+                <Grid container spacing={2}>
+                  {(data.item.thumbnails && data.item.thumbnails.length > 0
+                    ? data.item.thumbnails
+                    : data.item.images || []
+                  ).map((image, index) => (
+                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          transition: "transform 0.2s",
+                          "&:hover": {
+                            transform: "scale(1.05)",
+                          },
                         }}
-                      />
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
+                        onClick={() => handleThumbnailClick(index)}
+                      >
+                        <img
+                          src={image}
+                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                          style={{
+                            width: "100%",
+                            height: "120px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -892,15 +889,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("item.status", "Status")}:</strong>{" "}
                   <Chip
-                    label={data.item.status}
+                    label={t(`shortStatus.${data.item.status}`, data.item.status)}
                     color={
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                        ? "info"
-                        : data.item.status === "GIFT"
-                        ? "warning"
-                        : "default"
+                          ? "info"
+                          : data.item.status === "GIFT"
+                            ? "warning"
+                            : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}

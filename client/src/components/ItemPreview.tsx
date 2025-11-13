@@ -62,16 +62,16 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
       ? "80%" // 80% for image when available (vertical)
       : "60%" // 60% for name display area when no image (horizontal assumption)
     : hasImage
-    ? "75%" // 75% for image when available
-    : "60%"; // 60% for name display area when no image
+      ? "75%" // 75% for image when available
+      : "60%"; // 60% for name display area when no image
 
   const contentHeight = isPortrait
     ? hasImage
       ? "20%" // Only 20% for info when image exists (vertical)
       : "40%" // 40% for description when no image
     : hasImage
-    ? "25%" // 25% for info when image exists
-    : "40%"; // 40% for description when no image
+      ? "25%" // 25% for info when image exists
+      : "40%"; // 40% for description when no image
 
   return (
     <Card
@@ -114,7 +114,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
             />
             {/* Status Badge */}
             <Chip
-              label={item.status}
+              label={t(`shortStatus.${item.status}`, item.status)}
               size="small"
               sx={{
                 position: "absolute",
@@ -163,7 +163,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
 
             {/* Status Badge */}
             <Chip
-              label={item.status}
+              label={t(`shortStatus.${item.status}`, item.status)}
               size="small"
               sx={{
                 position: "absolute",
@@ -310,9 +310,8 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
                       ))}
                     {item.category.length > (isPortrait ? 2 : 3) && (
                       <Chip
-                        label={`+${
-                          item.category.length - (isPortrait ? 2 : 3)
-                        }`}
+                        label={`+${item.category.length - (isPortrait ? 2 : 3)
+                          }`}
                         size="small"
                         variant="outlined"
                         sx={{

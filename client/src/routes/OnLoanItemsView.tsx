@@ -265,16 +265,16 @@ const OnLoanItemsView: React.FC = () => {
           <Typography variant="body1" color="text.secondary">
             {enrichedItems.length === 0
               ? t(
-                  "item.noLentItems",
-                  "You currently have no lent items"
-                )
+                "item.noLentItems",
+                "You currently have no lent items"
+              )
               : t(
-                  "item.lentItemsCount",
-                  "You have {{count}} lent item(s)",
-                  {
-                    count: enrichedItems.length,
-                  }
-                )}
+                "item.lentItemsCount",
+                "You have {{count}} lent item(s)",
+                {
+                  count: enrichedItems.length,
+                }
+              )}
           </Typography>
           {enrichedItems.length > 0 && (
             <Typography variant="caption" color="text.secondary">
@@ -327,7 +327,7 @@ const OnLoanItemsView: React.FC = () => {
                           {item.name}
                         </Typography>
                         <Chip
-                          label={item.status}
+                          label={t(`shortStatus.${item.status}`, item.status)}
                           color={
                             item.status === "AVAILABLE" ? "success" : "default"
                           }
@@ -416,17 +416,15 @@ const OnLoanItemsView: React.FC = () => {
                       {/* Condition and Deposit */}
                       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                         <Chip
-                          label={`${t("item.condition", "Condition")}: ${
-                            item.condition
-                          }`}
+                          label={`${t("item.condition", "Condition")}: ${item.condition
+                            }`}
                           variant="outlined"
                           size="small"
                         />
                         {item.deposit && item.deposit > 0 && (
                           <Chip
-                            label={`${t("item.deposit", "Deposit")}: $${
-                              item.deposit
-                            }`}
+                            label={`${t("item.deposit", "Deposit")}: $${item.deposit
+                              }`}
                             variant="outlined"
                             size="small"
                             color="warning"
