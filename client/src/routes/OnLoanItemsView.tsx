@@ -158,13 +158,15 @@ const OnLoanItemsView: React.FC = () => {
         });
 
         // Enrich items with user details
-        const enriched: EnrichedItem[] = data.itemsOnLoanByOwner.map((item) => ({
-          ...item,
-          owner: userMap.get(item.ownerId) || undefined,
-          holder: item.holderId
-            ? userMap.get(item.holderId) || undefined
-            : undefined,
-        }));
+        const enriched: EnrichedItem[] = data.itemsOnLoanByOwner.map(
+          (item) => ({
+            ...item,
+            owner: userMap.get(item.ownerId) || undefined,
+            holder: item.holderId
+              ? userMap.get(item.holderId) || undefined
+              : undefined,
+          })
+        );
 
         setEnrichedItems(enriched);
       } catch (error) {
@@ -207,12 +209,9 @@ const OnLoanItemsView: React.FC = () => {
 
   if (!user) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <Container maxWidth="md" sx={{ py: 2 }}>
         <Alert severity="error">
-          {t(
-            "common.loginRequired",
-            "Please log in to view your lent items"
-          )}
+          {t("common.loginRequired", "Please log in to view your lent items")}
         </Alert>
       </Container>
     );
@@ -221,21 +220,7 @@ const OnLoanItemsView: React.FC = () => {
   const isLoadingContent = loading || loadingUsers;
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-          <BackIcon />
-        </IconButton>
-        <Typography
-          variant="h4"
-          sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 1 }}
-        >
-          <BorrowedIcon />
-          {t("item.myLentItems", "Items I've lent")}
-        </Typography>
-      </Box>
-
+    <Container maxWidth="md" sx={{ py: 2 }}>
       {/* Loading State */}
       {isLoadingContent && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -264,17 +249,10 @@ const OnLoanItemsView: React.FC = () => {
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1" color="text.secondary">
             {enrichedItems.length === 0
-              ? t(
-                "item.noLentItems",
-                "You currently have no lent items"
-              )
-              : t(
-                "item.lentItemsCount",
-                "You have {{count}} lent item(s)",
-                {
+              ? t("item.noLentItems", "You currently have no lent items")
+              : t("item.lentItemsCount", "You have {{count}} lent item(s)", {
                   count: enrichedItems.length,
-                }
-              )}
+                })}
           </Typography>
           {enrichedItems.length > 0 && (
             <Typography variant="caption" color="text.secondary">
@@ -416,15 +394,17 @@ const OnLoanItemsView: React.FC = () => {
                       {/* Condition and Deposit */}
                       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                         <Chip
-                          label={`${t("item.condition", "Condition")}: ${item.condition
-                            }`}
+                          label={`${t("item.condition", "Condition")}: ${
+                            item.condition
+                          }`}
                           variant="outlined"
                           size="small"
                         />
                         {item.deposit && item.deposit > 0 && (
                           <Chip
-                            label={`${t("item.deposit", "Deposit")}: $${item.deposit
-                              }`}
+                            label={`${t("item.deposit", "Deposit")}: $${
+                              item.deposit
+                            }`}
                             variant="outlined"
                             size="small"
                             color="warning"
@@ -494,10 +474,7 @@ const OnLoanItemsView: React.FC = () => {
               sx={{ fontSize: 64, color: "text.disabled", mb: 2 }}
             />
             <Typography variant="h6" sx={{ mb: 1 }}>
-              {t(
-                "item.noLentItems",
-                "You currently have no lent items"
-              )}
+              {t("item.noLentItems", "You currently have no lent items")}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               {t(

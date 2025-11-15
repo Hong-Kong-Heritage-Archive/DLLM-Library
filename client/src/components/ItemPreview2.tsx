@@ -22,10 +22,15 @@ interface ItemPreview2Props {
     createdAt: string;
     category: string[];
   };
+  distance?: number; // Optional distance parameter
   onClick: (itemId: string) => void;
 }
 
-const ItemPreview2: React.FC<ItemPreview2Props> = ({ item, onClick }) => {
+const ItemPreview2: React.FC<ItemPreview2Props> = ({
+  item,
+  distance,
+  onClick,
+}) => {
   const { t } = useTranslation();
 
   const hasImage = item.images && item.images.length > 0;
@@ -171,6 +176,28 @@ const ItemPreview2: React.FC<ItemPreview2Props> = ({ item, onClick }) => {
               },
             }}
           />
+
+          {/* Distance Badge - Bottom Right (if distance provided) */}
+          {distance !== undefined && (
+            <Chip
+              label={`${distance.toFixed(1)} km`}
+              size="small"
+              variant="filled"
+              sx={{
+                position: "absolute",
+                bottom: 4,
+                right: 4,
+                backgroundColor: "rgba(25, 118, 210, 0.9)", // primary color with transparency
+                color: "white",
+                fontSize: "0.55rem",
+                height: 16,
+                fontWeight: "medium",
+                "& .MuiChip-label": {
+                  px: 0.5,
+                },
+              }}
+            />
+          )}
         </Box>
 
         {/* Book Info */}

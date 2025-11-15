@@ -158,13 +158,15 @@ const BorrowedItemsView: React.FC = () => {
         });
 
         // Enrich items with user details
-        const enriched: EnrichedItem[] = data.itemsOnLoanByHolder.map((item) => ({
-          ...item,
-          owner: userMap.get(item.ownerId) || undefined,
-          holder: item.holderId
-            ? userMap.get(item.holderId) || undefined
-            : undefined,
-        }));
+        const enriched: EnrichedItem[] = data.itemsOnLoanByHolder.map(
+          (item) => ({
+            ...item,
+            owner: userMap.get(item.ownerId) || undefined,
+            holder: item.holderId
+              ? userMap.get(item.holderId) || undefined
+              : undefined,
+          })
+        );
 
         setEnrichedItems(enriched);
       } catch (error) {
@@ -221,21 +223,7 @@ const BorrowedItemsView: React.FC = () => {
   const isLoadingContent = loading || loadingUsers;
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-          <BackIcon />
-        </IconButton>
-        <Typography
-          variant="h4"
-          sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 1 }}
-        >
-          <BorrowedIcon />
-          {t("item.myBorrowedItems", "Items I've borrowed")}
-        </Typography>
-      </Box>
-
+    <Container maxWidth="md" sx={{ py: 2 }}>
       {/* Loading State */}
       {isLoadingContent && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -265,16 +253,16 @@ const BorrowedItemsView: React.FC = () => {
           <Typography variant="body1" color="text.secondary">
             {enrichedItems.length === 0
               ? t(
-                "item.noBorrowedItems",
-                "You currently have no borrowed items"
-              )
+                  "item.noBorrowedItems",
+                  "You currently have no borrowed items"
+                )
               : t(
-                "item.borrowedItemsCount",
-                "You have {{count}} borrowed item(s)",
-                {
-                  count: enrichedItems.length,
-                }
-              )}
+                  "item.borrowedItemsCount",
+                  "You have {{count}} borrowed item(s)",
+                  {
+                    count: enrichedItems.length,
+                  }
+                )}
           </Typography>
           {enrichedItems.length > 0 && (
             <Typography variant="caption" color="text.secondary">
@@ -416,15 +404,17 @@ const BorrowedItemsView: React.FC = () => {
                       {/* Condition and Deposit */}
                       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                         <Chip
-                          label={`${t("item.condition", "Condition")}: ${item.condition
-                            }`}
+                          label={`${t("item.condition", "Condition")}: ${
+                            item.condition
+                          }`}
                           variant="outlined"
                           size="small"
                         />
                         {item.deposit && item.deposit > 0 && (
                           <Chip
-                            label={`${t("item.deposit", "Deposit")}: $${item.deposit
-                              }`}
+                            label={`${t("item.deposit", "Deposit")}: $${
+                              item.deposit
+                            }`}
                             variant="outlined"
                             size="small"
                             color="warning"

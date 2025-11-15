@@ -40,6 +40,18 @@ const BaseApp: React.FC = () => {
     setShowResetForm(true);
   };
 
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      setUser(null);
+      // User state will be automatically updated by onAuthStateChanged listener
+      // which will set it to null
+      console.log("User signed out successfully");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   return (
     <>
       {!user && (
@@ -72,7 +84,7 @@ const BaseApp: React.FC = () => {
       )}
 
       <ApolloProvider client={client}>
-        <App user={user} />
+        <App user={user} onSignOut={handleSignOut} />
       </ApolloProvider>
     </>
   );

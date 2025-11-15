@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
-import { auth } from "../firebase";
 import {
   Button,
   Box,
@@ -17,6 +16,7 @@ import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
+import ItemForm from "../components/ItemForm";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
@@ -53,19 +53,26 @@ interface OutletContext {
   email?: string | undefined | null;
   emailVerified?: boolean | undefined | null;
   user?: User;
+  onSignOut: () => Promise<void>;
 }
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
-  const { user, emailVerified, email } = useOutletContext<OutletContext>();
+  const [showItemForm, setShowItemForm] = useState(false);
+  const { user, emailVerified, email, onSignOut } =
+    useOutletContext<OutletContext>();
   const navigate = useNavigate();
 
   const [showCreateUser, setShowCreateUser] = useState(false);
 
   const handleItemCreated = () => {
+    setShowItemForm(false);
     recentCategoriesRefetch();
     hotCategoriesRefetch();
     userPickedRefetch();
+    if (window.location.pathname === "/") {
+      window.location.reload();
+    }
   };
 
   // Query for USER_PICKED recommendations only
@@ -107,8 +114,8 @@ const HomePage: React.FC = () => {
     variables: { limit: 3 },
   });
 
-  const signOut = async () => {
-    await auth.signOut();
+  const handleAddItem = () => {
+    setShowItemForm(true);
   };
 
   const handleUserCreated = () => {
@@ -118,6 +125,14 @@ const HomePage: React.FC = () => {
 
   const handleViewAllItems = () => {
     navigate("/item/all");
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await onSignOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -146,15 +161,7 @@ const HomePage: React.FC = () => {
                   {t("home.welcome")} {email}
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                  {emailVerified ? (
-                    <Button
-                      variant="contained"
-                      onClick={() => setShowCreateUser(true)}
-                      size="large"
-                    >
-                      {t("auth.createProfile")}
-                    </Button>
-                  ) : (
+                  {!emailVerified && (
                     <Button
                       variant="outlined"
                       onClick={async () => {
@@ -169,7 +176,11 @@ const HomePage: React.FC = () => {
                       )}
                     </Button>
                   )}
-                  <Button variant="outlined" onClick={signOut} size="large">
+                  <Button
+                    variant="outlined"
+                    onClick={handleSignOut}
+                    size="large"
+                  >
                     {t("auth.signOut")}
                   </Button>
                 </Box>
@@ -189,6 +200,17 @@ const HomePage: React.FC = () => {
         >
           {t("navigation.viewAllItems")}
         </Button>
+        {user?.isVerified && (
+          <Button
+            variant="contained"
+            onClick={handleAddItem}
+            size="large"
+            fullWidth
+            sx={{ ml: 2 }}
+          >
+            {t("item.create", "Add Item")}
+          </Button>
+        )}
       </ListItem>
 
       {/* User Picked Recommendations Section - Only for active users */}
@@ -300,6 +322,14 @@ const HomePage: React.FC = () => {
           open={showCreateUser}
           isCreateUser={true}
           onClose={() => setShowCreateUser(false)}
+        />
+      )}
+
+      {showItemForm && (
+        <ItemForm
+          open={showItemForm}
+          onClose={() => setShowItemForm(false)}
+          onItemCreated={handleItemCreated}
         />
       )}
     </List>

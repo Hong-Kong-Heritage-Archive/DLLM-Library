@@ -36,14 +36,14 @@ import { User, Item, Category } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
-import ItemSummary from "./ItemSummary";
+import ItemPreview2 from "./ItemPreview2";
 import PaginationControls from "./PaginationControls";
 import { TagCloud } from "react-tagcloud";
 import UpdateUser from "./UserProfile";
 import { USER_DETAIL_QUERY } from "../hook/user";
 import ContactMethods from "./ContactMethods";
-// GraphQL query to fetch user's items with pagination and category filter}
 
+// GraphQL query to fetch user's items with pagination and category filter
 const USER_ITEMS_QUERY = gql`
   query ItemsByUser(
     $userId: ID!
@@ -61,15 +61,19 @@ const USER_ITEMS_QUERY = gql`
     ) {
       id
       name
+      description
       condition
       status
       images
       thumbnails
       category
+      publishedYear
+      language
       location {
         latitude
         longitude
       }
+      createdAt
     }
   }
 `;
@@ -92,6 +96,7 @@ interface UserDetailProps {
   userId: string | null;
   currentUser?: User | null;
   onBack?: () => void;
+  signOut?: () => Promise<void> | undefined;
 }
 
 interface TagCloudData {
@@ -99,12 +104,13 @@ interface TagCloudData {
   count: number;
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12; // Match Item.all.tsx
 
 const UserDetail: React.FC<UserDetailProps> = ({
   userId,
   currentUser,
   onBack,
+  signOut,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -116,9 +122,6 @@ const UserDetail: React.FC<UserDetailProps> = ({
   const [showUpdateUser, setShowUpdateUser] = useState(false);
   const [expanded, setExpanded] = React.useState(false);
 
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
-  };
   const {
     data: userData,
     loading: userLoading,
@@ -180,6 +183,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
 
   const handleItemsPageChange = (newPage: number) => {
     setItemsPage(newPage);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCategoryClick = (tag: TagCloudData) => {
@@ -254,9 +259,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Prepare data for TagCloud component
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-      value: categoryItem.category,
-      count: categoryItem.count,
-    }))
+        value: categoryItem.category,
+        count: categoryItem.count,
+      }))
     : [];
 
   // Custom renderer for TagCloud
@@ -295,6 +300,36 @@ const UserDetail: React.FC<UserDetailProps> = ({
     );
   };
 
+  // Calculate distances for items
+  const itemsWithDistance =
+    itemsData?.itemsByUser.map((item) => ({
+      ...item,
+      distance:
+        item.location && currentUser?.location
+          ? calculateDistance(
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude
+            )
+          : 0,
+    })) || [];
+
+  // Calculate distances for pinned items
+  const pinnedItemsWithDistance =
+    userData?.user?.pinItems?.map((item) => ({
+      ...item,
+      distance:
+        item.location && currentUser?.location
+          ? calculateDistance(
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude
+            )
+          : 0,
+    })) || [];
+
   // Handle case when userId is null
   if (!userId) {
     return (
@@ -317,12 +352,14 @@ const UserDetail: React.FC<UserDetailProps> = ({
   const sortedCategories = userData?.user?.itemCategory;
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header with Back Button */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton onClick={handleBack} sx={{ mr: 2 }}>
-          <ArrowBack />
-        </IconButton>
+        {onBack && (
+          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+            <ArrowBack />
+          </IconButton>
+        )}
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
           {userData?.user ? (
             <>
@@ -351,6 +388,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   size="small"
                   sx={{ ml: 1 }}
                 />
+              )}
+              {signOut && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  sx={{ ml: 2 }}
+                  onClick={signOut}
+                >
+                  {t("auth.signOut", "Sign Out")}
+                </Button>
               )}
             </>
           ) : (
@@ -455,72 +503,60 @@ const UserDetail: React.FC<UserDetailProps> = ({
             </AccordionDetails>
           </Accordion>
 
-          {/* Pinned Items Section - using existing userData */}
-          <Grid size={{ xs: 12 }}>
-            <Box sx={{ mt: 3 }}>
-              <Typography
-                variant="h6"
-                sx={{ mb: 2, display: "flex", alignItems: "center" }}
-              >
-                <LabelIcon sx={{ mr: 1 }} />
-                {t("user.pinnedItems", "Pinned Items")}
-              </Typography>
+          {/* Pinned Items Section - Grid Layout */}
+          <Paper elevation={1} sx={{ p: 4, mt: 3, mb: 3 }}>
+            <Typography
+              variant="h6"
+              sx={{ mb: 2, display: "flex", alignItems: "center" }}
+            >
+              <LabelIcon sx={{ mr: 1 }} />
+              {t("user.pinnedItems", "Pinned Items")}
+            </Typography>
 
-              {userData.user.pinItems && userData.user.pinItems.length > 0 ? (
-                <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
-                  <List>
-                    {userData.user.pinItems.map((item) => (
-                      <ItemSummary
-                        key={item.id}
-                        item={{
-                          id: item.id,
-                          name: item.name,
-                          distance:
-                            item.location && currentUser?.location
-                              ? calculateDistance(
-                                item.location.latitude,
-                                item.location.longitude,
-                                currentUser.location.latitude,
-                                currentUser.location.longitude
-                              )
-                              : 0,
-                          status: item.status,
-                          images: item.images,
-                          thumbnails: item.thumbnails,
-                          tags: item.category,
-                        }}
+            {pinnedItemsWithDistance.length > 0 ? (
+              <>
+                <Grid
+                  container
+                  spacing={{ xs: 1, sm: 2 }}
+                  sx={{
+                    mb: 2,
+                  }}
+                >
+                  {pinnedItemsWithDistance.map((item) => (
+                    <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
+                      <ItemPreview2
+                        item={item}
+                        distance={item.distance}
                         onClick={handleItemClick}
                       />
-                    ))}
-                  </List>
-                </Box>
-              ) : (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  {isCurrentUser
-                    ? t(
-                      "user.noPinnedItemsYou",
-                      "You haven't pinned any items yet."
-                    )
-                    : t(
-                      "user.noPinnedItemsUser",
-                      "This user hasn't pinned any items."
-                    )}
-                </Alert>
-              )}
+                    </Grid>
+                  ))}
+                </Grid>
 
-              {userData.user.pinItems && userData.user.pinItems.length > 0 && (
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ mt: 1, display: "block" }}
+                  sx={{ display: "block" }}
                 >
                   {t("user.pinnedItemsCount", "{{count}} pinned item(s)", {
-                    count: userData.user.pinItems.length,
+                    count: pinnedItemsWithDistance.length,
                   })}
                 </Typography>
-              )}
-            </Box>
-          </Grid>
+              </>
+            ) : (
+              <Alert severity="info">
+                {isCurrentUser
+                  ? t(
+                      "user.noPinnedItemsYou",
+                      "You haven't pinned any items yet."
+                    )
+                  : t(
+                      "user.noPinnedItemsUser",
+                      "This user hasn't pinned any items."
+                    )}
+              </Alert>
+            )}
+          </Paper>
 
           {/* Contact Methods in read-only mode */}
           {userData.user.contactMethods &&
@@ -682,6 +718,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 </Typography>
               </Paper>
             )}
+
           {/* UpdateUser Dialog - Only render when needed */}
           {showUpdateUser && (
             <UpdateUser
@@ -696,101 +733,120 @@ const UserDetail: React.FC<UserDetailProps> = ({
               onClose={() => setShowUpdateUser(false)}
             />
           )}
-          {/* User's Items - Only show when a category is selected */}
+
+          {/* User's Items - Only show when a category is selected - Grid Layout */}
           {selectedCategory && (
             <Paper elevation={1} sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                {isCurrentUser
-                  ? t("user.yourItemsInCategory", "Your {{category}} Items", {
-                    category: selectedCategory,
-                  })
-                  : t(
-                    "user.userItemsInCategory",
-                    "{{name}}'s {{category}} Items",
-                    {
-                      name: userData.user.nickname || userData.user.email,
-                      category: selectedCategory,
-                    }
+              <Box
+                sx={{
+                  mb: 2,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography variant="h6">
+                  {isCurrentUser
+                    ? t("user.yourItemsInCategory", "Your {{category}} Items", {
+                        category: selectedCategory,
+                      })
+                    : t(
+                        "user.userItemsInCategory",
+                        "{{name}}'s {{category}} Items",
+                        {
+                          name: userData.user.nickname || userData.user.email,
+                          category: selectedCategory,
+                        }
+                      )}
+                  {isExchangePointAdmin && includeExchangePointItems && (
+                    <Chip
+                      label={t(
+                        "user.includesCachedItems",
+                        "Includes cached items"
+                      )}
+                      size="small"
+                      variant="outlined"
+                      sx={{ ml: 2 }}
+                    />
                   )}
-                {isExchangePointAdmin && includeExchangePointItems && (
-                  <Chip
-                    label={t(
-                      "user.includesCachedItems",
-                      "Includes cached items"
-                    )}
-                    size="small"
-                    variant="outlined"
-                    sx={{ ml: 2 }}
-                  />
-                )}
-              </Typography>
+                </Typography>
 
+                {/* Results count */}
+                <Typography variant="body2" color="text.secondary">
+                  {itemsLoading || totalItemsLoading
+                    ? t("common.loading", "Loading...")
+                    : totalItemsData?.totalItemsCountByUser
+                    ? t("itemsAll.itemsFound", "Found {{count}} item(s)", {
+                        count: totalItemsData.totalItemsCountByUser,
+                      })
+                    : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
+                        count: itemsWithDistance.length,
+                      })}
+                </Typography>
+              </Box>
+
+              {/* Loading State */}
               {(itemsLoading || totalItemsLoading) && (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
                   <CircularProgress />
                 </Box>
               )}
 
-              {itemsData?.itemsByUser && itemsData.itemsByUser.length > 0 ? (
+              {/* Items Grid */}
+              {!itemsLoading && itemsWithDistance.length > 0 ? (
                 <>
-                  <List>
-                    {itemsData.itemsByUser.map((item) => (
-                      <ItemSummary
-                        key={item.id}
-                        item={{
-                          id: item.id,
-                          name: item.name,
-                          distance:
-                            item.location && currentUser?.location
-                              ? calculateDistance(
-                                item.location.latitude,
-                                item.location.longitude,
-                                currentUser.location.latitude,
-                                currentUser.location.longitude
-                              )
-                              : 0,
-                          status: item.status,
-                          images: item.images,
-                          thumbnails: item.thumbnails,
-                          tags: item.category,
-                        }}
-                        onClick={handleItemClick}
-                      />
+                  <Grid
+                    container
+                    spacing={{ xs: 1, sm: 2 }}
+                    sx={{
+                      mb: 3,
+                    }}
+                  >
+                    {itemsWithDistance.map((item) => (
+                      <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
+                        <ItemPreview2
+                          item={item}
+                          distance={item.distance}
+                          onClick={handleItemClick}
+                        />
+                      </Grid>
                     ))}
-                  </List>
+                  </Grid>
 
-                  {/* Pagination Controls for Items */}
-                  <PaginationControls
-                    currentPage={itemsPage}
-                    onPageChange={handleItemsPageChange}
-                    hasNextPage={
-                      itemsData.itemsByUser.length === ITEMS_PER_PAGE
-                    }
-                    totalItems={totalItemsData?.totalItemsCountByUser}
-                    hasPrevPage={itemsPage > 1}
-                    isLoading={itemsLoading}
-                    itemsPerPage={ITEMS_PER_PAGE}
-                    showPageInfo={true}
-                  />
+                  {/* Pagination Controls */}
+                  <Box sx={{ mt: 4 }}>
+                    <PaginationControls
+                      currentPage={itemsPage}
+                      onPageChange={handleItemsPageChange}
+                      hasNextPage={itemsWithDistance.length === ITEMS_PER_PAGE}
+                      totalItems={totalItemsData?.totalItemsCountByUser}
+                      hasPrevPage={itemsPage > 1}
+                      isLoading={itemsLoading || totalItemsLoading}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                      showPageInfo={true}
+                    />
+                  </Box>
                 </>
               ) : (
-                <Alert severity="info">
-                  {isCurrentUser
-                    ? t(
-                      "user.noItemsInCategoryYou",
-                      "You haven't added any {{category}} items yet.",
-                      {
-                        category: selectedCategory,
-                      }
-                    )
-                    : t(
-                      "user.noItemsInCategoryUser",
-                      "This user hasn't added any {{category}} items yet.",
-                      {
-                        category: selectedCategory,
-                      }
-                    )}
-                </Alert>
+                !itemsLoading && (
+                  <Alert severity="info">
+                    {isCurrentUser
+                      ? t(
+                          "user.noItemsInCategoryYou",
+                          "You haven't added any {{category}} items yet.",
+                          {
+                            category: selectedCategory,
+                          }
+                        )
+                      : t(
+                          "user.noItemsInCategoryUser",
+                          "This user hasn't added any {{category}} items yet.",
+                          {
+                            category: selectedCategory,
+                          }
+                        )}
+                  </Alert>
+                )
               )}
             </Paper>
           )}

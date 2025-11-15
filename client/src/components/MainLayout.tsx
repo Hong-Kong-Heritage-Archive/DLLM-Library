@@ -26,6 +26,7 @@ import {
   Article as ArticleIcon,
   ExitToApp as LogoutIcon,
   Bookmark as BookmarkIcon,
+  SwapHoriz as LoanIcon,
 } from "@mui/icons-material";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -55,12 +56,14 @@ interface MainLayoutProps {
   email?: string | null;
   emailVerified?: boolean | null;
   user?: User;
+  onSignOut?: () => Promise<void>;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({
   email,
   emailVerified,
   user,
+  onSignOut,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -91,7 +94,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     if (path === "/" || path === "/home") return 0;
     if (path.startsWith("/news")) return 1;
     if (path.startsWith("/exchange-points")) return 2;
-    if (path.startsWith("/profile") || path.startsWith("/user/")) return 3;
+    if (path.startsWith("/loan-items")) return 3;
+    if (path.startsWith("/profile") || path.startsWith("/user/")) return 4;
     return 0; // Default to home
   };
 
@@ -120,6 +124,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         navigate("/exchange-points");
         break;
       case 3:
+        // Loan Items - only accessible when logged in
+        if (user?.isVerified) {
+          navigate("/loan-items?tab=borrowed");
+        } else {
+          setAuthDialogOpen(true);
+        }
+        break;
+      case 4:
         if (user?.isVerified) {
           navigate("/profile");
         } else {
@@ -144,46 +156,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     setAnchorEl(null);
   };
 
-  const handleUserProfile = () => {
-    if (user?.id) {
-      navigate(`/user/${user.id}`);
-    }
-    handleMenuClose();
-  };
-
-  const handleAddItem = () => {
-    setShowItemForm(true);
-    handleMenuClose();
-  };
-
   const handleAddNews = () => {
     setShowNewsForm(true);
     handleMenuClose();
   };
 
-  const handleLogout = async () => {
-    await auth.signOut();
-    handleMenuClose();
-  };
-
   const handleNotificationsClick = () => {
     navigate("/transactions");
-  };
-
-  const handleOnLoanItems = () => {
-    navigate("/items/on-loan");
-    handleMenuClose();
-  };
-
-  const handleBorrowedItems = () => {
-    navigate("/items/borrowed-items");
-    handleMenuClose();
-  };
-  const handleItemCreated = () => {
-    setShowItemForm(false);
-    if (window.location.pathname === "/") {
-      window.location.reload();
-    }
   };
 
   const handleNewsCreated = () => {
@@ -224,7 +203,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           )}
 
           {/* Menu Button - only show for active users */}
-          {user && user.isActive && (
+          {user && user?.role === Role.Admin && (
             <>
               <IconButton
                 color="inherit"
@@ -247,56 +226,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   horizontal: "right",
                 }}
               >
-                <MenuItem onClick={handleUserProfile}>
+                <MenuItem onClick={handleAddNews}>
                   <ListItemIcon>
-                    <PersonIcon fontSize="small" />
+                    <ArticleIcon fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText>
-                    {t("home.profile", "User Profile")}
-                  </ListItemText>
-                </MenuItem>
-
-                <MenuItem onClick={handleOnLoanItems}>
-                  <ListItemIcon>
-                    <BookmarkIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t("home.onLoanItems", "Items On Loan")}
-                  </ListItemText>
-                </MenuItem>
-
-                <MenuItem onClick={handleBorrowedItems}>
-                  <ListItemIcon>
-                    <BookmarkIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t("home.onBorrowItems", "Items I've Borrowed")}
-                  </ListItemText>
-                </MenuItem>
-
-                {user?.isVerified && (
-                  <MenuItem onClick={handleAddItem}>
-                    <ListItemIcon>
-                      <AddIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t("item.create", "Add Item")}</ListItemText>
-                  </MenuItem>
-                )}
-
-                {user?.role === Role.Admin && (
-                  <MenuItem onClick={handleAddNews}>
-                    <ListItemIcon>
-                      <ArticleIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t("news.create", "Add News")}</ListItemText>
-                  </MenuItem>
-                )}
-
-                <MenuItem onClick={handleLogout}>
-                  <ListItemIcon>
-                    <LogoutIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>{t("auth.signOut", "Sign Out")}</ListItemText>
+                  <ListItemText>{t("news.create", "Add News")}</ListItemText>
                 </MenuItem>
               </Menu>
             </>
@@ -313,7 +247,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           overflow: "auto",
         }}
       >
-        <Outlet context={{ email, emailVerified, user }} />
+        <Outlet context={{ email, emailVerified, user, onSignOut }} />
       </Box>
 
       {/* Bottom Navigation */}
@@ -344,6 +278,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             label={t("navigation.exchangePoints", "Exchange Points")}
             icon={<LocationIcon />}
           />
+          {/* Loan Items - Only show when user is logged in */}
+          {user?.isVerified && (
+            <BottomNavigationAction
+              label={t("navigation.loanItems", "Loans")}
+              icon={<LoanIcon />}
+            />
+          )}
           <BottomNavigationAction
             label={t("navigation.profile", "Profile")}
             icon={<PersonIcon />}

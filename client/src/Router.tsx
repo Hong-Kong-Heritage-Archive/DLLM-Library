@@ -37,7 +37,7 @@ import ItemAllPage from "./routes/Item.all";
 import UserDetailPage from "./routes/User.$id";
 import TransactionsPage from "./routes/Transactions";
 import TransactionDetailPage from "./components/TransactionDetail";
-import LanguageSwitcher from "./components/LanguageSwitcher";
+import LoanItems from "./routes/LoanItems";
 
 import ItemForm from "./components/ItemForm";
 import NewsForm from "./components/NewsForm";
@@ -47,7 +47,6 @@ import BorrowedItemsView from "./routes/BorrowedItemsView";
 import MainLayout from "./components/MainLayout";
 import ExchangePointsPage from "./routes/ExchangePoints";
 import ProfilePage from "./routes/Profile";
-
 
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
@@ -63,241 +62,22 @@ const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   }
 `;
 
-interface LayoutProps {
-  email?: string | null;
-  emailVerified?: boolean | null;
-  user?: User;
-}
-
-const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [showItemForm, setShowItemForm] = React.useState(false);
-  const [showNewsForm, setShowNewsForm] = React.useState(false);
-
-  // Query for user's open transactions to show notification count
-  const { data: transactionsData } = useQuery(
-    GET_USER_OPEN_TRANSACTIONS_FOR_COUNT,
-    {
-      variables: { userId: user?.id! },
-      skip: !user?.id,
-      pollInterval: 30000, // Poll every 30 seconds for new transactions
-    }
-  );
-
-  const notificationCount =
-    transactionsData?.openTransactionsByUser?.length || 0;
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleUserProfile = () => {
-    if (user?.id) {
-      navigate(`/user/${user.id}`);
-    }
-    handleMenuClose();
-  };
-
-  const handleAddItem = () => {
-    setShowItemForm(true);
-    handleMenuClose();
-  };
-
-  const handleAddNews = () => {
-    setShowNewsForm(true);
-    handleMenuClose();
-  };
-
-  const handleLogout = async () => {
-    await auth.signOut();
-    handleMenuClose();
-  };
-
-  const handleNotificationsClick = () => {
-    navigate("/transactions");
-  };
-
-  const handleOnLoanItems = () => {
-    navigate("/items/on-loan");
-    handleMenuClose();
-  };
-
-  const handleBorrowedItems = () => {
-    navigate("/items/borrowed-items");
-    handleMenuClose();
-  };
-
-  const handleItemCreated = () => {
-    setShowItemForm(false);
-    // Refresh the home page if needed
-    if (window.location.pathname === "/") {
-      window.location.reload();
-    }
-  };
-
-  const handleNewsCreated = () => {
-    setShowNewsForm(false);
-    // Refresh the home page if needed
-    if (window.location.pathname === "/") {
-      window.location.reload();
-    }
-  };
-
-  return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="sticky">
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, cursor: "pointer" }}
-            onClick={() => navigate("/")}
-          >
-            {t("app.title", "DLLM Library")}
-          </Typography>
-          {/* Notification Bell - only show for authenticated users */}
-          {user && (
-            <IconButton
-              color="inherit"
-              onClick={handleNotificationsClick}
-              sx={{ mr: 1 }}
-              title={t("transactions.viewTransactions", "View Transactions")}
-            >
-              <Badge badgeContent={notificationCount} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-          )}
-
-          {/* Menu Button - only show for authenticated users */}
-
-          {user && user.isActive && (
-            <>
-              <IconButton
-                color="inherit"
-                onClick={handleMenuClick}
-                title={t("common.menu", "Menu")}
-              >
-                <MenuIcon />
-              </IconButton>
-
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-              >
-                <MenuItem onClick={handleUserProfile}>
-                  <ListItemIcon>
-                    <PersonIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t("home.profile", "User Profile")}
-                  </ListItemText>
-                </MenuItem>
-
-                <MenuItem onClick={handleOnLoanItems}>
-                  <ListItemIcon>
-                    <BookmarkIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t("item.myLentItems", "My lent items")}
-                  </ListItemText>
-                </MenuItem>
-
-                <MenuItem onClick={handleBorrowedItems}>
-                  <ListItemIcon>
-                    <BookmarkIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t("item.myBorrowedItems", "My borrowed items")}
-                  </ListItemText>
-                </MenuItem>
-
-                {user?.isVerified && ( // Only show add options if user is verified
-                  <MenuItem onClick={handleAddItem}>
-                    <ListItemIcon>
-                      <AddIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t("item.create", "Add Item")}</ListItemText>
-                  </MenuItem>
-                )}
-
-                {user?.role === Role.Admin && ( // Only show add news option for admin users
-                  <MenuItem onClick={handleAddNews}>
-                    <ListItemIcon>
-                      <NewsIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t("news.create", "Add News")}</ListItemText>
-                  </MenuItem>
-                )}
-
-                <MenuItem onClick={handleLogout}>
-                  <ListItemIcon>
-                    <LogoutIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>{t("auth.signOut", "Sign Out")}</ListItemText>
-                </MenuItem>
-
-              </Menu>
-            </>
-          )}
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
-        <Outlet context={{ email, emailVerified, user }} />
-      </Container>
-
-      {/* Item Form Dialog */}
-      {
-        showItemForm && (
-          <ItemForm
-            open={showItemForm}
-            onClose={() => setShowItemForm(false)}
-            onItemCreated={handleItemCreated}
-          />
-        )
-      }
-
-      {/* News Form Dialog */}
-      {
-        showNewsForm && (
-          <NewsForm
-            open={showNewsForm}
-            onClose={() => setShowNewsForm(false)}
-            onNewsCreated={handleNewsCreated}
-          />
-        )
-      }
-    </Box >
-  );
-};
-
 export const createRouter = (
   email?: string | null,
   emailVerified?: boolean | null,
-  user?: User
-  //  initialPath?: string | null
+  user?: User,
+  onSignOut?: () => Promise<void>
 ) => {
   return createBrowserRouter([
     {
       path: "/",
       element: (
-        <MainLayout email={email} emailVerified={emailVerified} user={user} />
+        <MainLayout
+          email={email}
+          emailVerified={emailVerified}
+          user={user}
+          onSignOut={onSignOut}
+        />
       ),
       children: [
         {
@@ -359,6 +139,10 @@ export const createRouter = (
         {
           path: "items/borrowed-items",
           element: <BorrowedItemsView />,
+        },
+        {
+          path: "loan-items",
+          element: <LoanItems />,
         },
       ],
     },

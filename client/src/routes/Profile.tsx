@@ -8,15 +8,20 @@ interface OutletContext {
   email?: string | undefined | null;
   emailVerified?: boolean | undefined | null;
   user?: User;
+  onSignOut?: () => Promise<void> | undefined;
 }
 
 const ProfilePage: React.FC = () => {
-  const { user } = useOutletContext<OutletContext>();
-
+  const { user, onSignOut } = useOutletContext<OutletContext>();
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       {user && (
-        <UserDetail userId={user.id} currentUser={user} onBack={() => {}} />
+        <UserDetail
+          userId={user.id}
+          currentUser={user}
+          onBack={undefined}
+          signOut={onSignOut}
+        />
       )}
     </Container>
   );
