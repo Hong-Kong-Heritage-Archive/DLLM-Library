@@ -554,5 +554,13 @@ export const resolvers: Resolvers = {
       const { itemId, commentId, content } = args;
       return commentService.editItemComment(owner, itemId, commentId, content);
     },
+    generateItemIndex: async (
+      _parent: any,
+      _args: any,
+      _context: any
+    ): Promise<boolean> => {
+      // TODO: Make this admin only.
+      return itemService.generateItemIndex();
+    },
   },
 };

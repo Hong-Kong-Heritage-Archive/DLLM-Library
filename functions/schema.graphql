@@ -1,4 +1,5 @@
 scalar Date
+scalar Void
 
 # 基本類型定義
 enum Language {
@@ -410,6 +411,8 @@ type Mutation {
     contentType: String!
     folder: String
   ): SignedUrlResponse!
+
+  generateItemIndex: Void
 }
 
 # 輸入類型

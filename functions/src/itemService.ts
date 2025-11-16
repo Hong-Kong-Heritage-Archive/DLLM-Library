@@ -1051,4 +1051,9 @@ export class ItemService {
     // Convert to .jpg for thumbnails regardless of original format
     return `${nameWithoutExt}_thumbnail.jpg`;
   }
+
+  public generateItemIndex() : Promise<boolean>{
+    console.warn("generateItemIndex mutation called.");
+    return Promise.resolve(true);
+  }
 }
