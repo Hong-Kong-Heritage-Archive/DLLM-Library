@@ -1052,8 +1052,38 @@ export class ItemService {
     return `${nameWithoutExt}_thumbnail.jpg`;
   }
 
+
+  // Used for generating name index for search optimization.
+  // And also for when we try to search using the created index.
+  //
+  // tokenizes a name: split by spaces, group ASCII letters/digits together,
+  // and make every non-ASCII-or-digit character a separate token.
+  private tokenizeName(name: string): string[] {
+      const tokens: string[] = [];
+      if (!name) return tokens;
+      const parts = name.split(" ").filter(Boolean);
+      const asciiOrDigit = /[A-Za-z0-9]/;
+      for (const part of parts) {
+        let cur = "";
+        for (const ch of part) {
+          if (asciiOrDigit.test(ch)) {
+            cur += ch;
+          } else {
+            if (cur) {
+              tokens.push(cur);
+              cur = "";
+            }
+            tokens.push(ch);
+          }
+        }
+        if (cur) tokens.push(cur);
+      }
+      return tokens.filter(Boolean);
+  };
+
   public generateItemIndex() : Promise<boolean>{
     console.warn("generateItemIndex mutation called.");
+
     return (async () => {
       try {
         const BATCH_READ_SIZE = 500;
@@ -1076,8 +1106,7 @@ export class ItemService {
           snap.docs.forEach((doc) => {
             const data = doc.data();
             const name = (data && data.name) ? String(data.name) : "";
-            // split by space as requested
-            const nameIndex = name.length > 0 ? name.split(" ").filter(Boolean) : [];
+            const nameIndex = this.tokenizeName(name);
             batch.update(doc.ref, { nameIndex: nameIndex });
           });
 
