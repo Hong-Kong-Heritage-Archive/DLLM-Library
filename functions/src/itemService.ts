@@ -1054,6 +1054,46 @@ export class ItemService {
 
   public generateItemIndex() : Promise<boolean>{
     console.warn("generateItemIndex mutation called.");
-    return Promise.resolve(true);
+    return (async () => {
+      try {
+        const BATCH_READ_SIZE = 500;
+        let lastDoc: firebase.firestore.QueryDocumentSnapshot | null = null;
+        let processed = 0;
+
+        while (true) {
+          let q = db
+            .collection("items")
+            .orderBy(firebase.firestore.FieldPath.documentId())
+            .limit(BATCH_READ_SIZE);
+
+          if (lastDoc) q = q.startAfter(lastDoc);
+
+          const snap = await q.get();
+          if (snap.empty) break;
+
+          // Create a write batch for this page (<= 500)
+          const batch = db.batch();
+          snap.docs.forEach((doc) => {
+            const data = doc.data();
+            const name = (data && data.name) ? String(data.name) : "";
+            // split by space as requested
+            const nameIndex = name.length > 0 ? name.split(" ").filter(Boolean) : [];
+            batch.update(doc.ref, { nameIndex: nameIndex });
+          });
+
+          await batch.commit();
+          processed += snap.size;
+
+          lastDoc = snap.docs[snap.docs.length - 1];
+          if (snap.size < BATCH_READ_SIZE) break;
+        }
+
+        console.log(`generateItemIndex: processed ${processed} items`);
+        return true;
+      } catch (error) {
+        console.error("generateItemIndex failed:", error);
+        return false;
+      }
+    })();
   }
 }
