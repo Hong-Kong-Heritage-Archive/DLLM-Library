@@ -906,17 +906,6 @@ export class ItemService {
   }
 
   /**
-   * Stub for experimental keyword search used by resolver.itemsByKeywordExperimental.
-   * Returns empty array for now. Will later use nameIndex / tokenizeName for search.
-   */
-  async itemsByKeywordExperimental(keyword: string = ""): Promise<Item[]> {
-    if (!keyword || keyword.trim() === "") return [];
-    console.debug(`itemsByKeywordExperimental called with keyword='${keyword}'`);
-    // TODO: implement actual search using nameIndex and tokenizeName
-    return [];
-  }
-
-  /**
    * Generate thumbnail for an image by downloading, resizing to 1/4 dimensions,
    * and uploading back to Google Cloud Storage
    * @param imageUrl - The original image URL (can be HTTP or GS URL)
@@ -1072,7 +1061,7 @@ export class ItemService {
   private tokenizeName(name: string): string[] {
       const tokens: string[] = [];
       if (!name) return tokens;
-      const parts = name.split(" ").filter(Boolean);
+      const parts = name.toLowerCase().split(" ").filter(Boolean);
       const asciiOrDigit = /[A-Za-z0-9]/;
       for (const part of parts) {
         let cur = "";
@@ -1093,7 +1082,7 @@ export class ItemService {
   };
 
   public generateItemIndex() : Promise<boolean>{
-    console.warn("generateItemIndex mutation called.");
+    console.log("generateItemIndex mutation called.");
 
     return (async () => {
       try {
@@ -1135,5 +1124,54 @@ export class ItemService {
         return false;
       }
     })();
+  }
+
+
+  /**
+   * Stub for experimental keyword search used by resolver.itemsByKeywordExperimental.
+   * Returns empty array for now. Will later use nameIndex / tokenizeName for search.
+   */
+  async itemsByKeywordExperimental(keyword: string = ""): Promise<Item[]> {
+    if (!keyword || keyword.trim() === "") return [];
+
+    // Tokenize and normalize to lowercase for matching
+    const tokens = this.tokenizeName(keyword)
+      .map((t) => t.toLowerCase())
+      .filter(Boolean);
+    if (tokens.length === 0) return [];
+
+    console.log("itemsByKeywordExperimental: searching for tokens:", tokens);
+
+    // Firestore limits array-contains-any to 10 values. Query in chunks and
+    // collect candidate documents, then filter client-side to ensure all
+    // tokens are present in the document's nameIndex.
+    const MAX_CHUNK = 10;
+    const docMap = new Map<string, firebase.firestore.QueryDocumentSnapshot>();
+
+    for (let i = 0; i < tokens.length; i += MAX_CHUNK) {
+      const chunk = tokens.slice(i, i + MAX_CHUNK);
+      const snap = await db
+        .collection("items")
+        .where("nameIndex", "array-contains-any", chunk)
+        .get();
+      snap.docs.forEach((doc) => {
+        if (!docMap.has(doc.id)) docMap.set(doc.id, doc);
+      });
+    }
+
+    const results: Item[] = [];
+    for (const doc of Array.from(docMap.values())) {
+      const data = doc.data();
+      const idx = Array.isArray(data.nameIndex)
+        ? data.nameIndex.map((v: any) => String(v).toLowerCase())
+        : [];
+      const hasAll = tokens.every((t) => idx.includes(t));
+      if (hasAll) {
+        const item = await this._itemQueryToItem(doc);
+        results.push(item);
+      }
+    }
+
+    return results;
   }
 }

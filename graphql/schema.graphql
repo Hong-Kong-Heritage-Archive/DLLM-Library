@@ -237,9 +237,9 @@ type Query {
   #
   # Keep this implementation separate until it is ready.
   #
-  itemsByKeywordExperimental{
+  itemsByKeywordExperimental(
     keyword: String
-  }: [Item!]!;
+  ): [Item!]!
   totalItemsCountByLocation(
     latitude: Float!
     longitude: Float!
