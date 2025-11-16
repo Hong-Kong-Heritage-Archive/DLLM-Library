@@ -333,6 +333,13 @@ export const resolvers: Resolvers = {
         startAfterDate
       );
     },
+    itemsByKeywordExperimental: async (
+      _: any,
+      { keyword = "" }: any,
+      __: any
+    ): Promise<Item[]> => {
+      return itemService.itemsByKeywordExperimental(keyword);
+    },
   },
   Mutation: {
     createUser: async (

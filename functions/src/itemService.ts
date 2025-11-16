@@ -906,6 +906,17 @@ export class ItemService {
   }
 
   /**
+   * Stub for experimental keyword search used by resolver.itemsByKeywordExperimental.
+   * Returns empty array for now. Will later use nameIndex / tokenizeName for search.
+   */
+  async itemsByKeywordExperimental(keyword: string = ""): Promise<Item[]> {
+    if (!keyword || keyword.trim() === "") return [];
+    console.debug(`itemsByKeywordExperimental called with keyword='${keyword}'`);
+    // TODO: implement actual search using nameIndex and tokenizeName
+    return [];
+  }
+
+  /**
    * Generate thumbnail for an image by downloading, resizing to 1/4 dimensions,
    * and uploading back to Google Cloud Storage
    * @param imageUrl - The original image URL (can be HTTP or GS URL)

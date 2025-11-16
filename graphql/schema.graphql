@@ -234,6 +234,12 @@ type Query {
     limit: Int
     offset: Int
   ): [Item!]! # 基於當前位置的搜尋
+  #
+  # Keep this implementation separate until it is ready.
+  #
+  itemsByKeywordExperimental{
+    keyword: String
+  }: [Item!]!;
   totalItemsCountByLocation(
     latitude: Float!
     longitude: Float!
