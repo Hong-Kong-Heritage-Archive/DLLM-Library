@@ -333,6 +333,13 @@ export const resolvers: Resolvers = {
         startAfterDate
       );
     },
+    itemsByKeywordExperimental: async (
+      _: any,
+      { keyword = "" }: any,
+      __: any
+    ): Promise<Item[]> => {
+      return itemService.itemsByKeywordExperimental(keyword);
+    },
   },
   Mutation: {
     createUser: async (
@@ -553,6 +560,14 @@ export const resolvers: Resolvers = {
       if (!owner) throw new Error("Owner not found");
       const { itemId, commentId, content } = args;
       return commentService.editItemComment(owner, itemId, commentId, content);
+    },
+    generateItemIndex: async (
+      _parent: any,
+      _args: any,
+      _context: any
+    ): Promise<boolean> => {
+      // TODO: Make this admin only.
+      return itemService.generateItemIndex();
     },
   },
 };

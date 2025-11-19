@@ -1051,4 +1051,127 @@ export class ItemService {
     // Convert to .jpg for thumbnails regardless of original format
     return `${nameWithoutExt}_thumbnail.jpg`;
   }
+
+
+  // Used for generating name index for search optimization.
+  // And also for when we try to search using the created index.
+  //
+  // tokenizes a name: split by spaces, group ASCII letters/digits together,
+  // and make every non-ASCII-or-digit character a separate token.
+  private tokenizeName(name: string): string[] {
+      const tokens: string[] = [];
+      if (!name) return tokens;
+      const parts = name.toLowerCase().split(" ").filter(Boolean);
+      const asciiOrDigit = /[A-Za-z0-9]/;
+      for (const part of parts) {
+        let cur = "";
+        for (const ch of part) {
+          if (asciiOrDigit.test(ch)) {
+            cur += ch;
+          } else {
+            if (cur) {
+              tokens.push(cur);
+              cur = "";
+            }
+            tokens.push(ch);
+          }
+        }
+        if (cur) tokens.push(cur);
+      }
+      return tokens.filter(Boolean);
+  };
+
+  public generateItemIndex() : Promise<boolean>{
+    console.log("generateItemIndex mutation called.");
+
+    return (async () => {
+      try {
+        const BATCH_READ_SIZE = 500;
+        let lastDoc: firebase.firestore.QueryDocumentSnapshot | null = null;
+        let processed = 0;
+
+        while (true) {
+          let q = db
+            .collection("items")
+            .orderBy(firebase.firestore.FieldPath.documentId())
+            .limit(BATCH_READ_SIZE);
+
+          if (lastDoc) q = q.startAfter(lastDoc);
+
+          const snap = await q.get();
+          if (snap.empty) break;
+
+          // Create a write batch for this page (<= 500)
+          const batch = db.batch();
+          snap.docs.forEach((doc) => {
+            const data = doc.data();
+            const name = (data && data.name) ? String(data.name) : "";
+            const nameIndex = this.tokenizeName(name);
+            batch.update(doc.ref, { nameIndex: nameIndex });
+          });
+
+          await batch.commit();
+          processed += snap.size;
+
+          lastDoc = snap.docs[snap.docs.length - 1];
+          if (snap.size < BATCH_READ_SIZE) break;
+        }
+
+        console.log(`generateItemIndex: processed ${processed} items`);
+        return true;
+      } catch (error) {
+        console.error("generateItemIndex failed:", error);
+        return false;
+      }
+    })();
+  }
+
+
+  /**
+   * Stub for experimental keyword search used by resolver.itemsByKeywordExperimental.
+   * Returns empty array for now. Will later use nameIndex / tokenizeName for search.
+   */
+  async itemsByKeywordExperimental(keyword: string = ""): Promise<Item[]> {
+    if (!keyword || keyword.trim() === "") return [];
+
+    // Tokenize and normalize to lowercase for matching
+    const tokens = this.tokenizeName(keyword)
+      .map((t) => t.toLowerCase())
+      .filter(Boolean);
+    if (tokens.length === 0) return [];
+
+    console.log("itemsByKeywordExperimental: searching for tokens:", tokens);
+
+    // Firestore limits array-contains-any to 10 values. Query in chunks and
+    // collect candidate documents, then filter client-side to ensure all
+    // tokens are present in the document's nameIndex.
+    const MAX_CHUNK = 10;
+    const docMap = new Map<string, firebase.firestore.QueryDocumentSnapshot>();
+
+    for (let i = 0; i < tokens.length; i += MAX_CHUNK) {
+      const chunk = tokens.slice(i, i + MAX_CHUNK);
+      const snap = await db
+        .collection("items")
+        .where("nameIndex", "array-contains-any", chunk)
+        .get();
+      snap.docs.forEach((doc) => {
+        if (!docMap.has(doc.id)) docMap.set(doc.id, doc);
+      });
+    }
+
+    const results: Item[] = [];
+    for (const doc of Array.from(docMap.values())) {
+      const data = doc.data();
+      const idx = Array.isArray(data.nameIndex)
+        ? data.nameIndex.map((v: any) => String(v).toLowerCase())
+        : [];
+      const hasAll = tokens.every((t) => idx.includes(t));
+      if (hasAll) {
+        const item = await this._itemQueryToItem(doc);
+        results.push(item);
+      }
+    }
+
+    return results;
+  }
 }
