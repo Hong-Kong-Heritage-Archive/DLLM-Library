@@ -176,11 +176,11 @@
     "publishedYearHelper": "Optional: Enter a 4-digit year, e.g. 2024",
     "status": "Status",
     "conditions": {
-      "NEW": "全新",
-      "LIKE_NEW": "幾乎全新",
-      "GOOD": "良好",
-      "FAIR": "尚可",
-      "POOR": "差"
+      "NEW": "New",
+      "LIKE_NEW": "Like New",
+      "GOOD": "Good",
+      "FAIR": "Fair",
+      "POOR": "Poor"
     },
     "conditionDescription": {
       "FAIR": "Fair condition with noticeable signs of use. There are some scratches and marks, but it still works fine.",
@@ -190,11 +190,11 @@
       "LIKE_NEW": "Like new, barely used, with no visible damage or signs of wear."
     },
     "statuses": {
-      "Available": "可用",
-      "Borrowed": "已借出",
-      "Maintenance": "維修中",
-      "Lost": "遺失",
-      "Damaged": "損壞"
+      "AVAILABLE": "Available",
+      "EXCHANGEABLE": "Exchangeable",
+      "GIFT": "Gift",
+      "RESERVED": "Reserved",
+      "TRANSFERRED": "Transferred"
     },
     "nameAndCategoryRequired": "Name and category are required.",
     "nameRequired": "Item name is required",
@@ -307,7 +307,9 @@
   },
   "languages": {
     "en": "English",
-    "zh-TW": "繁體中文"
+    "zh-TW": "繁體中文",
+    "EN": "English",
+    "ZH_HK": "繁體中文"
   },
   "userProfile": {
     "nickname": "Nickname",

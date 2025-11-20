@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -20,6 +20,7 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Typography,
 } from "@mui/material";
 import {
   CloudUpload,
@@ -33,9 +34,12 @@ import { gql, useMutation, useApolloClient } from "@apollo/client";
 import {
   CreateItemMutation,
   CreateItemMutationVariables,
+  UpdateItemMutation,
+  UpdateItemMutationVariables,
   ItemCondition,
   ItemStatus,
   Language,
+  Item,
 } from "../generated/graphql";
 import {
   processImage,
@@ -85,10 +89,55 @@ const CREATE_ITEM_MUTATION = gql`
   }
 `;
 
+const UPDATE_ITEM_MUTATION = gql`
+  mutation UpdateItem(
+    $id: ID!
+    $name: String
+    $category: [String!]
+    $condition: ItemCondition
+    $description: String
+    $images: [String!]
+    $language: Language
+    $publishedYear: Int
+    $status: ItemStatus
+    $deposit: Int
+  ) {
+    updateItem(
+      id: $id
+      name: $name
+      category: $category
+      condition: $condition
+      description: $description
+      images: $images
+      language: $language
+      publishedYear: $publishedYear
+      status: $status
+      deposit: $deposit
+    ) {
+      id
+      name
+      description
+      condition
+      category
+      status
+      images
+      publishedYear
+      language
+      createdAt
+      ownerId
+      updatedAt
+      deposit
+    }
+  }
+`;
+
 interface ItemFormProps {
   onItemCreated?: (data: CreateItemMutation) => void;
+  onItemUpdated?: (data: UpdateItemMutation) => void;
   open: boolean;
   onClose?: () => void;
+  item?: Item | null; // If provided, edit mode; otherwise, create mode
+  onError?: (message: string) => void;
 }
 
 interface ImagePreview extends ProcessedImage {
@@ -96,16 +145,21 @@ interface ImagePreview extends ProcessedImage {
   isUploading?: boolean;
   uploadError?: string;
   gsUrl?: string;
+  isExisting?: boolean;
 }
 
 const ItemForm: React.FC<ItemFormProps> = ({
   open,
   onItemCreated,
+  onItemUpdated,
   onClose,
+  item = null,
+  onError,
 }) => {
   const apolloClient = useApolloClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
+  const isEditMode = !!item;
 
   // Refs for file inputs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,13 +169,27 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [name, setName] = useState("");
   const [condition, setCondition] = useState<ItemCondition>(ItemCondition.New);
   const [description, setDescription] = useState("");
-  const [deposit, setdeposit] = useState<number>(0);
+  const [deposit, setDeposit] = useState<number>(0);
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
-  const [language, setLanguage] = useState<Language>(Language.En);
+  const [language, setLanguage] = useState<Language>(
+    i18n.language.startsWith("ZH") ? Language.ZhHk : Language.En
+  );
   const [publishedYear, setPublishedYear] = useState<number | "">("");
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
   const [formError, setFormError] = useState<string | null>(null);
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
+
+  // Store original values for edit mode comparison
+  const [originalValues, setOriginalValues] = useState<{
+    name: string;
+    condition: ItemCondition;
+    description: string;
+    publishedYear: number | "";
+    status: ItemStatus;
+    language: Language;
+    images: string[];
+    deposit: number;
+  } | null>(null);
 
   // Image menu states
   const [imageMenuAnchor, setImageMenuAnchor] = useState<null | HTMLElement>(
@@ -138,8 +206,59 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const maxImageSize = 1920;
   const imageQuality = 0.5;
 
+  // Populate form when item changes (edit mode)
+  useEffect(() => {
+    if (item && open) {
+      const itemName = item.name || "";
+      const itemCondition = item.condition || ItemCondition.Good;
+      const itemDescription =
+        item.description?.replace(/#Uncategorized\b/gi, "") || "";
+      const itemPublishedYear = item.publishedYear ?? "";
+      const itemStatus = item.status || ItemStatus.Available;
+      const itemLanguage =
+        item.language ||
+        (i18n.language.startsWith("ZH") ? Language.ZhHk : Language.En);
+      const itemImages = item.images || [];
+      const itemDeposit = item.deposit || 0;
 
-  const [createItem, { data, loading, error }] = useMutation<
+      setName(itemName);
+      setCondition(itemCondition);
+      setDescription(itemDescription);
+      setPublishedYear(itemPublishedYear);
+      setStatus(itemStatus);
+      setLanguage(itemLanguage);
+      setDeposit(itemDeposit);
+
+      // Store original values for comparison
+      setOriginalValues({
+        name: itemName,
+        condition: itemCondition,
+        description: itemDescription,
+        publishedYear: itemPublishedYear,
+        status: itemStatus,
+        language: itemLanguage,
+        images: itemImages,
+        deposit: itemDeposit,
+      });
+
+      // Convert existing images to ImagePreview format
+      const existingImages: ImagePreview[] = itemImages.map((url, index) => ({
+        url,
+        file: new File([], `existing-${index}`),
+        originalFile: new File([], `existing-${index}`),
+        width: 0,
+        height: 0,
+        size: 0,
+        compressionApplied: false,
+        finalQuality: 1,
+        isExisting: true,
+        gsUrl: url,
+      }));
+      setImageFiles(existingImages);
+    }
+  }, [item, open, i18n.language]);
+
+  const [createItem, { loading: createLoading }] = useMutation<
     CreateItemMutation,
     CreateItemMutationVariables
   >(CREATE_ITEM_MUTATION, {
@@ -148,15 +267,38 @@ const ItemForm: React.FC<ItemFormProps> = ({
       if (onItemCreated) onItemCreated(data);
       handleClose();
     },
+    onError: (error) => {
+      setFormError(error.message);
+      if (onError) onError(error.message);
+    },
   });
+
+  const [updateItem, { loading: updateLoading }] = useMutation<
+    UpdateItemMutation,
+    UpdateItemMutationVariables
+  >(UPDATE_ITEM_MUTATION, {
+    onCompleted: (data) => {
+      setShowSuccessSnackbar(true);
+      if (onItemUpdated) onItemUpdated(data);
+      handleClose();
+    },
+    onError: (error) => {
+      setFormError(error.message);
+      if (onError) onError(error.message);
+    },
+  });
+
+  const loading = createLoading || updateLoading;
 
   const handleClose = () => {
     onClose?.();
     setDialogOpen(false);
 
-    // Cleanup object URLs
+    // Cleanup object URLs for new images only
     imageFiles.forEach((image) => {
-      URL.revokeObjectURL(image.url);
+      if (!image.isExisting) {
+        URL.revokeObjectURL(image.url);
+      }
     });
 
     // Reset form state
@@ -164,7 +306,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setCondition(ItemCondition.New);
     setDescription("");
     setImageFiles([]);
-    setLanguage(Language.En);
+    setLanguage(i18n.language.startsWith("ZH") ? Language.ZhHk : Language.En);
     setPublishedYear("");
     setStatus(ItemStatus.Available);
     setFormError(null);
@@ -172,8 +314,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setProcessingProgress(0);
     setIsUploading(false);
     setUploadProgress(0);
-    setdeposit(0);
+    setDeposit(0);
     setImageMenuAnchor(null);
+    setOriginalValues(null);
   };
 
   const handleCloseSuccessSnackbar = () => {
@@ -218,7 +361,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
         }
 
         if (file.size > 50 * 1024 * 1024) {
-          // 50MB limit before processing
           setFormError(t("item.fileTooLarge", { fileName: file.name }));
           continue;
         }
@@ -251,6 +393,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         ...img,
         uploadProgress: 0,
         isUploading: false,
+        isExisting: false,
       }));
 
       setImageFiles((prev) => [...prev, ...newImagePreviews]);
@@ -268,7 +411,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
   ) => {
     const files = event.target.files;
     await processFiles(files);
-    // Clear input
     event.target.value = "";
   };
 
@@ -277,7 +419,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
   ) => {
     const files = event.target.files;
     await processFiles(files);
-    // Clear input
     event.target.value = "";
   };
 
@@ -286,37 +427,44 @@ const ItemForm: React.FC<ItemFormProps> = ({
       const newFiles = [...prev];
       const removedImage = newFiles[index];
 
-      // Cleanup object URLs
-      URL.revokeObjectURL(removedImage.url);
+      // Cleanup object URLs for new images only
+      if (!removedImage.isExisting) {
+        URL.revokeObjectURL(removedImage.url);
+      }
 
       newFiles.splice(index, 1);
       return newFiles;
     });
   };
 
-  const uploadImages = async (images: ImagePreview[]): Promise<string[]> => {
+  const uploadImages = async (
+    imagesToUpload: ImagePreview[]
+  ): Promise<string[]> => {
     const gcsService = new GCSUploadService(apolloClient);
-    const totalFiles = images.length;
+    const totalFiles = imagesToUpload.length;
     const uploadedGsUrls: string[] = [];
 
     try {
-      const filesToUpload = images.map((img) => img.file);
+      const filesToUpload = imagesToUpload.map((img) => img.file);
 
       const gsUrls = await gcsService.batchUploadToGCS(
         filesToUpload,
-        "items", // Use "items" folder instead of "news"
+        "items",
         (fileIndex: number, progress: UploadProgress) => {
           // Update individual file progress
           setImageFiles((prev) =>
-            prev.map((img, idx) =>
-              idx === fileIndex
+            prev.map((img, idx) => {
+              const uploadStartIndex = prev.findIndex((p) => !p.isExisting);
+              const actualIndex = uploadStartIndex + fileIndex;
+
+              return idx === actualIndex
                 ? {
                   ...img,
                   isUploading: true,
                   uploadProgress: progress.percentage,
                 }
-                : img
-            )
+                : img;
+            })
           );
 
           // Update overall progress
@@ -328,16 +476,19 @@ const ItemForm: React.FC<ItemFormProps> = ({
         (fileIndex: number, gsUrl: string) => {
           // Mark file as completed
           setImageFiles((prev) =>
-            prev.map((img, idx) =>
-              idx === fileIndex
+            prev.map((img, idx) => {
+              const uploadStartIndex = prev.findIndex((p) => !p.isExisting);
+              const actualIndex = uploadStartIndex + fileIndex;
+
+              return idx === actualIndex
                 ? {
                   ...img,
                   isUploading: false,
                   uploadProgress: 100,
                   gsUrl: gsUrl,
                 }
-                : img
-            )
+                : img;
+            })
           );
 
           uploadedGsUrls[fileIndex] = gsUrl;
@@ -351,8 +502,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
       // Mark failed uploads
       setImageFiles((prev) =>
-        prev.map((img, _) =>
-          !img.gsUrl
+        prev.map((img) =>
+          !img.isExisting && !img.gsUrl
             ? {
               ...img,
               isUploading: false,
@@ -379,54 +530,131 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setUploadProgress(0);
 
     try {
-      // Upload images first if any
-      let uploadedImageUrls: string[] = [];
+      // Separate existing and new images
+      const existingImages = imageFiles.filter((img) => img.isExisting);
+      const newImages = imageFiles.filter((img) => !img.isExisting);
 
-      if (imageFiles.length > 0) {
-        uploadedImageUrls = await uploadImages(imageFiles);
+      // Upload new images if any
+      let newImageUrls: string[] = [];
+      if (newImages.length > 0) {
+        newImageUrls = await uploadImages(newImages);
       }
 
-      // Build variables object with required fields
-      const variables: CreateItemMutationVariables = {
-        name,
-        category: [],
-        condition,
-        language,
-        status,
-        deposit,
-      };
+      // Combine existing and new image URLs
+      const allImageUrls = [
+        ...existingImages.map((img) => img.gsUrl || img.url),
+        ...newImageUrls,
+      ];
 
-      // Only add optional fields if they have actual values
-      if (description?.trim()) {
-        variables.description = description.trim();
-        const hashtags = description
-          .split("#")
-          .slice(1) // Remove the first element (text before first #)
-          .map((c) => c.split(/\s/)[0].trim()) // Get only the hashtag part (before any space)
-          .filter(Boolean); // Remove empty strings
+      // Extract hashtags from description
+      const hashtags = description
+        .split("#")
+        .slice(1)
+        .map((c) => c.split(/\s/)[0].trim())
+        .filter(Boolean);
 
-        if (hashtags.length > 0) {
-          variables.category = [...variables.category, ...hashtags];
+      const categories =
+        hashtags.length > 0 ? hashtags : ["Uncategorized"];
+
+      if (isEditMode && item) {
+        // Update mode
+        const variables: UpdateItemMutationVariables = {
+          id: item.id,
+        };
+
+        // Only include changed fields
+        if (originalValues) {
+          if (name.trim() !== originalValues.name) {
+            variables.name = name;
+          }
+
+          if (condition !== originalValues.condition) {
+            variables.condition = condition;
+          }
+
+          if (status !== originalValues.status) {
+            variables.status = status;
+          }
+
+          if (language !== originalValues.language) {
+            variables.language = language;
+          }
+
+          if (deposit !== originalValues.deposit) {
+            variables.deposit = deposit;
+          }
+
+          const currentDescription = description?.trim() || null;
+          const originalDescription = originalValues.description?.trim() || null;
+          if (currentDescription !== originalDescription) {
+            variables.description = currentDescription;
+            variables.category = categories;
+          }
+
+          const currentPublishedYear =
+            publishedYear === "" ? null : Number(publishedYear);
+          const originalPublishedYearValue =
+            originalValues.publishedYear === ""
+              ? null
+              : Number(originalValues.publishedYear);
+          if (currentPublishedYear !== originalPublishedYearValue) {
+            variables.publishedYear = currentPublishedYear;
+          }
+
+          // Check if images have changed
+          const hasImageChanges =
+            newImages.length > 0 ||
+            allImageUrls.length !== originalValues.images.length ||
+            JSON.stringify(allImageUrls) !==
+            JSON.stringify(originalValues.images);
+
+          if (hasImageChanges) {
+            variables.images = allImageUrls;
+          }
+
+          // Only proceed if there are actually changes
+          const hasChanges = Object.keys(variables).length > 1;
+
+          if (!hasChanges) {
+            setFormError(t("item.noChangesDetected", "No changes detected"));
+            setIsUploading(false);
+            return;
+          }
         }
+
+        console.log("Updating item with variables:", variables);
+        await updateItem({ variables });
+      } else {
+        // Create mode
+        const variables: CreateItemMutationVariables = {
+          name,
+          category: categories,
+          condition,
+          language,
+          status,
+          deposit,
+        };
+
+        if (description?.trim()) {
+          variables.description = description.trim();
+        }
+
+        if (allImageUrls.length > 0) {
+          variables.images = allImageUrls;
+        }
+
+        if (publishedYear !== "") {
+          variables.publishedYear = Number(publishedYear);
+        }
+
+        console.log("Creating item with variables:", variables);
+        await createItem({ variables });
       }
-
-      if (!variables.category || variables.category.length === 0)
-        variables.category = ["Uncategorized"];
-
-      if (uploadedImageUrls.length > 0) {
-        variables.images = uploadedImageUrls;
-      }
-
-      if (publishedYear !== "") {
-        variables.publishedYear = Number(publishedYear);
-      }
-
-      console.log("Sending variables:", variables);
-
-      await createItem({ variables });
     } catch (err) {
-      console.error("Create item error:", err);
-      setFormError(t("item.createItemError"));
+      console.error("Submit error:", err);
+      setFormError(
+        isEditMode ? t("item.updateItemError") : t("item.createItemError")
+      );
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -440,10 +668,18 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   return (
     <Box>
-      {dialogOpen ? (
-        <Dialog open={dialogOpen} onClose={handleClose} maxWidth="md" fullWidth>
+      {!item && (
+        <Button variant="contained" onClick={() => setDialogOpen(true)}>
+          {t("item.create")}
+        </Button>
+      )}
+
+      {(dialogOpen || open) && (
+        <Dialog open={dialogOpen || open} onClose={handleClose} maxWidth="md" fullWidth>
           <DialogTitle sx={{ textAlign: "center" }}>
-            {t("item.create")}
+            {isEditMode
+              ? t("item.editItem", "Edit Item")
+              : t("item.create", "Create Item")}
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>
@@ -472,10 +708,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 onChange={(e) => setCondition(e.target.value as ItemCondition)}
                 SelectProps={{
                   renderValue: (value) => {
-                    // Only show the condition name in the preview, not the description
                     return t(`item.conditions.${value}`, value as string);
                   },
                 }}
+                helperText={t(
+                  "item.conditionHelper",
+                  "Select the option that best describes your item."
+                )}
               >
                 {Object.values(ItemCondition).map((cond) => (
                   <MenuItem key={cond} value={cond}>
@@ -511,7 +750,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 required
                 type="number"
                 value={deposit}
-                onChange={(e) => setdeposit(Number(e.target.value))}
+                onChange={(e) => setDeposit(Number(e.target.value))}
                 helperText={t("item.depositHelper")}
               />
 
@@ -578,7 +817,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                   type="file"
                   hidden
                   accept="image/*"
-                  capture="environment" // Use rear camera by default
+                  capture="environment"
                   onChange={handleCameraCapture}
                 />
 
@@ -618,6 +857,14 @@ const ItemForm: React.FC<ItemFormProps> = ({
                             alt={t("item.previewAlt", { index: index + 1 })}
                           />
                           <Box sx={{ p: 1, textAlign: "center" }}>
+                            {image.isExisting && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {t("item.existing", "Existing")}
+                              </Typography>
+                            )}
                             {image.isUploading && (
                               <LinearProgress
                                 variant="determinate"
@@ -659,7 +906,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
               >
                 {Object.values(Language).map((lang) => (
                   <MenuItem key={lang} value={lang}>
-                    {lang}
+                    {t(`languages.${lang}`, lang)}
                   </MenuItem>
                 ))}
               </TextField>
@@ -689,19 +936,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
               >
                 {Object.values(ItemStatus).map((stat) => (
                   <MenuItem key={stat} value={stat}>
-                    {stat}
+                    {t(`item.statuses.${stat}`, stat)}
                   </MenuItem>
                 ))}
               </TextField>
-
-              {error && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {error.message}
-                </Alert>
-              )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={onClose}>{t("common.cancel")}</Button>
+              <Button onClick={handleClose}>{t("common.cancel")}</Button>
               <Button
                 type="submit"
                 variant="contained"
@@ -712,16 +953,16 @@ const ItemForm: React.FC<ItemFormProps> = ({
                   : isUploading
                     ? t("common.uploading")
                     : loading
-                      ? t("common.creating")
-                      : t("item.create")}
+                      ? isEditMode
+                        ? t("common.updating")
+                        : t("common.creating")
+                      : isEditMode
+                        ? t("common.save")
+                        : t("item.create")}
               </Button>
             </DialogActions>
           </form>
         </Dialog>
-      ) : (
-        <Button variant="contained" onClick={() => setDialogOpen(true)}>
-          {t("item.create")}
-        </Button>
       )}
 
       <Snackbar
@@ -735,7 +976,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
           severity="success"
           sx={{ width: "100%" }}
         >
-          {t("item.createSuccess")}
+          {isEditMode
+            ? t("item.updateSuccess", "Item updated successfully!")
+            : t("item.createSuccess")}
         </Alert>
       </Snackbar>
     </Box>

@@ -27,7 +27,7 @@ const LanguageSwitcher: React.FC = () => {
           variant="outlined"
         >
           <MenuItem value="en">{t("languages.en")}</MenuItem>
-          <MenuItem value="zh-TW">{t("languages.zh-TW")}</MenuItem>
+          <MenuItem value="zh-HK">{t("languages.zh-TW")}</MenuItem>
         </Select>
       </FormControl>
     </Box>

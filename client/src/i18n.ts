@@ -12,6 +12,9 @@ const resources = {
   "zh-TW": {
     translation: zhTW,
   },
+  "zh-HK": {
+    translation: zhTW,
+  },
 };
 
 i18n

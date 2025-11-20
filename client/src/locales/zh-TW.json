@@ -189,11 +189,11 @@
       "LIKE_NEW": "近乎全新，幾乎未使用，無可見損壞或磨損痕跡。"
     },
     "statuses": {
-      "Available": "可用",
-      "Borrowed": "已借出",
-      "Maintenance": "維修中",
-      "Lost": "遺失",
-      "Damaged": "損壞"
+      "AVAILABLE": "可用",
+      "EXCHANGEABLE": "可交換",
+      "GIFT": "贈送物",
+      "RESERVED": "已預留",
+      "TRANSFERRED": "已轉讓"
     },
     "viewDetails": "查看詳情",
     "relatedItems": "相關物品",
@@ -377,7 +377,9 @@
   },
   "languages": {
     "en": "English",
-    "zh-TW": "繁體中文"
+    "zh-TW": "繁體中文",
+    "EN": "English",
+    "ZH_HK": "繁體中文"
   },
   "user": {
     "itemCategories": "物品類別",

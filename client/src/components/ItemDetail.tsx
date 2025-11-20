@@ -43,9 +43,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
-import SafeImage from "./SafeImage";
 import RequestConfirmationDialog from "./RequestConfirmationDialog";
-import EditItemForm from "./EditItemForm";
+import ItemForm from "./ItemForm";
 import FaceToFaceConfirmDialog from "./FaceToFaceConfirmDialog";
 import ItemComments from "./ItemComments";
 import { convertLinksToClickable } from "../utils/helpers";
@@ -1066,10 +1065,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       )}
 
       {/* Edit Item Dialog */}
-      <EditItemForm
+      <ItemForm
         open={editDialogOpen}
-        item={data?.item || null}
         onClose={() => setEditDialogOpen(false)}
+        item={data?.item || null}
         onItemUpdated={handleEditSuccess}
         onError={handleEditError}
       />
