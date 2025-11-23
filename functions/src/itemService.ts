@@ -27,6 +27,8 @@ type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
 };
 
 export class ItemService {
+  private readonly ITEM_INDEX_VER = 1 as const;
+
   private mapService: MapService;
   private categoryService: CategoryService;
   private userService?: any; // Will be set after initialization
@@ -1155,30 +1157,39 @@ export class ItemService {
   }
 
 
+  
+
   // Used for generating name index for search optimization.
   // And also for when we try to search using the created index.
   //
   // tokenizes a name: split by spaces, group ASCII letters/digits together,
   // and make every non-ASCII-or-digit character a separate token.
+  private readonly SKIP_INDEX = new Set(["a", "an", "the"]);
+
   private tokenizeName(name: string): string[] {
       const tokens: string[] = [];
       if (!name) return tokens;
-      const parts = name.toLowerCase().split(" ").filter(Boolean);
-      const asciiOrDigit = /[A-Za-z0-9]/;
+      const parts = name
+        .toLowerCase()
+        .split(/[\s\p{P}\p{S}]+/u)
+        .filter(Boolean);
+      const latinOrNumbers = /\p{Script=Latin}|\p{Nd}/u;
+
+      // Parts is separated by spaces and punctuations.
       for (const part of parts) {
         let cur = "";
         for (const ch of part) {
-          if (asciiOrDigit.test(ch)) {
+          if (latinOrNumbers.test(ch)) {
             cur += ch;
           } else {
-            if (cur) {
-              tokens.push(cur);
-              cur = "";
-            }
+            if ( cur && !this.SKIP_INDEX.has(cur) ) {
+                tokens.push(cur);
+                cur = "";
+             }
             tokens.push(ch);
           }
         }
-        if (cur) tokens.push(cur);
+        if (cur && !this.SKIP_INDEX.has(cur)) tokens.push(cur);
       }
       return tokens.filter(Boolean);
   };
@@ -1187,7 +1198,6 @@ export class ItemService {
 
     return (async () => {
       try {
-        const ITEM_INDEX_VER = 1;
         const BATCH_READ_SIZE = 500;
         let lastDoc: firebase.firestore.QueryDocumentSnapshot | null = null;
         let processed = 0;
@@ -1196,7 +1206,7 @@ export class ItemService {
 
         const totalCount = (await db
           .collection("items")
-          .where("nameIndexVer", "!=", ITEM_INDEX_VER)
+          .where("nameIndexVer", "!=", this.ITEM_INDEX_VER)
           .count().get()).data().count;
 
         console.log(`generateItemIndexIncremental: total ${totalCount} items to process`);
@@ -1204,7 +1214,7 @@ export class ItemService {
         while (true) {
           let q = db
             .collection("items")
-            .where("nameIndexVer", "!=", ITEM_INDEX_VER)
+            .where("nameIndexVer", "!=", this.ITEM_INDEX_VER)
             // .orderBy(firebase.firestore.FieldPath.documentId())
             .limit(BATCH_READ_SIZE);
 
@@ -1221,7 +1231,7 @@ export class ItemService {
             const nameIndex = this.tokenizeName(name);
             batch.update(doc.ref, { 
               nameIndex: nameIndex,
-              nameIndexVer: ITEM_INDEX_VER,
+              nameIndexVer: this.ITEM_INDEX_VER,
             });
           });
 

@@ -5,7 +5,7 @@
   "scripts": {
     "prebuild": "npx graphql-codegen --config codegen.ts",
     "build": "npx tsc --project tsconfig.json",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npx jest",
     "start": "node dist/index.js",
     "start:inspect": "nodemon --exec \"node --require ts-node/register src/index.ts\"",
     "dev": "ts-node src/index.ts",
@@ -37,8 +37,14 @@
     "@graphql-codegen/cli": "^5.0.6",
     "@graphql-codegen/typescript": "^4.1.6",
     "@graphql-codegen/typescript-resolvers": "^4.5.1",
+    "@types/jest": "^30.0.0",
     "@types/nodemailer": "^7.0.3",
     "@types/sharp": "^0.31.1",
-    "nodemon": "^3.1.10"
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "ts-jest": "^29.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest"
   }
 }

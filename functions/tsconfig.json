@@ -6,8 +6,16 @@
     "esModuleInterop": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "moduleResolution": "node16"
+    "moduleResolution": "node16",
+    "types": [
+      "jest"
+    ]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
