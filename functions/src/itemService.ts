@@ -1175,7 +1175,7 @@ export class ItemService {
   //
   // tokenizes a name: split by spaces, group ASCII letters/digits together,
   // and make every non-ASCII-or-digit character a separate token.
-  private readonly SKIP_INDEX = new Set(["a", "an", "the"]);
+  private readonly SKIP_INDEX = new Set(["a", "an", "the", "and", "or", "of", "in", "on", "at", "to", "for", "with", "is", "are", "by", "as", "it", "this", "that"]);
 
   private tokenizeName(name: string): string[] {
       if (!name) return []

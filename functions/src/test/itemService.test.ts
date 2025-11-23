@@ -61,10 +61,10 @@ describe("ItemService.tokenizeName", () => {
 
 
   it("Skip articles and short common words", () => {
-    expect((service as any).tokenizeName("The quick brown fox")).toEqual([
-      "quick",
-      "brown",
-      "fox",
+    expect((service as any).tokenizeName("The Lion, the Witch and the Wardrobe")).toEqual([
+      "lion",
+      "witch",
+      "wardrobe",
     ]);
   });
 
