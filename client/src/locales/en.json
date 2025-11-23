@@ -352,6 +352,8 @@
     "exchangePointsCount": "{{current}} of {{total}} exchange points",
     "locationNotFound": "Could not find location for the address.",
     "geocodeError": "Failed to resolve address location",
+    "geocodeErrorTooltip": "Failed to resolve address",
+    "geocodeResolvedTooltip": "Address resolved",
     "contactMethods": {
       "title": "Contact Methods",
       "add": "Add Contact Method",

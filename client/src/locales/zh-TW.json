@@ -339,6 +339,8 @@
     "selectedPoints": "已選擇 {{count}} 個交換點",
     "locationNotFound": "找不到該地址的位置。",
     "geocodeError": "無法解析地址位置",
+    "geocodeErrorTooltip": "地址解析失敗",
+    "geocodeResolvedTooltip": "地址已解析",
     "contactMethods": {
       "title": "聯絡方法",
       "add": "添加聯絡方法",
