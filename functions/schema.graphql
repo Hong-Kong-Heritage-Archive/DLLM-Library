@@ -451,7 +451,7 @@ type Mutation {
     folder: String
   ): SignedUrlResponse!
 
-  generateItemIndex: Boolean!
+  generateItemIndexIncremental: Boolean!
 }
 
 # 輸入類型

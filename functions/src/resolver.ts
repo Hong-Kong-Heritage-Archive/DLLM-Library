@@ -646,13 +646,13 @@ export const resolvers: Resolvers = {
       if (!user || user.role !== Role.Admin) throw new Error("Admin only");
       return systemService.addCategoryTree(parentPath, leafCategory);
     },
-    generateItemIndex: async (
+    generateItemIndexIncremental: async (
       _parent: any,
       _args: any,
       _context: any
     ): Promise<boolean> => {
       // TODO: Make this admin only.
-      return itemService.generateItemIndex();
+      return itemService.generateItemIndexIncremental();
     },
   },
 };

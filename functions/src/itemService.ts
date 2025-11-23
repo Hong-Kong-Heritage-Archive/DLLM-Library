@@ -1183,19 +1183,29 @@ export class ItemService {
       return tokens.filter(Boolean);
   };
 
-  public generateItemIndex() : Promise<boolean>{
-    console.log("generateItemIndex mutation called.");
+  public generateItemIndexIncremental() : Promise<boolean>{
 
     return (async () => {
       try {
+        const ITEM_INDEX_VER = 1;
         const BATCH_READ_SIZE = 500;
         let lastDoc: firebase.firestore.QueryDocumentSnapshot | null = null;
         let processed = 0;
 
+        console.log("generateItemIndexIncremental: Generating index for version ", ITEM_INDEX_VER );
+
+        const totalCount = (await db
+          .collection("items")
+          .where("nameIndexVer", "!=", ITEM_INDEX_VER)
+          .count().get()).data().count;
+
+        console.log(`generateItemIndexIncremental: total ${totalCount} items to process`);
+
         while (true) {
           let q = db
             .collection("items")
-            .orderBy(firebase.firestore.FieldPath.documentId())
+            .where("nameIndexVer", "!=", ITEM_INDEX_VER)
+            // .orderBy(firebase.firestore.FieldPath.documentId())
             .limit(BATCH_READ_SIZE);
 
           if (lastDoc) q = q.startAfter(lastDoc);
@@ -1209,17 +1219,20 @@ export class ItemService {
             const data = doc.data();
             const name = (data && data.name) ? String(data.name) : "";
             const nameIndex = this.tokenizeName(name);
-            batch.update(doc.ref, { nameIndex: nameIndex });
+            batch.update(doc.ref, { 
+              nameIndex: nameIndex,
+              nameIndexVer: ITEM_INDEX_VER,
+            });
           });
 
           await batch.commit();
           processed += snap.size;
+          console.log(`generateItemIndexIncremental: processed total ${processed} of ${totalCount} previously remaining items`);
 
           lastDoc = snap.docs[snap.docs.length - 1];
           if (snap.size < BATCH_READ_SIZE) break;
         }
-
-        console.log(`generateItemIndex: processed ${processed} items`);
+        
         return true;
       } catch (error) {
         console.error("generateItemIndex failed:", error);
