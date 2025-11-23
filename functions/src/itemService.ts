@@ -24,6 +24,8 @@ type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   updated: Timestamp;
   gsImageUrls?: string[];
   gsThumbnailUrls?: string[];
+  nameIndex?: string[];
+  nameIndexVer?: number;
 };
 
 export class ItemService {
@@ -590,6 +592,8 @@ export class ItemService {
       }
     }
 
+    const nameIndex = this.tokenizeName(name);
+
     // Build itemData object, only including fields with valid values
     const itemData: ItemModel = {
       ownerId: owner.id,
@@ -602,6 +606,9 @@ export class ItemService {
       clssfctns: null,
       created: Timestamp.now(),
       updated: Timestamp.now(),
+      // Item indexing
+      nameIndex: nameIndex,
+      nameIndexVer: this.ITEM_INDEX_VER,
     };
 
     // Only add optional fields if they have valid values
@@ -727,6 +734,10 @@ export class ItemService {
     if (name && existingData.name !== name) {
       updateData.name = name;
       existingData.name = name;
+
+      // Update name index.
+      updateData.nameIndex = this.tokenizeName(name);
+      updateData.nameIndexVer = this.ITEM_INDEX_VER;
     }
     if (condition && existingData.condition !== condition) {
       updateData.condition = condition;
@@ -1167,8 +1178,9 @@ export class ItemService {
   private readonly SKIP_INDEX = new Set(["a", "an", "the"]);
 
   private tokenizeName(name: string): string[] {
-      const tokens: string[] = [];
-      if (!name) return tokens;
+      if (!name) return []
+
+      const tokens: Set<string> = new Set();
       const parts = name
         .toLowerCase()
         .split(/[\s\p{P}\p{S}]+/u)
@@ -1183,15 +1195,15 @@ export class ItemService {
             cur += ch;
           } else {
             if ( cur && !this.SKIP_INDEX.has(cur) ) {
-                tokens.push(cur);
+                tokens.add(cur);
                 cur = "";
              }
-            tokens.push(ch);
+            tokens.add(ch);
           }
         }
-        if (cur && !this.SKIP_INDEX.has(cur)) tokens.push(cur);
+        if (cur && !this.SKIP_INDEX.has(cur)) tokens.add(cur);
       }
-      return tokens.filter(Boolean);
+      return Array.from(tokens).filter(Boolean);
   };
 
   public generateItemIndexIncremental() : Promise<boolean>{
@@ -1202,7 +1214,7 @@ export class ItemService {
         let lastDoc: firebase.firestore.QueryDocumentSnapshot | null = null;
         let processed = 0;
 
-        console.log("generateItemIndexIncremental: Generating index for version ", ITEM_INDEX_VER );
+        console.log("generateItemIndexIncremental: Generating index for version ", this.ITEM_INDEX_VER );
 
         const totalCount = (await db
           .collection("items")

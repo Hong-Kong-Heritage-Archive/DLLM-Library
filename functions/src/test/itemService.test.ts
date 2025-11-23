@@ -67,4 +67,10 @@ describe("ItemService.tokenizeName", () => {
       "fox",
     ]);
   });
+
+  it("Removes duplicate tokens", () => {
+    expect((service as any).tokenizeName("test test TEST TeSt")).toEqual([
+      "test",
+    ]);
+  });
 });
