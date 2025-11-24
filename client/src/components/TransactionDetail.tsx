@@ -543,6 +543,191 @@ const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
   );
 };
 
+// Add this helper function before the TransactionDetailPage component
+const getRoleInstructions = (
+  t: any,
+  status: TransactionStatus,
+  isOwner: boolean,
+  isRequestor: boolean,
+  isReceiver: boolean,
+  isQuickExchange: boolean
+): {
+  role: string;
+  instruction: string;
+  severity: "info" | "warning" | "success";
+} | null => {
+  // Owner instructions
+  if (isOwner) {
+    switch (status) {
+      case TransactionStatus.Pending:
+        return {
+          role: t("transactions.roleOwner", "Owner"),
+          instruction: t(
+            "transactions.ownerInstructionPending",
+            "You have received a request for this item. Please review the requestor's information and decide whether to approve or cancel this transaction."
+          ),
+          severity: "warning",
+        };
+      case TransactionStatus.Approved:
+        return {
+          role: t("transactions.roleOwner", "Owner"),
+          instruction: t(
+            "transactions.ownerInstructionApproved",
+            "You have approved this transaction. Please arrange a meeting with the requestor at the exchange location shown below. Once you have handed over the item, click 'Mark as Transferred'."
+          ),
+          severity: "info",
+        };
+      case TransactionStatus.Transfered:
+        return {
+          role: t("transactions.roleOwner", "Owner"),
+          instruction: t(
+            "transactions.ownerInstructionTransferred",
+            "You have marked the item as transferred. Waiting for the receiver to confirm receipt."
+          ),
+          severity: "info",
+        };
+      case TransactionStatus.Completed:
+        return {
+          role: t("transactions.roleOwner", "Owner"),
+          instruction: t(
+            "transactions.ownerInstructionCompleted",
+            "This transaction is complete. The item has been successfully transferred to the new holder."
+          ),
+          severity: "success",
+        };
+      case TransactionStatus.Cancelled:
+        return {
+          role: t("transactions.roleOwner", "Owner"),
+          instruction: t(
+            "transactions.ownerInstructionCancelled",
+            "This transaction has been cancelled. The item remains in your possession."
+          ),
+          severity: "info",
+        };
+    }
+  }
+
+  // Requestor instructions
+  if (isRequestor) {
+    switch (status) {
+      case TransactionStatus.Pending:
+        return {
+          role: t("transactions.roleRequestor", "Requestor"),
+          instruction: t(
+            "transactions.requestorInstructionPending",
+            "Your request has been submitted. Please wait for the owner to review and approve your request. You can cancel this request if needed."
+          ),
+          severity: "warning",
+        };
+      case TransactionStatus.Approved:
+        return {
+          role: t("transactions.roleRequestor", "Requestor"),
+          instruction: t(
+            "transactions.requestorInstructionApproved",
+            "Your request has been approved! Please coordinate with the owner to meet at the exchange location shown below. Wait for the owner to hand over the item."
+          ),
+          severity: "success",
+        };
+      case TransactionStatus.Transfered:
+        return {
+          role: t("transactions.roleRequestor", "Requestor"),
+          instruction: isQuickExchange
+            ? t(
+                "transactions.requestorInstructionTransferredQuick",
+                "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction."
+              )
+            : t(
+                "transactions.requestorInstructionTransferred",
+                "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt."
+              ),
+          severity: isQuickExchange ? "warning" : "info",
+        };
+      case TransactionStatus.Completed:
+        return {
+          role: t("transactions.roleRequestor", "Requestor"),
+          instruction: t(
+            "transactions.requestorInstructionCompleted",
+            "This transaction is complete. You are now the holder of this item and can manage it from your items page."
+          ),
+          severity: "success",
+        };
+      case TransactionStatus.Cancelled:
+        return {
+          role: t("transactions.roleRequestor", "Requestor"),
+          instruction: t(
+            "transactions.requestorInstructionCancelled",
+            "This transaction has been cancelled. You may submit a new request if still interested."
+          ),
+          severity: "info",
+        };
+    }
+  }
+
+  // Receiver instructions (if different from requestor)
+  if (isReceiver && !isRequestor) {
+    switch (status) {
+      case TransactionStatus.Transfered:
+        return {
+          role: t("transactions.roleReceiver", "Receiver"),
+          instruction: t(
+            "transactions.receiverInstructionTransferred",
+            "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction."
+          ),
+          severity: "warning",
+        };
+      case TransactionStatus.Completed:
+        return {
+          role: t("transactions.roleReceiver", "Receiver"),
+          instruction: t(
+            "transactions.receiverInstructionCompleted",
+            "You have confirmed receipt of this item. You are now the holder and can manage it from your items page."
+          ),
+          severity: "success",
+        };
+    }
+  }
+
+  return null;
+};
+
+// Add this helper function for action button descriptions
+const getActionButtonDescription = (
+  t: any,
+  action: string,
+  status: TransactionStatus
+): string => {
+  switch (action) {
+    case "approve":
+      return t(
+        "transactions.actionApproveDescription",
+        "Click this after reviewing the requestor's information and deciding to proceed with the exchange."
+      );
+    case "transfer":
+      return t(
+        "transactions.actionTransferDescription",
+        "Click this only AFTER you have physically handed over the item to the requestor at the exchange location."
+      );
+    case "receive":
+      return t(
+        "transactions.actionReceiveDescription",
+        "Click this after inspecting the item's condition. You can optionally take photos to document the item's state at receipt."
+      );
+    case "cancel":
+      if (status === TransactionStatus.Pending) {
+        return t(
+          "transactions.actionCancelPendingDescription",
+          "Cancel this transaction request. The item will remain with the current holder."
+        );
+      }
+      return t(
+        "transactions.actionCancelApprovedDescription",
+        "Cancel this approved transaction. Use this if you can no longer proceed with the exchange."
+      );
+    default:
+      return "";
+  }
+};
+
 const TransactionDetailPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -644,12 +829,17 @@ const TransactionDetailPage: React.FC = () => {
     });
   };
 
-  const isOwner = user?.id === data?.transaction?.item?.ownerId;
-  const isRequestor = user && user.id === data?.transaction?.requestor?.id;
-  const isReceiver = user && user.id === data?.transaction?.receiver?.id;
+  const ownerId = data?.transaction?.item?.ownerId;
+  const holderId = data?.transaction?.item?.holderId;
+  const requestorId = data?.transaction?.requestor?.id;
+  const receiverId = data?.transaction?.receiver?.id;
+  const isOwner = user && user?.id === ownerId;
+  const isRequestor = user && user.id === requestorId;
+  const isReceiver = user && user.id === receiverId;
   const isQuickExchange =
-    data?.transaction?.receiver === null ||
-    data?.transaction?.receiver === undefined;
+    (data?.transaction?.receiver === null ||
+      data?.transaction?.receiver === undefined) &&
+    (ownerId === requestorId || holderId === requestorId);
 
   if (loading) {
     return (
@@ -669,15 +859,15 @@ const TransactionDetailPage: React.FC = () => {
             <ArrowBack />
           </IconButton>
           <Typography variant="h4">
-            {t("transactions.transactionDetail", "Transaction Detail")}
+            {t("transactions.detail", "Record")}
           </Typography>
         </Box>
         <Alert severity="error">
           {error
             ? `${t(
-              "transactions.errorLoading",
-              "Error loading transaction"
-            )}: ${error.message}`
+                "transactions.errorLoading",
+                "Error loading transaction"
+              )}: ${error.message}`
             : t("transactions.notFound", "Transaction not found")}
         </Alert>
       </Container>
@@ -755,6 +945,17 @@ const TransactionDetailPage: React.FC = () => {
   // Generate the full transaction URL
   const transactionUrl = `${window.location.origin}/transaction/${transactionId}`;
   console.log("transactionDetails:", transactionDetails);
+
+  // Get role-specific instructions
+  const roleInstructions = getRoleInstructions(
+    t,
+    transaction.status,
+    isOwner || false,
+    isRequestor || false,
+    isReceiver || false,
+    isQuickExchange || false
+  );
+
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       {/* Header */}
@@ -763,7 +964,7 @@ const TransactionDetailPage: React.FC = () => {
           <ArrowBack />
         </IconButton>
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          {t("transactions.transactionDetail", "Transaction Detail")}
+          {t("transactions.details", "Transaction Detail")}
         </Typography>
 
         {/* Share Button - Add to header */}
@@ -787,6 +988,22 @@ const TransactionDetailPage: React.FC = () => {
         />
       </Box>
 
+      {/* Role-specific Instructions Alert - Add this before Transaction Info */}
+      {roleInstructions && (
+        <Alert
+          severity={roleInstructions.severity}
+          icon={<PersonIcon />}
+          sx={{ mb: 3 }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: "bold", mb: 0.5 }}>
+            {roleInstructions.role}
+          </Typography>
+          <Typography variant="body2">
+            {roleInstructions.instruction}
+          </Typography>
+        </Alert>
+      )}
+
       {/* Transaction Info */}
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
         <Typography
@@ -798,7 +1015,7 @@ const TransactionDetailPage: React.FC = () => {
         </Typography>
 
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <ListItem sx={{ px: 0 }}>
               <ListItemIcon>
                 <CalendarTodayIcon />
@@ -809,7 +1026,7 @@ const TransactionDetailPage: React.FC = () => {
               />
             </ListItem>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <ListItem sx={{ px: 0 }}>
               <ListItemIcon>
                 <CalendarTodayIcon />
@@ -821,156 +1038,18 @@ const TransactionDetailPage: React.FC = () => {
             </ListItem>
           </Grid>
 
-          <Grid>
+          <Grid size={{ xs: 12, sm: 4 }}>
             {transactionDetails &&
               Object.entries(transactionDetails).map(([key, value]) => (
                 <ListItem key={key} sx={{ px: 0 }}>
                   <ListItemText
-                    primary={t(`transactions.transactionDetails.${key}`, key)}
+                    primary={t(`transactions.detail.${key}`, key)}
                     secondary={String(value)}
                   />
                 </ListItem>
-              ))}</Grid>
+              ))}
+          </Grid>
         </Grid>
-      </Paper>
-
-      {/* Transaction Details Section - Add this new section */}
-      {/* {transactionDetails && (
-        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
-          >
-            <Typography
-              variant="h6"
-              sx={{ display: "flex", alignItems: "center" }}
-            >
-              <AccountBoxIcon sx={{ mr: 1 }} />
-              {t("transactions.details", "Transaction Details")}
-            </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => setShowRawJson(!showRawJson)}
-            >
-              {showRawJson
-                ? t("transactions.showFormatted", "Show Formatted")
-                : t("transactions.showRaw", "Show Raw JSON")}
-            </Button>
-          </Box>
-
-          <Divider sx={{ mb: 2 }} />
-
-          {showRawJson ? (
-            <Box
-              sx={{
-                bgcolor: "grey.100",
-                p: 2,
-                borderRadius: 1,
-                overflow: "auto",
-                maxHeight: 400,
-              }}
-            >
-              <Typography
-                component="pre"
-                variant="body2"
-                sx={{
-                  fontFamily: "monospace",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  m: 0,
-                }}
-              >
-                {JSON.stringify(transactionDetails, null, 2)}
-              </Typography>
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                bgcolor: "background.default",
-                p: 2,
-                borderRadius: 1,
-                border: 1,
-                borderColor: "divider",
-                maxHeight: 400,
-                overflow: "auto",
-              }}
-            >
-              <JsonViewer data={transactionDetails} />
-            </Box>
-          )}
-        </Paper>
-      )} */}
-
-      {/* Item Info */}
-      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          {t("transactions.itemInfo", "Item Information")}
-        </Typography>
-
-        <Card elevation={0} sx={{ border: 1, borderColor: "divider" }}>
-          <CardActionArea
-            onClick={() => handleNavigate(`/item/${transaction.item.id}`)}
-            title={t("item.viewDetail", "View item detail")}
-          >
-            <Grid container>
-              {transaction.item?.images?.[0] && (
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={
-                      transaction.item.thumbnails?.[0] ||
-                      transaction.item.images[0]
-                    }
-                    alt={transaction.item.name}
-                    sx={{ objectFit: "cover" }}
-                  />
-                </Grid>
-              )}
-              <Grid
-                size={{ xs: 12, sm: transaction.item?.images?.[0] ? 8 : 12 }}
-              >
-                <CardContent>
-                  <Typography variant="h6" component="h3">
-                    {transaction.item?.name}
-                  </Typography>
-                  {transaction.item?.description && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 1 }}
-                    >
-                      {transaction.item.description}
-                    </Typography>
-                  )}
-                  {transaction.item?.category && (
-                    <Box sx={{ mt: 2 }}>
-                      {transaction.item.category.map((cat) => (
-                        <Chip
-                          key={cat}
-                          label={cat}
-                          size="small"
-                          sx={{ mr: 1, mb: 1 }}
-                        />
-                      ))}
-                    </Box>
-                  )}
-                  {transaction.item?.condition && (
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      <strong>{t("item.condition", "Condition")}:</strong>{" "}
-                      {transaction.item.condition}
-                    </Typography>
-                  )}
-                </CardContent>
-              </Grid>
-            </Grid>
-          </CardActionArea>
-        </Card>
       </Paper>
 
       {/* Participants Info */}
@@ -1153,9 +1232,9 @@ const TransactionDetailPage: React.FC = () => {
                     secondary={
                       holder
                         ? t(
-                          "transactions.holderIsRequestor",
-                          "Requestor has the item"
-                        )
+                            "transactions.holderIsRequestor",
+                            "Requestor has the item"
+                          )
                         : t("transactions.ownerHasItem", "Owner has the item")
                     }
                   />
@@ -1166,53 +1245,189 @@ const TransactionDetailPage: React.FC = () => {
         </Grid>
       </Paper>
 
-      {/* Exchange Location Map */}
-      {
-        location && (
-          <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+      {/* Transaction Details Section - Add this new section */}
+      {/* {transactionDetails && (
+        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
             <Typography
               variant="h6"
-              sx={{ mb: 2, display: "flex", alignItems: "center" }}
+              sx={{ display: "flex", alignItems: "center" }}
             >
-              <LocationOnIcon sx={{ mr: 1 }} />
-              {t("transactions.exchangeLocation", "Exchange Location")}
+              <AccountBoxIcon sx={{ mr: 1 }} />
+              {t("transactions.details", "Transaction Details")}
             </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setShowRawJson(!showRawJson)}
+            >
+              {showRawJson
+                ? t("transactions.showFormatted", "Show Formatted")
+                : t("transactions.showRaw", "Show Raw JSON")}
+            </Button>
+          </Box>
 
+          <Divider sx={{ mb: 2 }} />
+
+          {showRawJson ? (
             <Box
               sx={{
-                height: 300,
-                border: 1,
-                borderColor: "divider",
+                bgcolor: "grey.100",
+                p: 2,
                 borderRadius: 1,
+                overflow: "auto",
+                maxHeight: 400,
               }}
             >
-              <MapContainer
-                center={[location.latitude, location.longitude]}
-                zoom={15}
-                style={{ height: "100%", width: "100%" }}
+              <Typography
+                component="pre"
+                variant="body2"
+                sx={{
+                  fontFamily: "monospace",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  m: 0,
+                }}
               >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={[location.latitude, location.longitude]}>
-                  <Popup>
-                    <Typography variant="body2">
-                      {t("transactions.exchangePoint", "Exchange Point")}
-                      <br />
-                      {transaction.item.name}
-                    </Typography>
-                  </Popup>
-                </Marker>
-              </MapContainer>
+                {JSON.stringify(transactionDetails, null, 2)}
+              </Typography>
             </Box>
-          </Paper>
-        )
-      }
+          ) : (
+            <Box
+              sx={{
+                bgcolor: "background.default",
+                p: 2,
+                borderRadius: 1,
+                border: 1,
+                borderColor: "divider",
+                maxHeight: 400,
+                overflow: "auto",
+              }}
+            >
+              <JsonViewer data={transactionDetails} />
+            </Box>
+          )}
+        </Paper>
+      )} */}
+
+      {/* Item Info */}
+      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          {t("transactions.itemInfo", "Item Information")}
+        </Typography>
+
+        <Card elevation={0} sx={{ border: 1, borderColor: "divider" }}>
+          <CardActionArea
+            onClick={() => handleNavigate(`/item/${transaction.item.id}`)}
+            title={t("item.viewDetail", "View item detail")}
+          >
+            <Grid container>
+              {transaction.item?.images?.[0] && (
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={
+                      transaction.item.thumbnails?.[0] ||
+                      transaction.item.images[0]
+                    }
+                    alt={transaction.item.name}
+                    sx={{ objectFit: "cover" }}
+                  />
+                </Grid>
+              )}
+              <Grid
+                size={{ xs: 12, sm: transaction.item?.images?.[0] ? 8 : 12 }}
+              >
+                <CardContent>
+                  <Typography variant="h6" component="h3">
+                    {transaction.item?.name}
+                  </Typography>
+                  {transaction.item?.description && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1 }}
+                    >
+                      {transaction.item.description}
+                    </Typography>
+                  )}
+                  {transaction.item?.category && (
+                    <Box sx={{ mt: 2 }}>
+                      {transaction.item.category.map((cat) => (
+                        <Chip
+                          key={cat}
+                          label={cat}
+                          size="small"
+                          sx={{ mr: 1, mb: 1 }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                  {transaction.item?.condition && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      <strong>{t("item.condition", "Condition")}:</strong>{" "}
+                      {transaction.item.condition}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Grid>
+            </Grid>
+          </CardActionArea>
+        </Card>
+      </Paper>
+
+      {/* Exchange Location Map */}
+      {location && (
+        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, display: "flex", alignItems: "center" }}
+          >
+            <LocationOnIcon sx={{ mr: 1 }} />
+            {t("transactions.exchangeLocation", "Exchange Location")}
+          </Typography>
+
+          <Box
+            sx={{
+              height: 300,
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
+          >
+            <MapContainer
+              center={[location.latitude, location.longitude]}
+              zoom={15}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[location.latitude, location.longitude]}>
+                <Popup>
+                  <Typography variant="body2">
+                    {t("transactions.exchangePoint", "Exchange Point")}
+                    <br />
+                    {transaction.item.name}
+                  </Typography>
+                </Popup>
+              </Marker>
+            </MapContainer>
+          </Box>
+        </Paper>
+      )}
 
       {/* Add Receipt Images Section - Show when completed */}
-      {
-        transaction.status === TransactionStatus.Completed &&
+      {transaction.status === TransactionStatus.Completed &&
         transaction.images &&
         transaction.images.length > 0 && (
           <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -1264,120 +1479,173 @@ const TransactionDetailPage: React.FC = () => {
               ))}
             </ImageList>
           </Paper>
-        )
-      }
+        )}
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Enhanced with descriptions */}
       <Paper elevation={1} sx={{ p: 3 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           {t("transactions.actions", "Actions")}
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-          {/* Share Button */}
-          <Button
-            variant="outlined"
-            startIcon={<ShareIcon />}
-            onClick={() => setShareDialogOpen(true)}
-          >
-            {t("transactions.share", "Share Transaction")}
-          </Button>
-
-          {/* Owner Actions */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {/* Owner Actions - Pending */}
           {isOwner && transaction.status === TransactionStatus.Pending && (
             <>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => handleAction("approve", approveTransaction)}
-                disabled={actionLoading === "approve"}
-                startIcon={
-                  actionLoading === "approve" ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <CheckCircleIcon />
-                  )
-                }
-              >
-                {t("transactions.approve", "Approve")}
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => handleAction("cancel", cancelTransaction)}
-                disabled={actionLoading === "cancel"}
-                startIcon={
-                  actionLoading === "cancel" ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <CancelIcon />
-                  )
-                }
-              >
-                {t("transactions.cancel", "Cancel")}
-              </Button>
+              <Box>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={() => handleAction("approve", approveTransaction)}
+                  disabled={actionLoading === "approve"}
+                  startIcon={
+                    actionLoading === "approve" ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <CheckCircleIcon />
+                    )
+                  }
+                  fullWidth
+                >
+                  {t("transactions.approve", "Approve")}
+                </Button>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.5, px: 1 }}
+                >
+                  {getActionButtonDescription(t, "approve", transaction.status)}
+                </Typography>
+              </Box>
+
+              <Box>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleAction("cancel", cancelTransaction)}
+                  disabled={actionLoading === "cancel"}
+                  startIcon={
+                    actionLoading === "cancel" ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <CancelIcon />
+                    )
+                  }
+                  fullWidth
+                >
+                  {t("transactions.cancel", "Cancel")}
+                </Button>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.5, px: 1 }}
+                >
+                  {getActionButtonDescription(t, "cancel", transaction.status)}
+                </Typography>
+              </Box>
             </>
           )}
 
+          {/* Owner and Requestor Actions - Approved */}
           {transaction.status === TransactionStatus.Approved && (
             <>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => handleAction("cancel", cancelTransaction)}
-                disabled={actionLoading === "cancel"}
-                startIcon={
-                  actionLoading === "cancel" ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <CancelIcon />
-                  )
-                }
-              >
-                {t("transactions.cancel", "Cancel")}
-              </Button>
-              {isOwner && (
+              <Box>
                 <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleAction("transfer", transferTransaction)}
-                  disabled={actionLoading === "transfer"}
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleAction("cancel", cancelTransaction)}
+                  disabled={actionLoading === "cancel"}
                   startIcon={
-                    actionLoading === "transfer" ? (
+                    actionLoading === "cancel" ? (
                       <CircularProgress size={20} />
                     ) : (
-                      <LocalShippingIcon />
+                      <CancelIcon />
                     )
                   }
+                  fullWidth
                 >
-                  {t("transactions.transfer", "Mark as Transferred")}
+                  {t("transactions.cancel", "Cancel")}
                 </Button>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.5, px: 1 }}
+                >
+                  {getActionButtonDescription(t, "cancel", transaction.status)}
+                </Typography>
+              </Box>
+
+              {isOwner && (
+                <Box>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() =>
+                      handleAction("transfer", transferTransaction)
+                    }
+                    disabled={actionLoading === "transfer"}
+                    startIcon={
+                      actionLoading === "transfer" ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <LocalShippingIcon />
+                      )
+                    }
+                    fullWidth
+                  >
+                    {t("transactions.transfer", "Mark as Transferred")}
+                  </Button>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mt: 0.5, px: 1 }}
+                  >
+                    {getActionButtonDescription(
+                      t,
+                      "transfer",
+                      transaction.status
+                    )}
+                  </Typography>
+                </Box>
               )}
             </>
           )}
 
-          {/* Receive Button */}
+          {/* Receive Button - Transferred */}
           {(isRequestor || isReceiver || isQuickExchange) &&
             transaction.status === TransactionStatus.Transfered && (
               <>
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={handleReceiveClick}
-                  disabled={actionLoading === "receive"}
-                  startIcon={
-                    actionLoading === "receive" ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <DoneIcon />
-                    )
-                  }
-                >
-                  {t("transactions.receive", "Confirm Received")}
-                </Button>
+                <Box>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={handleReceiveClick}
+                    disabled={actionLoading === "receive"}
+                    startIcon={
+                      actionLoading === "receive" ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <DoneIcon />
+                      )
+                    }
+                    fullWidth
+                  >
+                    {t("transactions.receive", "Confirm Received")}
+                  </Button>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mt: 0.5, px: 1 }}
+                  >
+                    {getActionButtonDescription(
+                      t,
+                      "receive",
+                      transaction.status
+                    )}
+                  </Typography>
+                </Box>
 
                 {isQuickExchange && !user && (
-                  <Alert severity="info" sx={{ flexBasis: "100%" }}>
+                  <Alert severity="info">
                     {t(
                       "transactions.signInToConfirm",
                       "Please sign in or create an account to confirm receipt of this item."
@@ -1389,21 +1657,31 @@ const TransactionDetailPage: React.FC = () => {
 
           {/* Cancel button for requestor when pending */}
           {isRequestor && transaction.status === TransactionStatus.Pending && (
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => handleAction("cancel", cancelTransaction)}
-              disabled={actionLoading === "cancel"}
-              startIcon={
-                actionLoading === "cancel" ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <CancelIcon />
-                )
-              }
-            >
-              {t("transactions.cancel", "Cancel Request")}
-            </Button>
+            <Box>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleAction("cancel", cancelTransaction)}
+                disabled={actionLoading === "cancel"}
+                startIcon={
+                  actionLoading === "cancel" ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <CancelIcon />
+                  )
+                }
+                fullWidth
+              >
+                {t("transactions.cancel", "Cancel Request")}
+              </Button>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", mt: 0.5, px: 1 }}
+              >
+                {getActionButtonDescription(t, "cancel", transaction.status)}
+              </Typography>
+            </Box>
           )}
 
           {/* No actions available */}
@@ -1417,13 +1695,36 @@ const TransactionDetailPage: React.FC = () => {
             ((isReceiver || isQuickExchange) &&
               transaction.status === TransactionStatus.Transfered)
           ) && (
-              <Alert severity="info" sx={{ width: "100%" }}>
-                {t(
-                  "transactions.noActionsAvailable",
-                  "No actions available for this transaction."
-                )}
-              </Alert>
-            )}
+            <Alert severity="info">
+              {t(
+                "transactions.noActionsAvailable",
+                "No actions available for this transaction."
+              )}
+            </Alert>
+          )}
+
+          {/* Share Button - Always available */}
+          <Divider sx={{ my: 1 }} />
+          <Box>
+            <Button
+              variant="outlined"
+              startIcon={<ShareIcon />}
+              onClick={() => setShareDialogOpen(true)}
+              fullWidth
+            >
+              {t("transactions.share", "Share Transaction")}
+            </Button>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mt: 0.5, px: 1 }}
+            >
+              {t(
+                "transactions.shareDescription",
+                "Share this transaction link with the other party for easy access and coordination."
+              )}
+            </Typography>
+          </Box>
         </Box>
       </Paper>
 
@@ -1458,7 +1759,7 @@ const TransactionDetailPage: React.FC = () => {
         transactionUrl={transactionUrl}
         itemName={transaction.item?.name || ""}
       />
-    </Container >
+    </Container>
   );
 };
 

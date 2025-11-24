@@ -239,7 +239,11 @@ export class TransactionService {
     const existingTransactions = await this._transactionsNotStatus(
       itemId,
       null,
-      [TransactionStatus.Completed, TransactionStatus.Cancelled]
+      [
+        TransactionStatus.Completed,
+        TransactionStatus.Cancelled,
+        TransactionStatus.Expired,
+      ]
     );
 
     if (existingTransactions.size >= maxOpenTransactions) {

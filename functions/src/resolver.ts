@@ -297,6 +297,7 @@ export const resolvers: Resolvers = {
       return transactionService.transactionsNotStatus(itemId, null, [
         TransactionStatus.Completed,
         TransactionStatus.Cancelled,
+        TransactionStatus.Expired,
       ]);
     },
     openTransactionsByUser: async (
@@ -307,6 +308,7 @@ export const resolvers: Resolvers = {
       return transactionService.transactionsNotStatus(null, userId, [
         TransactionStatus.Completed,
         TransactionStatus.Cancelled,
+        TransactionStatus.Expired,
       ]);
     },
     transactionsByUser: async (
@@ -314,14 +316,18 @@ export const resolvers: Resolvers = {
       { userId }: any,
       __: any
     ): Promise<Transaction[]> => {
-      return transactionService.transactionsNotStatus(null, userId, []);
+      return transactionService.transactionsNotStatus(null, userId, [
+        TransactionStatus.Expired,
+      ]);
     },
     transactionsByItem: async (
       _: any,
       { itemId }: any,
       __: any
     ): Promise<Transaction[]> => {
-      return transactionService.transactionsNotStatus(itemId, null, []);
+      return transactionService.transactionsNotStatus(itemId, null, [
+        TransactionStatus.Expired,
+      ]);
     },
     transaction: async (
       _: any,
