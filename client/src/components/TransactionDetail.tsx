@@ -1043,7 +1043,7 @@ const TransactionDetailPage: React.FC = () => {
               Object.entries(transactionDetails).map(([key, value]) => (
                 <ListItem key={key} sx={{ px: 0 }}>
                   <ListItemText
-                    primary={t(`transactions.detail.${key}`, key)}
+                    primary={t(`transactions.transactionDetails.${key}`, key)}
                     secondary={String(value)}
                   />
                 </ListItem>
