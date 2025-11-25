@@ -511,7 +511,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {getContactMethodIcon(method.type)}
                     <Typography variant="body1" fontWeight="medium">
-                      {t(`userProfile.contactMethod.type.${method.type}`, method.type)}
+                      {t(`userProfile.contactMethods.type.${method.type}`, method.type)}
                     </Typography>
                     <Chip
                       icon={method.isPublic ? <PublicIcon /> : <PrivateIcon />}
@@ -601,30 +601,14 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
                 handleTypeChange(e.target.value as ContactMethodType)
               }
             >
-              <MenuItem value={ContactMethodType.Email}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <EmailIcon fontSize="small" />
-                  {t("userProfile.contactMethod.email", "Email")}
-                </Box>
-              </MenuItem>
-              <MenuItem value={ContactMethodType.Whatsapp}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <PhoneIcon fontSize="small" />
-                  {t("userProfile.contactMethod.whatsapp", "WhatsApp")}
-                </Box>
-              </MenuItem>
-              <MenuItem value={ContactMethodType.Signal}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <SignalIcon fontSize="small" />
-                  {t("userProfile.contactMethod.signal", "Signal")}
-                </Box>
-              </MenuItem>
-              <MenuItem value={ContactMethodType.Telegram}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <TelegramIcon fontSize="small" />
-                  {t("userProfile.contactMethod.telegram", "Telegram")}
-                </Box>
-              </MenuItem>
+              {Object.values(ContactMethodType).map((type) => (
+                <MenuItem key={type} value={type}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {getContactMethodIcon(type)}
+                    {t(`userProfile.contactMethods.type.${type}`, type)}
+                  </Box>
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 
