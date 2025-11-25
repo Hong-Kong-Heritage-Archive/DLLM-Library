@@ -20,7 +20,7 @@ import {
   RecentAddedItemsQueryVariables,
   User,
 } from "../generated/graphql";
-import ItemPreview2 from "../components/ItemPreview2";
+import ItemPreview from "../components/ItemPreview";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
 import PaginationControls from "../components/PaginationControls";
@@ -196,7 +196,7 @@ const ItemRecentPage: React.FC = () => {
             >
               {filteredItems.map((item) => (
                 <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
-                  <ItemPreview2 item={item} onClick={handleItemClick} />
+                  <ItemPreview item={item} onClick={handleItemClick} />
                 </Grid>
               ))}
             </Grid>

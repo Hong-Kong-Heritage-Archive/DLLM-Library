@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-interface ItemPreview2Props {
+interface ItemPreviewProps {
   item: {
     id: string;
     name: string;
@@ -26,7 +26,7 @@ interface ItemPreview2Props {
   onClick: (itemId: string) => void;
 }
 
-const ItemPreview2: React.FC<ItemPreview2Props> = ({
+const ItemPreview: React.FC<ItemPreviewProps> = ({
   item,
   distance,
   onClick,
@@ -157,7 +157,7 @@ const ItemPreview2: React.FC<ItemPreview2Props> = ({
           {/* Condition Badge - Bottom Left */}
           <Chip
             label={t(
-              `item.condition.${item.condition.toLowerCase()}`,
+              `item.conditions.${item.condition}`,
               item.condition
             )}
             size="small"
@@ -280,4 +280,4 @@ const ItemPreview2: React.FC<ItemPreview2Props> = ({
   );
 };
 
-export default ItemPreview2;
+export default ItemPreview;

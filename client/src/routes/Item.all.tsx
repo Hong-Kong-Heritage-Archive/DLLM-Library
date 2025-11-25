@@ -33,7 +33,7 @@ import {
 import { User, Item, CategoryMap } from "../generated/graphql";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import ItemPreview2 from "../components/ItemPreview2";
+import ItemPreview from "../components/ItemPreview";
 import { calculateDistance } from "../utils/geoProcessor";
 import { useNavigate } from "react-router";
 import PaginationControls from "../components/PaginationControls";
@@ -209,16 +209,16 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched
         ? {
-            ...location,
-            radiusKm: SEARCH_RADIUS_KM,
-            classifications: selectedClassification
-              ? [selectedClassification]
-              : null,
-            category: selectedCategory ? [selectedCategory] : null,
-            keyword: searchKeyword || null,
-            limit: ITEMS_PER_PAGE,
-            offset: (page - 1) * ITEMS_PER_PAGE,
-          }
+          ...location,
+          radiusKm: SEARCH_RADIUS_KM,
+          classifications: selectedClassification
+            ? [selectedClassification]
+            : null,
+          category: selectedCategory ? [selectedCategory] : null,
+          keyword: searchKeyword || null,
+          limit: ITEMS_PER_PAGE,
+          offset: (page - 1) * ITEMS_PER_PAGE,
+        }
         : undefined,
     skip: !location || !hasSearched,
   });
@@ -229,14 +229,14 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched
         ? {
-            ...location,
-            radiusKm: SEARCH_RADIUS_KM,
-            classifications: selectedClassification
-              ? [selectedClassification]
-              : null,
-            category: selectedCategory ? [selectedCategory] : undefined,
-            keyword: searchKeyword || null,
-          }
+          ...location,
+          radiusKm: SEARCH_RADIUS_KM,
+          classifications: selectedClassification
+            ? [selectedClassification]
+            : null,
+          category: selectedCategory ? [selectedCategory] : undefined,
+          keyword: searchKeyword || null,
+        }
         : undefined,
     skip: !location || !hasSearched,
   });
@@ -514,11 +514,11 @@ const ItemAllPage: React.FC = () => {
       distance:
         item.location && location
           ? calculateDistance(
-              item.location.latitude,
-              item.location.longitude,
-              location.latitude,
-              location.longitude
-            )
+            item.location.latitude,
+            item.location.longitude,
+            location.latitude,
+            location.longitude
+          )
           : 0,
     })) || [];
 
@@ -677,9 +677,7 @@ const ItemAllPage: React.FC = () => {
                                 e.target.value
                               )
                             }
-                            label={`${t("classification.level", "Level")} ${
-                              level + 1
-                            }`}
+                            label={`${t("classification.level", "Level")} ${level + 1}`}
                           >
                             <MenuItem value="">
                               <em>{t("common.selectOption", "Select...")}</em>
@@ -724,13 +722,13 @@ const ItemAllPage: React.FC = () => {
                     >
                       {selectedClassification
                         ? t(
-                            "itemsAll.replaceClassificationFilter",
-                            "Replace Classification Filter"
-                          )
+                          "itemsAll.replaceClassificationFilter",
+                          "Replace Classification Filter"
+                        )
                         : t(
-                            "itemsAll.applyClassificationFilter",
-                            "Apply Classification Filter"
-                          )}
+                          "itemsAll.applyClassificationFilter",
+                          "Apply Classification Filter"
+                        )}
                     </Button>
 
                     {selectedClassification && (
@@ -945,10 +943,10 @@ const ItemAllPage: React.FC = () => {
                 {itemsLoading || totalItemsLoading
                   ? t("common.loading", "Loading...")
                   : totalItemsData?.totalItemsCountByLocation
-                  ? t("itemsAll.resultsFoundTotal", "Found {{count}} item(s)", {
+                    ? t("itemsAll.resultsFoundTotal", "Found {{count}} item(s)", {
                       count: totalItemsData.totalItemsCountByLocation,
                     })
-                  : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
+                    : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
                       count: itemsWithDistance.length,
                     })}
               </Typography>
@@ -981,7 +979,7 @@ const ItemAllPage: React.FC = () => {
                 >
                   {itemsWithDistance.map((item) => (
                     <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
-                      <ItemPreview2
+                      <ItemPreview
                         item={item}
                         distance={item.distance}
                         onClick={handleItemClick}

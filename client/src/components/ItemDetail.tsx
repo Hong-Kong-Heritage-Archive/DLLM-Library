@@ -562,7 +562,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   )}
                 </IconButton>
                 {/* Pin Status Indicator */}
-                {isOwner && ownerData?.user?.pinItems && (
+                {ownerData?.user?.pinItems && (
                   <Chip
                     label={t("item.pinnedItemsStatus", "Pinned: {{count}}/5", {
                       count: ownerData.user.pinItems.length,

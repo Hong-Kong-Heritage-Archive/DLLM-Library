@@ -17,7 +17,7 @@ import {
   RecommendationType,
   Item,
 } from "../generated/graphql";
-import ItemPreview2 from "./ItemPreview2";
+import ItemPreview from "./ItemPreview";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -238,7 +238,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
               md: 2, // 6 items per row on desktop (horizontal)
             }}
           >
-            <ItemPreview2 item={item} onClick={handleItemClick} />
+            <ItemPreview item={item} onClick={handleItemClick} />
           </Grid>
         ))}
       </Grid>

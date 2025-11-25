@@ -142,7 +142,7 @@
     "uploadFailed": "上傳失敗",
     "relatedItemIds": "相關項目ID（逗號分隔）",
     "relatedItemIdsHelper": "例如：itemID1,itemID2",
-    "tagsHelper": "例如：announcement,update"
+    "tagsHelper": "例如：#tag1 #tag2"
   },
   "shortStatus": {
     "available": "可借用",
@@ -271,6 +271,7 @@
     "reserved": "這個物品已被預留！",
     "noComicsFound": "未找到漫畫",
     "editItem": "編輯物品詳情",
+    "conditionHelper": "選擇最能描述您物品的選項。",
     "readyToReceive": "準備接收",
     "itemTransferred": "物品已轉移，準備供您接收。",
     "transferredOn": "交收於",
@@ -355,6 +356,12 @@
       "helper": "添加聯絡方法以便其他用戶在需要時聯繫您",
       "noContactMethods": "尚未添加聯絡方法。添加一些以幫助其他人聯繫您。",
       "noContactMethodsRead": "沒有可用的聯絡方法",
+      "type": {
+        "EMAIL": "電郵",
+        "WHATSAPP": "WhatsApp",
+        "SIGNAL": "Signal",
+        "TELEGRAM": "Telegram"
+      },
       "emailPlaceholder": "例如：user@example.com",
       "whatsappPlaceholder": "例如：https://wa.me/1234567890",
       "signalPlaceholder": "例如：https://signal.me/#p/+1234567890",
@@ -544,6 +551,7 @@
     "currentClassifications": "目前的分類法",
     "selectCategory": "選擇分類路徑",
     "addClassification": "新增分類法",
+    "itemCount": "顯示 {{count}} 個物品",
     "noClassificationsYet": "尚未指定分類法。請在上方選擇分類，然後點擊「新增分類法」。",
     "saveClassifications": "儲存分類法",
     "recentItemsWithoutClassifications": "未分類的物品",

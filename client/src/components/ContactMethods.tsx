@@ -141,7 +141,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
           return {
             isValid: false,
             error: t(
-              "contactMethods.validation.invalidEmail",
+              "userProfile.contactMethods.validation.invalidEmail",
               "Please enter a valid email address"
             ),
           };
@@ -242,43 +242,28 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
     }
   };
 
-  const getContactMethodLabel = (type: ContactMethodType): string => {
-    switch (type) {
-      case ContactMethodType.Email:
-        return t("contactMethod.email", "Email");
-      case ContactMethodType.Whatsapp:
-        return t("contactMethod.whatsapp", "WhatsApp");
-      case ContactMethodType.Signal:
-        return t("contactMethod.signal", "Signal");
-      case ContactMethodType.Telegram:
-        return t("contactMethod.telegram", "Telegram");
-      default:
-        return type;
-    }
-  };
-
   const getContactMethodPlaceholder = (type: ContactMethodType): string => {
     switch (type) {
       case ContactMethodType.Email:
-        return t("contactMethods.emailPlaceholder", "e.g., user@example.com");
+        return t("userProfile.contactMethods.emailPlaceholder", "e.g., user@example.com");
       case ContactMethodType.Whatsapp:
         return t(
-          "contactMethods.whatsappPlaceholder",
+          "userProfile.contactMethods.whatsappPlaceholder",
           "e.g., https://wa.me/1234567890"
         );
       case ContactMethodType.Signal:
         return t(
-          "contactMethods.signalPlaceholder",
+          "userProfile.contactMethods.signalPlaceholder",
           "e.g., https://signal.me/#p/+1234567890"
         );
       case ContactMethodType.Telegram:
         return t(
-          "contactMethods.telegramPlaceholder",
+          "userProfile.contactMethods.telegramPlaceholder",
           "e.g., https://t.me/username"
         );
       default:
         return t(
-          "contactMethods.socialPlaceholder",
+          "userProfile.contactMethods.socialPlaceholder",
           "Enter contact information"
         );
     }
@@ -287,16 +272,16 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
   const getContactMethodHelper = (type: ContactMethodType): string => {
     switch (type) {
       case ContactMethodType.Email:
-        return t("contactMethods.emailHelper", "Enter a valid email address");
+        return t("userProfile.contactMethods.emailHelper", "Enter a valid email address");
       case ContactMethodType.Whatsapp:
-        return t("contactMethods.whatsappHelper", "Enter your WhatsApp link");
+        return t("userProfile.contactMethods.whatsappHelper", "Enter your WhatsApp link");
       case ContactMethodType.Signal:
-        return t("contactMethods.signalHelper", "Enter your Signal link");
+        return t("userProfile.contactMethods.signalHelper", "Enter your Signal link");
       case ContactMethodType.Telegram:
-        return t("contactMethods.telegramHelper", "Enter your Telegram link");
+        return t("userProfile.contactMethods.telegramHelper", "Enter your Telegram link");
       default:
         return t(
-          "contactMethods.socialHelper",
+          "userProfile.contactMethods.socialHelper",
           "Enter your contact information"
         );
     }
@@ -377,7 +362,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
         index !== editingIndex &&
         method.type === currentMethod.type &&
         method.value.trim().toLowerCase() ===
-          currentMethod.value.trim().toLowerCase()
+        currentMethod.value.trim().toLowerCase()
     );
 
     if (isDuplicate) {
@@ -453,7 +438,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
             sx={{ display: "flex", alignItems: "center", gap: 1 }}
           >
             <EmailIcon />
-            {title || t("contactMethods.title", "Contact Methods")}
+            {title || t("userProfile.contactMethods.title", "Contact Methods")}
           </Typography>
           {!readOnly && showAddButton && (
             <Button
@@ -462,7 +447,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
               variant="outlined"
               size="small"
             >
-              {t("contactMethods.add", "Add Contact Method")}
+              {t("userProfile.contactMethods.add", "Add Contact Method")}
             </Button>
           )}
         </Box>
@@ -479,7 +464,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
                 size="small"
               />
             }
-            label={t("contactMethods.showPublicOnly", "Show public only")}
+            label={t("userProfile.contactMethods.showPublicOnly", "Show public only")}
           />
         </Box>
       )}
@@ -488,7 +473,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
       {!readOnly && (
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {t(
-            "contactMethods.helper",
+            "userProfile.contactMethods.helper",
             "Add contact methods for other users to reach you when needed"
           )}
         </Typography>
@@ -499,13 +484,13 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
         <Alert severity="info" sx={{ mb: 2 }}>
           {readOnly
             ? t(
-                "contactMethods.noContactMethodsRead",
-                "No contact methods available"
-              )
+              "userProfile.contactMethods.noContactMethodsRead",
+              "No contact methods available"
+            )
             : t(
-                "contactMethods.noContactMethods",
-                "No contact methods added yet. Add some to help others contact you."
-              )}
+              "userProfile.contactMethods.noContactMethods",
+              "No contact methods added yet. Add some to help others contact you."
+            )}
         </Alert>
       ) : (
         <List sx={{ maxHeight: maxHeight, overflow: "auto" }}>
@@ -526,7 +511,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {getContactMethodIcon(method.type)}
                     <Typography variant="body1" fontWeight="medium">
-                      {getContactMethodLabel(method.type)}
+                      {t(`userProfile.contactMethod.type.${method.type}`, method.type)}
                     </Typography>
                     <Chip
                       icon={method.isPublic ? <PublicIcon /> : <PrivateIcon />}
@@ -603,15 +588,15 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
       >
         <DialogTitle>
           {editingIndex !== null
-            ? t("contactMethods.editTitle", "Edit Contact Method")
-            : t("contactMethods.addTitle", "Add Contact Method")}
+            ? t("userProfile.contactMethods.editTitle", "Edit Contact Method")
+            : t("userProfile.contactMethods.addTitle", "Add Contact Method")}
         </DialogTitle>
         <DialogContent>
           <FormControl fullWidth margin="normal">
-            <InputLabel>{t("contactMethods.typeLabel", "Type")}</InputLabel>
+            <InputLabel>{t("userProfile.contactMethods.typeLabel", "Type")}</InputLabel>
             <Select
               value={currentMethod.type}
-              label={t("contactMethods.typeLabel", "Type")}
+              label={t("userProfile.contactMethods.typeLabel", "Type")}
               onChange={(e) =>
                 handleTypeChange(e.target.value as ContactMethodType)
               }
@@ -619,25 +604,25 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
               <MenuItem value={ContactMethodType.Email}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <EmailIcon fontSize="small" />
-                  {t("contactMethod.email", "Email")}
+                  {t("userProfile.contactMethod.email", "Email")}
                 </Box>
               </MenuItem>
               <MenuItem value={ContactMethodType.Whatsapp}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <PhoneIcon fontSize="small" />
-                  {t("contactMethod.whatsapp", "WhatsApp")}
+                  {t("userProfile.contactMethod.whatsapp", "WhatsApp")}
                 </Box>
               </MenuItem>
               <MenuItem value={ContactMethodType.Signal}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <SignalIcon fontSize="small" />
-                  {t("contactMethod.signal", "Signal")}
+                  {t("userProfile.contactMethod.signal", "Signal")}
                 </Box>
               </MenuItem>
               <MenuItem value={ContactMethodType.Telegram}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <TelegramIcon fontSize="small" />
-                  {t("contactMethod.telegram", "Telegram")}
+                  {t("userProfile.contactMethod.telegram", "Telegram")}
                 </Box>
               </MenuItem>
             </Select>
@@ -646,7 +631,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
           <TextField
             fullWidth
             margin="normal"
-            label={t("contactMethods.valueLabel", "Contact Value")}
+            label={t("userProfile.contactMethods.valueLabel", "Contact Value")}
             placeholder={getContactMethodPlaceholder(currentMethod.type)}
             helperText={error || getContactMethodHelper(currentMethod.type)}
             value={currentMethod.value}
@@ -670,18 +655,18 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
             label={
               <Box>
                 <Typography variant="body2">
-                  {t("contactMethods.makePublic", "Make Public")}
+                  {t("userProfile.contactMethods.makePublic", "Make Public")}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {currentMethod.isPublic
                     ? t(
-                        "contactMethods.publicHelp",
-                        "This contact method will be visible to all users"
-                      )
+                      "userProfile.contactMethods.publicHelp",
+                      "This contact method will be visible to all users"
+                    )
                     : t(
-                        "contactMethods.privateHelp",
-                        "This contact method will only be shared during transactions"
-                      )}
+                      "userProfile.contactMethods.privateHelp",
+                      "This contact method will only be shared during transactions"
+                    )}
                 </Typography>
               </Box>
             }

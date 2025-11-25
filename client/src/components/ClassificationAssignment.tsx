@@ -652,21 +652,21 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
                 <Typography variant="subtitle2" color="text.secondary">
                   {t("item.condition", "Condition")}
                 </Typography>
-                <Chip label={item.condition} size="small" sx={{ mt: 0.5 }} />
+                <Chip label={t(`item.conditions.${item.condition}`, item.condition)} size="small" sx={{ mt: 0.5 }} />
               </Box>
 
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">
                   {t("item.status", "Status")}
                 </Typography>
-                <Chip label={item.status} size="small" sx={{ mt: 0.5 }} />
+                <Chip label={t(`item.statuses.${item.status}`, item.status)} size="small" sx={{ mt: 0.5 }} />
               </Box>
 
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">
                   {t("item.language", "Language")}
                 </Typography>
-                <Chip label={item.language} size="small" sx={{ mt: 0.5 }} />
+                <Chip label={t(`languages.${item.language}`, item.language)} size="small" sx={{ mt: 0.5 }} />
               </Box>
 
               {item.publishedYear && (

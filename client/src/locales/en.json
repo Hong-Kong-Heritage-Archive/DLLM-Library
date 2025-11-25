@@ -156,7 +156,7 @@
     "uploadFailed": "Upload Failed",
     "relatedItemIds": "Related Item IDs (comma-separated)",
     "relatedItemIdsHelper": "e.g., itemID1,itemID2",
-    "tagsHelper": "e.g., announcement,update"
+    "tagsHelper": "e.g., #tag1 #tag2"
   },
   "shortStatus": {
     "available": "Available",
@@ -305,6 +305,7 @@
     "reserved": "This item has been reserved!",
     "noComicsFound": "No comics found",
     "editItem": "Edit item details",
+    "conditionHelper": "Select the option that best describes your item.",
     "readyToReceive": "Ready to receive",
     "itemTransferred": "Item has been transferred and is ready for you to receive.",
     "transferredOn": "Transferred on",
@@ -368,6 +369,12 @@
       "helper": "Add contact methods for other users to reach you when needed",
       "noContactMethods": "No contact methods added yet. Add some to help others contact you.",
       "noContactMethodsRead": "No contact methods available",
+      "type": {
+        "EMAIL": "Email",
+        "WHATSAPP": "WhatsApp",
+        "SIGNAL": "Signal",
+        "TELEGRAM": "Telegram"
+      },
       "emailPlaceholder": "e.g., user@example.com",
       "whatsappPlaceholder": "e.g., https://wa.me/1234567890",
       "signalPlaceholder": "e.g., https://signal.me/#p/+1234567890",
@@ -548,6 +555,7 @@
     "addClassification": "Add Classification",
     "noClassificationsYet": "No classifications assigned yet. Select categories above and click 'Add Classification'.",
     "saveClassifications": "Save Classifications",
+    "itemCount": "Showing {{count}} item(s)",
     "recentItemsWithoutClassifications": "Items Without Classifications",
     "noItemsFound": "All items have been classified! Great job!",
     "addNewCategory": "Add new category at this level",
