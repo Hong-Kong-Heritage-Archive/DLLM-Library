@@ -51,6 +51,7 @@ import FaceToFaceConfirmDialog from "./FaceToFaceConfirmDialog";
 import ItemComments from "./ItemComments";
 import { convertLinksToClickable } from "../utils/helpers";
 import { AuthDialog } from "./Auth";
+import ImageGalleryModal from "./ImageGalleryModal";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -702,9 +703,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${
-                      ownerData.user.nickname || ownerData.user.email
-                    }`}
+                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
+                      }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -724,9 +724,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${
-                        holderData.user.nickname || holderData.user.email
-                      }`}
+                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
+                        }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -734,9 +733,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${
-                    data.item.deposit
-                  }`}
+                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
+                    }`}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -983,40 +981,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-            <Box sx={{ mb: 4 }}>
-              <Grid container spacing={2}>
-                {(data.item.thumbnails && data.item.thumbnails.length > 0
-                  ? data.item.thumbnails
-                  : data.item.images || []
-                ).map((image, index) => (
-                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                    <Paper
-                      elevation={2}
-                      sx={{
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "transform 0.2s",
-                        "&:hover": {
-                          transform: "scale(1.05)",
-                        },
-                      }}
-                      onClick={() => handleThumbnailClick(index)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "120px",
-                          objectFit: "cover",
+              <Box sx={{ mb: 4 }}>
+                <Grid container spacing={2}>
+                  {(data.item.thumbnails && data.item.thumbnails.length > 0
+                    ? data.item.thumbnails
+                    : data.item.images || []
+                  ).map((image, index) => (
+                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          transition: "transform 0.2s",
+                          "&:hover": {
+                            transform: "scale(1.05)",
+                          },
                         }}
-                      />
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
+                        onClick={() => handleThumbnailClick(index)}
+                      >
+                        <img
+                          src={image}
+                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                          style={{
+                            width: "100%",
+                            height: "120px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -1044,10 +1042,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                        ? "info"
-                        : data.item.status === "GIFT"
-                        ? "warning"
-                        : "default"
+                          ? "info"
+                          : data.item.status === "GIFT"
+                            ? "warning"
+                            : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}
@@ -1285,97 +1283,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       </Snackbar>
 
       {/* Image Modal */}
-      <Modal
+      <ImageGalleryModal
         open={imageModalOpen}
         onClose={handleCloseModal}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={imageModalOpen}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              bgcolor: "background.paper",
-              border: "2px solid #000",
-              boxShadow: 24,
-              p: 2,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            {/* Close Button */}
-            <Box sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}>
-              <IconButton onClick={handleCloseModal} color="primary">
-                <CloseIcon />
-              </IconButton>
-            </Box>
-
-            {/* Image Navigation */}
-            {data?.item && (
-              <Box
-                sx={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                {/* Previous Button */}
-                {data.item.images && data.item.images.length > 1 && (
-                  <IconButton
-                    onClick={handlePrevImage}
-                    sx={{ position: "absolute", left: -50, zIndex: 1 }}
-                    color="primary"
-                  >
-                    <PrevIcon />
-                  </IconButton>
-                )}
-
-                {/* Main Image */}
-                <img
-                  src={
-                    (data.item.images &&
-                      data.item.images[selectedImageIndex]) ||
-                    ""
-                  }
-                  alt={`${data.item.name} - Image ${selectedImageIndex + 1}`}
-                  style={{
-                    maxWidth: "80vw",
-                    maxHeight: "70vh",
-                    objectFit: "contain",
-                  }}
-                />
-
-                {/* Next Button */}
-                {data.item.images && data.item.images.length > 1 && (
-                  <IconButton
-                    onClick={handleNextImage}
-                    sx={{ position: "absolute", right: -50, zIndex: 1 }}
-                    color="primary"
-                  >
-                    <NextIcon />
-                  </IconButton>
-                )}
-              </Box>
-            )}
-
-            {/* Image Counter */}
-            {data?.item && data.item.images && data.item.images.length > 1 && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                {selectedImageIndex + 1} / {data.item.images.length}
-              </Typography>
-            )}
-          </Box>
-        </Fade>
-      </Modal>
+        images={data?.item?.images || []}
+        selectedIndex={selectedImageIndex}
+        onPrev={handlePrevImage}
+        onNext={handleNextImage}
+        itemName={data?.item?.name}
+      />
       {data?.item && (
         <Box sx={{ mt: 4 }}>
           <ItemComments itemId={itemId!} currentUser={user} />
