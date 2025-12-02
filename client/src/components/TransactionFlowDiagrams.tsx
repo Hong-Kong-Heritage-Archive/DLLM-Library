@@ -3,7 +3,7 @@ import { Box, Typography, Paper, Grid } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 // Face-to-Face Transaction SVG - with i18n support
-const FaceToFaceDiagram: React.FC = () => {
+export const FaceToFaceDiagram: React.FC = () => {
   const { t, i18n } = useTranslation();
 
   return (
@@ -489,7 +489,7 @@ const FaceToFaceDiagram: React.FC = () => {
 };
 
 // Direct Exchange Transaction SVG - REVISED WITH DETAILED WORKFLOW
-const DirectExchangeDiagram: React.FC = () => {
+export const DirectExchangeDiagram: React.FC = () => {
   const { t, i18n } = useTranslation();
 
   return (
@@ -1012,7 +1012,7 @@ const DirectExchangeDiagram: React.FC = () => {
 };
 
 // Exchange Point Transaction SVG - REVISED WITH TWO-PHASE WORKFLOW
-const ExchangePointDiagram: React.FC = () => {
+export const ExchangePointDiagram: React.FC = () => {
   const { t, i18n } = useTranslation();
 
   return (

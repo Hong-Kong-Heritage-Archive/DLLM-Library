@@ -407,8 +407,7 @@
   "languages": {
     "en": "English",
     "zh-TW": "繁體中文",
-    "EN": "English",
-    "ZH_HK": "繁體中文"
+    "zh-HK": "繁體中文"
   },
   "user": {
     "itemCategories": "物品類別",
@@ -486,14 +485,14 @@
     "showRaw": "顯示原始 JSON",
     "showFormatted": "顯示格式化",
     "share": "分享",
-    "shareTransaction": "分享紀錄",
-    "shareInstructions": "與對方分享此紀錄連結以進行面對面交換。他們可以掃描二維碼或使用連結查看紀錄詳情。",
-    "transactionLink": "紀錄連結",
-    "shareMessage": "查看此紀錄：{{itemName}}",
-    "shareTitle": "紀錄詳情",
-    "shareVia": "通過...分享",
-    "shareViaApps": "通過消息應用分享",
-    "linkCopied": "連結已複製到剪貼板！",
+    "shareTransaction": "分享交易",
+    "shareTitle": "交易詳情",
+    "shareMessage": "查看 {{itemName}} 的交易",
+    "shareInstructions": "與對方分享此交易連結以進行面對面交換。他們可以掃描二維碼或使用連結查看交易詳情。",
+    "transactionLink": "交易連結",
+    "shareVia": "分享方式...",
+    "shareViaApps": "透過訊息應用程式分享",
+    "linkCopied": "連結已複製到剪貼簿！",
     "receiverInfo": "接收者資訊",
     "holderInfo": "當前持有者",
     "ownerInfo": "物主",
@@ -694,7 +693,6 @@
     "noResults": "在半徑 {{radius}} 公里內，找不到符合您搜尋條件的物品。",
     "searchTips": "嘗試：",
     "searchTip1": "使用不同的關鍵字",
-    "searchTip2": "移除部分篩選條件",
     "searchTip3": "檢查拼寫錯誤",
     "instructionsSearch": "輸入關鍵字、分類或分類法，以搜尋您所在位置半徑 {{radius}} 公里內的物品。",
     "needLocation": "請啟用定位服務以搜尋附近的物品。",
@@ -705,7 +703,6 @@
     "categoryFilterDesc": "依#瀏覽",
     "classificationFilterDesc": "依分類法路徑篩選",
     "filterValue": "篩選值",
-    "instructionsSearch": "請在上方選擇篩選類型以搜尋您所在位置半徑 {{radius}} 公里內的物品。",
     "searchTip2": "選擇不同的篩選器"
   },
   "classification": {

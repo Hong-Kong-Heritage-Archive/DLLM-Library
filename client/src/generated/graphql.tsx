@@ -56,6 +56,17 @@ export enum ContactMethodType {
   Whatsapp = 'WHATSAPP'
 }
 
+export type HostConfig = {
+  __typename?: 'HostConfig';
+  aboutUsText: Scalars['String']['output'];
+  chatLink: Scalars['String']['output'];
+};
+
+export type HostConfigInput = {
+  aboutUsText: Scalars['String']['input'];
+  chatLink: Scalars['String']['input'];
+};
+
 export type Item = {
   __typename?: 'Item';
   category: Array<Scalars['String']['output']>;
@@ -698,17 +709,6 @@ export type User = {
   role: Role;
 };
 
-export type HostConfig = {
-  __typename?: 'hostConfig';
-  aboutUsText: Scalars['String']['output'];
-  chatLink: Scalars['String']['output'];
-};
-
-export type HostConfigInput = {
-  aboutUsText: Scalars['String']['input'];
-  chatLink: Scalars['String']['input'];
-};
-
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -717,14 +717,7 @@ export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', addres
 export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'hostConfig', aboutUsText: string, chatLink: string } };
-
-export type GetUserOpenTransactionsForCountQueryVariables = Exact<{
-  userId: Scalars['ID']['input'];
-}>;
-
-
-export type GetUserOpenTransactionsForCountQuery = { __typename?: 'Query', openTransactionsByUser: Array<{ __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, item: { __typename?: 'Item', id: string, name: string } }> };
+export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string } };
 
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -862,6 +855,13 @@ export type UpdateItemMutationVariables = Exact<{
 
 export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposit?: number | null } };
 
+export type GetUserOpenTransactionsForCountQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type GetUserOpenTransactionsForCountQuery = { __typename?: 'Query', openTransactionsByUser: Array<{ __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, item: { __typename?: 'Item', id: string, name: string } }> };
+
 export type NewsPostQueryVariables = Exact<{
   newsPostId: Scalars['ID']['input'];
 }>;
@@ -909,7 +909,7 @@ export type GetTransactionQueryVariables = Exact<{
 }>;
 
 
-export type GetTransactionQuery = { __typename?: 'Query', transaction?: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any, details?: string | null, images?: Array<string> | null, item: { __typename?: 'Item', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, condition: ItemCondition, category: Array<string>, ownerId: string, holderId?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }, requestor: { __typename?: 'User', id: string, nickname?: string | null, email: string, address?: string | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }, receiver?: { __typename?: 'User', id: string, nickname?: string | null, email: string, address?: string | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
+export type GetTransactionQuery = { __typename?: 'Query', transaction?: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any, details?: string | null, images?: Array<string> | null, item: { __typename?: 'Item', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, condition: ItemCondition, category: Array<string>, ownerId: string, holderId?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }, requestor: { __typename?: 'User', id: string, nickname?: string | null, email: string, role: Role, address?: string | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }, receiver?: { __typename?: 'User', id: string, nickname?: string | null, email: string, role: Role, address?: string | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
 
 export type ApproveTransactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1084,6 +1084,18 @@ export type RecentAddedItemsQueryVariables = Exact<{
 
 export type RecentAddedItemsQuery = { __typename?: 'Query', recentAddedItems: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any }> };
 
+export type GetHostConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetHostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string } };
+
+export type UpdateHostConfigMutationVariables = Exact<{
+  input: HostConfigInput;
+}>;
+
+
+export type UpdateHostConfigMutation = { __typename?: 'Mutation', updateHostConfig: { __typename?: 'HostConfig', chatLink: string, aboutUsText: string } };
+
 export type GetOnLoanItemsByOwnerQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
   limit: Scalars['Int']['input'];
@@ -1208,52 +1220,6 @@ export type HostConfigQueryHookResult = ReturnType<typeof useHostConfigQuery>;
 export type HostConfigLazyQueryHookResult = ReturnType<typeof useHostConfigLazyQuery>;
 export type HostConfigSuspenseQueryHookResult = ReturnType<typeof useHostConfigSuspenseQuery>;
 export type HostConfigQueryResult = Apollo.QueryResult<HostConfigQuery, HostConfigQueryVariables>;
-export const GetUserOpenTransactionsForCountDocument = gql`
-    query GetUserOpenTransactionsForCount($userId: ID!) {
-  openTransactionsByUser(userId: $userId) {
-    id
-    status
-    createdAt
-    item {
-      id
-      name
-    }
-  }
-}
-    `;
-
-/**
- * __useGetUserOpenTransactionsForCountQuery__
- *
- * To run a query within a React component, call `useGetUserOpenTransactionsForCountQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserOpenTransactionsForCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserOpenTransactionsForCountQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetUserOpenTransactionsForCountQuery(baseOptions: Apollo.QueryHookOptions<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables> & ({ variables: GetUserOpenTransactionsForCountQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>(GetUserOpenTransactionsForCountDocument, options);
-      }
-export function useGetUserOpenTransactionsForCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>(GetUserOpenTransactionsForCountDocument, options);
-        }
-export function useGetUserOpenTransactionsForCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>(GetUserOpenTransactionsForCountDocument, options);
-        }
-export type GetUserOpenTransactionsForCountQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountQuery>;
-export type GetUserOpenTransactionsForCountLazyQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountLazyQuery>;
-export type GetUserOpenTransactionsForCountSuspenseQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountSuspenseQuery>;
-export type GetUserOpenTransactionsForCountQueryResult = Apollo.QueryResult<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>;
 export const RecentItemsWithoutClassificationsDocument = gql`
     query RecentItemsWithoutClassifications($limit: Int) {
   recentItemsWithoutClassifications(limit: $limit) {
@@ -1964,6 +1930,52 @@ export function useUpdateItemMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateItemMutationHookResult = ReturnType<typeof useUpdateItemMutation>;
 export type UpdateItemMutationResult = Apollo.MutationResult<UpdateItemMutation>;
 export type UpdateItemMutationOptions = Apollo.BaseMutationOptions<UpdateItemMutation, UpdateItemMutationVariables>;
+export const GetUserOpenTransactionsForCountDocument = gql`
+    query GetUserOpenTransactionsForCount($userId: ID!) {
+  openTransactionsByUser(userId: $userId) {
+    id
+    status
+    createdAt
+    item {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserOpenTransactionsForCountQuery__
+ *
+ * To run a query within a React component, call `useGetUserOpenTransactionsForCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserOpenTransactionsForCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserOpenTransactionsForCountQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetUserOpenTransactionsForCountQuery(baseOptions: Apollo.QueryHookOptions<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables> & ({ variables: GetUserOpenTransactionsForCountQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>(GetUserOpenTransactionsForCountDocument, options);
+      }
+export function useGetUserOpenTransactionsForCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>(GetUserOpenTransactionsForCountDocument, options);
+        }
+export function useGetUserOpenTransactionsForCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>(GetUserOpenTransactionsForCountDocument, options);
+        }
+export type GetUserOpenTransactionsForCountQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountQuery>;
+export type GetUserOpenTransactionsForCountLazyQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountLazyQuery>;
+export type GetUserOpenTransactionsForCountSuspenseQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountSuspenseQuery>;
+export type GetUserOpenTransactionsForCountQueryResult = Apollo.QueryResult<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>;
 export const NewsPostDocument = gql`
     query NewsPost($newsPostId: ID!) {
   newsPost(id: $newsPostId) {
@@ -2256,6 +2268,7 @@ export const GetTransactionDocument = gql`
         latitude
         longitude
       }
+      role
       address
     }
     receiver {
@@ -2271,6 +2284,7 @@ export const GetTransactionDocument = gql`
         latitude
         longitude
       }
+      role
       address
     }
     location {
@@ -3295,6 +3309,80 @@ export type RecentAddedItemsQueryHookResult = ReturnType<typeof useRecentAddedIt
 export type RecentAddedItemsLazyQueryHookResult = ReturnType<typeof useRecentAddedItemsLazyQuery>;
 export type RecentAddedItemsSuspenseQueryHookResult = ReturnType<typeof useRecentAddedItemsSuspenseQuery>;
 export type RecentAddedItemsQueryResult = Apollo.QueryResult<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>;
+export const GetHostConfigDocument = gql`
+    query GetHostConfig {
+  hostConfig {
+    chatLink
+    aboutUsText
+  }
+}
+    `;
+
+/**
+ * __useGetHostConfigQuery__
+ *
+ * To run a query within a React component, call `useGetHostConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHostConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHostConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetHostConfigQuery(baseOptions?: Apollo.QueryHookOptions<GetHostConfigQuery, GetHostConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetHostConfigQuery, GetHostConfigQueryVariables>(GetHostConfigDocument, options);
+      }
+export function useGetHostConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHostConfigQuery, GetHostConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetHostConfigQuery, GetHostConfigQueryVariables>(GetHostConfigDocument, options);
+        }
+export function useGetHostConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetHostConfigQuery, GetHostConfigQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetHostConfigQuery, GetHostConfigQueryVariables>(GetHostConfigDocument, options);
+        }
+export type GetHostConfigQueryHookResult = ReturnType<typeof useGetHostConfigQuery>;
+export type GetHostConfigLazyQueryHookResult = ReturnType<typeof useGetHostConfigLazyQuery>;
+export type GetHostConfigSuspenseQueryHookResult = ReturnType<typeof useGetHostConfigSuspenseQuery>;
+export type GetHostConfigQueryResult = Apollo.QueryResult<GetHostConfigQuery, GetHostConfigQueryVariables>;
+export const UpdateHostConfigDocument = gql`
+    mutation UpdateHostConfig($input: HostConfigInput!) {
+  updateHostConfig(input: $input) {
+    chatLink
+    aboutUsText
+  }
+}
+    `;
+export type UpdateHostConfigMutationFn = Apollo.MutationFunction<UpdateHostConfigMutation, UpdateHostConfigMutationVariables>;
+
+/**
+ * __useUpdateHostConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateHostConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateHostConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateHostConfigMutation, { data, loading, error }] = useUpdateHostConfigMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateHostConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateHostConfigMutation, UpdateHostConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateHostConfigMutation, UpdateHostConfigMutationVariables>(UpdateHostConfigDocument, options);
+      }
+export type UpdateHostConfigMutationHookResult = ReturnType<typeof useUpdateHostConfigMutation>;
+export type UpdateHostConfigMutationResult = Apollo.MutationResult<UpdateHostConfigMutation>;
+export type UpdateHostConfigMutationOptions = Apollo.BaseMutationOptions<UpdateHostConfigMutation, UpdateHostConfigMutationVariables>;
 export const GetOnLoanItemsByOwnerDocument = gql`
     query GetOnLoanItemsByOwner($userId: ID!, $limit: Int!, $offset: Int!) {
   itemsOnLoanByOwner(userId: $userId, limit: $limit, offset: $offset) {
