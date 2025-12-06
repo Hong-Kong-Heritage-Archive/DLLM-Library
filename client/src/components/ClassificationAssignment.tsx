@@ -38,6 +38,7 @@ import {
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useTranslation } from "react-i18next";
 import { Item, CategoryMap } from "../generated/graphql";
+import { translateCategory } from "../utils/categoryTranslation";
 
 const RECENT_ITEMS_WITHOUT_CLASSIFICATIONS = gql`
   query RecentItemsWithoutClassifications($limit: Int) {
@@ -131,7 +132,7 @@ const NewCategoryDialog: React.FC<NewCategoryDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   // Define supported languages
-  const languages = ["en", "zh-TW", "zh-CN"];
+  const languages = ["en", "zh-TW", "zh-HK"];
   const [translations, setTranslations] = useState<{ [key: string]: string }>(
     {}
   );
@@ -241,8 +242,8 @@ const NewCategoryDialog: React.FC<NewCategoryDialogProps> = ({
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {parentPath
               ? t("classification.addingUnder", "Adding under: {{path}}", {
-                path: parentPath,
-              })
+                  path: parentPath,
+                })
               : t("classification.addingRoot", "Adding as root category")}
           </Typography>
 
@@ -267,13 +268,13 @@ const NewCategoryDialog: React.FC<NewCategoryDialogProps> = ({
                   helperText={
                     lang === "en"
                       ? t(
-                        "classification.keyHelper",
-                        "Used as system key (letters, numbers, spaces, and hyphens only)"
-                      )
+                          "classification.keyHelper",
+                          "Used as system key (letters, numbers, spaces, and hyphens only)"
+                        )
                       : t(
-                        "classification.translationHelper",
-                        "Translation for this language"
-                      )
+                          "classification.translationHelper",
+                          "Translation for this language"
+                        )
                   }
                   disabled={loading}
                   autoFocus={lang === "en"}
@@ -381,23 +382,6 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
     });
 
     return trees;
-  };
-
-  // Translate category using categoryMaps
-  const translateCategory = (category: string): string => {
-    if (!configData?.itemConfig?.categoryMaps) return category;
-
-    const currentLang = i18n.language;
-
-    for (const mapGroup of configData.itemConfig.categoryMaps) {
-      const enMap = mapGroup.find((m) => m.language === "en");
-      if (enMap?.value === category) {
-        const translatedMap = mapGroup.find((m) => m.language === currentLang);
-        return translatedMap?.value || category;
-      }
-    }
-
-    return category;
   };
 
   // Get root level categories (level 0)
@@ -652,21 +636,33 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
                 <Typography variant="subtitle2" color="text.secondary">
                   {t("item.condition", "Condition")}
                 </Typography>
-                <Chip label={t(`item.conditions.${item.condition}`, item.condition)} size="small" sx={{ mt: 0.5 }} />
+                <Chip
+                  label={t(`item.conditions.${item.condition}`, item.condition)}
+                  size="small"
+                  sx={{ mt: 0.5 }}
+                />
               </Box>
 
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">
                   {t("item.status", "Status")}
                 </Typography>
-                <Chip label={t(`item.statuses.${item.status}`, item.status)} size="small" sx={{ mt: 0.5 }} />
+                <Chip
+                  label={t(`item.statuses.${item.status}`, item.status)}
+                  size="small"
+                  sx={{ mt: 0.5 }}
+                />
               </Box>
 
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">
                   {t("item.language", "Language")}
                 </Typography>
-                <Chip label={t(`languages.${item.language}`, item.language)} size="small" sx={{ mt: 0.5 }} />
+                <Chip
+                  label={t(`languages.${item.language}`, item.language)}
+                  size="small"
+                  sx={{ mt: 0.5 }}
+                />
               </Box>
 
               {item.publishedYear && (
@@ -734,7 +730,13 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
                     >
                       {classifications.map((cls, index) => {
                         const parts = cls.split("/");
-                        const translatedParts = parts.map(translateCategory);
+                        const translatedParts = parts.map((part) =>
+                          translateCategory(
+                            part,
+                            configData?.itemConfig?.categoryMaps,
+                            i18n.language
+                          )
+                        );
                         const displayText = translatedParts.join(" → ");
 
                         return (
@@ -781,15 +783,20 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
                             onChange={(e: SelectChangeEvent) =>
                               handleLevelChange(level, e.target.value)
                             }
-                            label={`${t("classification.level", "Level")} ${level + 1
-                              }`}
+                            label={`${t("classification.level", "Level")} ${
+                              level + 1
+                            }`}
                           >
                             <MenuItem value="">
                               <em>{t("common.selectOption", "Select...")}</em>
                             </MenuItem>
                             {options.map((option) => (
                               <MenuItem key={option} value={option}>
-                                {translateCategory(option)}
+                                {translateCategory(
+                                  option,
+                                  configData?.itemConfig?.categoryMaps,
+                                  i18n.language
+                                )}
                               </MenuItem>
                             ))}
                           </Select>
@@ -851,7 +858,15 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
                         :
                       </Typography>
                       <Typography variant="body2" sx={{ mt: 0.5 }}>
-                        {currentSelection.map(translateCategory).join(" → ")}
+                        {currentSelection
+                          .map((cat) =>
+                            translateCategory(
+                              cat,
+                              configData?.itemConfig?.categoryMaps,
+                              i18n.language
+                            )
+                          )
+                          .join(" → ")}
                       </Typography>
                     </Box>
                   )}

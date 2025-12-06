@@ -51,6 +51,7 @@ import FaceToFaceConfirmDialog from "./FaceToFaceConfirmDialog";
 import ItemComments from "./ItemComments";
 import { convertLinksToClickable } from "../utils/helpers";
 import { AuthDialog } from "./Auth";
+import { translateCategory } from "../utils/categoryTranslation";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -534,34 +535,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     );
   }
 
-  // Add helper function to translate category/classification
-  const translateCategory = (categoryKey: string): string => {
-    if (!configData?.itemConfig?.categoryMaps) {
-      // Fallback to i18n if config not loaded
-      const translationKey = `category.${categoryKey}`;
-      const translated = t(translationKey, { defaultValue: "" });
-      if (translated && translated !== translationKey) {
-        return translated;
-      }
-      return categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
-    }
-
-    const currentLang = i18n.language;
-
-    // Find the category in categoryMaps
-    for (const mapGroup of configData.itemConfig.categoryMaps) {
-      const enMap = mapGroup.find((m) => m.language === "en");
-      if (enMap?.value === categoryKey) {
-        const translatedMap = mapGroup.find((m) => m.language === currentLang);
-        return translatedMap?.value || categoryKey;
-      }
-    }
-
-    // If not found in maps, return capitalized original
-    return categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
-  };
-
-  // Update renderClassificationPath to use white text
+  // Update renderClassificationPath to use imported utility
   const renderClassificationPath = (clssfctns: string[] | null | undefined) => {
     if (!clssfctns || clssfctns.length === 0) {
       return null;
@@ -585,7 +559,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           }}
         >
           {clssfctns.map((pathString, index) => {
-            // Split the path string by '/' to get individual segments
             const segments = pathString.split("/").filter((seg) => seg.trim());
 
             return (
@@ -596,7 +569,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 {segments.map((segment, segIndex) => (
                   <React.Fragment key={segIndex}>
                     <Chip
-                      label={translateCategory(segment)}
+                      label={translateCategory(
+                        segment,
+                        configData?.itemConfig?.categoryMaps,
+                        i18n.language
+                      )}
                       size="small"
                       variant={
                         segIndex === segments.length - 1 ? "filled" : "outlined"
