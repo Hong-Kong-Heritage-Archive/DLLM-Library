@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, use } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
   Box,
@@ -43,6 +43,7 @@ import ItemPreview from "../components/ItemPreview";
 import { calculateDistance } from "../utils/geoProcessor";
 import { useNavigate } from "react-router";
 import PaginationControls from "../components/PaginationControls";
+import { translateCategory } from "../utils/categoryTranslation";
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -306,23 +307,6 @@ const ItemAllPage: React.FC = () => {
     });
 
     return trees;
-  };
-
-  // Translate category using categoryMaps
-  const translateCategory = (category: string): string => {
-    if (!configData?.itemConfig?.categoryMaps) return category;
-
-    const currentLang = i18n.language;
-
-    for (const mapGroup of configData.itemConfig.categoryMaps) {
-      const enMap = mapGroup.find((m) => m.language === "en");
-      if (enMap?.value === category) {
-        const translatedMap = mapGroup.find((m) => m.language === currentLang);
-        return translatedMap?.value || category;
-      }
-    }
-
-    return category;
   };
 
   useMemo(() => {
@@ -596,11 +580,11 @@ const ItemAllPage: React.FC = () => {
       distance:
         item.location && location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            location.latitude,
-            location.longitude
-          )
+              item.location.latitude,
+              item.location.longitude,
+              location.latitude,
+              location.longitude
+            )
           : 0,
     })) || [];
 
@@ -894,7 +878,13 @@ const ItemAllPage: React.FC = () => {
                               <Box sx={{ mt: 1 }}>
                                 <Chip
                                   label={selectedClassification
-                                    .map(translateCategory)
+                                    .map((cat) =>
+                                      translateCategory(
+                                        cat,
+                                        configData?.itemConfig?.categoryMaps,
+                                        i18n.language
+                                      )
+                                    )
                                     .join(" → ")}
                                   onDelete={handleRemoveClassification}
                                   color="primary"
@@ -932,7 +922,11 @@ const ItemAllPage: React.FC = () => {
                                   </MenuItem>
                                   {options.map((option) => (
                                     <MenuItem key={option} value={option}>
-                                      {translateCategory(option)}
+                                      {translateCategory(
+                                        option,
+                                        configData?.itemConfig?.categoryMaps,
+                                        i18n.language
+                                      )}
                                     </MenuItem>
                                   ))}
                                 </Select>
@@ -955,7 +949,13 @@ const ItemAllPage: React.FC = () => {
                               </Typography>
                               <Typography variant="body2" sx={{ mt: 0.5 }}>
                                 {classificationSelection
-                                  .map(translateCategory)
+                                  .map((cat) =>
+                                    translateCategory(
+                                      cat,
+                                      configData?.itemConfig?.categoryMaps,
+                                      i18n.language
+                                    )
+                                  )
                                   .join(" → ")}
                               </Typography>
                             </Box>
@@ -1064,7 +1064,13 @@ const ItemAllPage: React.FC = () => {
                   selectedClassification.length > 0 && (
                     <Chip
                       label={selectedClassification
-                        .map(translateCategory)
+                        .map((cat) =>
+                          translateCategory(
+                            cat,
+                            configData?.itemConfig?.categoryMaps,
+                            i18n.language
+                          )
+                        )
                         .join(" → ")}
                       size="small"
                     />
@@ -1103,10 +1109,10 @@ const ItemAllPage: React.FC = () => {
                 {itemsLoading || totalItemsLoading
                   ? t("common.loading", "Loading...")
                   : totalItemsData?.totalItemsCountByLocation
-                    ? t("itemsAll.resultsFoundTotal", "Found {{count}} item(s)", {
+                  ? t("itemsAll.resultsFoundTotal", "Found {{count}} item(s)", {
                       count: totalItemsData.totalItemsCountByLocation,
                     })
-                    : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
+                  : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
                       count: itemsWithDistance.length,
                     })}
               </Typography>

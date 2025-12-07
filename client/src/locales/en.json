@@ -115,7 +115,9 @@
     "selectOption": "Select...",
     "notAvailable": "N/A",
     "noCategory": "No category",
-    "errorLoading": "Error loading data"
+    "errorLoading": "Error loading data",
+    "edit": "Edit",
+    "saving": "Saving..."
   },
   "location": {
     "latitude": "Latitude",
@@ -174,7 +176,23 @@
     "uploadFailed": "Upload Failed",
     "relatedItemIds": "Related Item IDs (comma-separated)",
     "relatedItemIdsHelper": "e.g., itemID1,itemID2",
-    "tagsHelper": "e.g., #tag1 #tag2"
+    "tagsHelper": "e.g., #tag1 #tag2",
+    "aboutUs": "About Us",
+    "adminDescription": "Manage community information and chat links",
+    "userDescription": "Learn more about our community library",
+    "communityChat": "Community Chat",
+    "chatLink": "Chat Link",
+    "chatLinkPlaceholder": "e.g., https://t.me/your-group",
+    "chatLinkHelper": "Enter the link to your community chat (Telegram, Discord, etc.)",
+    "joinOurChat": "Join our community chat to connect with other members:",
+    "joinChat": "Join Community Chat",
+    "noChatLink": "No community chat link configured yet.",
+    "aboutUsText": "About Us Text",
+    "aboutUsPlaceholder": "Tell your community about your library, mission, and values...",
+    "aboutUsHelper": "Describe your community library, its purpose, and how it works",
+    "noAboutUsText": "No information available yet. Please check back later.",
+    "errorUpdating": "Error updating configuration",
+    "changesSaved": "All changes saved successfully"
   },
   "shortStatus": {
     "available": "Available",
@@ -309,7 +327,6 @@
     "addedOn": "Added on",
     "images": "Images",
     "distance": "Distance",
-    "categories": "Categories",
     "request": "Request",
     "requestSuccess": "Item request submitted successfully!",
     "available": "This item is available for borrowing!",
@@ -353,7 +370,7 @@
     "zh-TW": "繁體中文",
     "EN": "English",
     "ZH_HK": "繁體中文",
-    "zh-CN": "简体中文"
+    "zh-HK": "繁體中文"
   },
   "userProfile": {
     "nickname": "Nickname",
@@ -612,6 +629,8 @@
     "keyHelper": "Used as system key (letters, numbers, spaces, and hyphens only)",
     "translationHelper": "Translation for this language",
     "addingUnder": "Adding under: {{path}}",
-    "addingRoot": "Adding as root category"
+    "addingRoot": "Adding as root category",
+    "zh-TW": "正體中文",
+    "zh-HK": "港文"
   }
 }

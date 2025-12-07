@@ -66,6 +66,44 @@ export class ItemService {
     return query;
   }
 
+  // Helper method to handle pagination with keyword filtering
+  private async _queryWithKeywordPagination(
+    queryBuilder: (offset: number) => firebase.firestore.Query,
+    keyword: string | null | undefined,
+    requestedLimit: number,
+    initialOffset: number = 0
+  ): Promise<Item[]> {
+    const results: Item[] = [];
+    let currentOffset = initialOffset;
+
+    while (results.length < requestedLimit ) {
+      const query = queryBuilder(currentOffset);
+      const snapshot = await query.limit(requestedLimit).get();
+
+      if (snapshot.empty) break;
+
+      const batchResults: Item[] = [];
+      await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const item = await this._itemQueryToItem(doc);
+          batchResults.push(item);
+        })
+      );
+
+      // Apply keyword filtering
+      const filtered = this.filterItemsByKeyword(batchResults, keyword);
+      results.push(...filtered);
+
+      // If we got fewer docs than requested, we've reached the end
+      if (snapshot.size < requestedLimit) break;
+
+      currentOffset += requestedLimit;
+    }
+
+    // Return only up to the requested limit
+    return results.slice(0, requestedLimit);
+  }
+
   async items(
     classifications: string[],
     category: string[],
@@ -74,16 +112,15 @@ export class ItemService {
     limit: number = 20,
     offset: number = 0
   ): Promise<Item[]> {
-    let query = this._itemsQuery(classifications, category, status, keyword);
-    const snapshot = await query.limit(limit).offset(offset).get();
-    const results: Item[] = [];
-    await Promise.all(
-      snapshot.docs.map(async (doc) => {
-        const item = await this._itemQueryToItem(doc);
-        results.push(item);
-      })
+    return this._queryWithKeywordPagination(
+      (currentOffset) =>
+        this._itemsQuery(classifications, category, status, keyword).offset(
+          currentOffset
+        ),
+      keyword,
+      limit,
+      offset
     );
-    return results;
   }
   async totalItemsCount(
     classifications: string[],
@@ -123,7 +160,9 @@ export class ItemService {
         filteredItems.push(rv);
       })
     );
-    return filteredItems;
+
+    // Ensure results satisfy full keyword token match on nameIndex
+    return this.filterItemsByKeyword(filteredItems, keyword);
   }
 
   async totalItemsCountByLocation(
@@ -152,21 +191,20 @@ export class ItemService {
     limit: number = 20,
     offset: number = 0
   ): Promise<Item[]> {
-    let query = this._itemsQuery([], category, status, keyword);
-    query = query
-      .where("ownerId", "==", userId)
-      .where("holderId", "!=", null)
-      .orderBy("holderId")
-      .orderBy("updated", "desc");
-    const snapshot = await query.limit(limit).offset(offset).get();
-    const results: Item[] = [];
-    await Promise.all(
-      snapshot.docs.map(async (doc) => {
-        const item = await this._itemQueryToItem(doc);
-        results.push(item);
-      })
+    return this._queryWithKeywordPagination(
+      (currentOffset) => {
+        let query = this._itemsQuery([], category, status, keyword);
+        return query
+          .where("ownerId", "==", userId)
+          .where("holderId", "!=", null)
+          .orderBy("holderId")
+          .orderBy("updated", "desc")
+          .offset(currentOffset);
+      },
+      keyword,
+      limit,
+      offset
     );
-    return results;
   }
 
   async itemsOnLoanByOwner(
@@ -177,21 +215,20 @@ export class ItemService {
     limit: number = 20,
     offset: number = 0
   ): Promise<Item[]> {
-    let query = this._itemsQuery([], category, status, keyword);
-    query = query
-      .where("ownerId", "==", userId)
-      .where("holderId", "!=", null)
-      .orderBy("holderId")
-      .orderBy("updated", "desc");
-    const snapshot = await query.limit(limit).offset(offset).get();
-    const results: Item[] = [];
-    await Promise.all(
-      snapshot.docs.map(async (doc) => {
-        const item = await this._itemQueryToItem(doc);
-        results.push(item);
-      })
+    return this._queryWithKeywordPagination(
+      (currentOffset) => {
+        let query = this._itemsQuery([], category, status, keyword);
+        return query
+          .where("ownerId", "==", userId)
+          .where("holderId", "!=", null)
+          .orderBy("holderId")
+          .orderBy("updated", "desc")
+          .offset(currentOffset);
+      },
+      keyword,
+      limit,
+      offset
     );
-    return results;
   }
 
   async itemsOnLoanByHolder(
@@ -202,18 +239,18 @@ export class ItemService {
     limit: number = 20,
     offset: number = 0
   ): Promise<Item[]> {
-    let query = this._itemsQuery([], category, status, keyword);
-    query = query.where("holderId", "==", userId).orderBy("updated", "desc");
-
-    const snapshot = await query.limit(limit).offset(offset).get();
-    const results: Item[] = [];
-    await Promise.all(
-      snapshot.docs.map(async (doc) => {
-        const item = await this._itemQueryToItem(doc);
-        results.push(item);
-      })
+    return this._queryWithKeywordPagination(
+      (currentOffset) => {
+        let query = this._itemsQuery([], category, status, keyword);
+        return query
+          .where("holderId", "==", userId)
+          .orderBy("updated", "desc")
+          .offset(currentOffset);
+      },
+      keyword,
+      limit,
+      offset
     );
-    return results;
   }
 
   async itemById(itemId: string): Promise<Item | null> {
@@ -283,27 +320,20 @@ export class ItemService {
       }
 
       const items = await this.itemsByIds(cachedItemIds);
-
-      console.debug(
-        `Found ${items.length} cached items for exchange point user ${userId}`
-      );
-
-      return items;
+      return this.filterItemsByKeyword(items, keyword);
     } else {
-      let query = this._itemsQuery([], category, status, keyword);
-      query = query.where("ownerId", "==", userId).orderBy("updated", "desc");
-      const snapshot = await query.limit(limit).offset(offset).get();
-      const results: Item[] = [];
-      await Promise.all(
-        snapshot.docs.map(async (doc) => {
-          const item = await this._itemQueryToItem(doc);
-          results.push(item);
-        })
+      return this._queryWithKeywordPagination(
+        (currentOffset) => {
+          let query = this._itemsQuery([], category, status, keyword);
+          return query
+            .where("ownerId", "==", userId)
+            .orderBy("updated", "desc")
+            .offset(currentOffset);
+        },
+        keyword,
+        limit,
+        offset
       );
-      console.debug(
-        `Found ${results.length} items for user ${userId} with category ${category}, status ${status}, keyword ${keyword}`
-      );
-      return results;
     }
   }
 
@@ -1115,13 +1145,22 @@ export class ItemService {
   // New helper: apply keyword name range filter to a Firestore query
   private applyKeywordNameFilter(
     query: firebase.firestore.Query<firebase.firestore.DocumentData>,
-    keyword?: string | null
+    keyword: string
   ): firebase.firestore.Query<firebase.firestore.DocumentData> {
+
+    /* Keep the classical implementation for reference
     if (keyword && String(keyword).trim().length > 0) {
       const k = String(keyword);
       return query.where("name", ">=", k).where("name", "<=", k + "\uf8ff");
     }
-    return query;
+    */
+
+    // Tokenize and normalize to lowercase for matching
+    const tokens = this.tokenizeName(keyword)
+      .map((t) => t.toLowerCase())
+      .filter(Boolean);
+    if (tokens.length === 0) return query;
+    return query.where("nameIndex", "array-contains", tokens[0]);
   }
 
   // Used for generating name index for search optimization.
@@ -1178,6 +1217,24 @@ export class ItemService {
       if (cur && !this.SKIP_INDEX.has(cur)) tokens.add(cur);
     }
     return Array.from(tokens).filter(Boolean);
+  }
+
+  // Filter items so that item's nameIndex contains all tokens from keyword
+  private filterItemsByKeyword(items: Item[], keyword?: string | null): Item[] {
+    if (!keyword || String(keyword).trim().length === 0) return items;
+    const tokens = this.tokenizeName(keyword)
+      .map((t) => t.toLowerCase())
+      .filter(Boolean);
+    if (tokens.length === 0) return items;
+
+    // console.log("filterItemsByKeyword: filtering for tokens:", tokens);
+
+    return items.filter((item) => {
+      const idx = Array.isArray((item as any).nameIndex)
+        ? (item as any).nameIndex.map((v: any) => String(v).toLowerCase())
+        : [];
+      return tokens.every((t) => idx.includes(t));
+    });
   }
 
   public generateItemIndexIncremental(): Promise<boolean> {

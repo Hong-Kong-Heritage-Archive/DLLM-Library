@@ -21,7 +21,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const handleLanguageChange = (event: SelectChangeEvent<string>) => {
     i18n.changeLanguage(event.target.value);
   };
-  const langList = ["en", "zh-TW"];
+  const langList = ["en", "zh-TW", "zh-HK"];
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, color }}>

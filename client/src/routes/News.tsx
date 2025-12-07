@@ -11,7 +11,6 @@ import {
   CircularProgress,
   Card,
   CardContent,
-  Paper,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -21,7 +20,7 @@ import {
 } from "@mui/icons-material";
 import { useOutletContext } from "react-router-dom";
 import { User, HostConfig } from "../generated/graphql";
-import RecentNewsBanner from "../components/RecentNewsBanner";
+import TransactionFlowDiagrams from "../components/TransactionFlowDiagrams";
 
 interface OutletContext {
   email?: string | undefined | null;
@@ -139,18 +138,6 @@ const NewsPage: React.FC = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: "bold" }}>
-        {t("navigation.news", "News")}
-      </Typography>
-      <RecentNewsBanner user={user} />
-      <Box
-        sx={{
-          mb: 4,
-          pb: 3,
-          borderTop: "2px solid",
-          borderColor: "divider"
-        }}
-      />
       {/* Header */}
       < Box sx={{ mb: 4 }
       }>
@@ -375,6 +362,13 @@ const NewsPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Transaction Flow Diagrams Section - Add after About Us */}
+      {!isEditing && (
+        <Box sx={{ mt: 4 }}>
+          <TransactionFlowDiagrams />
+        </Box>
+      )}
 
       {/* Edit Action Buttons */}
       {
