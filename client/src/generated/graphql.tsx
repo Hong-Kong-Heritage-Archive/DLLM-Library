@@ -843,6 +843,7 @@ export type UpdateItemMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  classifications?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   condition?: InputMaybe<ItemCondition>;
   description?: InputMaybe<Scalars['String']['input']>;
   images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
@@ -1866,11 +1867,12 @@ export type CreateItemMutationHookResult = ReturnType<typeof useCreateItemMutati
 export type CreateItemMutationResult = Apollo.MutationResult<CreateItemMutation>;
 export type CreateItemMutationOptions = Apollo.BaseMutationOptions<CreateItemMutation, CreateItemMutationVariables>;
 export const UpdateItemDocument = gql`
-    mutation UpdateItem($id: ID!, $name: String, $category: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus, $deposit: Int) {
+    mutation UpdateItem($id: ID!, $name: String, $category: [String!], $classifications: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus, $deposit: Int) {
   updateItem(
     id: $id
     name: $name
     category: $category
+    classifications: $classifications
     condition: $condition
     description: $description
     images: $images
@@ -1913,6 +1915,7 @@ export type UpdateItemMutationFn = Apollo.MutationFunction<UpdateItemMutation, U
  *      id: // value for 'id'
  *      name: // value for 'name'
  *      category: // value for 'category'
+ *      classifications: // value for 'classifications'
  *      condition: // value for 'condition'
  *      description: // value for 'description'
  *      images: // value for 'images'

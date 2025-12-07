@@ -346,9 +346,10 @@ const HomePage: React.FC = () => {
           />
         )}
 
-        {showItemForm && (
+        {showItemForm && user && (
           <ItemForm
             open={showItemForm}
+            user={user}
             onClose={() => setShowItemForm(false)}
             onItemCreated={handleItemCreated}
           />

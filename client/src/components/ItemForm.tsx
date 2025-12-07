@@ -30,6 +30,7 @@ import {
   CameraAlt,
   ExpandMore as ArrowDropDownIcon,
 } from "@mui/icons-material";
+import ClassificationEditor from "./ClassificationEditor";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
 import {
   CreateItemMutation,
@@ -40,6 +41,7 @@ import {
   ItemStatus,
   Language,
   Item,
+  User,
 } from "../generated/graphql";
 import {
   processImage,
@@ -94,6 +96,7 @@ const UPDATE_ITEM_MUTATION = gql`
     $id: ID!
     $name: String
     $category: [String!]
+    $classifications: [String!]
     $condition: ItemCondition
     $description: String
     $images: [String!]
@@ -106,6 +109,7 @@ const UPDATE_ITEM_MUTATION = gql`
       id: $id
       name: $name
       category: $category
+      classifications: $classifications
       condition: $condition
       description: $description
       images: $images
@@ -131,10 +135,20 @@ const UPDATE_ITEM_MUTATION = gql`
   }
 `;
 
+const UPDATE_ITEM_CLASSIFICATION = gql`
+  mutation UpdateItemClassification($id: ID!, $classifications: [String!]) {
+    updateItem(id: $id, classifications: $classifications) {
+      id
+      clssfctns
+    }
+  }
+`;
+
 interface ItemFormProps {
   onItemCreated?: (data: CreateItemMutation) => void;
   onItemUpdated?: (data: UpdateItemMutation) => void;
   open: boolean;
+  user: User;
   onClose?: () => void;
   item?: Item | null; // If provided, edit mode; otherwise, create mode
   onError?: (message: string) => void;
@@ -150,6 +164,7 @@ interface ImagePreview extends ProcessedImage {
 
 const ItemForm: React.FC<ItemFormProps> = ({
   open,
+  user,
   onItemCreated,
   onItemUpdated,
   onClose,
@@ -178,6 +193,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
   const [formError, setFormError] = useState<string | null>(null);
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
+  const [classifications, setClassifications] = useState<string[]>([]);
+
+  const isAdmin = user.role === "ADMIN";
 
   // Store original values for edit mode comparison
   const [originalValues, setOriginalValues] = useState<{
@@ -189,6 +207,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     language: Language;
     images: string[];
     deposit: number;
+    classifications: string[];
   } | null>(null);
 
   // Image menu states
@@ -217,9 +236,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
       const itemStatus = item.status || ItemStatus.Available;
       const itemLanguage =
         item.language ||
-        (i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En);
+        (i18n.language.toLowerCase().startsWith("zh")
+          ? Language.ZhHk
+          : Language.En);
       const itemImages = item.images || [];
       const itemDeposit = item.deposit || 0;
+      const itemClassifications = item.clssfctns || [];
 
       setName(itemName);
       setCondition(itemCondition);
@@ -228,6 +250,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
       setStatus(itemStatus);
       setLanguage(itemLanguage);
       setDeposit(itemDeposit);
+      setClassifications(itemClassifications);
 
       // Store original values for comparison
       setOriginalValues({
@@ -239,6 +262,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         language: itemLanguage,
         images: itemImages,
         deposit: itemDeposit,
+        classifications: itemClassifications,
       });
 
       // Convert existing images to ImagePreview format
@@ -306,7 +330,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setCondition(ItemCondition.New);
     setDescription("");
     setImageFiles([]);
-    setLanguage(i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En);
+    setLanguage(
+      i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En
+    );
     setPublishedYear("");
     setStatus(ItemStatus.Available);
     setFormError(null);
@@ -317,6 +343,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setDeposit(0);
     setImageMenuAnchor(null);
     setOriginalValues(null);
+    setClassifications([]);
   };
 
   const handleCloseSuccessSnackbar = () => {
@@ -459,10 +486,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
               return idx === actualIndex
                 ? {
-                  ...img,
-                  isUploading: true,
-                  uploadProgress: progress.percentage,
-                }
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                 : img;
             })
           );
@@ -482,11 +509,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
               return idx === actualIndex
                 ? {
-                  ...img,
-                  isUploading: false,
-                  uploadProgress: 100,
-                  gsUrl: gsUrl,
-                }
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                 : img;
             })
           );
@@ -505,10 +532,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
         prev.map((img) =>
           !img.isExisting && !img.gsUrl
             ? {
-              ...img,
-              isUploading: false,
-              uploadError: `Upload failed: ${error}`,
-            }
+                ...img,
+                isUploading: false,
+                uploadError: `Upload failed: ${error}`,
+              }
             : img
         )
       );
@@ -553,8 +580,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         .map((c) => c.split(/\s/)[0].trim())
         .filter(Boolean);
 
-      const categories =
-        hashtags.length > 0 ? hashtags : ["Uncategorized"];
+      const categories = hashtags.length > 0 ? hashtags : ["Uncategorized"];
 
       if (isEditMode && item) {
         // Update mode
@@ -585,7 +611,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
           }
 
           const currentDescription = description?.trim() || null;
-          const originalDescription = originalValues.description?.trim() || null;
+          const originalDescription =
+            originalValues.description?.trim() || null;
           if (currentDescription !== originalDescription) {
             variables.description = currentDescription;
             variables.category = categories;
@@ -606,10 +633,19 @@ const ItemForm: React.FC<ItemFormProps> = ({
             newImages.length > 0 ||
             allImageUrls.length !== originalValues.images.length ||
             JSON.stringify(allImageUrls) !==
-            JSON.stringify(originalValues.images);
+              JSON.stringify(originalValues.images);
 
           if (hasImageChanges) {
             variables.images = allImageUrls;
+          }
+
+          // Check if classifications have changed
+          const hasClassificationChanges =
+            JSON.stringify(classifications.sort()) !==
+            JSON.stringify((originalValues?.classifications || []).sort());
+
+          if (hasClassificationChanges) {
+            variables.classifications = classifications;
           }
 
           // Only proceed if there are actually changes
@@ -675,7 +711,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
       )}
 
       {(dialogOpen || open) && (
-        <Dialog open={dialogOpen || open} onClose={handleClose} maxWidth="md" fullWidth>
+        <Dialog
+          open={dialogOpen || open}
+          onClose={handleClose}
+          maxWidth="md"
+          fullWidth
+        >
           <DialogTitle sx={{ textAlign: "center" }}>
             {isEditMode
               ? t("item.editItem", "Edit Item")
@@ -940,6 +981,18 @@ const ItemForm: React.FC<ItemFormProps> = ({
                   </MenuItem>
                 ))}
               </TextField>
+
+              {/* Classification Editor - NEW */}
+
+              {isAdmin && (
+                <Box sx={{ mt: 2, mb: 2 }}>
+                  <ClassificationEditor
+                    classifications={classifications}
+                    onChange={setClassifications}
+                    showAddCategoryButton={true}
+                  />
+                </Box>
+              )}
             </DialogContent>
             <DialogActions>
               <Button onClick={handleClose}>{t("common.cancel")}</Button>
@@ -951,14 +1004,14 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 {isProcessingImages
                   ? t("common.processingImages")
                   : isUploading
-                    ? t("common.uploading")
-                    : loading
-                      ? isEditMode
-                        ? t("common.updating")
-                        : t("common.creating")
-                      : isEditMode
-                        ? t("common.save")
-                        : t("item.create")}
+                  ? t("common.uploading")
+                  : loading
+                  ? isEditMode
+                    ? t("common.updating")
+                    : t("common.creating")
+                  : isEditMode
+                  ? t("common.save")
+                  : t("item.create")}
               </Button>
             </DialogActions>
           </form>

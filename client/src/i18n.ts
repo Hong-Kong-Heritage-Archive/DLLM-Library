@@ -7,14 +7,14 @@ import zhTW from "./locales/zh-TW.json";
 import zhHK from "./locales/zh-HK.json";
 
 const resources = {
+  "zh-HK": {
+    translation: zhHK,
+  },
   en: {
     translation: en,
   },
   "zh-TW": {
     translation: zhTW,
-  },
-  "zh-HK": {
-    translation: zhHK,
   },
 };
 
@@ -23,7 +23,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: "en",
+    fallbackLng: "zh-HK",
     debug: false,
     interpolation: {
       escapeValue: false,
