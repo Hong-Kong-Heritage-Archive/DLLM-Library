@@ -59,15 +59,6 @@ const NewsPage: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const isAdmin = user?.role === "ADMIN";
-  const navigate = useNavigate();
-
-  const handleNewsCreated = (data: CreateNewsPostMutation) => {
-    console.log("News post created:", data.createNewsPost);
-  };
-
-  const handleBack = () => {
-    navigate("/");
-  };
 
   // Query host config
   const { data, loading, error, refetch } = useQuery(GET_HOST_CONFIG, {

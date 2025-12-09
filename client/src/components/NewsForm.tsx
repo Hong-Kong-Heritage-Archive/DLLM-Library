@@ -7,7 +7,6 @@ import {
   DialogActions,
   TextField,
   Box,
-  CircularProgress,
   Alert,
   Grid,
   Card,
@@ -23,23 +22,17 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  CloudUpload,
   Delete,
   PhotoCamera,
   PhotoLibrary,
   CameraAlt,
   ExpandMore as ArrowDropDownIcon,
   Article as ArticleIcon,
-  Close as CloseIcon,
 } from "@mui/icons-material";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
 import { useTranslation } from "react-i18next";
-import { Item, User } from "../generated/graphql";
-import {
-  processImage,
-  batchProcessImages,
-  ProcessedImage,
-} from "../utils/ImageProcessor";
+import { Item } from "../generated/graphql";
+import { batchProcessImages, ProcessedImage } from "../utils/ImageProcessor";
 import { GCSUploadService, UploadProgress } from "../services/UploadService";
 
 const CREATE_NEWS_MUTATION = gql`

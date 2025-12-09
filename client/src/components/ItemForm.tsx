@@ -135,15 +135,6 @@ const UPDATE_ITEM_MUTATION = gql`
   }
 `;
 
-const UPDATE_ITEM_CLASSIFICATION = gql`
-  mutation UpdateItemClassification($id: ID!, $classifications: [String!]) {
-    updateItem(id: $id, classifications: $classifications) {
-      id
-      clssfctns
-    }
-  }
-`;
-
 interface ItemFormProps {
   onItemCreated?: (data: CreateItemMutation) => void;
   onItemUpdated?: (data: UpdateItemMutation) => void;

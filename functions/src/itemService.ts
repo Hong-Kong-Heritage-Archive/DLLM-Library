@@ -253,7 +253,7 @@ export class ItemService {
     );
   }
 
-  async itemModelByid(
+  async itemModelById(
     itemId: string
   ): Promise<firebase.firestore.DocumentData | null> {
     const itemDoc = await db.collection("items").doc(itemId).get();
@@ -265,7 +265,7 @@ export class ItemService {
   }
 
   async itemById(itemId: string): Promise<Item | null> {
-    const data = await this.itemModelByid(itemId);
+    const data = await this.itemModelById(itemId);
     if (!data) return null;
     let item: Item = await this._itemModelToItem(data);
     return item;
@@ -661,7 +661,7 @@ export class ItemService {
     clssfctns?: string[]
   ): Promise<Item> {
     // First, get the existing item to verify ownership
-    const itemDoc = await this.itemModelByid(itemId);
+    const itemDoc = await this.itemModelById(itemId);
     if (!itemDoc) throw new Error(`Item with ID ${itemId} does not exist`);
 
     let existingData = itemDoc as ItemModel;
