@@ -743,5 +743,19 @@
     "translationHelper": "此語言的翻譯",
     "addingUnder": "新增到：{{path}}",
     "addingRoot": "新增為根分類"
+  },
+  "news": {
+    "edit": "編輯",
+    "preview": "預覽",
+    "markdownSupported": "支援 Markdown。使用 **粗體**、*斜體*、[連結](url)、# 標題等。",
+    "markdownHelp": "支援 Markdown 格式",
+    "markdownQuickRef": "Markdown 快速參考",
+    "bold": "粗體",
+    "italic": "斜體",
+    "heading": "標題",
+    "link": "連結",
+    "list": "列表",
+    "code": "程式碼",
+    "previewEmpty": "預覽將在您輸入時顯示..."
   }
 }

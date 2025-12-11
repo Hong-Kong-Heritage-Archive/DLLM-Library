@@ -20,6 +20,9 @@ import {
   ListItemText,
   Chip,
   Typography,
+  Tabs,
+  Tab,
+  Paper,
 } from "@mui/material";
 import {
   Delete,
@@ -28,9 +31,14 @@ import {
   CameraAlt,
   ExpandMore as ArrowDropDownIcon,
   Article as ArticleIcon,
+  Edit as EditIcon,
+  Visibility,
 } from "@mui/icons-material";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
 import { useTranslation } from "react-i18next";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { Item } from "../generated/graphql";
 import { batchProcessImages, ProcessedImage } from "../utils/ImageProcessor";
 import { GCSUploadService, UploadProgress } from "../services/UploadService";
@@ -110,10 +118,32 @@ interface ImagePreview extends ProcessedImage {
 interface NewsFormProps {
   open: boolean;
   onClose: () => void;
-  relatedItem?: Item | null; // Pre-populate with an item
-  newsPost?: any; // For edit mode
+  relatedItem?: Item | null;
+  newsPost?: any;
   onSuccess?: () => void;
   onError?: (message: string) => void;
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`content-tabpanel-${index}`}
+      aria-labelledby={`content-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
+    </div>
+  );
 }
 
 const NewsForm: React.FC<NewsFormProps> = ({
@@ -135,13 +165,12 @@ const NewsForm: React.FC<NewsFormProps> = ({
   // Form state
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [contentTab, setContentTab] = useState(0); // 0 = Edit, 1 = Preview
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
   const [relatedItems, setRelatedItems] = useState<Item[]>([]);
   const [tags, setTags] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
-
-  // Image menu states
   const [imageMenuAnchor, setImageMenuAnchor] = useState<null | HTMLElement>(
     null
   );
@@ -589,6 +618,13 @@ const NewsForm: React.FC<NewsFormProps> = ({
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   };
 
+  const handleContentTabChange = (
+    event: React.SyntheticEvent,
+    newValue: number
+  ) => {
+    setContentTab(newValue);
+  };
+
   return (
     <>
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -650,18 +686,186 @@ const NewsForm: React.FC<NewsFormProps> = ({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              disabled={isProcessingImages || isUploading}
             />
 
-            <TextField
-              label={t("news.content", "Content")}
-              fullWidth
-              margin="normal"
-              required
-              multiline
-              rows={6}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
+            {/* Content with Markdown Support */}
+            <Box sx={{ mt: 2 }}>
+              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                <Tabs value={contentTab} onChange={handleContentTabChange}>
+                  <Tab
+                    icon={<EditIcon />}
+                    iconPosition="start"
+                    label={t("news.edit", "Edit")}
+                  />
+                  <Tab
+                    icon={<Visibility />}
+                    iconPosition="start"
+                    label={t("news.preview", "Preview")}
+                  />
+                </Tabs>
+              </Box>
+
+              <TabPanel value={contentTab} index={0}>
+                <TextField
+                  label={t("news.content", "Content")}
+                  placeholder={t(
+                    "news.markdownSupported",
+                    "Markdown is supported. Use **bold**, *italic*, [links](url), # headers, etc."
+                  )}
+                  fullWidth
+                  multiline
+                  rows={12}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  required
+                  disabled={isProcessingImages || isUploading}
+                  helperText={t(
+                    "news.markdownHelp",
+                    "Supports Markdown formatting"
+                  )}
+                />
+
+                {/* Markdown Quick Reference */}
+                <Alert severity="info" sx={{ mt: 1 }}>
+                  <Typography variant="caption" component="div">
+                    <strong>
+                      {t("news.markdownQuickRef", "Markdown Quick Reference")}:
+                    </strong>
+                    <br />
+                    **{t("news.bold", "bold")}** | *{t("news.italic", "italic")}
+                    * | # {t("news.heading", "Heading")} | [
+                    {t("news.link", "link")}](url) | - {t("news.list", "list")}{" "}
+                    | `{t("news.code", "code")}`
+                  </Typography>
+                </Alert>
+              </TabPanel>
+
+              <TabPanel value={contentTab} index={1}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    minHeight: 300,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    "& h1": {
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      mt: 3,
+                      mb: 2,
+                    },
+                    "& h2": {
+                      fontSize: "1.5rem",
+                      fontWeight: "bold",
+                      mt: 2.5,
+                      mb: 1.5,
+                    },
+                    "& h3": {
+                      fontSize: "1.25rem",
+                      fontWeight: "bold",
+                      mt: 2,
+                      mb: 1,
+                    },
+                    "& h4": {
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      mt: 1.5,
+                      mb: 1,
+                    },
+                    "& p": { mb: 1.5, lineHeight: 1.7 },
+                    "& ul, & ol": { pl: 3, mb: 1.5 },
+                    "& li": { mb: 0.5 },
+                    "& pre": {
+                      bgcolor: "grey.100",
+                      p: 2,
+                      borderRadius: 1,
+                      overflow: "auto",
+                      mb: 2,
+                      border: 1,
+                      borderColor: "divider",
+                    },
+                    "& code": {
+                      bgcolor: "grey.100",
+                      px: 0.75,
+                      py: 0.25,
+                      borderRadius: 0.5,
+                      fontSize: "0.875em",
+                      fontFamily: "monospace",
+                    },
+                    "& pre code": {
+                      bgcolor: "transparent",
+                      px: 0,
+                      py: 0,
+                    },
+                    "& blockquote": {
+                      borderLeft: 4,
+                      borderColor: "primary.main",
+                      pl: 2,
+                      ml: 0,
+                      my: 2,
+                      color: "text.secondary",
+                      fontStyle: "italic",
+                      bgcolor: "action.hover",
+                      py: 1,
+                      borderRadius: 0.5,
+                    },
+                    "& a": {
+                      color: "primary.main",
+                      textDecoration: "none",
+                      fontWeight: 500,
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                    },
+                    "& img": {
+                      maxWidth: "100%",
+                      height: "auto",
+                      borderRadius: 1,
+                      my: 2,
+                    },
+                    "& table": {
+                      borderCollapse: "collapse",
+                      width: "100%",
+                      mb: 2,
+                    },
+                    "& th, & td": {
+                      border: 1,
+                      borderColor: "divider",
+                      p: 1.5,
+                      textAlign: "left",
+                    },
+                    "& th": {
+                      bgcolor: "grey.100",
+                      fontWeight: "bold",
+                    },
+                    "& hr": {
+                      my: 3,
+                      border: "none",
+                      borderTop: 1,
+                      borderColor: "divider",
+                    },
+                  }}
+                >
+                  {content ? (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                    >
+                      {content}
+                    </ReactMarkdown>
+                  ) : (
+                    <Typography color="text.secondary" fontStyle="italic">
+                      {t(
+                        "news.previewEmpty",
+                        "Preview will appear here as you type..."
+                      )}
+                    </Typography>
+                  )}
+                </Paper>
+              </TabPanel>
+            </Box>
 
             {/* Image Upload Section */}
             <Box sx={{ mt: 2 }}>

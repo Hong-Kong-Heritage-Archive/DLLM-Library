@@ -175,7 +175,19 @@
     "uploadFailed": "Upload Failed",
     "relatedItemIds": "Related Item IDs (comma-separated)",
     "relatedItemIdsHelper": "e.g., itemID1,itemID2",
-    "tagsHelper": "e.g., #tag1 #tag2"
+    "tagsHelper": "e.g., #tag1 #tag2",
+    "edit": "Edit",
+    "preview": "Preview",
+    "markdownSupported": "Markdown is supported. Use **bold**, *italic*, [links](url), # headers, etc.",
+    "markdownHelp": "Supports Markdown formatting",
+    "markdownQuickRef": "Markdown Quick Reference",
+    "bold": "bold",
+    "italic": "italic",
+    "heading": "Heading",
+    "link": "link",
+    "list": "list",
+    "code": "code",
+    "previewEmpty": "Preview will appear here as you type..."
   },
   "shortStatus": {
     "available": "Available",

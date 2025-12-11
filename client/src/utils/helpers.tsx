@@ -20,7 +20,10 @@ export const convertLinksToClickable = (text: string) => {
   const parts = text.split(urlRegex);
   return parts.map((part, index) => {
     // Reset regex for testing individual parts
-    const testRegex = new RegExp(`${urlWithProtocol}|${urlWithoutProtocol}`, "gi");
+    const testRegex = new RegExp(
+      `${urlWithProtocol}|${urlWithoutProtocol}`,
+      "gi"
+    );
     // Reset lastIndex for global regex before testing individual parts
     testRegex.lastIndex = 0;
     if (testRegex.test(part)) {
@@ -32,7 +35,7 @@ export const convertLinksToClickable = (text: string) => {
           href = `https://${part}`;
         } else if (part.match(/^ftp\./i)) {
           href = `https://${part}`;
-        } else if (part.includes('.')) {
+        } else if (part.includes(".")) {
           // If it contains a dot but no protocol, assume https
           href = `https://${part}`;
         }
@@ -45,13 +48,13 @@ export const convertLinksToClickable = (text: string) => {
           target="_blank"
           rel="noopener noreferrer"
           sx={{
-            wordBreak: 'break-all',
-            color: 'primary.main',
-            textDecoration: 'underline',
-            '&:hover': {
-              textDecoration: 'underline',
+            wordBreak: "break-all",
+            color: "primary.main",
+            textDecoration: "underline",
+            "&:hover": {
+              textDecoration: "underline",
               opacity: 0.8,
-            }
+            },
           }}
         >
           {part}
@@ -60,4 +63,73 @@ export const convertLinksToClickable = (text: string) => {
     }
     return part;
   });
+};
+
+/**
+ * Detects if text contains Markdown syntax
+ * @param text - The text to check for Markdown syntax
+ * @returns true if Markdown syntax is detected, false otherwise
+ */
+export const hasMarkdownSyntax = (text: string): boolean => {
+  if (!text || typeof text !== "string") {
+    return false;
+  }
+
+  // Markdown patterns to detect
+  const markdownPatterns = [
+    // Headers (# ## ### etc.)
+    /^#{1,6}\s+.+$/m,
+
+    // Bold (**text** or __text__)
+    /(\*\*|__).+?\1/,
+
+    // Italic (*text* or _text_)
+    /(?<!\*)\*(?!\*)([^*]+?)(?<!\*)\*(?!\*)|(?<!_)_(?!_)([^_]+?)(?<!_)_(?!_)/,
+
+    // Strikethrough (~~text~~)
+    /~~.+?~~/,
+
+    // Links ([text](url) or [text][ref])
+    /\[.+?\]\(.+?\)|\[.+?\]\[.+?\]/,
+
+    // Images (![alt](url))
+    /!\[.*?\]\(.+?\)/,
+
+    // Code blocks (```language or ``` or ~~~)
+    /^```[\s\S]*?```$/m,
+    /^~~~[\s\S]*?~~~$/m,
+
+    // Inline code (`code`)
+    /`[^`]+?`/,
+
+    // Unordered lists (- item, * item, + item)
+    /^[\s]*[-*+]\s+.+$/m,
+
+    // Ordered lists (1. item, 2. item)
+    /^[\s]*\d+\.\s+.+$/m,
+
+    // Blockquotes (> text)
+    /^>\s+.+$/m,
+
+    // Horizontal rules (---, ***, ___)
+    /^[\s]*(-{3,}|\*{3,}|_{3,})[\s]*$/m,
+
+    // Tables (| col1 | col2 |)
+    /^\|.+\|$/m,
+
+    // Task lists (- [ ] task or - [x] task)
+    /^[\s]*-\s+\[[ xX]\]\s+.+$/m,
+
+    // HTML tags
+    /<[a-z][\s\S]*>/i,
+
+    // Footnotes ([^1])
+    /\[\^.+?\]/,
+
+    // Definition lists
+    /^[\s]*:.+$/m,
+  ];
+
+  // Check if any pattern matches
+  return markdownPatterns.some((pattern) => pattern.test(text));
 };

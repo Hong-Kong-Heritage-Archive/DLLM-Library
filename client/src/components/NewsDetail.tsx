@@ -23,9 +23,12 @@ import {
 } from "@mui/icons-material";
 import { gql, useQuery } from "@apollo/client";
 import { useNewsPostQuery, NewsPostQueryVariables } from "../generated/graphql";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import SafeImage from "./SafeImage";
 import { useTranslation } from "react-i18next";
-import { convertLinksToClickable } from "../utils/helpers";
+import { convertLinksToClickable, hasMarkdownSyntax } from "../utils/helpers";
 
 const DETAIL_NEWS_QUERY = gql`
   query NewsPost($newsPostId: ID!) {
@@ -50,6 +53,7 @@ const DETAIL_NEWS_QUERY = gql`
     }
   }
 `;
+
 interface NewsDetailProps {
   newsId: string | null;
   open: boolean;
@@ -111,7 +115,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
             alignItems: "center",
           }}
         >
-          <Typography> {t("news.newsDetails")}</Typography>
+          <Typography>{t("news.newsDetails")}</Typography>
           <IconButton onClick={onClose}>
             <Close />
           </IconButton>
@@ -138,17 +142,155 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
 
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  {t("common.by")} {data.newsPost.user?.nickname || t("common.unknown")} • {t("common.created")}: {" "}
-                  {new Date(data.newsPost.createdAt).toLocaleDateString()} •
-                  {t("common.updated")}: {" "}
+                  {t("common.by")}{" "}
+                  {data.newsPost.user?.nickname || t("common.unknown")} •{" "}
+                  {t("common.created")}:{" "}
+                  {new Date(data.newsPost.createdAt).toLocaleDateString()} •{" "}
+                  {t("common.updated")}:{" "}
                   {new Date(data.newsPost.updatedAt).toLocaleDateString()}
                 </Typography>
               </Box>
-
-              <Typography variant="body1" sx={{ mb: 3, whiteSpace: "pre-wrap" }}>
-                {convertLinksToClickable(data.newsPost.content)}
-              </Typography>
-
+              {hasMarkdownSyntax(data.newsPost.content) ? (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    mb: 3,
+                    p: 3,
+                    bgcolor: "background.default",
+                    "& h1": {
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      mt: 3,
+                      mb: 2,
+                    },
+                    "& h2": {
+                      fontSize: "1.5rem",
+                      fontWeight: "bold",
+                      mt: 2.5,
+                      mb: 1.5,
+                    },
+                    "& h3": {
+                      fontSize: "1.25rem",
+                      fontWeight: "bold",
+                      mt: 2,
+                      mb: 1,
+                    },
+                    "& h4": {
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      mt: 1.5,
+                      mb: 1,
+                    },
+                    "& h5": {
+                      fontSize: "1rem",
+                      fontWeight: "bold",
+                      mt: 1.5,
+                      mb: 1,
+                    },
+                    "& h6": {
+                      fontSize: "0.95rem",
+                      fontWeight: "bold",
+                      mt: 1.5,
+                      mb: 1,
+                    },
+                    "& p": { mb: 1.5, lineHeight: 1.7 },
+                    "& ul, & ol": { pl: 3, mb: 1.5 },
+                    "& li": { mb: 0.5 },
+                    "& pre": {
+                      bgcolor: "grey.100",
+                      p: 2,
+                      borderRadius: 1,
+                      overflow: "auto",
+                      mb: 2,
+                      border: 1,
+                      borderColor: "divider",
+                    },
+                    "& code": {
+                      bgcolor: "grey.100",
+                      px: 0.75,
+                      py: 0.25,
+                      borderRadius: 0.5,
+                      fontSize: "0.875em",
+                      fontFamily: "monospace",
+                    },
+                    "& pre code": {
+                      bgcolor: "transparent",
+                      px: 0,
+                      py: 0,
+                    },
+                    "& blockquote": {
+                      borderLeft: 4,
+                      borderColor: "primary.main",
+                      pl: 2,
+                      ml: 0,
+                      my: 2,
+                      color: "text.secondary",
+                      fontStyle: "italic",
+                      bgcolor: "action.hover",
+                      py: 1,
+                      borderRadius: 0.5,
+                    },
+                    "& a": {
+                      color: "primary.main",
+                      textDecoration: "none",
+                      fontWeight: 500,
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                    },
+                    "& img": {
+                      maxWidth: "100%",
+                      height: "auto",
+                      borderRadius: 1,
+                      my: 2,
+                      display: "block",
+                    },
+                    "& table": {
+                      borderCollapse: "collapse",
+                      width: "100%",
+                      mb: 2,
+                      overflow: "auto",
+                      display: "block",
+                    },
+                    "& th, & td": {
+                      border: 1,
+                      borderColor: "divider",
+                      p: 1.5,
+                      textAlign: "left",
+                    },
+                    "& th": {
+                      bgcolor: "grey.100",
+                      fontWeight: "bold",
+                    },
+                    "& hr": {
+                      my: 3,
+                      border: "none",
+                      borderTop: 1,
+                      borderColor: "divider",
+                    },
+                    "& strong": {
+                      fontWeight: 700,
+                    },
+                    "& em": {
+                      fontStyle: "italic",
+                    },
+                  }}
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                  >
+                    {data.newsPost.content}
+                  </ReactMarkdown>
+                </Paper>
+              ) : (
+                <Typography
+                  variant="body1"
+                  sx={{ mb: 3, whiteSpace: "pre-wrap" }}
+                >
+                  {convertLinksToClickable(data.newsPost.content)}
+                </Typography>
+              )}
               {data.newsPost.images && data.newsPost.images.length > 0 && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" gutterBottom>
@@ -205,8 +347,8 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                           {item.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {t(item.status)}: {item.status} • {t(item.category)}:{" "}
-                          {item.category.join(", ")}
+                          {t("item.status")}: {item.status} •{" "}
+                          {t("item.category")}: {item.category.join(", ")}
                         </Typography>
                       </Box>
                     ))}
@@ -247,6 +389,8 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Image Modal - keep existing */}
       <Modal
         open={imageModalOpen}
         onClose={handleCloseModal}
@@ -274,14 +418,12 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
               alignItems: "center",
             }}
           >
-            {/* Close Button */}
             <Box sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}>
-              <IconButton onClick={handleCloseModal} color="primary" aria-label="Close image modal">
+              <IconButton onClick={handleCloseModal} color="primary">
                 <Close />
               </IconButton>
             </Box>
 
-            {/* Image Navigation */}
             {data?.newsPost && (
               <Box
                 sx={{
@@ -290,25 +432,18 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                   alignItems: "center",
                 }}
               >
-                {/* Previous Button */}
                 {data.newsPost.images && data.newsPost.images.length > 1 && (
                   <IconButton
                     onClick={handlePrevImage}
                     sx={{ position: "absolute", left: -50, zIndex: 1 }}
                     color="primary"
-                    aria-label="Previous image"
                   >
                     <PrevIcon />
                   </IconButton>
                 )}
 
-                {/* Main Image */}
                 <img
-                  src={
-                    (data.newsPost.images &&
-                      data.newsPost.images[selectedImageIndex]) ||
-                    ""
-                  }
+                  src={data.newsPost.images?.[selectedImageIndex] || ""}
                   alt={`News - Image ${selectedImageIndex + 1}`}
                   style={{
                     maxWidth: "80vw",
@@ -317,13 +452,11 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
                   }}
                 />
 
-                {/* Next Button */}
                 {data.newsPost.images && data.newsPost.images.length > 1 && (
                   <IconButton
                     onClick={handleNextImage}
                     sx={{ position: "absolute", right: -50, zIndex: 1 }}
                     color="primary"
-                    aria-label="Next image"
                   >
                     <NextIcon />
                   </IconButton>
@@ -331,8 +464,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, open, onClose }) => {
               </Box>
             )}
 
-            {/* Image Counter */}
-            {data?.newsPost && data.newsPost.images && data.newsPost.images.length > 1 && (
+            {data?.newsPost?.images && data.newsPost.images.length > 1 && (
               <Typography variant="body2" sx={{ mt: 1 }}>
                 {selectedImageIndex + 1} / {data.newsPost.images.length}
               </Typography>
