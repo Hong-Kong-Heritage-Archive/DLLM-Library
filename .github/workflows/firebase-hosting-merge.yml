@@ -19,7 +19,7 @@ jobs:
       - name: Build client
         run: |
              npm install
-             npm run build
+             export NODE_OPTIONS=--max-old-space-size=4096 && npm run build
         working-directory: ./client
       - name: Add DLLM-Adminsdk
         run: |
