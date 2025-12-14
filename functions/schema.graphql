@@ -217,6 +217,34 @@ type SignedUrlResponse {
   expires: Float!
 }
 
+enum BindType {
+  ITEM
+  BINDER
+}
+
+type Bind {
+  type: BindType!
+  id: ID! # Item ID or Binder ID
+  name: String! # Item name or Binder name for preview
+}
+
+type Binder {
+  id: ID! # User's root binder same as User ID
+  name: String!
+  description: String
+  owner: User!
+  images: [String!] # 圖片URL列表
+  thumbnails: [String!] # 縮略圖URL列表
+  binds: [Bind!]! # List of bound items
+  bindedCount: Int! # Number of times this binder is binded in other binders
+  updatedAt: Date!
+}
+
+type BinderPath {
+  id: ID! # Binder ID
+  path: String! # Binder Path with names and separate by / e.g. "Root Binder/Sub Binder 1/Sub Binder 2"
+}
+
 # 查詢
 type Query {
   # 主機配置
@@ -361,6 +389,12 @@ type Query {
 
   # Get recent items without classifications assigned for admin review
   recentItemsWithoutClassifications(limit: Int): [Item!]
+
+  # Get Binder by ID
+  binder(Id: ID!): Binder
+
+  # Get all Binder Paths for User
+  binderPathsByUser(userId: ID!): [BinderPath!]!
 }
 
 # 變更
@@ -461,6 +495,33 @@ type Mutation {
   ): SignedUrlResponse!
 
   generateItemIndexIncremental: Boolean!
+
+  createBinder(parentId: ID!, name: String!, bind: Bind!): Binder!
+
+  addBindToBinder(
+    binderId: ID!
+    bind: Bind!
+    beforeBindId: ID # Item ID or Binder ID to insert before, null to append at the end
+  ): Binder!
+
+  updateBinder(
+    id: ID!
+    name: String
+    description: String
+    images: [String!]
+    bindIds: [ID!] # List of Item IDs or Binder IDs for re-arranging
+  ): Binder!
+
+  removeBindFromBinder(
+    binderId: ID!
+    bindId: ID! # Item ID or Binder ID
+  ): Binder!
+
+  updateBindInBinder(
+    binderId: ID!
+    bindId: ID! # Item ID or Binder ID
+    newName: String!
+  ): Binder!
 }
 
 # 輸入類型

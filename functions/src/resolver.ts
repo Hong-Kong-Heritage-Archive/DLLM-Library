@@ -17,6 +17,8 @@ import {
   CategoryMap,
   HostConfig,
   HostConfigInput,
+  Bind,
+  Binder,
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
@@ -24,6 +26,7 @@ import { CategoryService } from "./categoryService";
 import { CommentService } from "./commentService";
 import { RecommendService } from "./recommendService";
 import { SystemService } from "./systemService";
+import { BinderService } from "./binderService";
 
 interface Context {
   loginUser: LoginUser | null;
@@ -37,6 +40,7 @@ const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
 const commentService = new CommentService(userService);
 const recommendService = new RecommendService(itemService);
+const binderService = new BinderService(itemService, userService);
 
 export const DateScalar = new GraphQLScalarType({
   name: "Date",
@@ -416,6 +420,9 @@ export const resolvers: Resolvers = {
     ): Promise<Item[]> => {
       return itemService.itemsByKeywordExperimental(keyword);
     },
+    binder: async (_: any, { id }: any, __: any): Promise<Binder | null> => {
+      return binderService.binder(id);
+    },
   },
   Mutation: {
     createUser: async (
@@ -675,6 +682,16 @@ export const resolvers: Resolvers = {
       const user = await userService.me(loginUser);
       if (!user || user.role !== Role.Admin) throw new Error("Admin only");
       return systemService.updateHostConfig(input);
+    },
+    createBinder: async (
+      _: any,
+      { parentId, name, bind }: any,
+      { loginUser }: Context
+    ): Promise<Binder> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("Owner not found");
+      return binderService.createBinder(owner, parentId, name, bind);
     },
   },
 };
