@@ -493,7 +493,7 @@ export type Query = {
 
 
 export type QueryBinderArgs = {
-  Id: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -813,6 +813,13 @@ export type AddBindToBinderMutationVariables = Exact<{
 
 export type AddBindToBinderMutation = { __typename?: 'Mutation', addBindToBinder: { __typename?: 'Binder', id: string, name: string, updatedAt: any, binds: Array<{ __typename?: 'Bind', id: string, type: BindType, name: string }> } };
 
+export type BinderDetailQueryVariables = Exact<{
+  binderId: Scalars['ID']['input'];
+}>;
+
+
+export type BinderDetailQuery = { __typename?: 'Query', binder?: { __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } } | null };
+
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
@@ -1066,6 +1073,13 @@ export type TotalItemsByUserQueryVariables = Exact<{
 
 
 export type TotalItemsByUserQuery = { __typename?: 'Query', totalItemsCountByUser: number };
+
+export type UserRootBinderQueryVariables = Exact<{
+  binderId: Scalars['ID']['input'];
+}>;
+
+
+export type UserRootBinderQuery = { __typename?: 'Query', binder?: { __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } } | null };
 
 export type GeocodeAddressQueryVariables = Exact<{
   address: Scalars['String']['input'];
@@ -1416,6 +1430,62 @@ export function useAddBindToBinderMutation(baseOptions?: Apollo.MutationHookOpti
 export type AddBindToBinderMutationHookResult = ReturnType<typeof useAddBindToBinderMutation>;
 export type AddBindToBinderMutationResult = Apollo.MutationResult<AddBindToBinderMutation>;
 export type AddBindToBinderMutationOptions = Apollo.BaseMutationOptions<AddBindToBinderMutation, AddBindToBinderMutationVariables>;
+export const BinderDetailDocument = gql`
+    query BinderDetail($binderId: ID!) {
+  binder(id: $binderId) {
+    id
+    name
+    description
+    images
+    thumbnails
+    binds {
+      type
+      id
+      name
+    }
+    bindedCount
+    updatedAt
+    owner {
+      id
+      nickname
+      email
+    }
+  }
+}
+    `;
+
+/**
+ * __useBinderDetailQuery__
+ *
+ * To run a query within a React component, call `useBinderDetailQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBinderDetailQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBinderDetailQuery({
+ *   variables: {
+ *      binderId: // value for 'binderId'
+ *   },
+ * });
+ */
+export function useBinderDetailQuery(baseOptions: Apollo.QueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables> & ({ variables: BinderDetailQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
+      }
+export function useBinderDetailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
+        }
+export function useBinderDetailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
+        }
+export type BinderDetailQueryHookResult = ReturnType<typeof useBinderDetailQuery>;
+export type BinderDetailLazyQueryHookResult = ReturnType<typeof useBinderDetailLazyQuery>;
+export type BinderDetailSuspenseQueryHookResult = ReturnType<typeof useBinderDetailSuspenseQuery>;
+export type BinderDetailQueryResult = Apollo.QueryResult<BinderDetailQuery, BinderDetailQueryVariables>;
 export const RecentItemsWithoutClassificationsDocument = gql`
     query RecentItemsWithoutClassifications($limit: Int) {
   recentItemsWithoutClassifications(limit: $limit) {
@@ -2827,6 +2897,62 @@ export type TotalItemsByUserQueryHookResult = ReturnType<typeof useTotalItemsByU
 export type TotalItemsByUserLazyQueryHookResult = ReturnType<typeof useTotalItemsByUserLazyQuery>;
 export type TotalItemsByUserSuspenseQueryHookResult = ReturnType<typeof useTotalItemsByUserSuspenseQuery>;
 export type TotalItemsByUserQueryResult = Apollo.QueryResult<TotalItemsByUserQuery, TotalItemsByUserQueryVariables>;
+export const UserRootBinderDocument = gql`
+    query UserRootBinder($binderId: ID!) {
+  binder(id: $binderId) {
+    id
+    name
+    description
+    images
+    thumbnails
+    binds {
+      type
+      id
+      name
+    }
+    bindedCount
+    updatedAt
+    owner {
+      id
+      nickname
+      email
+    }
+  }
+}
+    `;
+
+/**
+ * __useUserRootBinderQuery__
+ *
+ * To run a query within a React component, call `useUserRootBinderQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserRootBinderQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserRootBinderQuery({
+ *   variables: {
+ *      binderId: // value for 'binderId'
+ *   },
+ * });
+ */
+export function useUserRootBinderQuery(baseOptions: Apollo.QueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables> & ({ variables: UserRootBinderQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
+      }
+export function useUserRootBinderLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
+        }
+export function useUserRootBinderSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
+        }
+export type UserRootBinderQueryHookResult = ReturnType<typeof useUserRootBinderQuery>;
+export type UserRootBinderLazyQueryHookResult = ReturnType<typeof useUserRootBinderLazyQuery>;
+export type UserRootBinderSuspenseQueryHookResult = ReturnType<typeof useUserRootBinderSuspenseQuery>;
+export type UserRootBinderQueryResult = Apollo.QueryResult<UserRootBinderQuery, UserRootBinderQueryVariables>;
 export const GeocodeAddressDocument = gql`
     query GeocodeAddress($address: String!) {
   geocodeAddress(address: $address) {

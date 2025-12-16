@@ -19,7 +19,14 @@ import {
 } from "@mui/material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useTranslation } from "react-i18next";
-import { BinderPath, BindType, Binder, Item, User } from "../generated/graphql";
+import {
+  BinderPath,
+  BindType,
+  Binder,
+  Item,
+  User,
+  BindInput,
+} from "../generated/graphql";
 import {
   FolderOpen as FolderIcon,
   CreateNewFolder as NewFolderIcon,
@@ -99,7 +106,7 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
     {
       parentId: string;
       newBinderName?: string;
-      bind: { type: BindType; id: string };
+      bind: { type: BindType; id: string; name: string };
       beforeBindId?: string;
     }
   >(ADD_BIND_TO_BINDER, {
@@ -192,7 +199,7 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
       const variables: {
         parentId: string;
         newBinderName?: string;
-        bind: { type: BindType; id: string };
+        bind: { type: BindType; id: string; name: string };
         beforeBindId?: string;
       } = {
         parentId: selectedBinderId,
@@ -248,7 +255,7 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
           <Typography variant="subtitle2" color="text.secondary">
             {t("binder.bindingItem", "Binding Item")}:
           </Typography>
-          <Typography variant="h6">{item.name}</Typography>
+          <Typography variant="h6">{item?.name}</Typography>
         </Box>
 
         {binderPathsLoading ? (

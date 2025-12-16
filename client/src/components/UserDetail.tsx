@@ -30,9 +30,10 @@ import {
   Label as LabelIcon,
   Storage as StorageIcon,
   ExpandMore as ExpandMoreIcon,
+  Folder as FolderIcon,
 } from "@mui/icons-material";
 import { gql, useQuery } from "@apollo/client";
-import { User, Item, Category } from "../generated/graphql";
+import { User, Item, Category, Binder } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
@@ -42,6 +43,7 @@ import { TagCloud } from "react-tagcloud";
 import UpdateUser from "./UserProfile";
 import { USER_DETAIL_QUERY } from "../hook/user";
 import ContactMethods from "./ContactMethods";
+import BinderPreview from "./BinderPreview";
 
 // GraphQL query to fetch user's items with pagination and category filter
 const USER_ITEMS_QUERY = gql`
@@ -89,6 +91,30 @@ const USER_ITEMS_COUNT_QUERY = gql`
       category: $category
       isExchangePointItem: $isExchangePointItem
     )
+  }
+`;
+
+const USER_ROOT_BINDER_QUERY = gql`
+  query UserRootBinder($binderId: ID!) {
+    binder(id: $binderId) {
+      id
+      name
+      description
+      images
+      thumbnails
+      binds {
+        type
+        id
+        name
+      }
+      bindedCount
+      updatedAt
+      owner {
+        id
+        nickname
+        email
+      }
+    }
   }
 `;
 
@@ -160,6 +186,15 @@ const UserDetail: React.FC<UserDetailProps> = ({
       isExchangePointItem: isExchangePointAdmin && includeExchangePointItems,
     },
     skip: !userId || !selectedCategory, // Only query when category is selected
+  });
+
+  const {
+    data: binderData,
+    loading: binderLoading,
+    error: binderError,
+  } = useQuery<{ binder: Binder }>(USER_ROOT_BINDER_QUERY, {
+    variables: { binderId: userId! },
+    skip: !userId,
   });
 
   // Reset page when category changes or exchange point toggle changes
@@ -245,6 +280,10 @@ const UserDetail: React.FC<UserDetailProps> = ({
 
   const handleItemClick = (itemId: string) => {
     navigate(`/item/${itemId}`);
+  };
+
+  const handleBinderClick = (binderId: string) => {
+    navigate(`/binder/${binderId}`);
   };
 
   // Format date for display
@@ -579,6 +618,52 @@ const UserDetail: React.FC<UserDetailProps> = ({
               </Alert>
             )}
           </Paper>
+
+          {/* Root Binder Section - Add this BEFORE Item Categories Tag Cloud */}
+          {binderData?.binder && (
+            <Paper elevation={1} sx={{ p: 4, mb: 3 }}>
+              <Typography
+                variant="h6"
+                sx={{ mb: 2, display: "flex", alignItems: "center" }}
+              >
+                <FolderIcon sx={{ mr: 1 }} />
+                {t("user.rootBinder", "Root Binder")}
+              </Typography>
+
+              {binderLoading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              ) : binderError ? (
+                <Alert severity="info">
+                  {t(
+                    "user.noRootBinder",
+                    "This user hasn't created a root binder yet."
+                  )}
+                </Alert>
+              ) : (
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                    <BinderPreview
+                      binder={binderData.binder}
+                      onClick={handleBinderClick}
+                    />
+                  </Grid>
+                </Grid>
+              )}
+
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", mt: 2 }}
+              >
+                {t(
+                  "user.rootBinderHelper",
+                  "The root binder contains all items organized by this user. Click to explore the contents."
+                )}
+              </Typography>
+            </Paper>
+          )}
 
           {/* Item Categories Tag Cloud */}
           {userData.user.itemCategory &&

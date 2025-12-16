@@ -466,7 +466,9 @@
     "distance": "距離",
     "contactMethods": "聯絡方法",
     "nickname": "暱稱",
-    "notSet": "未設定"
+    "notSet": "未設定",
+    "rootBinder": "根資料夾",
+    "noRootBinder": "此用戶尚未創建根資料夾。"
   },
   "transactions": {
     "title": "我的紀錄",
@@ -779,6 +781,34 @@
     "loadError": "載入資料夾失敗",
     "noBindersYet": "您還沒有任何資料夾。當您綁定第一個項目時，將自動創建根資料夾。",
     "verificationRequired": "請驗證您的電子郵件以使用資料夾",
-    "bindSuccess": "項目綁定成功！"
+    "bindSuccess": "項目綁定成功！",
+    "rootBinder": "根資料夾",
+    "itemCount": "{{count}} 個項目",
+    "rootBinderHelper": "根資料夾包含此用戶組織的所有項目。點擊以探索內容。",
+    "noBinderId": "未提供資料夾 ID",
+    "loading": "載入資料夾中...",
+    "untitled": "未命名資料夾",
+    "errorLoading": "載入資料夾時發生錯誤",
+    "images": "資料夾圖片",
+    "owner": "擁有者",
+    "description": "描述",
+    "totalBinds": "{{count}} 個項目",
+    "bindedInOthers": "在 {{count}} 個資料夾中被綁定",
+    "lastUpdated": "最後更新",
+    "contents": "資料夾內容",
+    "empty": "此資料夾是空的",
+    "typeBinder": "資料夾",
+    "typeItem": "項目",
+    "updated": "已更新",
+    "editBinder": "編輯資料夾",
+    "name": "資料夾名稱",
+    "nameRequired": "資料夾名稱為必填",
+    "reorderBinds": "重新排序內容",
+    "items": "項目",
+    "noBinds": "此資料夾中沒有項目",
+    "dragToReorder": "拖放以重新排序項目。要添加或刪除項目，請在項目頁面使用綁定功能。",
+    "updateError": "更新資料夾失敗",
+    "updateSuccess": "資料夾更新成功！",
+    "imageProcessError": "處理圖片失敗"
   }
 }

@@ -24,6 +24,7 @@ export class BinderService {
   ) {}
 
   async binder(binderId: string): Promise<Binder | null> {
+    console.log(`Fetching binder with ID: ${binderId}`);
     const binderDoc = await BinderCollection.doc(binderId).get();
     if (!binderDoc.exists) return null;
     const data = binderDoc.data() as BinderModel;
@@ -329,6 +330,9 @@ export class BinderService {
 
         binderData.images = [...existingPublicImages, ...publicImageUrls];
         binderData.gsImageUrls = [...existingGsImages, ...gsImageUrls];
+        // filter duplicates
+        binderData.images = Array.from(new Set(binderData.images));
+        binderData.gsImageUrls = Array.from(new Set(binderData.gsImageUrls));
         updateData.images = binderData.images;
         updateData.gsImageUrls = binderData.gsImageUrls;
 

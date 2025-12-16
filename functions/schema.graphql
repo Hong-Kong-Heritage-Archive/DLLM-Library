@@ -391,7 +391,7 @@ type Query {
   recentItemsWithoutClassifications(limit: Int): [Item!]
 
   # Get Binder by ID
-  binder(Id: ID!): Binder
+  binder(id: ID!): Binder
 
   # Get all Binder Paths for User
   binderPathsByUser(userId: ID!): [BinderPath!]!
