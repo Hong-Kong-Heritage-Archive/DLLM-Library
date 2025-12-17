@@ -686,11 +686,8 @@
     "source": "Source",
     "searchBinders": "Search your binders...",
     "noBindersFound": "No binders found",
-    "noBindersYet": "You don't have any other binders yet. Create a binder first to organize this binder.",
     "itemsCount": "{{count}} items",
     "selectedCount": "{{count}} binders selected",
-    "bindSuccess": "Binder bound successfully!",
-    "bindError": "Failed to update binder bindings",
     "containingBinders": "Binders containing this item",
     "foundInBinders": "This item appears in {{count}} binder(s)"
   }
