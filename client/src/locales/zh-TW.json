@@ -809,6 +809,17 @@
     "dragToReorder": "拖放以重新排序項目。要添加或刪除項目，請在項目頁面使用綁定功能。",
     "updateError": "更新資料夾失敗",
     "updateSuccess": "資料夾更新成功！",
-    "imageProcessError": "處理圖片失敗"
+    "imageProcessError": "處理圖片失敗",
+    "bindToBinder": "綁定到其他資料夾",
+    "bindToBinderTitle": "將資料夾綁定到您的資料夾",
+    "bindToBinderInfo": "選擇應該包含此資料夾的資料夾",
+    "source": "來源",
+    "searchBinders": "搜索您的資料夾...",
+    "noBindersFound": "找不到資料夾",
+    "itemsCount": "{{count}} 個項目",
+    "selectedCount": "已選擇 {{count}} 個資料夾",
+    "containingBinders": "包含此項目的資料夾",
+    "foundInBinders": "此項目出現在 {{count}} 個資料夾中"
+
   }
 }

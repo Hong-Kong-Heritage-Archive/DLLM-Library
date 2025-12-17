@@ -44,6 +44,7 @@ import {
   TransactionLocation,
   CategoryMap,
   Role,
+  Binder,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -58,6 +59,7 @@ import ImageGalleryModal from "./ImageGalleryModal";
 import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
 import BindItemDialog from "./BindItemDialog";
+import BinderPreview from "./BinderPreview";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -174,6 +176,31 @@ const GET_ITEM_CONFIG = gql`
       categoryMaps {
         language
         value
+      }
+    }
+  }
+`;
+
+// Add new query for binders containing this item
+const BINDERS_FROM_ITEM_QUERY = gql`
+  query BindersFromItemId($itemId: ID!) {
+    bindersFromItemId(itemId: $itemId) {
+      id
+      name
+      description
+      images
+      thumbnails
+      binds {
+        type
+        id
+        name
+      }
+      bindedCount
+      updatedAt
+      owner {
+        id
+        nickname
+        email
       }
     }
   }
@@ -315,6 +342,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       },
     }
   );
+
+  // Add query for binders containing this item
+  const { data: bindersData, loading: bindersLoading } = useQuery<{
+    bindersFromItemId: Binder[];
+  }>(BINDERS_FROM_ITEM_QUERY, {
+    variables: { itemId: itemId! },
+    skip: !itemId,
+    fetchPolicy: "cache-and-network",
+  });
 
   const isOwner = user && data?.item.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
@@ -659,6 +695,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         </Box>
       </Box>
     );
+  };
+
+  const handleBinderClick = (binderId: string) => {
+    navigate(`/binder/${binderId}`);
   };
 
   return (
@@ -1255,6 +1295,55 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         </Paper>
       )}
 
+      {/* Binders Containing This Item Section - NEW */}
+      {data?.item &&
+        bindersData &&
+        bindersData.bindersFromItemId.length > 0 && (
+          <Paper elevation={1} sx={{ p: 3, mt: 3 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 0.5,
+                }}
+              >
+                <BinderIcon color="primary" />
+                {t("binder.containingBinders", "Binders containing this item")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t(
+                  "binder.foundInBinders",
+                  "This item appears in {{count}} binder(s)",
+                  {
+                    count: bindersData.bindersFromItemId.length,
+                  }
+                )}
+              </Typography>
+            </Box>
+
+            {bindersLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={2}>
+                {bindersData.bindersFromItemId.map((binder) => (
+                  <Grid key={binder.id} size={{ xs: 4, sm: 3, md: 2.4 }}>
+                    <BinderPreview
+                      binder={binder}
+                      onClick={handleBinderClick}
+                      compact={true}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Paper>
+        )}
+
       {/* Edit Item Dialog */}
       {user && (
         <ItemForm
@@ -1365,11 +1454,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       )}
 
       {/* Bind Item Dialog */}
-      {user && user.isVerified && (
+      {user && user.isVerified && data?.item && (
         <BindItemDialog
           open={bindDialogOpen}
           onClose={() => setBindDialogOpen(false)}
-          item={data?.item!}
+          source={data.item}
+          sourceType="item"
           user={user}
           onSuccess={handleBindSuccess}
           onError={handleBindError}

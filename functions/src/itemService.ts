@@ -505,6 +505,25 @@ export class ItemService {
       }
     }
 
+    // arrange thumbnails in order of images
+    if (
+      data.images &&
+      data.thumbnails &&
+      data.images.length === data.thumbnails.length
+    ) {
+      const arrangedThumbnails: string[] = [];
+      for (const imgUrl of data.images) {
+        // match last 10 characters of imgUrl with thumbnails
+        for (const thumbnailUrl of data.thumbnails) {
+          if (thumbnailUrl.includes(imgUrl.slice(-10))) {
+            arrangedThumbnails.push(thumbnailUrl);
+            break;
+          }
+        }
+      }
+      data.thumbnails = arrangedThumbnails;
+    }
+
     // check the description with hash tag or not. If not hash tag add all category with #
     let updateDescription = null;
     if (data.description) {

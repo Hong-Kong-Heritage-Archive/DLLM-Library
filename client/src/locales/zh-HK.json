@@ -797,6 +797,17 @@
     "empty": "此資料夾是空的",
     "typeBinder": "資料夾",
     "typeItem": "項目",
-    "updated": "已更新"
+    "updated": "已更新",
+    "bindToBinder": "綁定到其他資料夾",
+    "bindToBinderTitle": "將資料夾綁定到您的資料夾",
+    "bindToBinderInfo": "選擇應該包含此資料夾的資料夾",
+    "source": "來源",
+    "searchBinders": "搜索您的資料夾...",
+    "noBindersFound": "找不到資料夾",
+    "itemsCount": "{{count}} 個項目",
+    "selectedCount": "已選擇 {{count}} 個資料夾",
+    "containingBinders": "包含此項目的資料夾",
+    "foundInBinders": "此項目出現在 {{count}} 個資料夾中"
+
   }
 }

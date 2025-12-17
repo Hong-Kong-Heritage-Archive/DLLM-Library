@@ -18,9 +18,14 @@ import { Binder } from "../generated/graphql";
 interface BinderPreviewProps {
   binder: Binder;
   onClick: (binderId: string) => void;
+  compact?: boolean; // New prop for compact display
 }
 
-const BinderPreview: React.FC<BinderPreviewProps> = ({ binder, onClick }) => {
+const BinderPreview: React.FC<BinderPreviewProps> = ({
+  binder,
+  onClick,
+  compact = false,
+}) => {
   const { t } = useTranslation();
 
   const thumbnails =
@@ -31,6 +36,204 @@ const BinderPreview: React.FC<BinderPreviewProps> = ({ binder, onClick }) => {
     binder.images && binder.images.length > 0 ? binder.images : null;
   const displayImage = thumbnails ? thumbnails[0] : images ? images[0] : null;
 
+  // Compact version for item detail page
+  if (compact) {
+    return (
+      <Card
+        sx={{
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          cursor: "pointer",
+          transition: "all 0.2s ease-in-out",
+          "&:hover": {
+            transform: "translateY(-2px)",
+            boxShadow: 3,
+          },
+          borderRadius: 1,
+          overflow: "hidden",
+          border: 2,
+          borderColor: "primary.main",
+        }}
+      >
+        <CardActionArea
+          onClick={() => onClick(binder.id)}
+          sx={{
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "stretch",
+            justifyContent: "flex-start",
+          }}
+        >
+          {/* Compact Cover */}
+          <Box
+            sx={{
+              width: "100%",
+              paddingTop: "140%", // Same as ItemPreview
+            }}
+          >
+            {displayImage ? (
+              <Box
+                component="img"
+                src={displayImage}
+                alt={binder.name}
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: 0.9,
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <FolderOpenIcon
+                  sx={{
+                    fontSize: 48,
+                    color: "primary.main",
+                    opacity: 0.6,
+                  }}
+                />
+              </Box>
+            )}
+
+            {/* Binder Icon Badge - Top Left */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: 4,
+                left: 4,
+                zIndex: 2,
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                borderRadius: "50%",
+                p: 0.5,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: 1,
+              }}
+            >
+              <FolderIcon
+                sx={{
+                  color: "primary.main",
+                  fontSize: 16,
+                }}
+              />
+            </Box>
+
+            {/* Items Count Badge - Bottom Left */}
+            {binder.binds && binder.binds.length > 0 && (
+              <Chip
+                label={binder.binds.length}
+                size="small"
+                variant="filled"
+                sx={{
+                  position: "absolute",
+                  bottom: 4,
+                  left: 4,
+                  backgroundColor: "rgba(0, 0, 0, 0.75)",
+                  color: "white",
+                  fontSize: "0.55rem",
+                  height: 16,
+                  fontWeight: "medium",
+                  "& .MuiChip-label": {
+                    px: 0.5,
+                  },
+                }}
+              />
+            )}
+
+            {/* Binded Count Badge - Bottom Right */}
+            {binder.bindedCount > 0 && (
+              <Chip
+                label={binder.bindedCount}
+                size="small"
+                sx={{
+                  position: "absolute",
+                  bottom: 4,
+                  right: 4,
+                  backgroundColor: "rgba(255, 152, 0, 0.95)",
+                  color: "white",
+                  fontSize: "0.55rem",
+                  height: 16,
+                  fontWeight: "bold",
+                  "& .MuiChip-label": {
+                    px: 0.5,
+                  },
+                }}
+              />
+            )}
+          </Box>
+
+          {/* Compact Info */}
+          <CardContent
+            sx={{
+              p: 1,
+              pb: 1,
+              "&:last-child": {
+                pb: 1,
+              },
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              backgroundColor: "rgba(255, 255, 255, 0.98)",
+            }}
+          >
+            {/* Title */}
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: "medium",
+                fontSize: "0.7rem",
+                lineHeight: 1.2,
+                mb: 0.5,
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                minHeight: "2em",
+                color: "text.primary",
+              }}
+            >
+              {binder.name}
+            </Typography>
+
+            {/* Owner */}
+            {binder.owner && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  fontSize: "0.6rem",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {binder.owner.nickname || binder.owner.email}
+              </Typography>
+            )}
+          </CardContent>
+        </CardActionArea>
+      </Card>
+    );
+  }
+
+  // Original full-size version
   return (
     <Card
       sx={{
@@ -48,7 +251,6 @@ const BinderPreview: React.FC<BinderPreviewProps> = ({ binder, onClick }) => {
         border: 3,
         borderColor: "primary.main",
         position: "relative",
-        // Distinctive styling for binder
         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       }}
     >
@@ -90,7 +292,7 @@ const BinderPreview: React.FC<BinderPreviewProps> = ({ binder, onClick }) => {
         <Box
           sx={{
             width: "100%",
-            paddingTop: "140%", // 5:7 aspect ratio
+            paddingTop: "140%",
             position: "relative",
             backgroundColor: displayImage
               ? "transparent"

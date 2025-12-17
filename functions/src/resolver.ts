@@ -431,6 +431,13 @@ export const resolvers: Resolvers = {
     ): Promise<BinderPath[]> => {
       return binderService.binderPathsByUser(userId);
     },
+    bindersFromItemId: async (
+      _: any,
+      { itemId }: any,
+      __: any
+    ): Promise<Binder[] | null> => {
+      return binderService.binderFromItemId(itemId);
+    },
   },
   Mutation: {
     createUser: async (

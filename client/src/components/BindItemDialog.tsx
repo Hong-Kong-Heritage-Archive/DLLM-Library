@@ -16,6 +16,7 @@ import {
   Typography,
   Divider,
   FormControlLabel,
+  Chip,
 } from "@mui/material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { useTranslation } from "react-i18next";
@@ -30,6 +31,7 @@ import {
 import {
   FolderOpen as FolderIcon,
   CreateNewFolder as NewFolderIcon,
+  InsertDriveFile as FileIcon,
 } from "@mui/icons-material";
 
 const GET_BINDER_PATHS = gql`
@@ -69,7 +71,8 @@ const ADD_BIND_TO_BINDER = gql`
 interface BindItemDialogProps {
   open: boolean;
   onClose: () => void;
-  item: Item;
+  source: Item | Binder; // Can be either Item or Binder
+  sourceType: "item" | "binder"; // Explicitly specify the type
   user: User;
   onSuccess?: () => void;
   onError?: (message: string) => void;
@@ -78,7 +81,8 @@ interface BindItemDialogProps {
 const BindItemDialog: React.FC<BindItemDialogProps> = ({
   open,
   onClose,
-  item,
+  source,
+  sourceType,
   user,
   onSuccess,
   onError,
@@ -118,7 +122,15 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
     },
     onError: (error) => {
       const errorMsg =
-        error.message || t("binder.bindError", "Failed to bind item");
+        error.message ||
+        t(
+          sourceType === "item"
+            ? "binder.bindItemError"
+            : "binder.bindBinderError",
+          sourceType === "item"
+            ? "Failed to bind item"
+            : "Failed to bind binder"
+        );
       setErrorMessage(errorMsg);
       if (onError) {
         onError(errorMsg);
@@ -146,6 +158,16 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
       setSelectedBinderId(binderPathsData.binderPathsByUser[0].id);
     }
   }, [binderPathsData, selectedBinderId]);
+
+  // Filter out the source binder itself when binding a binder
+  const availableBinders =
+    binderPathsData?.binderPathsByUser?.filter((binderPath) => {
+      // If binding a binder, exclude the source binder itself
+      if (sourceType === "binder" && binderPath.id === source.id) {
+        return false;
+      }
+      return true;
+    }) || [];
 
   const handleClose = () => {
     setSelectedBinderId("");
@@ -204,9 +226,9 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
       } = {
         parentId: selectedBinderId,
         bind: {
-          type: BindType.Item,
-          id: item.id,
-          name: item.name,
+          type: sourceType === "item" ? BindType.Item : BindType.Binder,
+          id: source.id,
+          name: source.name,
         },
       };
 
@@ -220,19 +242,41 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
 
       await addBindToBinder({ variables });
     } catch (error) {
-      console.error("Error binding item:", error);
+      console.error("Error binding:", error);
     }
   };
 
-  const binderPaths = binderPathsData?.binderPathsByUser || [];
-  const hasNoBinders = !binderPathsLoading && binderPaths.length === 0;
+  const hasNoBinders = !binderPathsLoading && availableBinders.length === 0;
+
+  // Get appropriate icon and labels based on source type
+  const getSourceIcon = () => {
+    return sourceType === "item" ? <FileIcon /> : <FolderIcon />;
+  };
+
+  const getSourceTypeLabel = () => {
+    return sourceType === "item"
+      ? t("binder.item", "Item")
+      : t("binder.binder", "Binder");
+  };
+
+  const getDialogTitle = () => {
+    return sourceType === "item"
+      ? t("binder.bindItem", "Bind Item to Binder")
+      : t("binder.bindBinder", "Bind Binder to Another Binder");
+  };
+
+  const getSourceDescription = () => {
+    return sourceType === "item"
+      ? t("binder.bindingItem", "Binding Item")
+      : t("binder.bindingBinder", "Binding Binder");
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <FolderIcon />
-          {t("binder.bindItem", "Bind Item to Binder")}
+          {getSourceIcon()}
+          {getDialogTitle()}
         </Box>
       </DialogTitle>
 
@@ -250,12 +294,44 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
           </Alert>
         )}
 
-        {/* Item Info */}
-        <Box sx={{ mb: 3, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            {t("binder.bindingItem", "Binding Item")}:
-          </Typography>
-          <Typography variant="h6">{item?.name}</Typography>
+        {/* Source Info */}
+        <Box
+          sx={{
+            mb: 3,
+            p: 2,
+            bgcolor: sourceType === "item" ? "grey.50" : "primary.light",
+            borderRadius: 1,
+            border: 1,
+            borderColor: sourceType === "item" ? "grey.200" : "primary.main",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+            {getSourceIcon()}
+            <Typography variant="subtitle2" color="text.secondary">
+              {getSourceDescription()}:
+            </Typography>
+            <Chip
+              label={getSourceTypeLabel()}
+              size="small"
+              color={sourceType === "item" ? "default" : "primary"}
+            />
+          </Box>
+          <Typography variant="h6">{source?.name}</Typography>
+          {source?.description && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                mt: 0.5,
+              }}
+            >
+              {source.description}
+            </Typography>
+          )}
         </Box>
 
         {binderPathsLoading ? (
@@ -264,10 +340,15 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
           </Box>
         ) : hasNoBinders ? (
           <Alert severity="info" sx={{ mb: 2 }}>
-            {t(
-              "binder.noBindersYet",
-              "You don't have any binders yet. A root binder will be created automatically when you bind your first item."
-            )}
+            {sourceType === "item"
+              ? t(
+                  "binder.noBindersYet",
+                  "You don't have any binders yet. A root binder will be created automatically when you bind your first item."
+                )
+              : t(
+                  "binder.noOtherBindersYet",
+                  "You don't have any other binders. Create a binder first to organize this binder."
+                )}
           </Alert>
         ) : (
           <>
@@ -316,7 +397,7 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
                 value={selectedBinderId}
                 onChange={(e) => handleBinderSelect(e.target.value)}
               >
-                {binderPaths.map((binderPath) => (
+                {availableBinders.map((binderPath) => (
                   <FormControlLabel
                     key={binderPath.id}
                     value={binderPath.id}
@@ -370,6 +451,16 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
               />
             )}
           </>
+        )}
+
+        {/* Warning for binding binder to binder */}
+        {sourceType === "binder" && !hasNoBinders && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            {t(
+              "binder.nestedBinderInfo",
+              "This binder will become a sub-binder of the selected parent binder."
+            )}
+          </Alert>
         )}
       </DialogContent>
 

@@ -395,6 +395,9 @@ type Query {
 
   # Get all Binder Paths for User
   binderPathsByUser(userId: ID!): [BinderPath!]!
+
+  # Get all Binders that bind to the Item ID
+  bindersFromItemId(itemId: ID!): [Binder!]
 }
 
 # 變更
@@ -510,12 +513,14 @@ type Mutation {
     images: [String!]
     bindIds: [ID!] # List of Item IDs or Binder IDs for re-arranging
   ): Binder!
-
-  moveBind(
-    originalBinderId: ID!
-    bindId: ID! # Item ID or Binder ID
-    targetBinderId: ID # if targetBinderId is null, remove from original binder
-    beforeBindId: ID # Item ID or Binder ID to insert before, null to append at the end
+  updateBindInBinder(
+    parentId: ID!
+    bindId: ID! # Item ID or Binder ID to update
+    newBind: BindInput!
+  ): Binder!
+  removeBindFromBinder(
+    parentId: ID!
+    bindId: ID! # Item ID or Binder ID to remove
   ): Binder!
 }
 

@@ -13,6 +13,8 @@ import {
   Card,
   CardContent,
   CardActionArea,
+  Button,
+  Snackbar,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -30,6 +32,8 @@ import SafeImage from "./SafeImage";
 import BinderForm from "./BinderForm";
 import ReactMarkdown from "react-markdown";
 import { hasMarkdownSyntax } from "../utils/helpers";
+import BindItemDialog from "./BindItemDialog"; // Changed from BindBinderDialog
+import { AuthDialog } from "./Auth";
 
 const BINDER_DETAIL_QUERY = gql`
   query BinderDetail($binderId: ID!) {
@@ -65,6 +69,12 @@ const BinderDetail: React.FC<BinderDetailProps> = ({ currentUser }) => {
   const { t } = useTranslation();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [bindDialogOpen, setBindDialogOpen] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authDefaultSignUp, setAuthDefaultSignUp] = useState(false);
+  const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const { data, loading, error, refetch } = useQuery<{ binder: Binder }>(
     BINDER_DETAIL_QUERY,
@@ -98,6 +108,63 @@ const BinderDetail: React.FC<BinderDetailProps> = ({ currentUser }) => {
 
   const handleEditSuccess = () => {
     refetch();
+    setSuccessSnackbarOpen(true);
+  };
+
+  const handleBindToBinderClick = () => {
+    if (!currentUser) {
+      setAuthDefaultSignUp(false);
+      setAuthDialogOpen(true);
+      return;
+    }
+
+    if (!currentUser.isVerified) {
+      setErrorMessage(
+        t(
+          "binder.verificationRequired",
+          "Please verify your email to use binders"
+        )
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+
+    setBindDialogOpen(true);
+  };
+
+  const handleBindSuccess = () => {
+    setSuccessSnackbarOpen(true);
+    setBindDialogOpen(false);
+    refetch();
+  };
+
+  const handleBindError = (message: string) => {
+    setErrorMessage(message);
+    setErrorSnackbarOpen(true);
+  };
+
+  const handleAuthSuccess = () => {
+    setAuthDialogOpen(false);
+    setTimeout(() => {
+      setBindDialogOpen(true);
+    }, 500);
+  };
+
+  const handleCloseAuthDialog = () => {
+    setAuthDialogOpen(false);
+  };
+
+  const handleSwitchAuthMode = () => {
+    setAuthDefaultSignUp(!authDefaultSignUp);
+  };
+
+  const handleCloseSuccessSnackbar = () => {
+    setSuccessSnackbarOpen(false);
+  };
+
+  const handleCloseErrorSnackbar = () => {
+    setErrorSnackbarOpen(false);
+    setErrorMessage("");
   };
 
   const isOwner = currentUser && data?.binder?.owner?.id === currentUser.id;
@@ -121,7 +188,6 @@ const BinderDetail: React.FC<BinderDetailProps> = ({ currentUser }) => {
       ? data.binder.images
       : null;
   const currentImage = images ? images[selectedImageIndex] : null;
-  const currentThumbnail = data?.binder?.thumbnails?.[selectedImageIndex];
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -548,6 +614,27 @@ const BinderDetail: React.FC<BinderDetailProps> = ({ currentUser }) => {
                   </Grid>
                 )}
               </Grid>
+
+              {/* Action Buttons */}
+              <Box
+                sx={{
+                  mt: 3,
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "flex-end",
+                }}
+              >
+                {/* Bind to Binder Button */}
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="large"
+                  onClick={handleBindToBinderClick}
+                  startIcon={<FolderIcon />}
+                >
+                  {t("binder.bindToBinder", "Bind to Another Binder")}
+                </Button>
+              </Box>
             </Box>
           </Paper>
 
@@ -680,6 +767,67 @@ const BinderDetail: React.FC<BinderDetailProps> = ({ currentUser }) => {
           onSuccess={handleEditSuccess}
         />
       )}
+
+      {/* Unified Bind Dialog - Works for both items and binders */}
+      {currentUser && currentUser.isVerified && data?.binder && (
+        <BindItemDialog
+          open={bindDialogOpen}
+          onClose={() => setBindDialogOpen(false)}
+          source={data.binder}
+          sourceType="binder"
+          user={currentUser}
+          onSuccess={handleBindSuccess}
+          onError={handleBindError}
+        />
+      )}
+
+      {/* Authentication Dialog */}
+      <AuthDialog
+        open={authDialogOpen}
+        onClose={handleCloseAuthDialog}
+        onSuccess={handleAuthSuccess}
+        onForgotPassword={() => {
+          alert(
+            t(
+              "auth.resetPasswordInfo",
+              "Please contact support to reset your password."
+            )
+          );
+        }}
+        defaultIsSignUp={authDefaultSignUp}
+      />
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={successSnackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccessSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSuccessSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {t("binder.bindSuccess", "Operation successful!")}
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={errorSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseErrorSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseErrorSnackbar}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

@@ -33,6 +33,26 @@ export class BinderService {
     return rv;
   }
 
+  async binderFromItemId(itemId: string): Promise<Binder[] | null> {
+    console.log(`Fetching binders containing Item ID: ${itemId}`);
+    const querySnapshot = await BinderCollection.where(
+      "bindIds",
+      "array-contains",
+      itemId
+    ).get();
+    if (querySnapshot.empty) return null;
+
+    const binders: Binder[] = [];
+    for (const doc of querySnapshot.docs) {
+      const data = doc.data() as BinderModel;
+      if (data) {
+        const binder = await this.convertBinderModelToBinder(data, doc.id);
+        binders.push(binder);
+      }
+    }
+    return binders;
+  }
+
   async binderPathsByUser(userId: string): Promise<BinderPath[]> {
     const binderDoc = await BinderCollection.doc(userId).get();
     if (!binderDoc.exists) return [];
@@ -216,6 +236,9 @@ export class BinderService {
     beforeBindId: string, // Item ID or Binder ID to insert before, null to append at the end
     bind: Bind
   ): Promise<Binder> {
+    if (binderId === bind.id) {
+      throw new Error("Cannot bind a binder to itself");
+    }
     const binderDoc = await BinderCollection.doc(binderId).get();
     if (!binderDoc.exists) {
       throw new Error("Parent binder not found");

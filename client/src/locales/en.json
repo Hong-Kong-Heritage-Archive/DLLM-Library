@@ -679,6 +679,19 @@
     "dragToReorder": "Drag and drop to reorder items. To add or remove items, use the Bind feature on item pages.",
     "updateError": "Failed to update binder",
     "updateSuccess": "Binder updated successfully!",
-    "imageProcessError": "Failed to process images"
+    "imageProcessError": "Failed to process images",
+    "bindToBinder": "Bind to Another Binder",
+    "bindToBinderTitle": "Bind Binder to Your Binders",
+    "bindToBinderInfo": "Select which of your binders should contain this binder",
+    "source": "Source",
+    "searchBinders": "Search your binders...",
+    "noBindersFound": "No binders found",
+    "noBindersYet": "You don't have any other binders yet. Create a binder first to organize this binder.",
+    "itemsCount": "{{count}} items",
+    "selectedCount": "{{count}} binders selected",
+    "bindSuccess": "Binder bound successfully!",
+    "bindError": "Failed to update binder bindings",
+    "containingBinders": "Binders containing this item",
+    "foundInBinders": "This item appears in {{count}} binder(s)"
   }
 }
