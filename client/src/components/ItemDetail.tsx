@@ -1298,6 +1298,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       {/* Binders Containing This Item Section - NEW */}
       {data?.item &&
         bindersData &&
+        bindersData.bindersFromItemId &&
         bindersData.bindersFromItemId.length > 0 && (
           <Paper elevation={1} sx={{ p: 3, mt: 3 }}>
             <Box sx={{ mb: 3 }}>

@@ -162,9 +162,13 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
   // Filter out the source binder itself when binding a binder
   const availableBinders =
     binderPathsData?.binderPathsByUser?.filter((binderPath) => {
-      // If binding a binder, exclude the source binder itself
-      if (sourceType === "binder" && binderPath.id === source.id) {
-        return false;
+      // If binding a binder, exclude the source binder and its sub-binders
+      if (sourceType === "binder") {
+        const sourceBinder = source as Binder;
+        console.log("Filtering binder:", binderPath.path, sourceBinder.name);
+        if (binderPath.path.includes(sourceBinder.name)) {
+          return false;
+        }
       }
       return true;
     }) || [];
