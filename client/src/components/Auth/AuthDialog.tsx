@@ -16,9 +16,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "../../firebase";
 import { useTranslation } from "react-i18next";
+import GoogleIcon from "@mui/icons-material/Google";
 
 interface AuthDialogProps {
   open: boolean;
@@ -129,6 +132,33 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
     setConfirmPassword("");
   };
 
+  // Add this new handler for Google Sign-In
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      console.log("Signed in with Google successfully");
+
+      // Reset form
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (error: any) {
+      console.error("Google sign in error:", error);
+      setError(
+        error.message ||
+          t("auth.googleSignInError", "Failed to sign in with Google")
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
@@ -141,6 +171,25 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
               {error}
             </Alert>
           )}
+
+          {/* Google Sign-In Button */}
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            size="large"
+            sx={{ mb: 2 }}
+          >
+            {t("auth.signInWithGoogle", "Sign in with Google")}
+          </Button>
+
+          <Divider sx={{ my: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t("common.or", "or")}
+            </Typography>
+          </Divider>
 
           {/* Sign Up / Sign In Toggle */}
           <Box

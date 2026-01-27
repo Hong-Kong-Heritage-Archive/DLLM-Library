@@ -16,7 +16,9 @@
     "resendVerification": "重新發送驗證郵件",
     "createProfile": "編輯個人檔案",
     "cancel": "取消",
-    "submit": "提交"
+    "submit": "提交",
+    "signInWithGoogle": "使用 Google 登入",
+    "googleSignInError": "Google 登入失敗"
   },
   "navigation": {
     "home": "首頁",

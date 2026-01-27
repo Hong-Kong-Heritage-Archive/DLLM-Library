@@ -29,7 +29,9 @@
     "resetPasswordInfo": "Please contact support to reset your password.",
     "createNewAccount": "Create a new account",
     "alreadyHaveAccount": "Already have an account? Uncheck the box above to sign in.",
-    "needAccount": "Need an account? Check the box above to sign up."
+    "needAccount": "Need an account? Check the box above to sign up.",
+    "signInWithGoogle": "Sign in with Google",
+    "googleSignInError": "Failed to sign in with Google"
   },
   "navigation": {
     "home": "Home",
