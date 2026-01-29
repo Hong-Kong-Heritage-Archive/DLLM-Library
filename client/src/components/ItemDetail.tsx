@@ -33,6 +33,7 @@ import {
   PushPin as PinIcon, // Add this import
   ChevronRight as ChevronRightIcon,
   Article as ArticleIcon,
+  Folder as BinderIcon,
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
@@ -43,6 +44,7 @@ import {
   TransactionLocation,
   CategoryMap,
   Role,
+  Binder,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +58,8 @@ import { AuthDialog } from "./Auth";
 import ImageGalleryModal from "./ImageGalleryModal";
 import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
+import BindItemDialog from "./BindItemDialog";
+import BinderPreview from "./BinderPreview";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -177,6 +181,31 @@ const GET_ITEM_CONFIG = gql`
   }
 `;
 
+// Add new query for binders containing this item
+const BINDERS_FROM_ITEM_QUERY = gql`
+  query BindersFromItemId($itemId: ID!) {
+    bindersFromItemId(itemId: $itemId) {
+      id
+      name
+      description
+      images
+      thumbnails
+      binds {
+        type
+        id
+        name
+      }
+      bindedCount
+      updatedAt
+      owner {
+        id
+        nickname
+        email
+      }
+    }
+  }
+`;
+
 interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
@@ -209,6 +238,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   // Add state for news form dialog
   const [newsFormOpen, setNewsFormOpen] = useState(false);
+
+  // Add state for bind dialog
+  const [bindDialogOpen, setBindDialogOpen] = useState(false);
 
   const { data, loading, error, refetch } = useQuery<{ item: Item }>(
     ITEM_DETAIL_QUERY,
@@ -311,6 +343,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     }
   );
 
+  // Add query for binders containing this item
+  const { data: bindersData, loading: bindersLoading } = useQuery<{
+    bindersFromItemId: Binder[];
+  }>(BINDERS_FROM_ITEM_QUERY, {
+    variables: { itemId: itemId! },
+    skip: !itemId,
+    fetchPolicy: "cache-and-network",
+  });
+
   const isOwner = user && data?.item.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
   const isHolder =
@@ -399,6 +440,37 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   const handleCreateNewsClick = () => {
     setNewsFormOpen(true);
+  };
+
+  const handleBindClick = () => {
+    if (!user) {
+      setAuthDefaultSignUp(false);
+      setAuthDialogOpen(true);
+      return;
+    }
+
+    if (!user.isVerified) {
+      setErrorMessage(
+        t(
+          "binder.verificationRequired",
+          "Please verify your email to use binders"
+        )
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+
+    setBindDialogOpen(true);
+  };
+
+  const handleBindSuccess = () => {
+    setSuccessSnackbarOpen(true);
+    setBindDialogOpen(false);
+  };
+
+  const handleBindError = (message: string) => {
+    setErrorMessage(message);
+    setErrorSnackbarOpen(true);
   };
 
   const handleConfirmRequest = async (
@@ -623,6 +695,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         </Box>
       </Box>
     );
+  };
+
+  const handleBinderClick = (binderId: string) => {
+    navigate(`/binder/${binderId}`);
   };
 
   return (
@@ -1148,6 +1224,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           <Box
             sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}
           >
+            {/* Bind Button - Show for all verified users */}
+            {user && user.isVerified && (
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={handleBindClick}
+                startIcon={<BinderIcon />}
+              >
+                {t("binder.bindItem", "Bind to Binder")}
+              </Button>
+            )}
+
             {/* Face-to-Face Transfer Button - Show for owner or holder */}
             {(isOwner || isHolder) && (
               <Button
@@ -1205,6 +1294,56 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           </Box>
         </Paper>
       )}
+
+      {/* Binders Containing This Item Section - NEW */}
+      {data?.item &&
+        bindersData &&
+        bindersData.bindersFromItemId &&
+        bindersData.bindersFromItemId.length > 0 && (
+          <Paper elevation={1} sx={{ p: 3, mt: 3 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 0.5,
+                }}
+              >
+                <BinderIcon color="primary" />
+                {t("binder.containingBinders", "Binders containing this item")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t(
+                  "binder.foundInBinders",
+                  "This item appears in {{count}} binder(s)",
+                  {
+                    count: bindersData.bindersFromItemId.length,
+                  }
+                )}
+              </Typography>
+            </Box>
+
+            {bindersLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={2}>
+                {bindersData.bindersFromItemId.map((binder) => (
+                  <Grid key={binder.id} size={{ xs: 4, sm: 3, md: 2.4 }}>
+                    <BinderPreview
+                      binder={binder}
+                      onClick={handleBinderClick}
+                      compact={true}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Paper>
+        )}
 
       {/* Edit Item Dialog */}
       {user && (
@@ -1312,6 +1451,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           relatedItem={data?.item || null}
           onSuccess={handleEditSuccess}
           onError={handleEditError}
+        />
+      )}
+
+      {/* Bind Item Dialog */}
+      {user && user.isVerified && data?.item && (
+        <BindItemDialog
+          open={bindDialogOpen}
+          onClose={() => setBindDialogOpen(false)}
+          source={data.item}
+          sourceType="item"
+          user={user}
+          onSuccess={handleBindSuccess}
+          onError={handleBindError}
         />
       )}
     </Container>

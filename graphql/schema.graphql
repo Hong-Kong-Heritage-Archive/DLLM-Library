@@ -217,6 +217,34 @@ type SignedUrlResponse {
   expires: Float!
 }
 
+enum BindType {
+  ITEM
+  BINDER
+}
+
+type Bind {
+  type: BindType!
+  id: ID! # Item ID or Binder ID
+  name: String! # Item name or Binder name for preview
+}
+
+type Binder {
+  id: ID! # User's root binder same as User ID
+  name: String!
+  description: String
+  owner: User!
+  images: [String!] # 圖片URL列表
+  thumbnails: [String!] # 縮略圖URL列表
+  binds: [Bind!]! # List of bound items
+  bindedCount: Int! # Number of times this binder is binded in other binders
+  updatedAt: Date!
+}
+
+type BinderPath {
+  id: ID! # Binder ID
+  path: String! # Binder Path with names and separate by / e.g. "Root Binder/Sub Binder 1/Sub Binder 2"
+}
+
 # 查詢
 type Query {
   # 主機配置
@@ -361,6 +389,15 @@ type Query {
 
   # Get recent items without classifications assigned for admin review
   recentItemsWithoutClassifications(limit: Int): [Item!]
+
+  # Get Binder by ID
+  binder(id: ID!): Binder
+
+  # Get all Binder Paths for User
+  binderPathsByUser(userId: ID!): [BinderPath!]!
+
+  # Get all Binders that bind to the Item ID
+  bindersFromItemId(itemId: ID!): [Binder!]
 }
 
 # 變更
@@ -461,12 +498,42 @@ type Mutation {
   ): SignedUrlResponse!
 
   generateItemIndexIncremental: Boolean!
+
+  addBindToBinder(
+    parentId: ID!
+    newBinderName: String # if newBinderName is provided, a new Binder bind to Binder
+    bind: BindInput!
+    beforeBindId: ID # Item ID or Binder ID to insert before, null to append at the end
+  ): Binder!
+
+  updateBinder(
+    id: ID!
+    name: String
+    description: String
+    images: [String!]
+    bindIds: [ID!] # List of Item IDs or Binder IDs for re-arranging
+  ): Binder!
+  updateBindInBinder(
+    parentId: ID!
+    bindId: ID! # Item ID or Binder ID to update
+    newBind: BindInput!
+  ): Binder!
+  removeBindFromBinder(
+    parentId: ID!
+    bindId: ID! # Item ID or Binder ID to remove
+  ): Binder!
 }
 
 # 輸入類型
 input LocationInput {
   latitude: Float!
   longitude: Float!
+}
+
+input BindInput {
+  type: BindType!
+  id: ID! # Item ID or Binder ID
+  name: String! # Item name or Binder name for preview
 }
 
 input ContactMethodInput {

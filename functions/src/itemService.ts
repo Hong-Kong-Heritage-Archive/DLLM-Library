@@ -15,8 +15,7 @@ import { CategoryService } from "./categoryService";
 import firebase from "firebase-admin";
 import { UploadBufferToGCS } from "./platform";
 import { Timestamp } from "firebase-admin/firestore";
-import sharp from "sharp";
-import axios from "axios";
+import { generateThumbnail, ThumbnailConfig } from "./utils/imageUtils";
 
 type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
@@ -462,11 +461,23 @@ export class ItemService {
         images = data.gsImageUrls;
       }
 
+      // Configure thumbnail generation
+      const thumbnailConfig: ThumbnailConfig = {
+        scaleFactor: 0.25, // 1/4 size
+        quality: 40,
+        filenameSuffix: "_thumbnail",
+        preserveDirectory: true,
+        format: "jpeg",
+      };
+
       const uploadPromises = images.map(async (image) => {
-        const thumbnail = await this._generateThumbnail(image);
-        if (thumbnail) {
-          data.thumbnails!.push(thumbnail.url);
-          data.gsThumbnailUrls!.push(thumbnail.gs);
+        const thumbnailResult = await generateThumbnail(image, thumbnailConfig);
+        if (thumbnailResult) {
+          data.thumbnails!.push(thumbnailResult.url);
+          data.gsThumbnailUrls!.push(thumbnailResult.gs);
+          console.log(
+            `Generated thumbnail: ${thumbnailResult.width}x${thumbnailResult.height}, ${thumbnailResult.size} bytes`
+          );
         }
       });
 
@@ -492,6 +503,25 @@ export class ItemService {
           );
         }
       }
+    }
+
+    // arrange thumbnails in order of images
+    if (
+      data.images &&
+      data.thumbnails &&
+      data.images.length === data.thumbnails.length
+    ) {
+      const arrangedThumbnails: string[] = [];
+      for (const imgUrl of data.images) {
+        // match last 10 characters of imgUrl with thumbnails
+        for (const thumbnailUrl of data.thumbnails) {
+          if (thumbnailUrl.includes(imgUrl.slice(-10))) {
+            arrangedThumbnails.push(thumbnailUrl);
+            break;
+          }
+        }
+      }
+      data.thumbnails = arrangedThumbnails;
     }
 
     // check the description with hash tag or not. If not hash tag add all category with #
@@ -999,153 +1029,6 @@ export class ItemService {
       })
     );
     return items;
-  }
-
-  /**
-   * Generate thumbnail for an image by downloading, resizing to 1/4 dimensions,
-   * and uploading back to Google Cloud Storage
-   * @param imageUrl - The original image URL (can be HTTP or GS URL)
-   * @returns Promise with thumbnail URLs (gs and http) or null if failed
-   */
-  private async _generateThumbnail(
-    imageUrl: string
-  ): Promise<{ gs: string; url: string } | null> {
-    try {
-      console.log(`Generating thumbnail for image: ${imageUrl}`);
-
-      // Download the original image
-      let imageBuffer: Buffer;
-
-      if (imageUrl.startsWith("gs://")) {
-        // Handle Google Storage URL
-        const gsPath = imageUrl.replace("gs://", "");
-        const pathParts = gsPath.split("/");
-        const bucketName = pathParts[0];
-        const filePath = pathParts.slice(1).join("/");
-
-        const bucket = firebase.storage().bucket(bucketName);
-        const file = bucket.file(filePath);
-
-        const [fileBuffer] = await file.download();
-        imageBuffer = fileBuffer;
-      } else {
-        // Handle HTTP URL
-        const response = await axios.get(imageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000, // 30 second timeout
-        });
-        imageBuffer = Buffer.from(response.data);
-      }
-
-      // Get original image metadata
-      const image = sharp(imageBuffer);
-      const metadata = await image.metadata();
-
-      if (!metadata.width || !metadata.height) {
-        console.error(`Could not get image dimensions for: ${imageUrl}`);
-        return null;
-      }
-
-      console.log(
-        `Original image dimensions: ${metadata.width}x${metadata.height}`
-      );
-
-      // Calculate new dimensions (1/4 of original)
-      const newWidth = Math.floor(metadata.width / 4);
-      const newHeight = Math.floor(metadata.height / 4);
-
-      console.log(`Thumbnail dimensions: ${newWidth}x${newHeight}`);
-
-      // Generate thumbnail
-      const thumbnailBuffer = await image
-        .resize(newWidth, newHeight, {
-          fit: "inside",
-          withoutEnlargement: true,
-        })
-        .jpeg({ quality: 40 }) // Convert to JPEG with 40% quality for smaller file size
-        .toBuffer();
-
-      // Generate thumbnail filename
-      const originalFileName = this._extractFileNameFromUrl(imageUrl);
-      const thumbnailFileName =
-        this._generateThumbnailFileName(originalFileName);
-
-      // Determine upload path
-      let uploadPath: string;
-
-      if (imageUrl.startsWith("gs://")) {
-        // Use same bucket and path structure as original
-        const gsPath = imageUrl.replace("gs://", "");
-        const pathParts = gsPath.split("/");
-        const originalPath = pathParts.slice(1).join("/");
-        const pathDir = originalPath.substring(
-          0,
-          originalPath.lastIndexOf("/")
-        );
-        uploadPath = `${pathDir}/${thumbnailFileName}`;
-
-        const gsUrl = await UploadBufferToGCS(
-          uploadPath,
-          thumbnailBuffer,
-          "image/jpeg"
-        );
-        const publicUrl = await GetPublicUrlForGSFile(gsUrl);
-
-        return { gs: gsUrl, url: publicUrl };
-      } else {
-        // Create upload path: thumbnails/{generated_filename}
-        uploadPath = `thumbnails/${thumbnailFileName}`;
-        const gsUrl = await UploadBufferToGCS(
-          uploadPath,
-          thumbnailBuffer,
-          "image/jpeg"
-        );
-        const publicUrl = await GetPublicUrlForGSFile(gsUrl);
-
-        console.log(`Thumbnail generated successfully: ${gsUrl}`);
-        return { gs: gsUrl, url: publicUrl };
-      }
-    } catch (error) {
-      console.error(`Failed to generate thumbnail for ${imageUrl}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Extract filename from URL
-   */
-  private _extractFileNameFromUrl(url: string): string {
-    try {
-      if (url.startsWith("gs://")) {
-        const pathParts = url.split("/");
-        return pathParts[pathParts.length - 1];
-      } else {
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split("/");
-        return pathParts[pathParts.length - 1] || "image.jpg";
-      }
-    } catch (error) {
-      console.error(`Error extracting filename from URL: ${url}`, error);
-      return `image_${Date.now()}.jpg`;
-    }
-  }
-
-  /**
-   * Generate thumbnail filename by adding 'thumbnail' before file extension
-   */
-  private _generateThumbnailFileName(originalFileName: string): string {
-    const lastDotIndex = originalFileName.lastIndexOf(".");
-
-    if (lastDotIndex === -1) {
-      // No extension found, append thumbnail suffix
-      return `${originalFileName}_thumbnail.jpg`;
-    }
-
-    const nameWithoutExt = originalFileName.substring(0, lastDotIndex);
-    const extension = originalFileName.substring(lastDotIndex);
-
-    // Convert to .jpg for thumbnails regardless of original format
-    return `${nameWithoutExt}_thumbnail.jpg`;
   }
 
   // New helper: apply keyword name range filter to a Firestore query

@@ -17,6 +17,7 @@ import BorrowedItemsView from "./routes/BorrowedItemsView";
 import MainLayout from "./components/MainLayout";
 import ExchangePointsPage from "./routes/ExchangePoints";
 import ProfilePage from "./routes/Profile";
+import BinderDetail from "./components/BinderDetail";
 
 export const createRouter = (
   email?: string | null,
@@ -101,6 +102,10 @@ export const createRouter = (
         {
           path: "loan-items",
           element: <LoanItems />,
+        },
+        {
+          path: "/binder/:binderId",
+          element: <BinderDetail currentUser={user} />,
         },
       ],
     },

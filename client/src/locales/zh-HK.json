@@ -16,7 +16,9 @@
     "resendVerification": "重新發送驗證郵件",
     "createProfile": "編輯個人檔案",
     "cancel": "取消",
-    "submit": "提交"
+    "submit": "提交",
+    "signInWithGoogle": "使用 Google 登入",
+    "googleSignInError": "Google 登入失敗"
   },
   "navigation": {
     "home": "首頁",
@@ -100,7 +102,9 @@
     "selectOption": "請選擇...",
     "notAvailable": "不適用",
     "noCategory": "無分類",
-    "errorLoading": "載入資料時發生錯誤"
+    "errorLoading": "載入資料時發生錯誤",
+    "bind": "綁定",
+    "binding": "綁定中..."
   },
   "time": {
     "secondsAgo": "幾秒鐘前",
@@ -474,7 +478,9 @@
     "distance": "距離",
     "contactMethods": "聯絡方法",
     "nickname": "暱稱",
-    "notSet": "未設定"
+    "notSet": "未設定",
+    "rootBinder": "根資料夾",
+    "noRootBinder": "此用戶尚未創建根資料夾。"
   },
   "transactions": {
     "title": "我的紀錄",
@@ -755,5 +761,55 @@
     "translationHelper": "此語言的翻譯",
     "addingUnder": "新增到：{{path}}",
     "addingRoot": "新增為根分類"
+  },
+  "binder": {
+    "bindItem": "綁定到資料夾",
+    "bindingItem": "綁定項目",
+    "bindMode": "綁定模式",
+    "bindToExisting": "綁定到現有資料夾",
+    "createNewAndBind": "創建新資料夾並綁定",
+    "selectBinder": "選擇資料夾",
+    "selectParentBinder": "選擇父資料夾",
+    "newBinderName": "新資料夾名稱",
+    "newBinderNamePlaceholder": "輸入新資料夾名稱",
+    "newBinderHelp": "新資料夾將在所選父資料夾內創建",
+    "createAndBind": "創建並綁定",
+    "selectBinderError": "請選擇一個資料夾",
+    "newBinderNameError": "請輸入新資料夾的名稱",
+    "selectParentBinderError": "請選擇一個父資料夾來創建新資料夾",
+    "bindError": "綁定項目失敗",
+    "loadError": "載入資料夾失敗",
+    "noBindersYet": "您還沒有任何資料夾。當您綁定第一個項目時，將自動創建根資料夾。",
+    "verificationRequired": "請驗證您的電子郵件以使用資料夾",
+    "bindSuccess": "項目綁定成功！",
+    "rootBinder": "根資料夾",
+    "itemCount": "{{count}} 個項目",
+    "rootBinderHelper": "根資料夾包含此用戶組織的所有項目。點擊以探索內容。",
+    "noBinderId": "未提供資料夾 ID",
+    "loading": "載入資料夾中...",
+    "untitled": "未命名資料夾",
+    "errorLoading": "載入資料夾時發生錯誤",
+    "images": "資料夾圖片",
+    "owner": "擁有者",
+    "description": "描述",
+    "totalBinds": "{{count}} 個項目",
+    "bindedInOthers": "在 {{count}} 個資料夾中被綁定",
+    "lastUpdated": "最後更新",
+    "contents": "資料夾內容",
+    "empty": "此資料夾是空的",
+    "typeBinder": "資料夾",
+    "typeItem": "項目",
+    "updated": "已更新",
+    "bindToBinder": "綁定到其他資料夾",
+    "bindToBinderTitle": "將資料夾綁定到您的資料夾",
+    "bindToBinderInfo": "選擇應該包含此資料夾的資料夾",
+    "source": "來源",
+    "searchBinders": "搜索您的資料夾...",
+    "noBindersFound": "找不到資料夾",
+    "itemsCount": "{{count}} 個項目",
+    "selectedCount": "已選擇 {{count}} 個資料夾",
+    "containingBinders": "包含此項目的資料夾",
+    "foundInBinders": "此項目出現在 {{count}} 個資料夾中"
+
   }
 }
