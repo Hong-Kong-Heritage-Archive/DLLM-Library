@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { User as fireUser } from "firebase/auth";
-import { User, HostConfig } from "./generated/graphql"; // Adjust the import path as necessary
+import { User, HostConfig } from "./generated/graphql";
 import { createRouter } from "./Router";
 import { RouterProvider } from "react-router";
+import SplashScreen from "./components/SplashScreen";
+import { CircularProgress, Box } from "@mui/material";
 
 const ME_QUERY = gql`
   query Me {
@@ -30,6 +32,8 @@ const HostConfigQuery = gql`
     hostConfig {
       aboutUsText
       chatLink
+      splashScreenImageUrl
+      splashScreenText
     }
   }
 `;
@@ -42,7 +46,7 @@ interface AppProps {
 const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   const meOutput = useQuery<{ me: User }>(ME_QUERY, {
     skip: !user,
-    fetchPolicy: "cache-first", // Use cache first, refetch manually when needed
+    fetchPolicy: "cache-first",
   });
   const hostConfigOutput = useQuery<{ hostConfig: HostConfig }>(
     HostConfigQuery,
@@ -52,20 +56,20 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   );
   const [initialPath, setInitialPath] = useState<string | null>(null);
   const previousUserIdRef = useRef<string | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashCompleted, setSplashCompleted] = useState(false);
 
   // Refetch ME_QUERY when user changes
   useEffect(() => {
     const currentUserId = user?.uid || null;
     const previousUserId = previousUserIdRef.current;
 
-    // Check if user changed from null to having a value, or if user ID changed
     if (currentUserId && currentUserId !== previousUserId) {
       console.log("User changed, refetching ME_QUERY", {
         previous: previousUserId,
         current: currentUserId,
       });
 
-      // Small delay to ensure Firebase auth token is ready
       const timeoutId = setTimeout(() => {
         meOutput.refetch().catch((error) => {
           console.error("Error refetching ME_QUERY:", error);
@@ -75,14 +79,11 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
         });
       }, 100);
 
-      // Cleanup timeout if component unmounts
       return () => clearTimeout(timeoutId);
     } else if (!currentUserId && previousUserId) {
-      // User logged out
       console.log("User logged out");
     }
 
-    // Update the ref with current user ID
     previousUserIdRef.current = currentUserId;
   }, [user?.uid, meOutput, hostConfigOutput]);
 
@@ -108,14 +109,52 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
     }
   }, []);
 
+  const handleSplashComplete = () => {
+    setSplashCompleted(true);
+    setShowSplash(false);
+  };
+
   const router = createRouter(
     user?.email,
     user?.emailVerified,
     meOutput?.data?.me,
     hostConfigOutput?.data?.hostConfig,
     onSignOut
-    //    initialPath
   );
+
+  // Show splash screen until HostConfig is loaded and minimum time has passed
+  if (
+    showSplash &&
+    !splashCompleted &&
+    !hostConfigOutput.loading &&
+    hostConfigOutput.data?.hostConfig
+  ) {
+    return (
+      <SplashScreen
+        text={hostConfigOutput.data.hostConfig.splashScreenText}
+        image={hostConfigOutput.data.hostConfig.splashScreenImageUrl}
+        onComplete={handleSplashComplete}
+        minDisplayTime={10000} // 10 seconds
+      />
+    );
+  }
+
+  // Show loading spinner while waiting for initial data
+  if (hostConfigOutput.loading || (user && meOutput.loading)) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: "white" }} />
+      </Box>
+    );
+  }
 
   return <RouterProvider router={router} />;
 };

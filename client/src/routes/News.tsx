@@ -35,6 +35,8 @@ const GET_HOST_CONFIG = gql`
     hostConfig {
       chatLink
       aboutUsText
+      splashScreenImageUrl
+      splashScreenText
     }
   }
 `;
@@ -44,6 +46,8 @@ const UPDATE_HOST_CONFIG = gql`
     updateHostConfig(input: $input) {
       chatLink
       aboutUsText
+      splashScreenImageUrl
+      splashScreenText
     }
   }
 `;

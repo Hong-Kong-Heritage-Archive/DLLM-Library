@@ -26,11 +26,15 @@ export class SystemService {
       const defaultHostConfig: HostConfigInput = {
         aboutUsText: "Welcome to our platform!",
         chatLink: "https://chat.example.com", // provide default values here
+        splashScreenText: "",
+        splashScreenImageUrl: null,
       };
       hostConfig = await this.updateHostConfig(defaultHostConfig);
     } else {
       const data = hostConfigRef.data();
       hostConfig = data as HostConfig;
+      hostConfig.splashScreenImageUrl = data?.splashScreenImageUrl || null;
+      hostConfig.splashScreenText = data?.splashScreenText || "";
     }
     return hostConfig;
   }
