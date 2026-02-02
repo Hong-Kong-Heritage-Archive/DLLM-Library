@@ -100,7 +100,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
         {/* Splash Text */}
         {text && (
           <Typography
-            variant="h4"
+            variant="h6"
             sx={{
               color: "white",
               textAlign: "center",
