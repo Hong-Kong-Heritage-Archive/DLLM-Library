@@ -28,7 +28,6 @@ import { gql, useQuery } from "@apollo/client";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Binder, BindType, User } from "../generated/graphql";
-import SafeImage from "./SafeImage";
 import BinderForm from "./BinderForm";
 import ReactMarkdown from "react-markdown";
 import { hasMarkdownSyntax } from "../utils/helpers";

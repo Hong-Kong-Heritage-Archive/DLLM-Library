@@ -26,7 +26,6 @@ import {
   Binder,
   Item,
   User,
-  BindInput,
 } from "../generated/graphql";
 import {
   FolderOpen as FolderIcon,
@@ -346,13 +345,13 @@ const BindItemDialog: React.FC<BindItemDialogProps> = ({
           <Alert severity="info" sx={{ mb: 2 }}>
             {sourceType === "item"
               ? t(
-                  "binder.noBindersYet",
-                  "You don't have any binders yet. A root binder will be created automatically when you bind your first item."
-                )
+                "binder.noBindersYet",
+                "You don't have any binders yet. A root binder will be created automatically when you bind your first item."
+              )
               : t(
-                  "binder.noOtherBindersYet",
-                  "You don't have any other binders. Create a binder first to organize this binder."
-                )}
+                "binder.noOtherBindersYet",
+                "You don't have any other binders. Create a binder first to organize this binder."
+              )}
           </Alert>
         ) : (
           <>
