@@ -30,24 +30,11 @@ import {
   CameraAlt,
   ExpandMore as ArrowDropDownIcon,
 } from "@mui/icons-material";
-import {
-  processImage,
-  batchProcessImages,
-  ProcessedImage,
-} from "../utils/ImageProcessor";
-import { GCSUploadService, UploadProgress } from "../services/UploadService";
+import { batchProcessImages } from "../utils/ImageProcessor";
+import { uploadImages, ImagePreview } from "../utils/imageUpload";
 import { useApolloClient } from "@apollo/client";
 import { useTranslation } from "react-i18next";
 
-// Update the interface
-interface ImagePreview extends ProcessedImage {
-  uploadProgress?: number;
-  isUploading?: boolean;
-  uploadError?: string;
-  gsUrl?: string;
-}
-
-// Replace the ReceiptImageUploadDialog component with this updated version
 interface ReceiptImageUploadDialogProps {
   open: boolean;
   onClose: () => void;
@@ -201,78 +188,6 @@ const ReceiptImageUploadDialog: React.FC<ReceiptImageUploadDialogProps> = ({
     });
   };
 
-  const uploadImages = async (
-    imagesToUpload: ImagePreview[]
-  ): Promise<string[]> => {
-    const gcsService = new GCSUploadService(apolloClient);
-    const totalFiles = imagesToUpload.length;
-
-    try {
-      const filesToUpload = imagesToUpload.map((img) => img.file);
-
-      const gsUrls = await gcsService.batchUploadToGCS(
-        filesToUpload,
-        "receipts", // Use "receipts" folder
-        (fileIndex: number, progress: UploadProgress) => {
-          // Update individual file progress
-          setImages((prev) =>
-            prev.map((img, idx) =>
-              idx === fileIndex
-                ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
-                : img
-            )
-          );
-
-          // Update overall progress
-          const overallProgress = Math.round(
-            ((fileIndex + progress.percentage / 100) / totalFiles) * 100
-          );
-          setUploadProgress(overallProgress);
-        },
-        (fileIndex: number, gsUrl: string) => {
-          // Mark file as completed
-          setImages((prev) =>
-            prev.map((img, idx) =>
-              idx === fileIndex
-                ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
-                : img
-            )
-          );
-
-          console.log(`File ${fileIndex + 1}/${totalFiles} uploaded: ${gsUrl}`);
-        }
-      );
-
-      return gsUrls;
-    } catch (error) {
-      console.error("Batch upload error:", error);
-
-      // Mark failed uploads
-      setImages((prev) =>
-        prev.map((img) =>
-          !img.gsUrl
-            ? {
-                ...img,
-                isUploading: false,
-                uploadError: `Upload failed: ${error}`,
-              }
-            : img
-        )
-      );
-
-      throw error;
-    }
-  };
-
   const handleConfirm = async () => {
     setUploadError(null);
     setIsUploading(true);
@@ -283,7 +198,52 @@ const ReceiptImageUploadDialog: React.FC<ReceiptImageUploadDialogProps> = ({
       let uploadedImageUrls: string[] = [];
 
       if (images.length > 0) {
-        uploadedImageUrls = await uploadImages(images);
+        uploadedImageUrls = await uploadImages(apolloClient, images, {
+          folder: "receipts",
+          onFileProgress: (fileIndex, progress) => {
+            setImages((prev) =>
+              prev.map((img, idx) =>
+                idx === fileIndex
+                  ? {
+                      ...img,
+                      isUploading: true,
+                      uploadProgress: progress.percentage,
+                    }
+                  : img
+              )
+            );
+          },
+          onFileComplete: (fileIndex, gsUrl) => {
+            setImages((prev) =>
+              prev.map((img, idx) =>
+                idx === fileIndex
+                  ? {
+                      ...img,
+                      isUploading: false,
+                      uploadProgress: 100,
+                      gsUrl: gsUrl,
+                    }
+                  : img
+              )
+            );
+          },
+          onOverallProgress: (percentage) => {
+            setUploadProgress(percentage);
+          },
+          onError: (fileIndex, error) => {
+            setImages((prev) =>
+              prev.map((img, idx) =>
+                idx === fileIndex
+                  ? {
+                      ...img,
+                      isUploading: false,
+                      uploadError: error,
+                    }
+                  : img
+              )
+            );
+          },
+        });
       }
 
       onConfirm(uploadedImageUrls);

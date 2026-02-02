@@ -60,11 +60,15 @@ export type HostConfig = {
   __typename?: 'HostConfig';
   aboutUsText: Scalars['String']['output'];
   chatLink: Scalars['String']['output'];
+  splashScreenImageUrl?: Maybe<Scalars['String']['output']>;
+  splashScreenText?: Maybe<Scalars['String']['output']>;
 };
 
 export type HostConfigInput = {
   aboutUsText: Scalars['String']['input'];
   chatLink: Scalars['String']['input'];
+  splashScreenImageUrl?: InputMaybe<Scalars['String']['input']>;
+  splashScreenText: Scalars['String']['input'];
 };
 
 export type Item = {
