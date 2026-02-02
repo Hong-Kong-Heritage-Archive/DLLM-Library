@@ -86,6 +86,12 @@
     "images": "Images...",
     "processingImages": "Processing images...",
     "addImages": "Add Images",
+    "changeImages": "Change Images",
+    "preview": "Preview",
+    "publish": "Publish",
+    "viewAll": "View All",
+    "chooseFromLibrary": "Choose from Library",
+    "takePhoto": "Take Photo",
     "by": "By",
     "unknown": "Unknown",
     "updated": "Updated",
@@ -118,7 +124,9 @@
     "notAvailable": "N/A",
     "noCategory": "No category",
     "errorLoading": "Error loading data",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "bind": "Create & Bind",
+    "binding": "Binding..."
   },
   "location": {
     "latitude": "Latitude",
@@ -189,6 +197,7 @@
     "link": "link",
     "list": "list",
     "code": "code",
+    "splashScreenTitle": "Acknowledgements of Country",
     "previewEmpty": "Preview will appear here as you type..."
   },
   "shortStatus": {
@@ -477,7 +486,9 @@
     "distance": "Distance from you",
     "contactMethods": "Contact Methods",
     "nickname": "Nickname",
-    "notSet": "Not Set"
+    "notSet": "Not Set",
+    "rootBinder": "Root Binder",
+    "noRootBinder": "This user hasn't created a root binder yet."
   },
   "transactions": {
     "title": "My Records",
@@ -485,6 +496,9 @@
     "openTransactions": "Ongoing",
     "allTransactions": "All Records",
     "transactionInfo": "Information",
+    "cancel": "Cancel",
+    "errorLoading": "Error loading records",
+    "subtitle": "View and manage your item exchange records",
     "itemInfo": "Item Information",
     "exchangeLocation": "Exchange Location",
     "exchangePoint": "Exchange Point",
@@ -496,9 +510,15 @@
     "approve": "Approve",
     "transfer": "Mark as Transferred",
     "receive": "Confirm Received",
-    "cancel": "Cancel",
     "cancelRequest": "Cancel Request",
-    "errorLoading": "Error loading records",
+    "transactionFlow": "Transaction Flow",
+    "flowDescriptionFaceToFace": "This is a Face-to-Face Quick Exchange. Review the flow diagram below to understand the steps involved.",
+    "flowDescriptionDirectExchange": "This is a Direct Exchange at an agreed location. Review the flow diagram below to understand the steps involved.",
+    "flowDescriptionExchangePoint": "This is an Exchange via Public Exchange Point. This involves two separate phases. Review the flow diagram below to understand the steps involved.",
+    "faceToFaceDiagramAlt": "Face-to-Face Transaction Diagram",
+    "directExchangeDiagramAlt": "Direct Exchange Diagram",
+    "exchangePointDiagramAlt": "Exchange Point Diagram",
+    "currentStatus": "Current Status",
     "notFound": "Record not found",
     "noOpenTransactions": "No ongoing record found.",
     "noTransactions": "No records found.",
