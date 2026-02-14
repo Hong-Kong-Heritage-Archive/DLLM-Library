@@ -657,5 +657,17 @@
     "addingRoot": "Adding as root category",
     "zh-TW": "正體中文",
     "zh-HK": "港文"
+  },
+  "goodreads": {
+    "title": "Import from GoodReads",
+    "importButton": "Import from GoodReads",
+    "instructions": "Upload your GoodReads CSV export file to import books. You can export your library from GoodReads under My Books → Import and export → Export Library.",
+    "selectFile": "Select CSV File",
+    "columnTitle": "Title",
+    "columnAuthor": "Author",
+    "columnPublisher": "Publisher",
+    "booksFound": "{{total}} book(s) found, {{selected}} selected",
+    "import": "Import",
+    "importSuccess": "{{count}} book(s) imported successfully!"
   }
 }

@@ -17,13 +17,14 @@ import BorrowedItemsView from "./routes/BorrowedItemsView";
 import MainLayout from "./components/MainLayout";
 import ExchangePointsPage from "./routes/ExchangePoints";
 import ProfilePage from "./routes/Profile";
+import GoodReadsImportPage from "./routes/GoodReadsImport";
 
 export const createRouter = (
   email?: string | null,
   emailVerified?: boolean | null,
   user?: User,
   hostConfig?: HostConfig,
-  onSignOut?: () => Promise<void>
+  onSignOut?: () => Promise<void>,
 ) => {
   return createBrowserRouter([
     {
@@ -101,6 +102,10 @@ export const createRouter = (
         {
           path: "loan-items",
           element: <LoanItems />,
+        },
+        {
+          path: "import/goodreads",
+          element: <GoodReadsImportPage />,
         },
       ],
     },

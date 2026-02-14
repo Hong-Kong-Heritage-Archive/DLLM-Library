@@ -785,5 +785,17 @@
     "list": "列表",
     "code": "程式碼",
     "previewEmpty": "預覽將在您輸入時顯示..."
+  },
+  "goodreads": {
+    "title": "從 GoodReads 匯入",
+    "importButton": "從 GoodReads 匯入",
+    "instructions": "上傳您的 GoodReads CSV 匯出檔案以匯入書籍。您可以在 GoodReads 的「我的書籍 → 匯入和匯出 → 匯出書庫」中匯出您的書庫。",
+    "selectFile": "選擇 CSV 檔案",
+    "columnTitle": "書名",
+    "columnAuthor": "作者",
+    "columnPublisher": "出版社",
+    "booksFound": "找到 {{total}} 本書，已選擇 {{selected}} 本",
+    "import": "匯入",
+    "importSuccess": "成功匯入 {{count}} 本書！"
   }
 }

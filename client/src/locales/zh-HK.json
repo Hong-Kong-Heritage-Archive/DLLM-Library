@@ -783,5 +783,17 @@
     "translationHelper": "此語言的翻譯",
     "addingUnder": "新增到：{{path}}",
     "addingRoot": "新增為根分類"
+  },
+  "goodreads": {
+    "title": "從 GoodReads 匯入",
+    "importButton": "從 GoodReads 匯入",
+    "instructions": "上載你嘅 GoodReads CSV 匯出檔案嚟匯入書籍。你可以喺 GoodReads 嘅「我嘅書 → 匯入同匯出 → 匯出書庫」度匯出你嘅書庫。",
+    "selectFile": "揀 CSV 檔案",
+    "columnTitle": "書名",
+    "columnAuthor": "作者",
+    "columnPublisher": "出版社",
+    "booksFound": "搵到 {{total}} 本書，已揀 {{selected}} 本",
+    "import": "匯入",
+    "importSuccess": "成功匯入咗 {{count}} 本書！"
   }
 }
