@@ -129,11 +129,11 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
     // Update on resize or scroll
     window.addEventListener("resize", updateTargetPosition);
-    window.addEventListener("scroll", updateTargetPosition);
+    document.addEventListener("scroll", updateTargetPosition, true);
 
     return () => {
       window.removeEventListener("resize", updateTargetPosition);
-      window.removeEventListener("scroll", updateTargetPosition);
+      document.removeEventListener("scroll", updateTargetPosition, true);
     };
   }, [showTour, currentStep, steps]);
 
