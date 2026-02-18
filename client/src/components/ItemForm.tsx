@@ -29,6 +29,7 @@ import {
   PhotoLibrary,
   CameraAlt,
   ExpandMore as ArrowDropDownIcon,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import ClassificationEditor from "./ClassificationEditor";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
@@ -51,6 +52,8 @@ import {
   combineImageUrls,
 } from "../utils/imageUpload";
 import { useTranslation } from "react-i18next";
+import BookCoverSearchDialog from "./BookCoverSearchDialog";
+import { set } from "date-fns";
 
 const CREATE_ITEM_MUTATION = gql`
   mutation CreateItem(
@@ -166,12 +169,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   const [dialogOpen, setDialogOpen] = useState(open);
   const [name, setName] = useState("");
+  const [isbn, setIsbn] = useState("");
   const [condition, setCondition] = useState<ItemCondition>(ItemCondition.New);
   const [description, setDescription] = useState("");
   const [deposit, setDeposit] = useState<number>(0);
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
   const [language, setLanguage] = useState<Language>(
-    i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En
+    i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En,
   );
   const [publishedYear, setPublishedYear] = useState<number | "">("");
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
@@ -184,6 +188,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   // Store original values for edit mode comparison
   const [originalValues, setOriginalValues] = useState<{
     name: string;
+    isbn: string;
     condition: ItemCondition;
     description: string;
     publishedYear: number | "";
@@ -196,8 +201,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   // Image menu states
   const [imageMenuAnchor, setImageMenuAnchor] = useState<null | HTMLElement>(
-    null
+    null,
   );
+
+  // Book cover search dialog state
+  const [coverSearchOpen, setCoverSearchOpen] = useState(false);
 
   // Image processing states
   const [isProcessingImages, setIsProcessingImages] = useState(false);
@@ -226,8 +234,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
       const itemImages = item.images || [];
       const itemDeposit = item.deposit || 0;
       const itemClassifications = item.clssfctns || [];
+      console.log(`${item.name} isbn: ${item.ISBN}`);
 
       setName(itemName);
+      setIsbn(item.ISBN || "");
       setCondition(itemCondition);
       setDescription(itemDescription);
       setPublishedYear(itemPublishedYear);
@@ -247,6 +257,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         images: itemImages,
         deposit: itemDeposit,
         classifications: itemClassifications,
+        isbn: item.ISBN || "",
       });
 
       // Convert existing images to ImagePreview format
@@ -315,7 +326,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setDescription("");
     setImageFiles([]);
     setLanguage(
-      i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En
+      i18n.language.toLowerCase().startsWith("zh")
+        ? Language.ZhHk
+        : Language.En,
     );
     setPublishedYear("");
     setStatus(ItemStatus.Available);
@@ -351,6 +364,15 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const handleTakePhoto = () => {
     handleImageMenuClose();
     cameraInputRef.current?.click();
+  };
+
+  const handleSearchBookCover = () => {
+    handleImageMenuClose();
+    setCoverSearchOpen(true);
+  };
+
+  const handleCoverSelected = (image: ImagePreview) => {
+    setImageFiles((prev) => [...prev, image]);
   };
 
   const processFiles = async (files: FileList | null) => {
@@ -396,7 +418,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         },
         (processed, total) => {
           setProcessingProgress(Math.round((processed / total) * 100));
-        }
+        },
       );
 
       // Add to preview list
@@ -418,7 +440,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   };
 
   const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
     await processFiles(files);
@@ -426,7 +448,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   };
 
   const handleCameraCapture = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
     await processFiles(files);
@@ -480,8 +502,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
                       isUploading: true,
                       uploadProgress: progress.percentage,
                     }
-                  : img
-              )
+                  : img,
+              ),
             );
           },
           onFileComplete: (fileIndex, gsUrl) => {
@@ -494,8 +516,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
                       uploadProgress: 100,
                       gsUrl: gsUrl,
                     }
-                  : img
-              )
+                  : img,
+              ),
             );
           },
           onOverallProgress: (percentage) => {
@@ -510,8 +532,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
                       isUploading: false,
                       uploadError: error,
                     }
-                  : img
-              )
+                  : img,
+              ),
             );
           },
         });
@@ -636,7 +658,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     } catch (err) {
       console.error("Submit error:", err);
       setFormError(
-        isEditMode ? t("item.updateItemError") : t("item.createItemError")
+        isEditMode ? t("item.updateItemError") : t("item.createItemError"),
       );
     } finally {
       setIsUploading(false);
@@ -701,7 +723,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 }}
                 helperText={t(
                   "item.conditionHelper",
-                  "Select the option that best describes your item."
+                  "Select the option that best describes your item.",
                 )}
               >
                 {Object.values(ItemCondition).map((cond) => (
@@ -752,7 +774,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                   disabled={isProcessingImages || isUploading}
                   sx={{ mb: 2 }}
                 >
-                  {t("item.addImages", "Add Images")}
+                  {t("common.addImages", "Add Images")}
                 </Button>
 
                 {/* Image Source Menu */}
@@ -788,6 +810,17 @@ const ItemForm: React.FC<ItemFormProps> = ({
                       </ListItemText>
                     </MenuItem>
                   )}
+
+                  <Divider />
+
+                  <MenuItem onClick={handleSearchBookCover}>
+                    <ListItemIcon>
+                      <SearchIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      {t("item.searchBookCover", "Search Book Cover")}
+                    </ListItemText>
+                  </MenuItem>
                 </Menu>
 
                 {/* Hidden file inputs */}
@@ -951,19 +984,28 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 {isProcessingImages
                   ? t("common.processingImages")
                   : isUploading
-                  ? t("common.uploading")
-                  : loading
-                  ? isEditMode
-                    ? t("common.updating")
-                    : t("common.creating")
-                  : isEditMode
-                  ? t("common.save")
-                  : t("item.create")}
+                    ? t("common.uploading")
+                    : loading
+                      ? isEditMode
+                        ? t("common.updating")
+                        : t("common.creating")
+                      : isEditMode
+                        ? t("common.save")
+                        : t("item.create")}
               </Button>
             </DialogActions>
           </form>
         </Dialog>
       )}
+
+      {/* Book Cover Search Dialog */}
+      <BookCoverSearchDialog
+        open={coverSearchOpen}
+        onClose={() => setCoverSearchOpen(false)}
+        onSelect={handleCoverSelected}
+        isbn={isbn || undefined}
+        itemName={name || undefined}
+      />
 
       <Snackbar
         open={showSuccessSnackbar}

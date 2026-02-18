@@ -183,7 +183,7 @@ export type Mutation = {
   approveTransaction: Transaction;
   cancelTransaction: Scalars['Boolean']['output'];
   createItem: Item;
-  createItemsFromGoodReads: Array<Item>;
+  createItemsFromJSON: Array<Item>;
   createNewsPost: NewsPost;
   createQuickTransaction: Transaction;
   createTransaction: Transaction;
@@ -244,8 +244,8 @@ export type MutationCreateItemArgs = {
 };
 
 
-export type MutationCreateItemsFromGoodReadsArgs = {
-  csv?: InputMaybe<Array<Scalars['String']['input']>>;
+export type MutationCreateItemsFromJsonArgs = {
+  bookJson?: InputMaybe<Array<Scalars['String']['input']>>;
   deposit?: Scalars['Int']['input'];
 };
 
@@ -797,7 +797,7 @@ export type ItemQueryVariables = Exact<{
 }>;
 
 
-export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, clssfctns?: Array<string> | null, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposit?: number | null } | null };
+export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, clssfctns?: Array<string> | null, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposit?: number | null, ISBN?: string | null } | null };
 
 export type CreateTransactionMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -1063,6 +1063,14 @@ export type DuplicateTitlesByUserQueryVariables = Exact<{
 
 
 export type DuplicateTitlesByUserQuery = { __typename?: 'Query', duplicateTitlesByUser: Array<string> };
+
+export type CreateItemsFromJsonMutationVariables = Exact<{
+  bookJson: Array<Scalars['String']['input']> | Scalars['String']['input'];
+  deposit?: Scalars['Int']['input'];
+}>;
+
+
+export type CreateItemsFromJsonMutation = { __typename?: 'Mutation', createItemsFromJSON: Array<{ __typename?: 'Item', id: string, name: string }> };
 
 export type RecentCategoriesQueryVariables = Exact<{
   limit: Scalars['Int']['input'];
@@ -1561,6 +1569,7 @@ export const ItemDocument = gql`
     ownerId
     holderId
     deposit
+    ISBN
   }
 }
     `;
@@ -3112,6 +3121,41 @@ export type DuplicateTitlesByUserQueryHookResult = ReturnType<typeof useDuplicat
 export type DuplicateTitlesByUserLazyQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserLazyQuery>;
 export type DuplicateTitlesByUserSuspenseQueryHookResult = ReturnType<typeof useDuplicateTitlesByUserSuspenseQuery>;
 export type DuplicateTitlesByUserQueryResult = Apollo.QueryResult<DuplicateTitlesByUserQuery, DuplicateTitlesByUserQueryVariables>;
+export const CreateItemsFromJsonDocument = gql`
+    mutation CreateItemsFromJSON($bookJson: [String!]!, $deposit: Int! = 0) {
+  createItemsFromJSON(bookJson: $bookJson, deposit: $deposit) {
+    id
+    name
+  }
+}
+    `;
+export type CreateItemsFromJsonMutationFn = Apollo.MutationFunction<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>;
+
+/**
+ * __useCreateItemsFromJsonMutation__
+ *
+ * To run a mutation, you first call `useCreateItemsFromJsonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateItemsFromJsonMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createItemsFromJsonMutation, { data, loading, error }] = useCreateItemsFromJsonMutation({
+ *   variables: {
+ *      bookJson: // value for 'bookJson'
+ *      deposit: // value for 'deposit'
+ *   },
+ * });
+ */
+export function useCreateItemsFromJsonMutation(baseOptions?: Apollo.MutationHookOptions<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>(CreateItemsFromJsonDocument, options);
+      }
+export type CreateItemsFromJsonMutationHookResult = ReturnType<typeof useCreateItemsFromJsonMutation>;
+export type CreateItemsFromJsonMutationResult = Apollo.MutationResult<CreateItemsFromJsonMutation>;
+export type CreateItemsFromJsonMutationOptions = Apollo.BaseMutationOptions<CreateItemsFromJsonMutation, CreateItemsFromJsonMutationVariables>;
 export const RecentCategoriesDocument = gql`
     query RecentCategories($limit: Int!) {
   recentUpdateCategories(limit: $limit)

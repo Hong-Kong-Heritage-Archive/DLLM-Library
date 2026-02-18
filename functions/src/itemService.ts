@@ -481,8 +481,8 @@ export class ItemService {
         images = data.gsImageUrls;
       }
 
-      const uploadPromises = images.map(async (image) => {
-        const thumbnail = await this._generateThumbnail(image);
+      const uploadPromises = images.map(async (image, index) => {
+        const thumbnail = await this._generateThumbnail(image, itemId, index);
         if (thumbnail) {
           data.thumbnails!.push(thumbnail.url);
           data.gsThumbnailUrls!.push(thumbnail.gs);
@@ -1151,14 +1151,17 @@ export class ItemService {
    */
   private async _generateThumbnail(
     imageUrl: string,
+    itemId: string = "unknown",
+    index: number = 0,
   ): Promise<{ gs: string; url: string } | null> {
     try {
       console.log(`Generating thumbnail for image: ${imageUrl}`);
 
       // Download the original image
       let imageBuffer: Buffer;
+      const isFromGS = imageUrl.startsWith("gs://");
 
-      if (imageUrl.startsWith("gs://")) {
+      if (isFromGS) {
         // Handle Google Storage URL
         const gsPath = imageUrl.replace("gs://", "");
         const pathParts = gsPath.split("/");
@@ -1209,13 +1212,17 @@ export class ItemService {
 
       // Generate thumbnail filename
       const originalFileName = this._extractFileNameFromUrl(imageUrl);
-      const thumbnailFileName =
-        this._generateThumbnailFileName(originalFileName);
+      const thumbnailFileName = this._generateThumbnailFileName(
+        originalFileName,
+        itemId,
+        index,
+        isFromGS,
+      );
 
       // Determine upload path
       let uploadPath: string;
 
-      if (imageUrl.startsWith("gs://")) {
+      if (isFromGS) {
         // Use same bucket and path structure as original
         const gsPath = imageUrl.replace("gs://", "");
         const pathParts = gsPath.split("/");
@@ -1275,19 +1282,24 @@ export class ItemService {
   /**
    * Generate thumbnail filename by adding 'thumbnail' before file extension
    */
-  private _generateThumbnailFileName(originalFileName: string): string {
+  private _generateThumbnailFileName(
+    originalFileName: string,
+    itemId: string,
+    index: number,
+    isFromGS: boolean,
+  ): string {
     const lastDotIndex = originalFileName.lastIndexOf(".");
 
-    if (lastDotIndex === -1) {
+    if (lastDotIndex === -1 || !isFromGS) {
       // No extension found, append thumbnail suffix
-      return `${originalFileName}_thumbnail.jpg`;
+      return `${itemId}_${index}_thumbnail.jpg`;
     }
 
     const nameWithoutExt = originalFileName.substring(0, lastDotIndex);
     const extension = originalFileName.substring(lastDotIndex);
 
     // Convert to .jpg for thumbnails regardless of original format
-    return `${nameWithoutExt}_thumbnail.jpg`;
+    return `${itemId}_${index}_thumbnail.jpg`;
   }
 
   // New helper: apply keyword name range filter to a Firestore query
