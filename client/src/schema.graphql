@@ -284,7 +284,7 @@ type Query {
     offset: Int
     isExchangePointItem: Boolean
   ): [Item!]! # 基於User的搜尋
-  duplicateTitlesByUser(userId: ID!, names: [String!]): [String!]! # 查詢用戶藏品中重複的名稱列表
+  duplicateTitlesByUser(userId: ID!, names: [String!]!): [String!]! # 查詢用戶藏品中重複的名稱列表
   totalItemsCountByUser(
     userId: ID!
     category: [String!]
