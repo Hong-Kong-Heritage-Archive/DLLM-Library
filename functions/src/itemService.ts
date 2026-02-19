@@ -397,6 +397,9 @@ export class ItemService {
     userId: string,
     names: string[],
   ): Promise<string[]> {
+    if (!names || names.length === 0) {
+      return [];
+    }
     let query = db.collection("items").where("ownerId", "==", userId);
     // Note: Firestore does not support 'array-contains-any' with more than 10 values, so we need to batch if names is large
     const MAX_NAMES_PER_QUERY = 10;
