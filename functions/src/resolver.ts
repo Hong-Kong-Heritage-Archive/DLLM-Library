@@ -464,7 +464,7 @@ export const resolvers: Resolvers = {
         args.publishedYear,
         args.language,
         args.deposit,
-        args.ISBN,
+        args.isbn,
       );
       await userService.addItemToUser(owner, newItem);
       return newItem;
