@@ -79,6 +79,7 @@ const ITEM_DETAIL_QUERY = gql`
       ownerId
       holderId
       deposit
+      isbn
     }
   }
 `;
@@ -247,7 +248,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     {
       variables: { itemId: itemId! },
       skip: !itemId,
-    }
+    },
   );
 
   // Query for item config (for classification translation)
@@ -340,7 +341,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
         setErrorMessage(error.message);
         setErrorSnackbarOpen(true);
       },
-    }
+    },
   );
 
   // Add query for binders containing this item
@@ -386,7 +387,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       user.location.latitude,
       user.location.longitude,
       holder.user.location.latitude,
-      holder.user.location.longitude
+      holder.user.location.longitude,
     );
 
     return formatDistance(distance);
@@ -475,7 +476,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
 
   const handleConfirmRequest = async (
     location: TransactionLocation,
-    locationIndex?: number
+    locationIndex?: number,
   ) => {
     if (!itemId) return;
 
@@ -542,7 +543,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     const images = data?.item?.images || [];
     if (images.length > 0) {
       setSelectedImageIndex((prev) =>
-        prev === 0 ? images.length - 1 : prev - 1
+        prev === 0 ? images.length - 1 : prev - 1,
       );
     }
   };
@@ -551,7 +552,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
     const images = data?.item?.images || [];
     if (images.length > 0) {
       setSelectedImageIndex((prev) =>
-        prev === images.length - 1 ? 0 : prev + 1
+        prev === images.length - 1 ? 0 : prev + 1,
       );
     }
   };
@@ -585,7 +586,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
       return false;
     }
     return ownerData.user.pinItems.some(
-      (pinItem: Item) => pinItem.id === itemId
+      (pinItem: Item) => pinItem.id === itemId,
     );
   };
 
@@ -656,7 +657,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       label={translateCategory(
                         segment,
                         configData?.itemConfig?.categoryMaps,
-                        i18n.language
+                        i18n.language,
                       )}
                       size="small"
                       variant={
@@ -966,19 +967,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                       <Typography component="li" variant="body2">
                         {t(
                           "item.responsibility1",
-                          "Responding to future requests from other users"
+                          "Responding to future requests from other users",
                         )}
                       </Typography>
                       <Typography component="li" variant="body2">
                         {t(
                           "item.responsibility2",
-                          "Handing over the item to the next requestor when needed"
+                          "Handing over the item to the next requestor when needed",
                         )}
                       </Typography>
                       <Typography component="li" variant="body2">
                         {t(
                           "item.responsibility3",
-                          "Returning the item to the original owner if requested"
+                          "Returning the item to the original owner if requested",
                         )}
                       </Typography>
                     </Box>
@@ -1039,7 +1040,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                 }}
               >
                 {convertLinksToClickable(
-                  data.item.description?.replace(/#Uncategorized\b/gi, "") || ""
+                  data.item.description?.replace(/#Uncategorized\b/gi, "") ||
+                    "",
                 )}
               </Typography>
             </Box>
@@ -1103,16 +1105,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                   <Chip
                     label={t(
                       `shortStatus.${data.item.status}`,
-                      data.item.status
+                      data.item.status,
                     )}
                     color={
                       data.item.status === "AVAILABLE"
                         ? "success"
                         : data.item.status === "EXCHANGEABLE"
-                        ? "info"
-                        : data.item.status === "GIFT"
-                        ? "warning"
-                        : "default"
+                          ? "info"
+                          : data.item.status === "GIFT"
+                            ? "warning"
+                            : "default"
                     }
                     size="small"
                     sx={{ ml: 1 }}
@@ -1146,7 +1148,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
                     <Chip
                       label={`${getDistanceToOwner()} ${t(
                         "item.away",
-                        "away"
+                        "away",
                       )}`}
                       color="info"
                       size="small"
@@ -1365,8 +1367,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ itemId, user, onBack }) => {
           alert(
             t(
               "auth.resetPasswordInfo",
-              "Please contact support to reset your password."
-            )
+              "Please contact support to reset your password.",
+            ),
           );
         }}
         defaultIsSignUp={authDefaultSignUp}

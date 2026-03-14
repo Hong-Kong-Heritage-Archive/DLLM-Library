@@ -33,6 +33,7 @@ import { AuthDialog } from "./Auth";
 import LanguageSwitcher from "./LanguageSwitcher";
 import NewsForm from "./NewsForm";
 import ClassificationAssignment from "./ClassificationAssignment";
+import OnboardingTour from "./OnboardingTour";
 
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
@@ -291,6 +292,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           <BottomNavigationAction
             label={t("navigation.news", "News")}
             icon={<NewsIcon />}
+            data-tour="news-nav"
           />
           <BottomNavigationAction
             label={t("navigation.exchangePoints", "Exchange Points")}
@@ -306,6 +308,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           <BottomNavigationAction
             label={t("navigation.profile", "Profile")}
             icon={<PersonIcon />}
+            data-tour="profile-nav"
           />
         </BottomNavigation>
       </Paper>
@@ -330,6 +333,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         open={showClassificationAssignment}
         onClose={() => setShowClassificationAssignment(false)}
       />
+
+      {/* Onboarding Tour */}
+      <OnboardingTour isLoggedIn={!!user} isVerified={user?.isVerified} />
     </Box>
   );
 };

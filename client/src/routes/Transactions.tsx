@@ -31,6 +31,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
+import { useNavigateBack } from "../hook/useNavigateBack";
 import { User, Transaction, TransactionStatus } from "../generated/graphql";
 
 const GET_USER_TRANSACTIONS = gql`
@@ -119,6 +120,7 @@ const TransactionsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useOutletContext<OutletContext>();
   const [activeTab, setActiveTab] = useState(0);
+  const handleBack = useNavigateBack("/");
 
   const {
     data: allTransactionsData,
@@ -141,10 +143,6 @@ const TransactionsPage: React.FC = () => {
     variables: { userId: user?.id! },
     skip: !user?.id,
   });
-
-  const handleBack = () => {
-    navigate(-1);
-  };
 
   const handleTransactionClick = (transactionId: string) => {
     navigate(`/transaction/${transactionId}`);
@@ -201,7 +199,7 @@ const TransactionsPage: React.FC = () => {
   const renderTransactionList = (
     transactions: Transaction[],
     loading: boolean,
-    error: any
+    error: any,
   ) => {
     if (loading) {
       return (
@@ -233,21 +231,21 @@ const TransactionsPage: React.FC = () => {
           <Typography variant="h6" color="text.secondary" gutterBottom>
             {activeTab === 0
               ? t(
-                "transactions.noOpenTransactions",
-                "No open transactions found."
-              )
+                  "transactions.noOpenTransactions",
+                  "No open transactions found.",
+                )
               : t("transactions.noTransactions", "No transactions found.")}
           </Typography>
           <Typography variant="body2" color="text.disabled">
             {activeTab === 0
               ? t(
-                "transactions.noOpenTransactionsHint",
-                "All your transactions are completed or cancelled."
-              )
+                  "transactions.noOpenTransactionsHint",
+                  "All your transactions are completed or cancelled.",
+                )
               : t(
-                "transactions.noTransactionsHint",
-                "Start by borrowing or lending items in the community."
-              )}
+                  "transactions.noTransactionsHint",
+                  "Start by borrowing or lending items in the community.",
+                )}
           </Typography>
         </Box>
       );
@@ -293,15 +291,26 @@ const TransactionsPage: React.FC = () => {
               <ListItemText
                 sx={{ ml: 2 }}
                 primary={
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                    <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      component="span"
+                      sx={{ fontWeight: 600 }}
+                    >
                       {transaction.item?.name}
                     </Typography>
                     <Chip
                       icon={getStatusIcon(transaction.status)}
                       label={t(
                         `transactions.status.${transaction.status.toLowerCase()}`,
-                        transaction.status
+                        transaction.status,
                       )}
                       color={getStatusColor(transaction.status) as any}
                       size="small"
@@ -311,7 +320,11 @@ const TransactionsPage: React.FC = () => {
                 }
                 secondary={
                   <Box sx={{ mt: 1 }}>
-                    <Typography variant="body2" color="text.primary" sx={{ mb: 0.5 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.primary"
+                      sx={{ mb: 0.5 }}
+                    >
                       {t("transactions.requestedBy", "Requested by")}:{" "}
                       <strong>
                         {transaction.requestor?.nickname ||
@@ -383,7 +396,10 @@ const TransactionsPage: React.FC = () => {
             {t("transactions.title", "My Transactions")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {t("transactions.subtitle", "View and manage your item exchange records")}
+            {t(
+              "transactions.subtitle",
+              "View and manage your item exchange records",
+            )}
           </Typography>
         </Box>
       </Box>
@@ -407,7 +423,9 @@ const TransactionsPage: React.FC = () => {
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Badge badgeContent={openTransactionsCount} color="error">
-                  <Box>{t("transactions.openTransactions", "Open Transactions")}</Box>
+                  <Box>
+                    {t("transactions.openTransactions", "Open Transactions")}
+                  </Box>
                 </Badge>
               </Box>
             }
@@ -418,7 +436,9 @@ const TransactionsPage: React.FC = () => {
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Badge badgeContent={allTransactionsCount} color="primary">
-                  <Box>{t("transactions.allTransactions", "All Transactions")}</Box>
+                  <Box>
+                    {t("transactions.allTransactions", "All Transactions")}
+                  </Box>
                 </Badge>
               </Box>
             }
@@ -433,7 +453,7 @@ const TransactionsPage: React.FC = () => {
         {renderTransactionList(
           openTransactionsData?.openTransactionsByUser || [],
           openTransactionsLoading,
-          openTransactionsError
+          openTransactionsError,
         )}
       </TabPanel>
 
@@ -441,7 +461,7 @@ const TransactionsPage: React.FC = () => {
         {renderTransactionList(
           allTransactionsData?.transactionsByUser || [],
           allTransactionsLoading,
-          allTransactionsError
+          allTransactionsError,
         )}
       </TabPanel>
     </Container>

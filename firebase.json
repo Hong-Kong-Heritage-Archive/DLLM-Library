@@ -57,6 +57,22 @@
         "function": "graphql"
       },
       {
+        "source": "/loan-items/**",
+        "function": "graphql"
+      },      
+      {
+        "source": "/news",
+        "function": "graphql"
+      },   
+      {
+        "source": "/exchange-points",
+        "function": "graphql"
+      }, 
+            {
+        "source": "/profile",
+        "function": "graphql"
+      },        
+      {
         "source": "/user/**",
         "function": "graphql"
       },
@@ -65,13 +81,21 @@
         "function": "graphql"
       },
       {
+        "source": "/transactions",
+        "function": "graphql"
+      },      
+      {
         "source": "/",
         "function": "graphql"
       },
       {
+        "source": "/*",
+        "destination": "/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
-      }
+      }     
     ]
   },
   "functions": [

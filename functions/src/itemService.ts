@@ -47,7 +47,7 @@ export class ItemService {
     classifications: string[],
     category: string[],
     status?: string | null,
-    keyword?: string | null
+    keyword?: string | null,
   ): firebase.firestore.Query {
     let query = db.collection("items").where("geohash", ">=", "");
     if (keyword && keyword.length > 0) {
@@ -70,7 +70,7 @@ export class ItemService {
     queryBuilder: (offset: number) => firebase.firestore.Query,
     keyword: string | null | undefined,
     requestedLimit: number,
-    initialOffset: number = 0
+    initialOffset: number = 0,
   ): Promise<Item[]> {
     const results: Item[] = [];
     let currentOffset = initialOffset;
@@ -86,7 +86,7 @@ export class ItemService {
         snapshot.docs.map(async (doc) => {
           const item = await this._itemQueryToItem(doc);
           batchResults.push(item);
-        })
+        }),
       );
 
       // Apply keyword filtering
@@ -109,23 +109,23 @@ export class ItemService {
     status: string,
     keyword: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
       (currentOffset) =>
         this._itemsQuery(classifications, category, status, keyword).offset(
-          currentOffset
+          currentOffset,
         ),
       keyword,
       limit,
-      offset
+      offset,
     );
   }
   async totalItemsCount(
     classifications: string[],
     category: string[],
     status: string,
-    keyword: string
+    keyword: string,
   ): Promise<number> {
     let query = this._itemsQuery(classifications, category, status, keyword);
     const snapshot = await query.get();
@@ -140,7 +140,7 @@ export class ItemService {
     status: string,
     keyword: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<Item[]> {
     let query = this._itemsQuery(classifications, category, status, keyword);
     const items = this.mapService.getLocationsByRadius(
@@ -148,16 +148,14 @@ export class ItemService {
       { latitude, longitude },
       radiusKm,
       limit,
-      offset
+      offset,
     );
     const filteredItems: Item[] = [];
     await Promise.all(
-      (
-        await items
-      ).map(async (item) => {
+      (await items).map(async (item) => {
         const rv = await this._itemModelToItem(item);
         filteredItems.push(rv);
-      })
+      }),
     );
 
     // Ensure results satisfy full keyword token match on nameIndex
@@ -171,13 +169,13 @@ export class ItemService {
     classifications: string[],
     category: string[],
     status: string,
-    keyword: string
+    keyword: string,
   ): Promise<number> {
     let query = this._itemsQuery(classifications, category, status, keyword);
     const count = await this.mapService.getLocationsByRadiusCount(
       query,
       { latitude, longitude },
-      radiusKm
+      radiusKm,
     );
     return count;
   }
@@ -188,7 +186,7 @@ export class ItemService {
     status?: string,
     keyword?: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
       (currentOffset) => {
@@ -202,7 +200,7 @@ export class ItemService {
       },
       keyword,
       limit,
-      offset
+      offset,
     );
   }
 
@@ -212,7 +210,7 @@ export class ItemService {
     status?: string,
     keyword?: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
       (currentOffset) => {
@@ -226,7 +224,7 @@ export class ItemService {
       },
       keyword,
       limit,
-      offset
+      offset,
     );
   }
 
@@ -236,7 +234,7 @@ export class ItemService {
     status?: string,
     keyword?: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<Item[]> {
     return this._queryWithKeywordPagination(
       (currentOffset) => {
@@ -248,12 +246,12 @@ export class ItemService {
       },
       keyword,
       limit,
-      offset
+      offset,
     );
   }
 
   async itemModelById(
-    itemId: string
+    itemId: string,
   ): Promise<firebase.firestore.DocumentData | null> {
     const itemDoc = await db.collection("items").doc(itemId).get();
     if (!itemDoc.exists) return null;
@@ -293,7 +291,7 @@ export class ItemService {
           snapshot.docs.map(async (doc) => {
             const item = await this._itemQueryToItem(doc);
             results.push(item);
-          })
+          }),
         );
       }
     }
@@ -307,7 +305,7 @@ export class ItemService {
     keyword?: string,
     limit: number = 20,
     offset: number = 0,
-    isExchangePointItem: boolean = false
+    isExchangePointItem: boolean = false,
   ): Promise<Item[]> {
     if (isExchangePointItem) {
       if (!this.userService) {
@@ -318,7 +316,7 @@ export class ItemService {
         userId,
         category && category.length > 0 ? category : undefined,
         limit,
-        offset
+        offset,
       );
 
       if (cachedItemIds.length === 0) {
@@ -338,7 +336,7 @@ export class ItemService {
         },
         keyword,
         limit,
-        offset
+        offset,
       );
     }
   }
@@ -348,7 +346,7 @@ export class ItemService {
     category: string[],
     status?: string,
     keyword?: string,
-    isExchangePointItem: boolean = false
+    isExchangePointItem: boolean = false,
   ): Promise<number> {
     if (isExchangePointItem) {
       if (!this.userService) {
@@ -359,7 +357,7 @@ export class ItemService {
         userId,
         category && category.length > 0 ? category : undefined,
         1000000, // Large limit to get all cached items
-        0
+        0,
       );
 
       if (cachedItemIds.length === 0) {
@@ -374,12 +372,12 @@ export class ItemService {
       }
       if (keyword) {
         items = items.filter((item) =>
-          item.name.toLowerCase().includes(keyword.toLowerCase())
+          item.name.toLowerCase().includes(keyword.toLowerCase()),
         );
       }
 
       console.debug(
-        `Total ${items.length} cached items for exchange point user ${userId} after filtering`
+        `Total ${items.length} cached items for exchange point user ${userId} after filtering`,
       );
 
       return items.length;
@@ -388,10 +386,34 @@ export class ItemService {
       query = query.where("ownerId", "==", userId);
       const snapshot = await query.get();
       console.debug(
-        `Total ${snapshot.size} items for user ${userId} with category ${category}, status ${status}, keyword ${keyword}`
+        `Total ${snapshot.size} items for user ${userId} with category ${category}, status ${status}, keyword ${keyword}`,
       );
       return snapshot.size;
     }
+  }
+
+  async duplicateTitlesByUser(
+    userId: string,
+    names: string[],
+  ): Promise<string[]> {
+    if (!names || names.length === 0) {
+      return [];
+    }
+    let query = db.collection("items").where("ownerId", "==", userId);
+    // Note: Firestore does not support 'array-contains-any' with more than 10 values, so we need to batch if names is large
+    const MAX_NAMES_PER_QUERY = 10;
+    const duplicateTitles: string[] = [];
+    for (let i = 0; i < names.length; i += MAX_NAMES_PER_QUERY) {
+      const batchNames = names.slice(i, i + MAX_NAMES_PER_QUERY);
+      const snapshot = await query.where("name", "in", batchNames).get();
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.name) {
+          duplicateTitles.push(data.name);
+        }
+      });
+    }
+    return duplicateTitles;
   }
 
   async itemCategoriesByUser(userId: string) {
@@ -407,7 +429,7 @@ export class ItemService {
         "",
         "",
         batchSize,
-        offset
+        offset,
       );
       if (!batchItems || batchItems.length === 0) break;
       items.push(...batchItems);
@@ -432,7 +454,7 @@ export class ItemService {
     query: firebase.firestore.QueryDocumentSnapshot<
       firebase.firestore.DocumentData,
       firebase.firestore.DocumentData
-    >
+    >,
   ): Promise<Item> {
     const itemId = query.id;
     const data = query.data();
@@ -442,7 +464,7 @@ export class ItemService {
   }
 
   async _itemModelToItem(
-    docData: firebase.firestore.DocumentData
+    docData: firebase.firestore.DocumentData,
   ): Promise<Item> {
     const itemId = docData.id;
     const data = docData as ItemModel;
@@ -461,23 +483,11 @@ export class ItemService {
         images = data.gsImageUrls;
       }
 
-      // Configure thumbnail generation
-      const thumbnailConfig: ThumbnailConfig = {
-        scaleFactor: 0.25, // 1/4 size
-        quality: 40,
-        filenameSuffix: "_thumbnail",
-        preserveDirectory: true,
-        format: "jpeg",
-      };
-
-      const uploadPromises = images.map(async (image) => {
-        const thumbnailResult = await generateThumbnail(image, thumbnailConfig);
-        if (thumbnailResult) {
-          data.thumbnails!.push(thumbnailResult.url);
-          data.gsThumbnailUrls!.push(thumbnailResult.gs);
-          console.log(
-            `Generated thumbnail: ${thumbnailResult.width}x${thumbnailResult.height}, ${thumbnailResult.size} bytes`
-          );
+      const uploadPromises = images.map(async (image, index) => {
+        const thumbnail = await this._generateThumbnail(image, itemId, index);
+        if (thumbnail) {
+          data.thumbnails!.push(thumbnail.url);
+          data.gsThumbnailUrls!.push(thumbnail.gs);
         }
       });
 
@@ -494,12 +504,12 @@ export class ItemService {
           });
           data.updated = updateTime;
           console.log(
-            `Updated item ${itemId} with ${data.thumbnails.length} thumbnails`
+            `Updated item ${itemId} with ${data.thumbnails.length} thumbnails`,
           );
         } catch (error) {
           console.error(
             `Failed to update item ${itemId} with thumbnails:`,
-            error
+            error,
           );
         }
       }
@@ -529,7 +539,7 @@ export class ItemService {
     if (data.description) {
       if (!data.description.includes("#")) {
         updateDescription = `${data.description}\n\n#${data.category.join(
-          " #"
+          " #",
         )}`;
       }
     } else {
@@ -567,7 +577,8 @@ export class ItemService {
     images: string[],
     publishedYear: number,
     language: Language,
-    deposit: number
+    deposit: number,
+    ISBN?: string | null | undefined,
   ): Promise<Item> {
     let hash = null;
     if (owner?.location) {
@@ -576,7 +587,130 @@ export class ItemService {
         owner.location.longitude,
       ]);
     }
+    if (ISBN) {
+      try {
+        const bookInfo = await this._getBookInfoByISBN(ISBN);
+        if (bookInfo) {
+          publishedYear = bookInfo.publishedYear;
+          if (bookInfo.authors) {
+            for (const author of bookInfo.authors) {
+              if (!category.includes(author)) {
+                category.push(author);
+                description += `\n\n#${author}`;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to fetch book info for ISBN ${ISBN}:`, error);
+      }
+    }
+    const newItem = await this._createItem(
+      owner,
+      hash,
+      name,
+      description,
+      condition,
+      category,
+      status,
+      images,
+      publishedYear,
+      language,
+      deposit,
+      ISBN,
+    );
+    return newItem;
+  }
 
+  async createItemsFromJSON(
+    owner: User,
+    bookJson: string[],
+    deposit: number = 0,
+  ): Promise<Item[]> {
+    let hash = null;
+    if (owner?.location) {
+      hash = geofire.geohashForLocation([
+        owner.location.latitude,
+        owner.location.longitude,
+      ]);
+    }
+    const createdItems: Item[] = [];
+    for (const bookData of bookJson) {
+      // bookData is a JSON string, we need to parse it first
+      let book;
+      try {
+        book = JSON.parse(bookData);
+      } catch (error) {
+        console.error(`Failed to parse book data: ${bookData}`, error);
+        continue; // Skip this entry and move to the next one
+      }
+
+      const name = book.title || "Untitled";
+      let description = `Imported from JSON\n\n#${book.author}`;
+      const condition = ItemCondition.Good; // Default condition, can be updated by user later
+      const category = [book.author]; // Use author as category, can be updated by user later
+      const status = ItemStatus.Available;
+      let publishedYear = parseInt(book.publishedYear) || 0;
+      const language = Language.ZhHk; // Default language, can be updated by user later
+      const isbn = book.isbn13 || book.isbn || null;
+
+      console.debug(
+        `Creating item for book: ${name}, author: ${book.author}, publishedYear: ${publishedYear}, ISBN: ${isbn}`,
+      );
+      if (isbn) {
+        try {
+          const bookInfo = await this._getBookInfoByISBN(isbn);
+          console.debug(`Fetched book info for ISBN ${isbn}:`, bookInfo);
+          if (bookInfo) {
+            publishedYear =
+              publishedYear !== 0 ? publishedYear : bookInfo.publishedYear;
+            if (bookInfo.authors) {
+              for (const author of bookInfo.authors) {
+                if (!category.includes(author)) {
+                  category.push(author);
+                  description += `\n\n#${author}`;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to fetch book info for ISBN ${isbn}:`, error);
+        }
+      }
+
+      const newItem = await this._createItem(
+        owner,
+        hash,
+        name,
+        description,
+        condition,
+        category,
+        status,
+        [],
+        publishedYear,
+        language,
+        deposit,
+        isbn,
+      );
+      createdItems.push(newItem);
+    }
+    return createdItems;
+  }
+
+  async _createItem(
+    owner: User,
+    ownerGeoHash: string | null = null,
+    name: string,
+    description: string,
+    condition: ItemCondition,
+    category: string[],
+    status: ItemStatus,
+    images: string[],
+    publishedYear: number,
+    language: Language,
+    deposit: number,
+    isbn?: string | null | undefined,
+  ): Promise<Item> {
     let gsImageUrls: string[] | null = null;
     let publicImageUrls: string[] | null = null;
 
@@ -594,7 +728,7 @@ export class ItemService {
           } catch (error) {
             console.error(
               `Failed to get public URL for image ${image}:`,
-              error
+              error,
             );
           }
         } else {
@@ -621,6 +755,7 @@ export class ItemService {
       // Item indexing
       nameIndex: nameIndex,
       nameIndexVer: this.ITEM_INDEX_VER,
+      isbn: isbn || null,
     };
 
     // Only add optional fields if they have valid values
@@ -644,8 +779,8 @@ export class ItemService {
       itemData.location = owner.location;
     }
 
-    if (hash) {
-      itemData.geohash = hash;
+    if (ownerGeoHash) {
+      itemData.geohash = ownerGeoHash;
     }
 
     const docRef = await db.collection("items").add(itemData);
@@ -661,13 +796,13 @@ export class ItemService {
     if (category && category.length > 0) {
       // If user category is empty, then initialize it
       const itemCategory = await this.categoryService.getUserItemCategory(
-        owner.id
+        owner.id,
       );
       if (!itemCategory || itemCategory.length === 0) {
         const categoryCount = await this.itemCategoriesByUser(owner.id);
         await this.categoryService.initializeUserCategories(
           owner.id,
-          categoryCount
+          categoryCount,
         );
       }
       await this.categoryService.upsertCategories(owner, category);
@@ -688,7 +823,8 @@ export class ItemService {
     description?: string,
     images?: string[],
     deposit?: number,
-    clssfctns?: string[]
+    clssfctns?: string[],
+    isbn?: string | null | undefined,
   ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await this.itemModelById(itemId);
@@ -699,7 +835,7 @@ export class ItemService {
     // Verify the user owns this item
     if (existingData.ownerId !== user.id && user.role !== Role.Admin) {
       throw new Error(
-        `User ${user.id} does not have permission to update item ${itemId}`
+        `User ${user.id} does not have permission to update item ${itemId}`,
       );
     }
 
@@ -722,7 +858,7 @@ export class ItemService {
           } catch (error) {
             console.error(
               `Failed to get public URL for image ${image}:`,
-              error
+              error,
             );
           }
         } else {
@@ -840,22 +976,22 @@ export class ItemService {
       try {
         // Calculate categories to add and remove
         const categoriesToAdd = newCategories.filter(
-          (cat) => !oldCategories.includes(cat)
+          (cat) => !oldCategories.includes(cat),
         );
         const categoriesToRemove = oldCategories.filter(
-          (cat) => !newCategories.includes(cat)
+          (cat) => !newCategories.includes(cat),
         );
 
         console.debug(`Categories to add: [${categoriesToAdd.join(", ")}]`);
         console.debug(
-          `Categories to remove: [${categoriesToRemove.join(", ")}]`
+          `Categories to remove: [${categoriesToRemove.join(", ")}]`,
         );
 
         // Process removals first to avoid potential conflicts
         if (categoriesToRemove.length > 0) {
           await this.categoryService.reduceCategories(user, categoriesToRemove);
           console.debug(
-            `Removed categories: [${categoriesToRemove.join(", ")}]`
+            `Removed categories: [${categoriesToRemove.join(", ")}]`,
           );
         }
 
@@ -869,7 +1005,7 @@ export class ItemService {
       } catch (error) {
         console.error(
           `Failed to update category counts for item ${itemId}:`,
-          error
+          error,
         );
         // Consider whether to throw here or just log the error
         // For now, we'll log and continue since the item update succeeded
@@ -886,7 +1022,7 @@ export class ItemService {
 
   async updateUserItemsLocation(
     userId: string,
-    location: Location | null
+    location: Location | null,
   ): Promise<void> {
     if (!userId) {
       console.warn("Cannot update items: Missing user ID");
@@ -895,7 +1031,7 @@ export class ItemService {
 
     if (!location) {
       console.debug(
-        `Skipping location update for user ${userId}: No location provided`
+        `Skipping location update for user ${userId}: No location provided`,
       );
       return;
     }
@@ -931,7 +1067,7 @@ export class ItemService {
       });
       await batch.commit();
       console.log(
-        `Updated location for ${itemsSnapshot.size} items belonging to user ${userId}`
+        `Updated location for ${itemsSnapshot.size} items belonging to user ${userId}`,
       );
       updateTime++;
     }
@@ -970,7 +1106,7 @@ export class ItemService {
   async recentAddedItems(
     limit: number = 20,
     offset: number = 0,
-    category?: string[]
+    category?: string[],
   ): Promise<Item[]> {
     let query = db.collection("items").orderBy("created", "desc");
     if (category && category.length > 0) {
@@ -982,14 +1118,14 @@ export class ItemService {
       snapshot.docs.map(async (doc) => {
         const rv = await this._itemQueryToItem(doc);
         items.push(rv);
-      })
+      }),
     );
     return items;
   }
 
   async recentItemsWithoutClassifications(
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<Item[]> {
     // for the eariest items with classifications
     let query = db
@@ -1006,7 +1142,7 @@ export class ItemService {
         if (data.updated) {
           earliestClassificationsUpdatedAt = data.updated;
         }
-      })
+      }),
     );
     let itemsQuery = db.collection("items").orderBy("updated", "desc");
 
@@ -1015,7 +1151,7 @@ export class ItemService {
       itemsQuery = itemsQuery.where(
         "updated",
         "<",
-        earliestClassificationsUpdatedAt
+        earliestClassificationsUpdatedAt,
       );
     }
     const itemsSnapshot = await itemsQuery.limit(limit).get();
@@ -1026,15 +1162,174 @@ export class ItemService {
           const rv = await this._itemQueryToItem(doc);
           items.push(rv);
         }
-      })
+      }),
     );
     return items;
+  }
+
+  /**
+   * Generate thumbnail for an image by downloading, resizing to 1/4 dimensions,
+   * and uploading back to Google Cloud Storage
+   * @param imageUrl - The original image URL (can be HTTP or GS URL)
+   * @returns Promise with thumbnail URLs (gs and http) or null if failed
+   */
+  private async _generateThumbnail(
+    imageUrl: string,
+    itemId: string = "unknown",
+    index: number = 0,
+  ): Promise<{ gs: string; url: string } | null> {
+    try {
+      console.log(`Generating thumbnail for image: ${imageUrl}`);
+
+      // Download the original image
+      let imageBuffer: Buffer;
+      const isFromGS = imageUrl.startsWith("gs://");
+
+      if (isFromGS) {
+        // Handle Google Storage URL
+        const gsPath = imageUrl.replace("gs://", "");
+        const pathParts = gsPath.split("/");
+        const bucketName = pathParts[0];
+        const filePath = pathParts.slice(1).join("/");
+
+        const bucket = firebase.storage().bucket(bucketName);
+        const file = bucket.file(filePath);
+
+        const [fileBuffer] = await file.download();
+        imageBuffer = fileBuffer;
+      } else {
+        // Handle HTTP URL
+        const response = await axios.get(imageUrl, {
+          responseType: "arraybuffer",
+          timeout: 30000, // 30 second timeout
+        });
+        imageBuffer = Buffer.from(response.data);
+      }
+
+      // Get original image metadata
+      const image = sharp(imageBuffer);
+      const metadata = await image.metadata();
+
+      if (!metadata.width || !metadata.height) {
+        console.error(`Could not get image dimensions for: ${imageUrl}`);
+        return null;
+      }
+
+      console.log(
+        `Original image dimensions: ${metadata.width}x${metadata.height}`,
+      );
+
+      // Calculate new dimensions (1/4 of original)
+      const newWidth = Math.floor(metadata.width / 4);
+      const newHeight = Math.floor(metadata.height / 4);
+
+      console.log(`Thumbnail dimensions: ${newWidth}x${newHeight}`);
+
+      // Generate thumbnail
+      const thumbnailBuffer = await image
+        .resize(newWidth, newHeight, {
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .jpeg({ quality: 40 }) // Convert to JPEG with 40% quality for smaller file size
+        .toBuffer();
+
+      // Generate thumbnail filename
+      const originalFileName = this._extractFileNameFromUrl(imageUrl);
+      const thumbnailFileName = this._generateThumbnailFileName(
+        originalFileName,
+        itemId,
+        index,
+        isFromGS,
+      );
+
+      // Determine upload path
+      let uploadPath: string;
+
+      if (isFromGS) {
+        // Use same bucket and path structure as original
+        const gsPath = imageUrl.replace("gs://", "");
+        const pathParts = gsPath.split("/");
+        const originalPath = pathParts.slice(1).join("/");
+        const pathDir = originalPath.substring(
+          0,
+          originalPath.lastIndexOf("/"),
+        );
+        uploadPath = `${pathDir}/${thumbnailFileName}`;
+
+        const gsUrl = await UploadBufferToGCS(
+          uploadPath,
+          thumbnailBuffer,
+          "image/jpeg",
+        );
+        const publicUrl = await GetPublicUrlForGSFile(gsUrl);
+
+        return { gs: gsUrl, url: publicUrl };
+      } else {
+        // Create upload path: thumbnails/{generated_filename}
+        uploadPath = `thumbnails/${thumbnailFileName}`;
+        const gsUrl = await UploadBufferToGCS(
+          uploadPath,
+          thumbnailBuffer,
+          "image/jpeg",
+        );
+        const publicUrl = await GetPublicUrlForGSFile(gsUrl);
+
+        console.log(`Thumbnail generated successfully: ${gsUrl}`);
+        return { gs: gsUrl, url: publicUrl };
+      }
+    } catch (error) {
+      console.error(`Failed to generate thumbnail for ${imageUrl}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Extract filename from URL
+   */
+  private _extractFileNameFromUrl(url: string): string {
+    try {
+      if (url.startsWith("gs://")) {
+        const pathParts = url.split("/");
+        return pathParts[pathParts.length - 1];
+      } else {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split("/");
+        return pathParts[pathParts.length - 1] || "image.jpg";
+      }
+    } catch (error) {
+      console.error(`Error extracting filename from URL: ${url}`, error);
+      return `image_${Date.now()}.jpg`;
+    }
+  }
+
+  /**
+   * Generate thumbnail filename by adding 'thumbnail' before file extension
+   */
+  private _generateThumbnailFileName(
+    originalFileName: string,
+    itemId: string,
+    index: number,
+    isFromGS: boolean,
+  ): string {
+    const lastDotIndex = originalFileName.lastIndexOf(".");
+
+    if (lastDotIndex === -1 || !isFromGS) {
+      // No extension found, append thumbnail suffix
+      return `${itemId}_${index}_thumbnail.jpg`;
+    }
+
+    const nameWithoutExt = originalFileName.substring(0, lastDotIndex);
+    const extension = originalFileName.substring(lastDotIndex);
+
+    // Convert to .jpg for thumbnails regardless of original format
+    return `${itemId}_${index}_thumbnail.jpg`;
   }
 
   // New helper: apply keyword name range filter to a Firestore query
   private applyKeywordNameFilter(
     query: firebase.firestore.Query<firebase.firestore.DocumentData>,
-    keyword: string
+    keyword: string,
   ): firebase.firestore.Query<firebase.firestore.DocumentData> {
     /* Keep the classical implementation for reference
     if (keyword && String(keyword).trim().length > 0) {
@@ -1134,7 +1429,7 @@ export class ItemService {
 
         console.log(
           "generateItemIndexIncremental: Generating index for version ",
-          this.ITEM_INDEX_VER
+          this.ITEM_INDEX_VER,
         );
 
         const totalCount = (
@@ -1146,7 +1441,7 @@ export class ItemService {
         ).data().count;
 
         console.log(
-          `generateItemIndexIncremental: total ${totalCount} items to process`
+          `generateItemIndexIncremental: total ${totalCount} items to process`,
         );
 
         while (true) {
@@ -1176,7 +1471,7 @@ export class ItemService {
           await batch.commit();
           processed += snap.size;
           console.log(
-            `generateItemIndexIncremental: processed total ${processed} of ${totalCount} previously remaining items`
+            `generateItemIndexIncremental: processed total ${processed} of ${totalCount} previously remaining items`,
           );
 
           lastDoc = snap.docs[snap.docs.length - 1];
@@ -1237,5 +1532,43 @@ export class ItemService {
     }
 
     return results;
+  }
+
+  async _getBookInfoByISBN(isbn: string): Promise<{
+    title: string;
+    authors: string[];
+    publishedYear: number;
+  } | null> {
+    try {
+      const queryUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;
+      console.debug(
+        `Fetching book info for ISBN ${isbn} from Google Books API:`,
+        {
+          queryUrl,
+        },
+      );
+      const response = await axios.get(queryUrl, { timeout: 10000 });
+      console.debug(
+        `Google Books API response for ISBN ${isbn}:`,
+        response.data,
+      );
+      if (
+        response.data.totalItems > 0 &&
+        response.data.items &&
+        response.data.items.length > 0
+      ) {
+        const volumeInfo = response.data.items[0].volumeInfo;
+        return {
+          title: volumeInfo.title || "",
+          authors: volumeInfo.authors || [],
+          publishedYear: volumeInfo.publishedDate
+            ? parseInt(volumeInfo.publishedDate.substring(0, 4))
+            : 0,
+        };
+      }
+    } catch (error) {
+      console.error(`Failed to fetch book info for ISBN ${isbn}:`, error);
+    }
+    return null;
   }
 }

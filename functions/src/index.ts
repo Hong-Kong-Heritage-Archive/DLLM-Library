@@ -75,7 +75,7 @@ async function startApolloServer() {
         console.log("user", loginUser);
         return { loginUser };
       },
-    })
+    }),
   );
 
   // Set up SSR routes
@@ -121,10 +121,33 @@ async function startApolloServer() {
     }
   });
 
+  // Handle /news
+  app.get("/news", (req, res) => {
+    // Serve the index.html with the redirect parameter embedded in the URL
+    handleHomePageSSR(req, res, "/news");
+  });
+
+  // Handle exchange point page
+  app.get("/exchange-points", (req, res) => {
+    // Serve the index.html with the redirect parameter embedded in the URL
+    handleHomePageSSR(req, res, "/exchange-points");
+  });
+
+  // handle loan-items
+  app.get("/loan-items", (req, res) => {
+    // Serve the index.html with the redirect parameter embedded in the URL
+    handleHomePageSSR(req, res, "/loan-items");
+  });
+
+  // handle other routes (fallback to home page)
+  app.get("*", (req, res) => {
+    handleHomePageSSR(req, res);
+  });
+
   // For local development, we need to listen on a port
   if (process.env.NODE_ENV !== "production") {
     await new Promise<void>((resolve) =>
-      httpServer.listen({ port: PORT }, resolve)
+      httpServer.listen({ port: PORT }, resolve),
     );
     console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
   }

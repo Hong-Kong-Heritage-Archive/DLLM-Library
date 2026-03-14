@@ -55,6 +55,32 @@
       "popular": "熱門項目"
     }
   },
+  "onboarding": {
+    "skip": "跳過",
+    "next": "下一步",
+    "prev": "上一步",
+    "finish": "知道了！",
+    "guest": {
+      "signIn": {
+        "title": "登入或註冊",
+        "description": "點擊這裡登入您的帳戶或創建新帳戶，開始借閱和分享物品！"
+      },
+      "news": {
+        "title": "查看我們的新聞",
+        "description": "了解社區公告、活動，並了解更多關於我們圖書館運作方式的資訊。"
+      }
+    },
+    "user": {
+      "browseItems": {
+        "title": "瀏覽可用物品",
+        "description": "點擊這裡查看所有可用物品。找到喜歡的物品後，可以申請借閱！"
+      },
+      "addItem": {
+        "title": "分享您的物品",
+        "description": "有東西想分享？點擊這裡將您的物品添加到社區圖書館，供他人借閱。"
+      }
+    }
+  },
   "common": {
     "name": "名稱",
     "tags": "標籤",
@@ -195,10 +221,15 @@
     "fileNotImage": "檔案 {{fileName}} 不是圖片",
     "fileTooLarge": "檔案 {{fileName}} 太大。最大大小為 50MB",
     "imageProcessingError": "處理圖片時發生錯誤：{{error}}",
+    "searchBookCover": "搜尋書籍封面",
+    "bookCoverSearchPlaceholder": "輸入 ISBN 或書名",
+    "bookCoverSearchError": "搜尋書籍封面失敗",
+    "bookCoverFetchError": "無法取得所選封面圖片",
+    "noCoverFound": "找不到書籍封面",
+    "processingCover": "正在處理封面圖片...",
     "uploadingImages": "正在上傳圖片... {{progress}}%",
     "previewAlt": "預覽 {{index}}",
     "createSuccess": "項目創建成功！",
-    "addImages": "添加圖片",
     "selectFromGallery": "從相冊選擇",
     "takePhoto": "拍攝照片",
     "invalidFileType": "{{fileName}} 不是有效的圖片文件",
@@ -532,6 +563,7 @@
     "ownerHasItem": "物主擁有該物品",
     "participants": "相關人員",
     "roleOwner": "擁有者",
+    "roleHolder": "持有者",
     "roleRequestor": "請求者",
     "roleReceiver": "接收者",
     "ownerInstructionPending": "您收到了此物品的請求。請審查請求者的資訊並決定是否批准或取消此交易。",
@@ -823,5 +855,26 @@
     "containingBinders": "包含此項目的資料夾",
     "foundInBinders": "此項目出現在 {{count}} 個資料夾中"
 
+  "goodreads": {
+    "title": "從 GoodReads 匯入",
+    "importButton": "從 GoodReads 匯入",
+    "instructions": "上傳您的 GoodReads CSV 匯出檔案以匯入書籍。您可以在 GoodReads 的「我的書籍 → 匯入和匯出 → 匯出書庫」中匯出您的書庫。",
+    "selectFile": "選擇 CSV 檔案",
+    "columnTitle": "書名",
+    "columnAuthor": "作者",
+    "columnPublisher": "出版社",
+    "columnStatus": "狀態",
+    "booksFound": "找到 {{total}} 本書，已選擇 {{selected}} 本",
+    "existingCount": "{{count}} 本已在您的書庫中",
+    "existing": "已存在",
+    "checkingDuplicates": "正在檢查已有書籍...",
+    "importing": "正在匯入書籍...",
+    "importError": "匯入書籍失敗。",
+    "import": "匯入",
+    "imported": "已匯入",
+    "importSuccess": "成功匯入 {{count}} 本書！",
+    "pageImportSuccess": "第 {{page}} 頁匯入成功！",
+    "allImported": "所有頁面已匯入完成！您現在可以返回。",
+    "pagesImported": "已匯入 {{done}} / {{total}} 頁"
   }
 }

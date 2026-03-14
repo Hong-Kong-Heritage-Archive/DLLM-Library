@@ -68,6 +68,32 @@
       "popular": "Popular Items"
     }
   },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "prev": "Back",
+    "finish": "Got it!",
+    "guest": {
+      "signIn": {
+        "title": "Sign In or Sign Up",
+        "description": "Click here to sign in to your account or create a new one to start borrowing and sharing items!"
+      },
+      "news": {
+        "title": "Check Out Our News",
+        "description": "Stay updated with community announcements, events, and learn more about how our library works."
+      }
+    },
+    "user": {
+      "browseItems": {
+        "title": "Browse Available Items",
+        "description": "Click here to see all available items. Find something you like and request to borrow it!"
+      },
+      "addItem": {
+        "title": "Share Your Items",
+        "description": "Have something to share? Click here to add your items to the community library for others to borrow."
+      }
+    }
+  },
   "common": {
     "name": "Name",
     "tags": "Tags",
@@ -258,6 +284,12 @@
     "fileNotImage": "File {{fileName}} is not an image",
     "fileTooLarge": "{{fileName}} is too large. Maximum size is 50MB",
     "imageProcessingError": "Error processing images: {{error}}",
+    "searchBookCover": "Search Book Cover",
+    "bookCoverSearchPlaceholder": "Enter ISBN or book title",
+    "bookCoverSearchError": "Failed to search for book covers",
+    "bookCoverFetchError": "Failed to fetch the selected cover image",
+    "noCoverFound": "No book covers found",
+    "processingCover": "Processing cover image...",
     "uploadingImages": "Uploading images... {{progress}}%",
     "previewAlt": "Image preview {{index}}",
     "createSuccess": "Item created successfully!",
@@ -544,6 +576,7 @@
     "authRequiredMessage": "To confirm receipt of this item, please sign in to your account or create a new one.",
     "signInToConfirm": "Please sign in or create an account to confirm receipt of this item.",
     "roleOwner": "Owner",
+    "roleHolder": "Holder",
     "roleRequestor": "Requestor",
     "roleReceiver": "Receiver",
     "ownerInstructionPending": "You have received a request for this item. Please review the requestor's information and decide whether to approve or cancel this transaction.",
@@ -692,5 +725,26 @@
     "selectedCount": "{{count}} binders selected",
     "containingBinders": "Binders containing this item",
     "foundInBinders": "This item appears in {{count}} binder(s)"
+  "goodreads": {
+    "title": "Import from GoodReads",
+    "importButton": "Import from GoodReads",
+    "instructions": "Upload your GoodReads CSV export file to import books. You can export your library from GoodReads under My Books → Import and export → Export Library.",
+    "selectFile": "Select CSV File",
+    "columnTitle": "Title",
+    "columnAuthor": "Author",
+    "columnPublisher": "Publisher",
+    "columnStatus": "Status",
+    "booksFound": "{{total}} book(s) found, {{selected}} selected",
+    "existingCount": "{{count}} already in your library",
+    "existing": "Existing",
+    "checkingDuplicates": "Checking for existing books...",
+    "importing": "Importing books...",
+    "importError": "Failed to import books.",
+    "import": "Import",
+    "imported": "Imported",
+    "importSuccess": "{{count}} book(s) imported successfully!",
+    "pageImportSuccess": "Page {{page}} imported successfully!",
+    "allImported": "All pages have been imported! You can now go back.",
+    "pagesImported": "{{done}} of {{total}} page(s) imported"
   }
 }

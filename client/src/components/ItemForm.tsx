@@ -29,6 +29,7 @@ import {
   PhotoLibrary,
   CameraAlt,
   ExpandMore as ArrowDropDownIcon,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import ClassificationEditor from "./ClassificationEditor";
 import { gql, useMutation, useApolloClient } from "@apollo/client";
@@ -43,13 +44,16 @@ import {
   Item,
   User,
 } from "../generated/graphql";
+import { batchProcessImages, ProcessedImage } from "../utils/ImageProcessor";
 import {
-  processImage,
-  batchProcessImages,
-  ProcessedImage,
-} from "../utils/ImageProcessor";
-import { GCSUploadService, UploadProgress } from "../services/UploadService";
+  uploadImages,
+  ImagePreview,
+  separateExistingAndNewImages,
+  combineImageUrls,
+} from "../utils/imageUpload";
 import { useTranslation } from "react-i18next";
+import BookCoverSearchDialog from "./BookCoverSearchDialog";
+import { set } from "date-fns";
 
 const CREATE_ITEM_MUTATION = gql`
   mutation CreateItem(
@@ -145,14 +149,6 @@ interface ItemFormProps {
   onError?: (message: string) => void;
 }
 
-interface ImagePreview extends ProcessedImage {
-  uploadProgress?: number;
-  isUploading?: boolean;
-  uploadError?: string;
-  gsUrl?: string;
-  isExisting?: boolean;
-}
-
 const ItemForm: React.FC<ItemFormProps> = ({
   open,
   user,
@@ -173,12 +169,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   const [dialogOpen, setDialogOpen] = useState(open);
   const [name, setName] = useState("");
+  const [isbn, setIsbn] = useState("");
   const [condition, setCondition] = useState<ItemCondition>(ItemCondition.New);
   const [description, setDescription] = useState("");
   const [deposit, setDeposit] = useState<number>(0);
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
   const [language, setLanguage] = useState<Language>(
-    i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En
+    i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En,
   );
   const [publishedYear, setPublishedYear] = useState<number | "">("");
   const [status, setStatus] = useState<ItemStatus>(ItemStatus.Available);
@@ -191,6 +188,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   // Store original values for edit mode comparison
   const [originalValues, setOriginalValues] = useState<{
     name: string;
+    isbn: string;
     condition: ItemCondition;
     description: string;
     publishedYear: number | "";
@@ -203,8 +201,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   // Image menu states
   const [imageMenuAnchor, setImageMenuAnchor] = useState<null | HTMLElement>(
-    null
+    null,
   );
+
+  // Book cover search dialog state
+  const [coverSearchOpen, setCoverSearchOpen] = useState(false);
 
   // Image processing states
   const [isProcessingImages, setIsProcessingImages] = useState(false);
@@ -233,8 +234,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
       const itemImages = item.images || [];
       const itemDeposit = item.deposit || 0;
       const itemClassifications = item.clssfctns || [];
+      console.log(`${item.name} isbn: ${item.isbn}`);
 
       setName(itemName);
+      setIsbn(item.isbn || "");
       setCondition(itemCondition);
       setDescription(itemDescription);
       setPublishedYear(itemPublishedYear);
@@ -254,6 +257,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         images: itemImages,
         deposit: itemDeposit,
         classifications: itemClassifications,
+        isbn: item.isbn || "",
       });
 
       // Convert existing images to ImagePreview format
@@ -322,7 +326,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setDescription("");
     setImageFiles([]);
     setLanguage(
-      i18n.language.toLowerCase().startsWith("zh") ? Language.ZhHk : Language.En
+      i18n.language.toLowerCase().startsWith("zh")
+        ? Language.ZhHk
+        : Language.En,
     );
     setPublishedYear("");
     setStatus(ItemStatus.Available);
@@ -358,6 +364,15 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const handleTakePhoto = () => {
     handleImageMenuClose();
     cameraInputRef.current?.click();
+  };
+
+  const handleSearchBookCover = () => {
+    handleImageMenuClose();
+    setCoverSearchOpen(true);
+  };
+
+  const handleCoverSelected = (image: ImagePreview) => {
+    setImageFiles((prev) => [...prev, image]);
   };
 
   const processFiles = async (files: FileList | null) => {
@@ -403,7 +418,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         },
         (processed, total) => {
           setProcessingProgress(Math.round((processed / total) * 100));
-        }
+        },
       );
 
       // Add to preview list
@@ -425,7 +440,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   };
 
   const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
     await processFiles(files);
@@ -433,7 +448,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   };
 
   const handleCameraCapture = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
     await processFiles(files);
@@ -455,86 +470,6 @@ const ItemForm: React.FC<ItemFormProps> = ({
     });
   };
 
-  const uploadImages = async (
-    imagesToUpload: ImagePreview[]
-  ): Promise<string[]> => {
-    const gcsService = new GCSUploadService(apolloClient);
-    const totalFiles = imagesToUpload.length;
-    const uploadedGsUrls: string[] = [];
-
-    try {
-      const filesToUpload = imagesToUpload.map((img) => img.file);
-
-      const gsUrls = await gcsService.batchUploadToGCS(
-        filesToUpload,
-        "items",
-        (fileIndex: number, progress: UploadProgress) => {
-          // Update individual file progress
-          setImageFiles((prev) =>
-            prev.map((img, idx) => {
-              const uploadStartIndex = prev.findIndex((p) => !p.isExisting);
-              const actualIndex = uploadStartIndex + fileIndex;
-
-              return idx === actualIndex
-                ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
-                : img;
-            })
-          );
-
-          // Update overall progress
-          const overallProgress = Math.round(
-            ((fileIndex + progress.percentage / 100) / totalFiles) * 100
-          );
-          setUploadProgress(overallProgress);
-        },
-        (fileIndex: number, gsUrl: string) => {
-          // Mark file as completed
-          setImageFiles((prev) =>
-            prev.map((img, idx) => {
-              const uploadStartIndex = prev.findIndex((p) => !p.isExisting);
-              const actualIndex = uploadStartIndex + fileIndex;
-
-              return idx === actualIndex
-                ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
-                : img;
-            })
-          );
-
-          uploadedGsUrls[fileIndex] = gsUrl;
-          console.log(`File ${fileIndex + 1}/${totalFiles} uploaded: ${gsUrl}`);
-        }
-      );
-
-      return gsUrls;
-    } catch (error) {
-      console.error("Batch upload error:", error);
-
-      // Mark failed uploads
-      setImageFiles((prev) =>
-        prev.map((img) =>
-          !img.isExisting && !img.gsUrl
-            ? {
-                ...img,
-                isUploading: false,
-                uploadError: `Upload failed: ${error}`,
-              }
-            : img
-        )
-      );
-
-      throw error;
-    }
-  };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -549,20 +484,63 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
     try {
       // Separate existing and new images
-      const existingImages = imageFiles.filter((img) => img.isExisting);
-      const newImages = imageFiles.filter((img) => !img.isExisting);
+      const { existing: existingImages, new: newImages } =
+        separateExistingAndNewImages(imageFiles);
 
       // Upload new images if any
       let newImageUrls: string[] = [];
       if (newImages.length > 0) {
-        newImageUrls = await uploadImages(newImages);
+        const uploadStartIndex = imageFiles.findIndex((p) => !p.isExisting);
+        newImageUrls = await uploadImages(apolloClient, newImages, {
+          folder: "items",
+          onFileProgress: (fileIndex, progress) => {
+            setImageFiles((prev) =>
+              prev.map((img, idx) =>
+                idx === uploadStartIndex + fileIndex
+                  ? {
+                      ...img,
+                      isUploading: true,
+                      uploadProgress: progress.percentage,
+                    }
+                  : img,
+              ),
+            );
+          },
+          onFileComplete: (fileIndex, gsUrl) => {
+            setImageFiles((prev) =>
+              prev.map((img, idx) =>
+                idx === uploadStartIndex + fileIndex
+                  ? {
+                      ...img,
+                      isUploading: false,
+                      uploadProgress: 100,
+                      gsUrl: gsUrl,
+                    }
+                  : img,
+              ),
+            );
+          },
+          onOverallProgress: (percentage) => {
+            setUploadProgress(percentage);
+          },
+          onError: (fileIndex, error) => {
+            setImageFiles((prev) =>
+              prev.map((img, idx) =>
+                idx === uploadStartIndex + fileIndex
+                  ? {
+                      ...img,
+                      isUploading: false,
+                      uploadError: error,
+                    }
+                  : img,
+              ),
+            );
+          },
+        });
       }
 
       // Combine existing and new image URLs
-      const allImageUrls = [
-        ...existingImages.map((img) => img.gsUrl || img.url),
-        ...newImageUrls,
-      ];
+      const allImageUrls = combineImageUrls(existingImages, newImageUrls);
 
       // Extract hashtags from description
       const hashtags = description
@@ -680,7 +658,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     } catch (err) {
       console.error("Submit error:", err);
       setFormError(
-        isEditMode ? t("item.updateItemError") : t("item.createItemError")
+        isEditMode ? t("item.updateItemError") : t("item.createItemError"),
       );
     } finally {
       setIsUploading(false);
@@ -745,7 +723,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 }}
                 helperText={t(
                   "item.conditionHelper",
-                  "Select the option that best describes your item."
+                  "Select the option that best describes your item.",
                 )}
               >
                 {Object.values(ItemCondition).map((cond) => (
@@ -796,7 +774,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                   disabled={isProcessingImages || isUploading}
                   sx={{ mb: 2 }}
                 >
-                  {t("item.addImages", "Add Images")}
+                  {t("common.addImages", "Add Images")}
                 </Button>
 
                 {/* Image Source Menu */}
@@ -832,6 +810,17 @@ const ItemForm: React.FC<ItemFormProps> = ({
                       </ListItemText>
                     </MenuItem>
                   )}
+
+                  <Divider />
+
+                  <MenuItem onClick={handleSearchBookCover}>
+                    <ListItemIcon>
+                      <SearchIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      {t("item.searchBookCover", "Search Book Cover")}
+                    </ListItemText>
+                  </MenuItem>
                 </Menu>
 
                 {/* Hidden file inputs */}
@@ -995,19 +984,28 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 {isProcessingImages
                   ? t("common.processingImages")
                   : isUploading
-                  ? t("common.uploading")
-                  : loading
-                  ? isEditMode
-                    ? t("common.updating")
-                    : t("common.creating")
-                  : isEditMode
-                  ? t("common.save")
-                  : t("item.create")}
+                    ? t("common.uploading")
+                    : loading
+                      ? isEditMode
+                        ? t("common.updating")
+                        : t("common.creating")
+                      : isEditMode
+                        ? t("common.save")
+                        : t("item.create")}
               </Button>
             </DialogActions>
           </form>
         </Dialog>
       )}
+
+      {/* Book Cover Search Dialog */}
+      <BookCoverSearchDialog
+        open={coverSearchOpen}
+        onClose={() => setCoverSearchOpen(false)}
+        onSelect={handleCoverSelected}
+        isbn={isbn || undefined}
+        itemName={name || undefined}
+      />
 
       <Snackbar
         open={showSuccessSnackbar}

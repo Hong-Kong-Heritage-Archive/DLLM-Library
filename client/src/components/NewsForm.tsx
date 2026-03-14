@@ -41,7 +41,12 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { Item } from "../generated/graphql";
 import { batchProcessImages, ProcessedImage } from "../utils/ImageProcessor";
-import { GCSUploadService, UploadProgress } from "../services/UploadService";
+import {
+  uploadImages,
+  ImagePreview,
+  separateExistingAndNewImages,
+  combineImageUrls,
+} from "../utils/imageUpload";
 
 const CREATE_NEWS_MUTATION = gql`
   mutation CreateNewsPost(
@@ -106,14 +111,6 @@ const UPDATE_NEWS_MUTATION = gql`
     }
   }
 `;
-
-interface ImagePreview extends ProcessedImage {
-  uploadProgress?: number;
-  isUploading?: boolean;
-  uploadError?: string;
-  gsUrl?: string;
-  isExisting?: boolean;
-}
 
 interface NewsFormProps {
   open: boolean;
@@ -421,78 +418,6 @@ const NewsForm: React.FC<NewsFormProps> = ({
     });
   };
 
-  const uploadImages = async (
-    imagesToUpload: ImagePreview[]
-  ): Promise<string[]> => {
-    const gcsService = new GCSUploadService(apolloClient);
-    const totalFiles = imagesToUpload.length;
-
-    try {
-      const filesToUpload = imagesToUpload.map((img) => img.file);
-
-      const gsUrls = await gcsService.batchUploadToGCS(
-        filesToUpload,
-        "news",
-        (fileIndex: number, progress: UploadProgress) => {
-          setImageFiles((prev) =>
-            prev.map((img, idx) => {
-              const uploadStartIndex = prev.findIndex((p) => !p.isExisting);
-              const actualIndex = uploadStartIndex + fileIndex;
-
-              return idx === actualIndex
-                ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
-                : img;
-            })
-          );
-
-          const overallProgress = Math.round(
-            ((fileIndex + progress.percentage / 100) / totalFiles) * 100
-          );
-          setUploadProgress(overallProgress);
-        },
-        (fileIndex: number, gsUrl: string) => {
-          setImageFiles((prev) =>
-            prev.map((img, idx) => {
-              const uploadStartIndex = prev.findIndex((p) => !p.isExisting);
-              const actualIndex = uploadStartIndex + fileIndex;
-
-              return idx === actualIndex
-                ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
-                : img;
-            })
-          );
-        }
-      );
-
-      return gsUrls;
-    } catch (error) {
-      console.error("Batch upload error:", error);
-
-      setImageFiles((prev) =>
-        prev.map((img) =>
-          !img.isExisting && !img.gsUrl
-            ? {
-                ...img,
-                isUploading: false,
-                uploadError: `Upload failed: ${error}`,
-              }
-            : img
-        )
-      );
-
-      throw error;
-    }
-  };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -511,18 +436,61 @@ const NewsForm: React.FC<NewsFormProps> = ({
     setUploadProgress(0);
 
     try {
-      const existingImages = imageFiles.filter((img) => img.isExisting);
-      const newImages = imageFiles.filter((img) => !img.isExisting);
+      const { existing: existingImages, new: newImages } =
+        separateExistingAndNewImages(imageFiles);
 
       let newImageUrls: string[] = [];
       if (newImages.length > 0) {
-        newImageUrls = await uploadImages(newImages);
+        const uploadStartIndex = imageFiles.findIndex((p) => !p.isExisting);
+        newImageUrls = await uploadImages(apolloClient, newImages, {
+          folder: "news",
+          onFileProgress: (fileIndex, progress) => {
+            setImageFiles((prev) =>
+              prev.map((img, idx) =>
+                idx === uploadStartIndex + fileIndex
+                  ? {
+                      ...img,
+                      isUploading: true,
+                      uploadProgress: progress.percentage,
+                    }
+                  : img
+              )
+            );
+          },
+          onFileComplete: (fileIndex, gsUrl) => {
+            setImageFiles((prev) =>
+              prev.map((img, idx) =>
+                idx === uploadStartIndex + fileIndex
+                  ? {
+                      ...img,
+                      isUploading: false,
+                      uploadProgress: 100,
+                      gsUrl: gsUrl,
+                    }
+                  : img
+              )
+            );
+          },
+          onOverallProgress: (percentage) => {
+            setUploadProgress(percentage);
+          },
+          onError: (fileIndex, error) => {
+            setImageFiles((prev) =>
+              prev.map((img, idx) =>
+                idx === uploadStartIndex + fileIndex
+                  ? {
+                      ...img,
+                      isUploading: false,
+                      uploadError: error,
+                    }
+                  : img
+              )
+            );
+          },
+        });
       }
 
-      const allImageUrls = [
-        ...existingImages.map((img) => img.gsUrl || img.url),
-        ...newImageUrls,
-      ];
+      const allImageUrls = combineImageUrls(existingImages, newImageUrls);
 
       const relatedItemIds = relatedItems.map((item) => item.id);
 

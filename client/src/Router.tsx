@@ -18,13 +18,14 @@ import MainLayout from "./components/MainLayout";
 import ExchangePointsPage from "./routes/ExchangePoints";
 import ProfilePage from "./routes/Profile";
 import BinderDetail from "./components/BinderDetail";
+import GoodReadsImportPage from "./routes/GoodReadsImport";
 
 export const createRouter = (
   email?: string | null,
   emailVerified?: boolean | null,
   user?: User,
   hostConfig?: HostConfig,
-  onSignOut?: () => Promise<void>
+  onSignOut?: () => Promise<void>,
 ) => {
   return createBrowserRouter([
     {
@@ -106,6 +107,10 @@ export const createRouter = (
         {
           path: "/binder/:binderId",
           element: <BinderDetail currentUser={user} />,
+        },
+        {
+          path: "import/goodreads",
+          element: <GoodReadsImportPage />,
         },
       ],
     },

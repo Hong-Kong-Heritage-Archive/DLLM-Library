@@ -80,7 +80,7 @@ export const DateScalar = new GraphQLScalarType({
       return date;
     }
     throw new GraphQLError(
-      "Can only parse strings to Dates but got a: " + ast.kind
+      "Can only parse strings to Dates but got a: " + ast.kind,
     );
   },
 });
@@ -95,7 +95,7 @@ export const resolvers: Resolvers = {
     me: async (
       _: any,
       __: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<User | null> => {
       return userService.me(loginUser);
     },
@@ -109,7 +109,7 @@ export const resolvers: Resolvers = {
         limit = 20,
         offset = 0,
       }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.items(
         classifications,
@@ -117,19 +117,19 @@ export const resolvers: Resolvers = {
         status,
         keyword,
         limit,
-        offset
+        offset,
       );
     },
     totalItemsCount: async (
       _: any,
       { classifications, category, status, keyword }: any,
-      __: any
+      __: any,
     ): Promise<number> => {
       return itemService.totalItemsCount(
         classifications,
         category,
         status,
-        keyword
+        keyword,
       );
     },
     itemsByLocation: async (
@@ -145,7 +145,7 @@ export const resolvers: Resolvers = {
         limit = 20,
         offset = 0,
       }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.itemsByLocation(
         latitude,
@@ -156,7 +156,7 @@ export const resolvers: Resolvers = {
         status,
         keyword,
         limit,
-        offset
+        offset,
       );
     },
     totalItemsCountByLocation: async (
@@ -170,7 +170,7 @@ export const resolvers: Resolvers = {
         status,
         keyword,
       }: any,
-      __: any
+      __: any,
     ): Promise<number> => {
       return itemService.totalItemsCountByLocation(
         latitude,
@@ -179,20 +179,20 @@ export const resolvers: Resolvers = {
         classifications,
         category,
         status,
-        keyword
+        keyword,
       );
     },
     totalItemsCountByUser: async (
       _: any,
       { userId, category, status, keyword, isExchangePointItem }: any,
-      __: any
+      __: any,
     ): Promise<number> => {
       return itemService.totalItemsCountByUser(
         userId,
         category,
         status,
         keyword,
-        isExchangePointItem
+        isExchangePointItem,
       );
     },
     itemsByUser: async (
@@ -206,7 +206,7 @@ export const resolvers: Resolvers = {
         offset = 0,
         isExchangePointItem = false,
       }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.itemsByUser(
         userId,
@@ -215,13 +215,13 @@ export const resolvers: Resolvers = {
         keyword,
         limit,
         offset,
-        isExchangePointItem
+        isExchangePointItem,
       );
     },
     itemsOnLoanByOwner: async (
       _: any,
       { userId, category, status, keyword, limit = 20, offset = 0 }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.itemsOnLoanByOwner(
         userId,
@@ -229,13 +229,13 @@ export const resolvers: Resolvers = {
         status,
         keyword,
         limit,
-        offset
+        offset,
       );
     },
     itemsOnLoanByHolder: async (
       _: any,
       { userId, category, status, keyword, limit = 20, offset = 0 }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.itemsOnLoanByHolder(
         userId,
@@ -243,30 +243,37 @@ export const resolvers: Resolvers = {
         status,
         keyword,
         limit,
-        offset
+        offset,
       );
     },
     item: async (_: any, { id }: any, __: any): Promise<Item | null> => {
       return itemService.itemById(id);
     },
+    duplicateTitlesByUser: async (
+      _: any,
+      { userId, names }: any,
+      __: any,
+    ): Promise<string[]> => {
+      return itemService.duplicateTitlesByUser(userId, names);
+    },
     recentAddedItems: async (
       _: any,
       { limit = 20, offset = 0, category }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.recentAddedItems(limit, offset, category);
     },
     user: async (
       _: any,
       { id }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<User | null> => {
       return userService.userById(id);
     },
     exchangePoints: async (
       _: any,
       { limit = 20, offset = 0 }: any,
-      __: any
+      __: any,
     ): Promise<User[]> => {
       return userService.exchangePoints(limit, offset);
     },
@@ -276,14 +283,14 @@ export const resolvers: Resolvers = {
     newsPost: async (
       _: any,
       { id }: any,
-      __: any
+      __: any,
     ): Promise<NewsPost | null> => {
       return newsService.NewsById(id);
     },
     newsRecentPosts: async (
       _: any,
       { keyword, tags = [], limit = 10, offset = 0 }: any,
-      __: any
+      __: any,
     ): Promise<NewsPost[]> => {
       return newsService.RecentNews(keyword, tags, limit, offset);
     },
@@ -291,7 +298,7 @@ export const resolvers: Resolvers = {
       _parent: any,
       { address }: { address: string },
       _context: Context,
-      _info: any
+      _info: any,
     ): Promise<Location | null> => {
       if (!address || address.trim() === "") {
         console.warn("geocodeAddress called with empty address.");
@@ -303,7 +310,7 @@ export const resolvers: Resolvers = {
     openTransactionsByItem: async (
       _: any,
       { itemId }: any,
-      __: any
+      __: any,
     ): Promise<Transaction[]> => {
       return transactionService.transactionsNotStatus(itemId, null, [
         TransactionStatus.Completed,
@@ -314,7 +321,7 @@ export const resolvers: Resolvers = {
     openTransactionsByUser: async (
       _: any,
       { userId }: any,
-      __: any
+      __: any,
     ): Promise<Transaction[]> => {
       return transactionService.transactionsNotStatus(null, userId, [
         TransactionStatus.Completed,
@@ -325,7 +332,7 @@ export const resolvers: Resolvers = {
     transactionsByUser: async (
       _: any,
       { userId }: any,
-      __: any
+      __: any,
     ): Promise<Transaction[]> => {
       return transactionService.transactionsNotStatus(null, userId, [
         TransactionStatus.Expired,
@@ -334,7 +341,7 @@ export const resolvers: Resolvers = {
     transactionsByItem: async (
       _: any,
       { itemId }: any,
-      __: any
+      __: any,
     ): Promise<Transaction[]> => {
       return transactionService.transactionsNotStatus(itemId, null, [
         TransactionStatus.Expired,
@@ -343,7 +350,7 @@ export const resolvers: Resolvers = {
     transaction: async (
       _: any,
       { id }: any,
-      __: any
+      __: any,
     ): Promise<Transaction | null> => {
       return transactionService.transactionById(id);
     },
@@ -351,14 +358,14 @@ export const resolvers: Resolvers = {
     recentUpdateCategories: async (
       _: any,
       { limit = 10 }: any,
-      __: any
+      __: any,
     ): Promise<string[]> => {
       return categoryService.getRecentUpdateCategories(limit);
     },
     hotCategories: async (
       _: any,
       { limit = 10 }: any,
-      __: any
+      __: any,
     ): Promise<string[]> => {
       return categoryService.getHotCategories(limit);
     },
@@ -368,34 +375,34 @@ export const resolvers: Resolvers = {
     recommendedItems: async (
       _: any,
       { type, category, limit = 10 }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return recommendService.recommendationItems(type, category, limit);
     },
     commentsByItemId: async (
       _: any,
       { itemId, first = 10, startAfterId, startAfterDate }: any,
-      __: any
+      __: any,
     ) => {
       // Returns dummy comments for any itemId
       return commentService.commentsByItemId(
         itemId,
         first,
         startAfterId,
-        startAfterDate
+        startAfterDate,
       );
     },
     commentsByUserId: async (
       _: any,
       { userId, first = 10, startAfterId, startAfterDate }: any,
-      __: any
+      __: any,
     ) => {
       // Returns dummy comments for any userId
       return commentService.commentsByUserId(
         userId,
         first,
         startAfterId,
-        startAfterDate
+        startAfterDate,
       );
     },
     itemConfig: async (_: any, __: any): Promise<any> => {
@@ -410,14 +417,14 @@ export const resolvers: Resolvers = {
     recentItemsWithoutClassifications: async (
       _: any,
       { limit = 20 }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.recentItemsWithoutClassifications(limit, 0);
     },
     itemsByKeywordExperimental: async (
       _: any,
       { keyword = "" }: any,
-      __: any
+      __: any,
     ): Promise<Item[]> => {
       return itemService.itemsByKeywordExperimental(keyword);
     },
@@ -443,27 +450,27 @@ export const resolvers: Resolvers = {
     createUser: async (
       _: any,
       { nickname, address }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<User> => {
       return userService.createUser(loginUser, nickname, address);
     },
     updateUser: async (
       _: any,
       { nickname, contactMethods, address, exchangePoints }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<User> => {
       return userService.updateUser(
         loginUser,
         nickname,
         address,
         contactMethods,
-        exchangePoints
+        exchangePoints,
       );
     },
     createItem: async (
       _: any,
       args: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Item> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -478,15 +485,26 @@ export const resolvers: Resolvers = {
         args.images,
         args.publishedYear,
         args.language,
-        args.deposit
+        args.deposit,
+        args.isbn,
       );
       await userService.addItemToUser(owner, newItem);
       return newItem;
     },
+    createItemsFromJSON: async (
+      _: any,
+      { bookJson, deposit }: any,
+      { loginUser }: Context,
+    ): Promise<Item[]> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("Owner not found");
+      return itemService.createItemsFromJSON(owner, bookJson, deposit);
+    },
     updateItem: async (
       _: any,
       args: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Item> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -503,13 +521,14 @@ export const resolvers: Resolvers = {
         args.description,
         args.images,
         args.deposit,
-        args.classifications
+        args.classifications,
+        args.isbn,
       );
     },
     pinItem: async (
       _: any,
       { itemId }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<boolean> => {
       if (!loginUser) throw new Error("Not authenticated");
       const user = await userService.userModelById(loginUser.uid);
@@ -519,7 +538,7 @@ export const resolvers: Resolvers = {
     unpinItem: async (
       _: any,
       { itemId }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<boolean> => {
       if (!loginUser) throw new Error("Not authenticated");
       const user = await userService.userModelById(loginUser.uid);
@@ -529,7 +548,7 @@ export const resolvers: Resolvers = {
     createNewsPost: async (
       _: any,
       { title, content, images, relatedItemIds, tags }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<NewsPost> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -540,20 +559,20 @@ export const resolvers: Resolvers = {
         content,
         images,
         relatedItemIds,
-        tags
+        tags,
       );
     },
     generateSignedUrl: async (
       _: any,
       { fileName, contentType, folder }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<SignedUrlResponse> => {
       if (!loginUser) throw new Error("Not authenticated");
       const rv = await GenerateSignedUrlForUpload(
         loginUser.uid,
         fileName,
         contentType,
-        folder
+        folder,
       );
       return {
         expires: rv.expires,
@@ -564,7 +583,7 @@ export const resolvers: Resolvers = {
     createTransaction: async (
       _: any,
       { itemId, location, locationIndex, details }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
       const requestor = await userService.me(loginUser);
@@ -574,13 +593,13 @@ export const resolvers: Resolvers = {
         itemId,
         location,
         locationIndex,
-        details
+        details,
       );
     },
     createQuickTransaction: async (
       _: any,
       { itemId, details }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
       const holder = await userService.me(loginUser);
@@ -590,7 +609,7 @@ export const resolvers: Resolvers = {
     approveTransaction: async (
       _: any,
       { id }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -600,7 +619,7 @@ export const resolvers: Resolvers = {
     transferTransaction: async (
       _: any,
       { id }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
       const holder = await userService.me(loginUser);
@@ -611,7 +630,7 @@ export const resolvers: Resolvers = {
     receiveTransaction: async (
       _: any,
       { id, images }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
       const requestor = await userService.me(loginUser);
@@ -621,7 +640,7 @@ export const resolvers: Resolvers = {
     cancelTransaction: async (
       _: any,
       { id }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<boolean> => {
       if (!loginUser) throw new Error("Not authenticated");
       const user = await userService.me(loginUser);
@@ -631,7 +650,7 @@ export const resolvers: Resolvers = {
     addItemComment: async (
       _: any,
       args: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<string> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -641,7 +660,7 @@ export const resolvers: Resolvers = {
     deleteItemComment: async (
       _: any,
       args: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<boolean> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -652,7 +671,7 @@ export const resolvers: Resolvers = {
     editItemComment: async (
       _: any,
       args: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<boolean> => {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
@@ -663,7 +682,7 @@ export const resolvers: Resolvers = {
     upsertCategoryMap: async (
       _: any,
       { en, categoryMaps }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<CategoryMap[]> => {
       if (!loginUser) throw new Error("Not authenticated");
       const user = await userService.me(loginUser);
@@ -673,7 +692,7 @@ export const resolvers: Resolvers = {
     addCategoryTree: async (
       _: any,
       { parentPath, leafCategory }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<string> => {
       if (!loginUser) throw new Error("Not authenticated");
       const user = await userService.me(loginUser);
@@ -683,7 +702,7 @@ export const resolvers: Resolvers = {
     generateItemIndexIncremental: async (
       _parent: any,
       _args: any,
-      _context: any
+      _context: any,
     ): Promise<boolean> => {
       // TODO: Make this admin only.
       return itemService.generateItemIndexIncremental();
@@ -691,7 +710,7 @@ export const resolvers: Resolvers = {
     updateHostConfig: async (
       _: any,
       { input }: any,
-      { loginUser }: Context
+      { loginUser }: Context,
     ): Promise<HostConfig> => {
       if (!loginUser) throw new Error("Not authenticated");
       const user = await userService.me(loginUser);

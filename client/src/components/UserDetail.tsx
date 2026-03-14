@@ -234,7 +234,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
   };
 
   const handleExchangePointItemsToggle = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setIncludeExchangePointItems(event.target.checked);
   };
@@ -264,7 +264,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
       currentUser.location.latitude,
       currentUser.location.longitude,
       userData.user.location.latitude,
-      userData.user.location.longitude
+      userData.user.location.longitude,
     );
 
     return formatDistance(distance);
@@ -349,7 +349,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
               item.location.latitude,
               item.location.longitude,
               currentUser.location.latitude,
-              currentUser.location.longitude
+              currentUser.location.longitude,
             )
           : 0,
     })) || [];
@@ -364,7 +364,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
               item.location.latitude,
               item.location.longitude,
               currentUser.location.latitude,
-              currentUser.location.longitude
+              currentUser.location.longitude,
             )
           : 0,
     })) || [];
@@ -411,6 +411,15 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   size="small"
                   sx={{ ml: 2 }}
                   onClick={() => setShowUpdateUser(true)}
+                />
+              )}
+              {isCurrentUser && (
+                <Chip
+                  label={t("goodreads.importButton", "Import from GoodReads")}
+                  color="secondary"
+                  size="small"
+                  sx={{ ml: 1 }}
+                  onClick={() => navigate("/import/goodreads")}
                 />
               )}
               {userData.user.isVerified && (
@@ -609,11 +618,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 {isCurrentUser
                   ? t(
                       "user.noPinnedItemsYou",
-                      "You haven't pinned any items yet."
+                      "You haven't pinned any items yet.",
                     )
                   : t(
                       "user.noPinnedItemsUser",
-                      "This user hasn't pinned any items."
+                      "This user hasn't pinned any items.",
                     )}
               </Alert>
             )}
@@ -703,7 +712,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                           <Typography variant="body2">
                             {t(
                               "user.includeExchangePointItems",
-                              "Include Exchange Point Cached Items"
+                              "Include Exchange Point Cached Items",
                             )}
                           </Typography>
                           <Chip
@@ -727,7 +736,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     >
                       {t(
                         "user.exchangePointItemsHelper",
-                        "When enabled, includes items cached at your exchange point in addition to your personal items."
+                        "When enabled, includes items cached at your exchange point in addition to your personal items.",
                       )}
                     </Typography>
                   </Box>
@@ -740,7 +749,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                       "Filtering by category: {{category}}",
                       {
                         category: selectedCategory,
-                      }
+                      },
                     )}
                     <Chip
                       label={t("common.clearFilter", "Clear Filter")}
@@ -756,7 +765,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   <Alert severity="info" sx={{ mb: 2 }}>
                     {t(
                       "user.selectCategoryToViewItems",
-                      "Select a category below to view items."
+                      "Select a category below to view items.",
                     )}
                   </Alert>
                 )}
@@ -802,7 +811,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 >
                   {t(
                     "user.tagCloudHelper",
-                    "Click on a category to filter items. Larger tags indicate more items in that category."
+                    "Click on a category to filter items. Larger tags indicate more items in that category.",
                   )}
                 </Typography>
               </Paper>
@@ -845,13 +854,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         {
                           name: userData.user.nickname || userData.user.email,
                           category: selectedCategory,
-                        }
+                        },
                       )}
                   {isExchangePointAdmin && includeExchangePointItems && (
                     <Chip
                       label={t(
                         "user.includesCachedItems",
-                        "Includes cached items"
+                        "Includes cached items",
                       )}
                       size="small"
                       variant="outlined"
@@ -865,12 +874,12 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   {itemsLoading || totalItemsLoading
                     ? t("common.loading", "Loading...")
                     : totalItemsData?.totalItemsCountByUser
-                    ? t("itemsAll.itemsFound", "Found {{count}} item(s)", {
-                        count: totalItemsData.totalItemsCountByUser,
-                      })
-                    : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
-                        count: itemsWithDistance.length,
-                      })}
+                      ? t("itemsAll.itemsFound", "Found {{count}} item(s)", {
+                          count: totalItemsData.totalItemsCountByUser,
+                        })
+                      : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
+                          count: itemsWithDistance.length,
+                        })}
                 </Typography>
               </Box>
 
@@ -925,14 +934,14 @@ const UserDetail: React.FC<UserDetailProps> = ({
                           "You haven't added any {{category}} items yet.",
                           {
                             category: selectedCategory,
-                          }
+                          },
                         )
                       : t(
                           "user.noItemsInCategoryUser",
                           "This user hasn't added any {{category}} items yet.",
                           {
                             category: selectedCategory,
-                          }
+                          },
                         )}
                   </Alert>
                 )

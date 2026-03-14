@@ -218,6 +218,7 @@ const HomePage: React.FC = () => {
             onClick={handleViewAllItems}
             size="large"
             fullWidth
+            data-tour="view-all-items"
           >
             {t("navigation.viewAllItems")}
           </Button>
@@ -228,6 +229,7 @@ const HomePage: React.FC = () => {
               size="large"
               fullWidth
               sx={{ ml: 2 }}
+              data-tour="add-item"
             >
               {t("item.create", "Add Item")}
             </Button>
