@@ -725,6 +725,7 @@
     "selectedCount": "{{count}} binders selected",
     "containingBinders": "Binders containing this item",
     "foundInBinders": "This item appears in {{count}} binder(s)"
+  },
   "goodreads": {
     "title": "Import from GoodReads",
     "importButton": "Import from GoodReads",

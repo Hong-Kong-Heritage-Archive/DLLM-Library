@@ -854,7 +854,7 @@
     "selectedCount": "已選擇 {{count}} 個資料夾",
     "containingBinders": "包含此項目的資料夾",
     "foundInBinders": "此項目出現在 {{count}} 個資料夾中"
-
+  },
   "goodreads": {
     "title": "從 GoodReads 匯入",
     "importButton": "從 GoodReads 匯入",

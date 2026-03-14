@@ -16,6 +16,8 @@ import firebase from "firebase-admin";
 import { UploadBufferToGCS } from "./platform";
 import { Timestamp } from "firebase-admin/firestore";
 import { generateThumbnail, ThumbnailConfig } from "./utils/imageUtils";
+import sharp from "sharp";
+import axios from "axios";
 
 type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
