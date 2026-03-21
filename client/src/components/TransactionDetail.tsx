@@ -25,6 +25,9 @@ import {
   ImageList,
   ImageListItem,
   ImageListItemBar,
+  Modal,
+  Backdrop,
+  Fade,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -489,6 +492,9 @@ const TransactionDetailPage: React.FC = () => {
   const [authDefaultSignUp, setAuthDefaultSignUp] = useState(false);
   const [pendingReceiveAction, setPendingReceiveAction] = useState(false);
 
+  // State for location prompt dialog
+  const [locationPromptOpen, setLocationPromptOpen] = useState(false);
+
   const { data, loading, error, refetch } = useQuery<{
     transaction: Transaction;
   }>(GET_TRANSACTION, {
@@ -636,6 +642,11 @@ const TransactionDetailPage: React.FC = () => {
       return;
     }
 
+    if (user && (!user.location?.latitude || !user.location?.longitude)) {
+      setLocationPromptOpen(true);
+      return;
+    }
+
     setReceiptImageDialogOpen(true);
   };
 
@@ -684,6 +695,11 @@ const TransactionDetailPage: React.FC = () => {
 
   const handleSwitchAuthMode = () => {
     setAuthDefaultSignUp(!authDefaultSignUp);
+  };
+
+  const handleGoToProfile = () => {
+    setLocationPromptOpen(false);
+    navigate("/profile");
   };
 
   // Generate the full transaction URL
@@ -1607,6 +1623,54 @@ const TransactionDetailPage: React.FC = () => {
         onConfirm={handleConfirmReceive}
         loading={actionLoading === "receive"}
       />
+
+      {/* Location Prompt Dialog */}
+      <Modal
+        open={locationPromptOpen}
+        onClose={() => setLocationPromptOpen(false)}
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{ backdrop: { timeout: 500 } }}
+      >
+        <Fade in={locationPromptOpen}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              boxShadow: 24,
+              p: 4,
+              maxWidth: 400,
+              width: "90%",
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              {t("item.locationRequired", "Location Required")}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              {t(
+                "item.locationRequiredDescription",
+                "Please set your location in your profile before receiving an item. This helps us match you with nearby items.",
+              )}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+              <Button onClick={() => setLocationPromptOpen(false)}>
+                {t("common.cancel", "Cancel")}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleGoToProfile}
+                startIcon={<LocationOnIcon />}
+              >
+                {t("item.goToProfile", "Go to Profile")}
+              </Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
 
       {/* Share Transaction Dialog */}
       <ShareTransactionDialog

@@ -16,6 +16,7 @@ import {
   handleItemDetailSSR,
   handleUserProfileSSR,
   handleTransactionDetailSSR,
+  handleBinderDetailSSR,
 } from "./ssrService";
 import { isBotRequest, getBotType } from "./botDetection";
 
@@ -118,6 +119,16 @@ async function startApolloServer() {
     } else {
       // Serve the index.html with the redirect parameter embedded in the URL
       handleHomePageSSR(req, res, `/transaction/${req.params.id}`);
+    }
+  });
+
+  // Handle /binder/:id with bot detection
+  app.get("/binder/:id", (req, res) => {
+    if (isBotRequest(req)) {
+      handleBinderDetailSSR(req, res);
+    } else {
+      // Serve the index.html with the redirect parameter embedded in the URL
+      handleHomePageSSR(req, res, `/binder/${req.params.id}`);
     }
   });
 
