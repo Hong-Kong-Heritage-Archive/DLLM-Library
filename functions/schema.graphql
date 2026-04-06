@@ -445,7 +445,7 @@ type Mutation {
     classifications: [String!]
     isbn: String
   ): Item!
-  createItemsFromJSON(bookJson: [String!], deposit: Int! = 0): [Item!]!
+  createItemsFromJSON(bookJson: [String!]!, deposit: Int! = 0): [Item!]!
   deleteItem(id: ID!): Boolean!
   pinItem(itemId: ID!): Boolean!
   unpinItem(itemId: ID!): Boolean!
