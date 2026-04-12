@@ -449,14 +449,14 @@ export const resolvers: Resolvers = {
   Mutation: {
     createUser: async (
       _: any,
-      { nickname, address }: any,
+      { nickname, address, visibleContentRating }: any,
       { loginUser }: Context,
     ): Promise<User> => {
-      return userService.createUser(loginUser, nickname, address);
+      return userService.createUser(loginUser, nickname, address, visibleContentRating);
     },
     updateUser: async (
       _: any,
-      { nickname, contactMethods, address, exchangePoints }: any,
+      { nickname, contactMethods, address, exchangePoints, visibleContentRating }: any,
       { loginUser }: Context,
     ): Promise<User> => {
       return userService.updateUser(
@@ -465,6 +465,7 @@ export const resolvers: Resolvers = {
         address,
         contactMethods,
         exchangePoints,
+        visibleContentRating,
       );
     },
     createItem: async (
@@ -487,6 +488,7 @@ export const resolvers: Resolvers = {
         args.language,
         args.deposit,
         args.isbn,
+        args.contentRating,
       );
       await userService.addItemToUser(owner, newItem);
       return newItem;
@@ -523,6 +525,8 @@ export const resolvers: Resolvers = {
         args.deposit,
         args.classifications,
         args.isbn,
+        args.contentRating,
+        args.contentRatingChecked,
       );
     },
     pinItem: async (

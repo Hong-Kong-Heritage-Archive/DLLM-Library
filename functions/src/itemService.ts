@@ -18,6 +18,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { generateThumbnail, ThumbnailConfig } from "./utils/imageUtils";
 import sharp from "sharp";
 import axios from "axios";
+import { DEFAULT_CONTENT_RATING, CONTENT_RATING_CENSOR_THRESHOLD } from "./contentRatingDefaults";
 
 type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
@@ -594,7 +595,8 @@ export class ItemService {
     publishedYear: number,
     language: Language,
     deposit: number,
-    ISBN?: string | null | undefined,
+    ISBN: string | null | undefined,
+    contentRating: number | null | undefined,
   ): Promise<Item> {
     let hash = null;
     if (owner?.location) {
@@ -634,6 +636,7 @@ export class ItemService {
       language,
       deposit,
       ISBN,
+      contentRating ? contentRating : DEFAULT_CONTENT_RATING,
     );
     return newItem;
   }
@@ -669,6 +672,7 @@ export class ItemService {
       let publishedYear = parseInt(book.publishedYear) || 0;
       const language = Language.ZhHk; // Default language, can be updated by user later
       const isbn = book.isbn13 || book.isbn || null;
+      const contentRating = book.contentRating || DEFAULT_CONTENT_RATING;
 
       console.debug(
         `Creating item for book: ${name}, author: ${book.author}, publishedYear: ${publishedYear}, ISBN: ${isbn}`,
@@ -707,6 +711,7 @@ export class ItemService {
         language,
         deposit,
         isbn,
+        contentRating
       );
       createdItems.push(newItem);
     }
@@ -725,7 +730,8 @@ export class ItemService {
     publishedYear: number,
     language: Language,
     deposit: number,
-    isbn?: string | null | undefined,
+    isbn: string | null | undefined,
+    contentRating: number,
   ): Promise<Item> {
     let gsImageUrls: string[] | null = null;
     let publicImageUrls: string[] | null = null;
@@ -772,6 +778,8 @@ export class ItemService {
       nameIndex: nameIndex,
       nameIndexVer: this.ITEM_INDEX_VER,
       isbn: isbn || null,
+      contentRating: contentRating,
+      contentRatingChecked: false, // Always set to false when creating a new item.
     };
 
     // Only add optional fields if they have valid values
@@ -841,6 +849,8 @@ export class ItemService {
     deposit?: number,
     clssfctns?: string[],
     isbn?: string | null | undefined,
+    contentRating?: number,
+    contentRatingChecked? : boolean,
   ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await this.itemModelById(itemId);
@@ -923,6 +933,31 @@ export class ItemService {
     if (clssfctns !== undefined) {
       updateData.clssfctns = clssfctns;
       existingData.clssfctns = clssfctns;
+    }
+
+    if ( isbn !== undefined) {
+      updateData.isbn = isbn;
+      existingData.isbn = isbn;
+    }
+    
+    if (contentRating !== undefined) {
+      updateData.contentRating = contentRating;
+      existingData.contentRating = contentRating;
+
+      // Reset admin checks.
+      updateData.contentRatingChecked = false;
+      existingData.contentRatingChecked = false;
+    }
+
+    // Only Admin is allowed to change the following.
+    if ( contentRatingChecked !== undefined ){
+      if (user.role !== Role.Admin) {
+        throw new Error(
+          `User ${user.id} does not have permission to contentRatingChecked of itemId: ${itemId}`,
+        );
+      }
+      updateData.contentRatingChecked = contentRatingChecked;
+      existingData.contentRatingChecked = contentRatingChecked;
     }
 
     // Handle category changes with comparison

@@ -13,6 +13,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { CategoryService } from "./categoryService";
 import { RecommendService } from "./recommendService";
 import { user } from "firebase-functions/v1/auth";
+import { DEFAULT_CONTENT_RATING } from "./contentRatingDefaults";
 
 const userCollection = db.collection("users");
 
@@ -74,6 +75,11 @@ export class UserService {
     const userDoc = await userCollection.doc(userId).get();
     if (!userDoc.exists) return null;
     const data = userDoc.data() as UserModel;
+    // Add the defaults.
+    return {
+      ...data,
+      visibleContentRating: data.visibleContentRating ?? DEFAULT_CONTENT_RATING,
+    };
     return data;
   }
 
@@ -179,7 +185,8 @@ export class UserService {
   async createUser(
     loginUser: LoginUser | null,
     nickname: string,
-    address: string
+    address: string,
+    visibleContentRating?: number | null 
   ): Promise<User> {
     if (!loginUser) throw new Error("Not authenticated");
 
@@ -199,6 +206,7 @@ export class UserService {
       isActive: true,
       isVerified: false,
       created: Timestamp.now(),
+      visibleContentRating: visibleContentRating || DEFAULT_CONTENT_RATING,
     };
     if (resolvedLocation && resolvedLocation.geohash) {
       userData.geohash = resolvedLocation.geohash;
@@ -246,7 +254,8 @@ export class UserService {
     nickname?: string | null,
     address?: string | null,
     contactMethods?: ContactMethod[] | null,
-    exchangePoints?: string[] | null
+    exchangePoints?: string[] | null,
+    visibleContentRating?: number | null
   ): Promise<User> {
     if (!loginUser) throw new Error("Not authenticated");
 
@@ -265,6 +274,10 @@ export class UserService {
 
     if (contactMethods != null) {
       updates.contactMethods = contactMethods;
+    }
+
+    if ( visibleContentRating != null) {
+      updates.visibleContentRating = visibleContentRating;
     }
 
     if (address != null) {
