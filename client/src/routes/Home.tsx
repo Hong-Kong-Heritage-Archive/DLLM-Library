@@ -318,6 +318,7 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Recent Categories Section */}
+        {/*
         {recentCategoriesData?.recentUpdateCategories && (
           <>
             {recentCategoriesData.recentUpdateCategories.map(
@@ -329,6 +330,17 @@ const HomePage: React.FC = () => {
             )}
           </>
         )}
+        */}
+        <ListItem key={`recent-category-all`}>
+          <RecentItemBanner category="" isRecent={true} />
+        </ListItem>
+
+        <ListItem>
+          <RecentItemBanner
+            recommendationType={RecommendationType.NewArrivals}
+            isRecent={false}
+          />
+        </ListItem>
 
         {recentCategoriesLoading && (
           <ListItem>

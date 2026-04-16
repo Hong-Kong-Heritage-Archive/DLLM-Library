@@ -17,14 +17,14 @@ export class RecommendService {
   constructor(itemService: ItemService) {
     this.itemService = itemService;
     this.recommendCollection = db.collection(
-      "recommendations"
+      "recommendations",
     ) as firebase.firestore.CollectionReference<RecommendModel>;
   }
 
   async updateRecommendation(
     userId: string,
     recommendationType: RecommendationType,
-    item: Item
+    item: Item,
   ): Promise<void> {
     const categories = item.category;
     const docId = `${userId}_${recommendationType}`;
@@ -50,8 +50,13 @@ export class RecommendService {
   async recommendationItems(
     recommendationType: RecommendationType,
     category: string | null,
-    limit: number = 10
+    offset: number = 0,
+    limit: number = 12,
   ): Promise<Item[]> {
+    if (recommendationType === RecommendationType.NewArrivals) {
+      // 如果是新到貨推薦，直接從 ItemService 獲取最新的物品
+      return await this.itemService.latestItems(offset, limit);
+    }
     let query = this.recommendCollection
       .where("recommendationType", "==", recommendationType)
       .orderBy("updated", "desc");
