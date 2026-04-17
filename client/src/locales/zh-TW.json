@@ -260,9 +260,11 @@
       "hotInCategory": "熱門 - {{category}}",
       "recommendedForYou": "推薦物品",
       "recentItems": "新番物品",
+      "updatedItems": "更新物品",
       "latestAdditions": "本類別最新添加",
       "basedOnInterests": "根據您的興趣和活動",
       "browseRecent": "瀏覽最近添加的物品",
+      "browseUpdated": "瀏覽最近更新的物品",
       "showingItems": "顯示 {{count}} 項中的多項物品"
     },
     "viewDetails": "查看詳情",

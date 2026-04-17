@@ -82,7 +82,8 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   // Use provided recommendedItems or fetch based on category/type
   const shouldFetchRecommended =
     recommendationType && !recommendedItems?.length;
-  const shouldFetchCategory = category && !recommendationType;
+  const shouldFetchCategory =
+    category != null && category !== undefined && !recommendationType;
 
   const {
     data: categoryData,
@@ -92,12 +93,12 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
     RECENT_ITEMS_QUERY,
     {
       variables: {
-        category: category ? [category] : [],
+        category: category && category !== "" ? [category] : [],
         limit: maxItems,
         //isRecent: isRecent,
       },
       skip: !shouldFetchCategory,
-    }
+    },
   );
 
   const {
@@ -127,7 +128,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   };
 
   const handleViewAll = () => {
-    if (category) {
+    if (category && category !== "") {
       navigate(`/item/recent?category=${encodeURIComponent(category)}`);
     } else {
       navigate("/item/recent");
@@ -137,28 +138,41 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   // Generate title and description
   const getTitle = () => {
     if (titleOverride) return titleOverride;
-    if (category) {
+    if (category && category !== "") {
       return isRecent
-        ? t("item.recent.recentInCategory", "Recent in {{category}}", { category })
+        ? t("item.recent.recentInCategory", "Recent in {{category}}", {
+            category,
+          })
         : t("item.recent.hotInCategory", "Hot in {{category}}", { category });
     }
     if (recommendationType === RecommendationType.UserPicked) {
       return t("item.recent.recommendedForYou", "Recommended for You");
     }
-    return t("item.recent.recentItems", "Recent Items");
+    if (isRecent) {
+      return t("item.recent.recentItems", "Recent Items");
+    } else {
+      return t("item.recent.updatedItems", "Updated Items");
+    }
   };
 
   const getDescription = () => {
     if (descriptionOverride) return descriptionOverride;
-    if (category) {
+    if (category && category !== "") {
       return isRecent
         ? t("item.recent.latestAdditions", "Latest additions in this category")
         : t("home.popularItems", "Popular items in this category");
     }
     if (recommendationType === RecommendationType.UserPicked) {
-      return t("item.recent.basedOnInterests", "Based on your interests and activity");
+      return t(
+        "item.recent.basedOnInterests",
+        "Based on your interests and activity",
+      );
     }
-    return t("item.recent.browseRecent", "Browse recently added items");
+    if (isRecent) {
+      return t("item.recent.browseRecent", "Browse recently added items");
+    } else {
+      return t("item.recent.browseUpdated", "Browse recently updated items");
+    }
   };
 
   if (loading) {
@@ -209,7 +223,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
             {getDescription()}
           </Typography>
         </Box>
-        {category && (
+        {category != null && category !== undefined && (
           <Button
             variant="text"
             size="small"

@@ -18,7 +18,10 @@ import { Timestamp } from "firebase-admin/firestore";
 import { generateThumbnail, ThumbnailConfig } from "./utils/imageUtils";
 import sharp from "sharp";
 import axios from "axios";
-import { DEFAULT_CONTENT_RATING, CONTENT_RATING_CENSOR_THRESHOLD } from "./contentRatingDefaults";
+import {
+  DEFAULT_CONTENT_RATING,
+  CONTENT_RATING_CENSOR_THRESHOLD,
+} from "./contentRatingDefaults";
 
 type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   geohash?: string;
@@ -409,6 +412,29 @@ export class ItemService {
     }
   }
 
+  async latestItems(
+    offset: number = 0,
+    limit: number = 12,
+    update: boolean = true,
+  ): Promise<Item[]> {
+    const fieldToOrder = update ? "updated" : "created";
+    const snapshot = await db
+      .collection("items")
+      .orderBy(fieldToOrder, "desc")
+      .offset(offset)
+      .limit(limit)
+      .get();
+    const filteredItems: Item[] = [];
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const item = await this._itemQueryToItem(doc);
+        filteredItems.push(item);
+      }),
+    );
+
+    return filteredItems;
+  }
+
   async duplicateTitlesByUser(
     userId: string,
     names: string[],
@@ -711,7 +737,7 @@ export class ItemService {
         language,
         deposit,
         isbn,
-        contentRating
+        contentRating,
       );
       createdItems.push(newItem);
     }
@@ -850,7 +876,7 @@ export class ItemService {
     clssfctns?: string[],
     isbn?: string | null | undefined,
     contentRating?: number,
-    contentRatingChecked? : boolean,
+    contentRatingChecked?: boolean,
   ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await this.itemModelById(itemId);
@@ -935,11 +961,11 @@ export class ItemService {
       existingData.clssfctns = clssfctns;
     }
 
-    if ( isbn !== undefined) {
+    if (isbn !== undefined) {
       updateData.isbn = isbn;
       existingData.isbn = isbn;
     }
-    
+
     if (contentRating !== undefined) {
       updateData.contentRating = contentRating;
       existingData.contentRating = contentRating;
@@ -950,7 +976,7 @@ export class ItemService {
     }
 
     // Only Admin is allowed to change the following.
-    if ( contentRatingChecked !== undefined ){
+    if (contentRatingChecked !== undefined) {
       if (user.role !== Role.Admin) {
         throw new Error(
           `User ${user.id} does not have permission to contentRatingChecked of itemId: ${itemId}`,
