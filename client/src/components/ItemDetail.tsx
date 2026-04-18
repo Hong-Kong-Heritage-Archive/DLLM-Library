@@ -1263,7 +1263,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
           {/* Action Buttons */}
           <Box
-            sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "flex-end" }}
+            sx={{
+              mt: 4,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
           >
             {/* Bind Button - Show for all verified users */}
             {/* temp: only show for admins until we have binder capacity management */}
