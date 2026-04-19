@@ -541,11 +541,11 @@ export class ItemService {
   }
 
   /*
-   * This funcction assumes censor info is already present in the item data.
+   * This function assumes censor info is already present in the item data.
    *
    * Visibility of items in order of precedence.
    * - Allow users to always view their own books.
-   * - Allow admin to view all books so that they can change/verfiy content rating.
+   * - Allow admin to view all books so that they can change/verify content rating.
    * - Hide items above or at censor threshold if content rating is not checked by admin.
    * - Always hide items with content rating above user threshold.
    */
