@@ -329,7 +329,7 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
                 startIcon={<ContentCopyIcon />}
                 onClick={handleCopyLink}
               >
-                {t("item.shareCopyLink", "Copy link")}
+                {t("item.shareCopyMessageAndLink", "Copy message & link")}
               </Button>
             </Grid>
           </Grid>
