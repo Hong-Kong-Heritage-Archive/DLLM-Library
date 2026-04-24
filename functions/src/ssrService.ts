@@ -15,6 +15,77 @@ const itemService = new ItemService(categoryService);
 const userService = new UserService(itemService, categoryService);
 const transactionService = new TransactionService(itemService, userService);
 const binderService = new BinderService(itemService, userService);
+
+type BrandingConfig = {
+  appTitle: string;
+  appDescription: string;
+  logoPath: string;
+  ogImagePath: string;
+};
+
+const defaultBranding: BrandingConfig = {
+  appTitle: "Book Guide - Sydney1",
+  appDescription: "Decentralized Local Library Module",
+  logoPath: "/logo512.png",
+  ogImagePath: "/logo512.png",
+};
+
+//let cachedConfig: Record<string, any> | null = null;
+let cachedConfig: any = null;
+
+// Get Config
+
+//const getConfig = (): Record<string, any> => {
+const getConfig = () => {
+  if (cachedConfig) {
+    return cachedConfig;
+  }
+
+  const candidatePaths = [
+    path.join(
+      process.cwd(),
+      "..",
+      "client",
+      "public",
+      "dllm-client-config.json",
+    ),
+    path.join(process.cwd(), "dllm-client-config.json"),
+    path.join(process.cwd(), "dist", "dllm-client-config.json"),
+    path.join(process.cwd(), "lib", "dllm-client-config.json"),
+    path.join(__dirname, "..", "dllm-client-config.json"),
+    path.join(__dirname, "..", "dist", "dllm-client-config.json"),
+  ];
+
+  try {
+    for (const configPath of candidatePaths) {
+      if (fs.existsSync(configPath)) {
+        const configData = fs.readFileSync(configPath, "utf8");
+        const parsedConfig = JSON.parse(configData);
+
+        //const parsedConfig = JSON.parse(configData) as Record<string, any> | null;
+
+        cachedConfig = parsedConfig || {};
+        if (!cachedConfig.baseUrl) {
+          cachedConfig.baseUrl = "${getBaseUrl()}";
+        }
+        if (!cachedConfig.branding) {
+          cachedConfig.branding = defaultBranding;
+        }
+
+        return cachedConfig;
+      } else {
+        console.warn(`Config file not found at path: ${configPath}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error reading client config:", error);
+  }
+
+  cachedConfig = { baseUrl: "${getBaseUrl()}", branding: defaultBranding };
+  return cachedConfig;
+};
+
+/*
 // Get Config
 const getConfig = () => {
   const clientConfigPath = path.join(
@@ -32,21 +103,56 @@ const getConfig = () => {
   } catch (error) {
     console.error("Error reading client config:", error);
   }
-  return { baseUrl: "${getBaseUrl()}" };
+  return { baseUrl: "${getBaseUrl()}", branding: defaultBranding };
 };
-
+*/
 // Get base URL
 const getBaseUrl = () => {
   const config = getConfig();
-  return process.env.NODE_ENV === "production"
-    ? config.baseUrl
-    : "http://localhost:3000";
+  if (process.env.NODE_ENV !== "production") {
+    return "http://localhost:3000";
+  }
+
+  return config.baseUrl || "http://localhost:3000";
+};
+
+const toAbsoluteUrl = (url: string): string => {
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("//")
+  ) {
+    return url;
+  }
+
+  const baseUrl = getBaseUrl();
+  return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
+const getBranding = (): BrandingConfig => {
+  const config = getConfig();
+  const branding = config.branding || {};
+
+  return {
+    appTitle: branding.appTitle || defaultBranding.appTitle,
+    appDescription: branding.appDescription || defaultBranding.appDescription,
+    logoPath: branding.logoPath || defaultBranding.logoPath,
+    ogImagePath:
+      branding.ogImagePath || branding.logoPath || defaultBranding.ogImagePath,
+  };
 };
 
 // Get logo URL
 const getLogoUrl = (): string => {
-  return `${getBaseUrl()}/logo512.png`;
+  return toAbsoluteUrl(getBranding().ogImagePath);
 };
+
+const formatBrandTitle = (prefix?: string): string => {
+  const brandTitle = getBranding().appTitle;
+  return prefix ? `${prefix} - ${brandTitle}` : brandTitle;
+};
+
+const defaultBrandDescription = (): string => getBranding().appDescription;
 
 /**
  * Helper function to render HTML with Open Graph tags
@@ -90,8 +196,8 @@ export const handleHomePageSSR = (
       return res.status(500).send("Could not load the page.");
     }
 
-    const newTitle = "無大台 Decentralized Local Library Module";
-    const newDescription = "香港・雪梨・無大台圖書館模組";
+    const newTitle = formatBrandTitle();
+    const newDescription = defaultBrandDescription();
     const newImageUrl = getLogoUrl();
 
     // Create redirect script if redirectPath is provided
@@ -201,9 +307,9 @@ export const handleUserProfileSSR = async (req: Request, res: Response) => {
           // If user doesn't exist, still render the page but with generic OG tags and redirect
           const redirectScript = generateUserRedirectScript(userId, req);
           const ogTags = `
-<title>User Not Found - DLLM Library</title>
+<title>${formatBrandTitle("User Not Found")}</title>
 <meta name="description" content="The requested user profile could not be found." />
-<meta property="og:title" content="User Not Found - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle("User Not Found")}" />
 <meta property="og:description" content="The requested user profile could not be found." />
 <meta property="og:type" content="profile" />
 <meta property="og:url" content="${getBaseUrl()}/user/${userId}" />
@@ -234,9 +340,9 @@ ${redirectScript}
         const enhancedDescription = `Email: ${userEmail} | Status: ${userStatus}`;
 
         const ogTags = `
-<title>${userName} - DLLM Library</title>
+<title>${formatBrandTitle(userName)}</title>
 <meta name="description" content="${enhancedDescription}" />
-<meta property="og:title" content="${userName} - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle(userName)}" />
 <meta property="og:description" content="${enhancedDescription}" />
 <meta property="og:type" content="profile" />
 <meta property="og:url" content="${getBaseUrl()}/user/${userId}" />
@@ -252,10 +358,10 @@ ${redirectScript}
         // Fallback to generic tags with redirect
         const redirectScript = generateUserRedirectScript(userId, req);
         const ogTags = `
-<title>DLLM Library User</title>
-<meta name="description" content="View this user profile in the DLLM Library." />
-<meta property="og:title" content="DLLM Library User" />
-<meta property="og:description" content="View this user profile in the DLLM Library." />
+<title>${formatBrandTitle("User")}</title>
+<meta name="description" content="View this user profile in ${getBranding().appTitle}." />
+<meta property="og:title" content="${formatBrandTitle("User")}" />
+<meta property="og:description" content="View this user profile in ${getBranding().appTitle}." />
 <meta property="og:type" content="profile" />
 <meta property="og:url" content="${getBaseUrl()}/user/${userId}" />
 <meta property="og:image" content="${getLogoUrl()}" />
@@ -299,9 +405,9 @@ export const handleTransactionDetailSSR = async (
             req,
           );
           const ogTags = `
-<title>Transaction Not Found - DLLM Library</title>
+<title>${formatBrandTitle("Transaction Not Found")}</title>
 <meta name="description" content="The requested transaction could not be found." />
-<meta property="og:title" content="Transaction Not Found - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle("Transaction Not Found")}" />
 <meta property="og:description" content="The requested transaction could not be found." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/transaction/${transactionId}" />
@@ -345,9 +451,9 @@ ${redirectScript}
         );
 
         const ogTags = `
-<title>Transaction: ${itemName} - DLLM Library</title>
+<title>${formatBrandTitle(`Transaction: ${itemName}`)}</title>
 <meta name="description" content="${transactionDescription}" />
-<meta property="og:title" content="Transaction: ${itemName} - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle(`Transaction: ${itemName}`)}" />
 <meta property="og:description" content="${transactionDescription}" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="${getBaseUrl()}/transaction/${transactionId}" />
@@ -365,10 +471,10 @@ ${redirectScript}
           req,
         );
         const ogTags = `
-<title>DLLM Library Transaction</title>
-<meta name="description" content="View this transaction in the DLLM Library." />
-<meta property="og:title" content="DLLM Library Transaction" />
-<meta property="og:description" content="View this transaction in the DLLM Library." />
+<title>${formatBrandTitle("Transaction")}</title>
+<meta name="description" content="View this transaction in ${getBranding().appTitle}." />
+<meta property="og:title" content="${formatBrandTitle("Transaction")}" />
+<meta property="og:description" content="View this transaction in ${getBranding().appTitle}." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/transaction/${transactionId}" />
 <meta property="og:image" content="${getLogoUrl()}" />
@@ -405,9 +511,9 @@ export const handleItemDetailSSR = async (req: Request, res: Response) => {
           // If item doesn't exist, still render the page but with generic OG tags and redirect
           const redirectScript = generateRedirectScript(itemId, req);
           const ogTags = `
-<title>Item Not Found - DLLM Library</title>
+<title>${formatBrandTitle("Item Not Found")}</title>
 <meta name="description" content="The requested item could not be found." />
-<meta property="og:title" content="Item Not Found - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle("Item Not Found")}" />
 <meta property="og:description" content="The requested item could not be found." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/item/${itemId}" />
@@ -440,9 +546,9 @@ ${redirectScript}
         } | Status: ${itemStatus}`;
 
         const ogTags = `
-<title>${itemName} - DLLM Library</title>
+<title>${formatBrandTitle(itemName)}</title>
 <meta name="description" content="${enhancedDescription}" />
-<meta property="og:title" content="${itemName} - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle(itemName)}" />
 <meta property="og:description" content="${enhancedDescription}" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="${getBaseUrl()}/item/${itemId}" />
@@ -457,10 +563,10 @@ ${redirectScript}
         // Fallback to generic tags with redirect
         const redirectScript = generateRedirectScript(itemId, req);
         const ogTags = `
-<title>DLLM Library Item</title>
-<meta name="description" content="View this item in the DLLM Library." />
-<meta property="og:title" content="DLLM Library Item" />
-<meta property="og:description" content="View this item in the DLLM Library." />
+<title>${formatBrandTitle("Item")}</title>
+<meta name="description" content="View this item in ${getBranding().appTitle}." />
+<meta property="og:title" content="${formatBrandTitle("Item")}" />
+<meta property="og:description" content="View this item in ${getBranding().appTitle}." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/item/${itemId}" />
 <meta property="og:image" content="${getLogoUrl()}" />
@@ -497,9 +603,9 @@ export const handleBinderDetailSSR = async (req: Request, res: Response) => {
           // If binder doesn't exist, still render the page but with generic OG tags and redirect
           const redirectScript = generateBinderRedirectScript(binderId, req);
           const ogTags = `
-<title>Binder Not Found - DLLM Library</title>
+<title>${formatBrandTitle("Binder Not Found")}</title>
 <meta name="description" content="The requested binder could not be found." />
-<meta property="og:title" content="Binder Not Found - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle("Binder Not Found")}" />
 <meta property="og:description" content="The requested binder could not be found." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/binder/${binderId}" />
@@ -535,9 +641,9 @@ ${redirectScript}
         } | ${bindedCount} item(s) | By: ${ownerName}`;
 
         const ogTags = `
-<title>${binderName} - DLLM Library</title>
+<title>${formatBrandTitle(binderName)}</title>
 <meta name="description" content="${enhancedDescription}" />
-<meta property="og:title" content="${binderName} - DLLM Library" />
+<meta property="og:title" content="${formatBrandTitle(binderName)}" />
 <meta property="og:description" content="${enhancedDescription}" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="${getBaseUrl()}/binder/${binderId}" />
@@ -551,10 +657,10 @@ ${redirectScript}
         // Fallback to generic tags with redirect
         const redirectScript = generateBinderRedirectScript(binderId, req);
         const ogTags = `
-<title>DLLM Library Binder</title>
-<meta name="description" content="View this binder in the DLLM Library." />
-<meta property="og:title" content="DLLM Library Binder" />
-<meta property="og:description" content="View this binder in the DLLM Library." />
+<title>${formatBrandTitle("Binder")}</title>
+<meta name="description" content="View this binder in ${getBranding().appTitle}." />
+<meta property="og:title" content="${formatBrandTitle("Binder")}" />
+<meta property="og:description" content="View this binder in ${getBranding().appTitle}." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${getBaseUrl()}/binder/${binderId}" />
 <meta property="og:image" content="${getLogoUrl()}" />

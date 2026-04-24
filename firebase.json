@@ -1,107 +1,220 @@
 {
-  "hosting": {
-    "public": "client/dist",
-    "predeploy": [
-      "npm run build --prefix client",
-      "npm run build --prefix functions",
-      "test -f client/dist/index.html && cp client/dist/index.html functions/ || echo 'index.html already moved to functions/'",
-      "test -f client/dist/index.html && cp client/dist/index.html functions/dist/ || echo 'index.html already moved to functions/dist/'",
-      "test -f client/dist/index.html && cp client/dist/index.html functions/lib/ || echo 'index.html already moved to functions/lib/'",
-      "test -f client/dist/index.html && rm client/dist/index.html || echo 'index.html already removed'"
-    ],
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "headers": [
-      {
-        "source": "**/*.js",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/javascript"
-          }
-        ]
-      },
-      {
-        "source": "**/*.mjs",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/javascript"
-          }
-        ]
-      },
-      {
-        "source": "**/*.css",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/css"
-          }
-        ]
-      }
-    ],
-    "rewrites": [
-      {
-        "source": "/graphql*",
-        "function": "graphql"
-      },
-      {
-        "source": "/item/**",
-        "function": "graphql"
-      },
-      {
-        "source": "/item",
-        "function": "graphql"
-      },
-      {
-        "source": "/binder/**",
-        "function": "graphql"
-      },
-      {
-        "source": "/loan-items/**",
-        "function": "graphql"
-      },
-      {
-        "source": "/news",
-        "function": "graphql"
-      },
-      {
-        "source": "/exchange-points",
-        "function": "graphql"
-      },
-      {
-        "source": "/profile",
-        "function": "graphql"
-      },
-      {
-        "source": "/user/**",
-        "function": "graphql"
-      },
-      {
-        "source": "/transaction/**",
-        "function": "graphql"
-      },
-      {
-        "source": "/transactions",
-        "function": "graphql"
-      },
-      {
-        "source": "/",
-        "function": "graphql"
-      },
-      {
-        "source": "/*",
-        "destination": "/index.html"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  },
+  "hosting": [
+    {
+      "target": "main",
+      "public": "client/dist",
+      "predeploy": [
+        "npm run build --prefix client",
+        "npm run build --prefix functions",
+        "test -f client/dist/index.html && cp client/dist/index.html functions/ || echo 'index.html already moved to functions/'",
+        "test -f client/dist/index.html && cp client/dist/index.html functions/dist/ || echo 'index.html already moved to functions/dist/'",
+        "test -f client/dist/index.html && cp client/dist/index.html functions/lib/ || echo 'index.html already moved to functions/lib/'",
+        "test -f client/dist/dllm-client-config.json && cp client/dist/dllm-client-config.json functions/ || echo 'dllm-client-config.json not found in client/dist'",
+        "test -f client/dist/dllm-client-config.json && cp client/dist/dllm-client-config.json functions/dist/ || echo 'dllm-client-config.json not found in functions/dist copy step'",
+        "test -f client/dist/dllm-client-config.json && cp client/dist/dllm-client-config.json functions/lib/ || echo 'dllm-client-config.json not found in functions/lib copy step'",
+        "test -f client/dist/index.html && rm client/dist/index.html || echo 'index.html already removed'"
+      ],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "**/*.js",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/javascript"
+            }
+          ]
+        },
+        {
+          "source": "**/*.mjs",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/javascript"
+            }
+          ]
+        },
+        {
+          "source": "**/*.css",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/css"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/graphql*",
+          "function": "graphql"
+        },
+        {
+          "source": "/item/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/item",
+          "function": "graphql"
+        },
+        {
+          "source": "/binder/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/loan-items/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/news",
+          "function": "graphql"
+        },
+        {
+          "source": "/exchange-points",
+          "function": "graphql"
+        },
+        {
+          "source": "/profile",
+          "function": "graphql"
+        },
+        {
+          "source": "/user/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/transaction/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/transactions",
+          "function": "graphql"
+        },
+        {
+          "source": "/",
+          "function": "graphql"
+        },
+        {
+          "source": "/*",
+          "destination": "/index.html"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "target": "bookguide",
+      "public": "client/dist",
+      "predeploy": [
+        "npm run build --prefix client",
+        "npm run build --prefix functions",
+        "test -f client/dist/index.html && cp client/dist/index.html functions/ || echo 'index.html already moved to functions/'",
+        "test -f client/dist/index.html && cp client/dist/index.html functions/dist/ || echo 'index.html already moved to functions/dist/'",
+        "test -f client/dist/index.html && cp client/dist/index.html functions/lib/ || echo 'index.html already moved to functions/lib/'",
+        "test -f client/dist/dllm-client-config.json && cp client/dist/dllm-client-config.json functions/ || echo 'dllm-client-config.json not found in client/dist'",
+        "test -f client/dist/dllm-client-config.json && cp client/dist/dllm-client-config.json functions/dist/ || echo 'dllm-client-config.json not found in functions/dist copy step'",
+        "test -f client/dist/dllm-client-config.json && cp client/dist/dllm-client-config.json functions/lib/ || echo 'dllm-client-config.json not found in functions/lib copy step'",
+        "test -f client/dist/index.html && rm client/dist/index.html || echo 'index.html already removed'"
+      ],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "**/*.js",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/javascript"
+            }
+          ]
+        },
+        {
+          "source": "**/*.mjs",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/javascript"
+            }
+          ]
+        },
+        {
+          "source": "**/*.css",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/css"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/graphql*",
+          "function": "graphql"
+        },
+        {
+          "source": "/item/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/item",
+          "function": "graphql"
+        },
+        {
+          "source": "/binder/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/loan-items/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/news",
+          "function": "graphql"
+        },
+        {
+          "source": "/exchange-points",
+          "function": "graphql"
+        },
+        {
+          "source": "/profile",
+          "function": "graphql"
+        },
+        {
+          "source": "/user/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/transaction/**",
+          "function": "graphql"
+        },
+        {
+          "source": "/transactions",
+          "function": "graphql"
+        },
+        {
+          "source": "/",
+          "function": "graphql"
+        },
+        {
+          "source": "/*",
+          "destination": "/index.html"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }    
+  ],
   "functions": [
     {
       "source": "functions",

@@ -34,6 +34,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import NewsForm from "./NewsForm";
 import ClassificationAssignment from "./ClassificationAssignment";
 import OnboardingTour from "./OnboardingTour";
+import { resolveBranding } from "../utils/branding";
 
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
@@ -67,6 +68,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const appTitle =
+    resolveBranding(window.__DLLM_CLIENT_CONFIG__).appTitle ||
+    t("app.title", "DLLM Library");
 
   // State management
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
@@ -188,7 +192,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             sx={{ flexGrow: 1, cursor: "pointer" }}
             onClick={() => navigate("/")}
           >
-            {t("app.title", "DLLM Library")}
+            {appTitle}
           </Typography>
 
           <LanguageSwitcher />

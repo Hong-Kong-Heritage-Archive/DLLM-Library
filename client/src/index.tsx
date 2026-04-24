@@ -6,19 +6,31 @@ import CssBaseline from "@mui/material/CssBaseline";
 import theme from "./theme";
 import * as serviceWorker from "./serviceWorker";
 import "./i18n";
+import {
+  applyBrowserBranding,
+  loadDeployClientConfig,
+} from "./utils/branding";
 
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
+const renderApp = async () => {
+  const deployConfig = await loadDeployClientConfig();
+  window.__DLLM_CLIENT_CONFIG__ = deployConfig;
+  applyBrowserBranding(deployConfig);
 
-root.render(
-  <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <BaseApp />
-    </ThemeProvider>
-  </React.StrictMode>
-);
+  const root = ReactDOM.createRoot(
+    document.getElementById("root") as HTMLElement
+  );
+
+  root.render(
+    <React.StrictMode>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BaseApp />
+      </ThemeProvider>
+    </React.StrictMode>
+  );
+};
+
+void renderApp();
 
 // Register the Service Worker for PWA features
 serviceWorker.register({

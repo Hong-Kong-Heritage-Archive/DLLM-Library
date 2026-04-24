@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "dllm-libray"
-  }
+  },
+  "targets": {
+    "dllm-libray": {
+      "hosting": {
+        "bookguide": [
+          "bookguide-staging"
+        ],
+        "main": [
+          "dllm-libray"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
