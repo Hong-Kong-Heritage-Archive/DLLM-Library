@@ -1,4 +1,3 @@
-# filepath: /Users/pegasus/Developments/DLLM-Library/client/codegen.yml
 overwrite: true
 schema: "./src/schema.graphql" # Path to your GraphQL schema file
 documents: "src/**/*.tsx" # Path to your files containing GraphQL operations (queries, mutations)

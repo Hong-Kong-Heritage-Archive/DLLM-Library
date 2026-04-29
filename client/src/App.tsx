@@ -123,7 +123,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
     setSplashCompleted(true);
     setShowSplash(false);
     // Set cookie to expire in 14 days (2 weeks)
-    setCookie("dllm_splash_shown", "true", {
+    setCookie("book_guide_splash_shown", "true", {
       expires: 14,
       path: "/",
       sameSite: "Lax",

@@ -94,6 +94,7 @@ type User {
   itemCategory: [Category!]
   pinItems: [Item!] # 用戶置頂的藏品 Max 5個
   createdAt: Date!
+  visibleContentRating: Int!
 }
 
 type ContactMethod {
@@ -122,6 +123,8 @@ type Item {
   updatedAt: Date!
   isbn: String # 可選ISBN （針對書籍）or ISBN13
   clssfctns: [String!] # Classifications 分類標籤 with ordering assigned by admin
+  contentRating: Int!
+  contentRatingChecked: Boolean!
 }
 
 interface ItemCommentBase {
@@ -410,12 +413,18 @@ type Mutation {
   # 主機配置管理
   updateHostConfig(input: HostConfigInput!): HostConfig!
   # 用戶管理
-  createUser(email: String!, address: String, nickname: String): User!
+  createUser(
+    email: String!
+    address: String
+    nickname: String
+    visibleContentRating: Int
+  ): User!
   updateUser(
     nickname: String
     address: String
     contactMethods: [ContactMethodInput!]
     exchangePoints: [String!]
+    visibleContentRating: Int
   ): User!
   deleteUser(id: ID!): Boolean!
 
@@ -431,6 +440,7 @@ type Mutation {
     language: Language!
     deposit: Int! = 0
     isbn: String
+    contentRating: Int
   ): Item!
   updateItem(
     id: ID!
@@ -445,6 +455,8 @@ type Mutation {
     language: Language
     classifications: [String!]
     isbn: String
+    contentRating: Int
+    contentRatingChecked: Boolean # Allowed for admin only
   ): Item!
   createItemsFromJSON(bookJson: [String!]!, deposit: Int! = 0): [Item!]!
   deleteItem(id: ID!): Boolean!
