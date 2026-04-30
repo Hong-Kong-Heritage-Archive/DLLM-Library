@@ -210,9 +210,11 @@ export const resolvers: Resolvers = {
         offset = 0,
         isExchangePointItem = false,
       }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Item[]> => {
+      const loggedInUserById = loginUser ? await userService.userById(loginUser.uid) : null;
       return itemService.itemsByUser(
+        loggedInUserById,
         userId,
         category,
         status,

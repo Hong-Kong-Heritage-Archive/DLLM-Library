@@ -4,6 +4,7 @@ import { Box, Typography, AppBar, Toolbar } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { User } from "../generated/graphql";
+import { resolveBranding } from "../utils/branding";
 
 interface LayoutProps {
   email?: string | undefined | null;
@@ -13,6 +14,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
   const { t } = useTranslation();
+  const appTitle =
+    resolveBranding(window.__DLLM_CLIENT_CONFIG__).appTitle ||
+    t("app.title", "DLLM Library");
 
   return (
     <>
@@ -24,7 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ email, emailVerified, user }) => {
             sx={{ flexGrow: 1 }}
             onClick={() => (window.location.href = "/")}
           >
-            {t("app.title")}
+            {appTitle}
           </Typography>
           <LanguageSwitcher />
         </Toolbar>

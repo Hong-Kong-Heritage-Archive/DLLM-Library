@@ -414,7 +414,12 @@ type Mutation {
   # 主機配置管理
   updateHostConfig(input: HostConfigInput!): HostConfig!
   # 用戶管理
-  createUser(email: String!, address: String, nickname: String, visibleContentRating: Int): User!
+  createUser(
+    email: String!
+    address: String
+    nickname: String
+    visibleContentRating: Int
+  ): User!
   updateUser(
     nickname: String
     address: String
@@ -452,7 +457,7 @@ type Mutation {
     classifications: [String!]
     isbn: String
     contentRating: Int
-    contentRatingChecked: Boolean
+    contentRatingChecked: Boolean # Allowed for admin only
   ): Item!
   createItemsFromJSON(bookJson: [String!]!, deposit: Int! = 0): [Item!]!
   deleteItem(id: ID!): Boolean!

@@ -1,8 +1,15 @@
 {
   "apiKey": "AIzaSyCIytW9QU19vESoyJPO4xYaqtx-R5KC27c",
-  "authDomain": "dllm-libray.web.app",
+  "authDomain": "bookguide-staging.web.app",
   "projectId": "dllm-libray",
   "storageBucket": "gs://dllm-libray.firebasestorage.app",
   "appId": "dllm-libray",
-  "graphql": "https://graphql-lkgxripzba-uc.a.run.app/graphql/"
+  "graphql": "https://graphql-lkgxripzba-uc.a.run.app/graphql/",
+  "branding": {
+    "appTitle": "Book Guide - Sydney",
+    "appDescription": "Book Guide is a community-driven platform for sharing and discovering books in Sydney.",
+    "logoPath": "/bookguide512.png",
+    "ogImagePath": "/bookguide512.png",
+    "faviconPath": "/favicon.ico"
+  }
 }
