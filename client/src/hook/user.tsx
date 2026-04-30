@@ -12,6 +12,7 @@ export const USER_DETAIL_QUERY = gql`
       isActive
       role
       exchangePoints
+      visibleContentRating
       itemCategory {
         category
         count
@@ -48,12 +49,14 @@ export const UPDATE_USER_MUTATION = gql`
     $nickname: String
     $exchangePoints: [String!]
     $contactMethods: [ContactMethodInput!]
+    $visibleContentRating: Int
   ) {
     updateUser(
       address: $address
       nickname: $nickname
       exchangePoints: $exchangePoints
       contactMethods: $contactMethods
+      visibleContentRating: $visibleContentRating
     ) {
       id
       address
@@ -72,6 +75,7 @@ export const UPDATE_USER_MUTATION = gql`
       isVerified
       isActive
       exchangePoints
+      visibleContentRating
     }
   }
 `;
@@ -92,8 +96,8 @@ export const GET_EXCHANGE_POINTS = gql`
 `;
 
 export const CREATE_USER_MUTATION = gql`
-  mutation CreateUser($email: String!, $address: String, $nickname: String) {
-    createUser(email: $email, address: $address, nickname: $nickname) {
+  mutation CreateUser($email: String!, $address: String, $nickname: String, $visibleContentRating: Int) {
+    createUser(email: $email, address: $address, nickname: $nickname, visibleContentRating: $visibleContentRating) {
       id
       email
       address
@@ -106,6 +110,7 @@ export const CREATE_USER_MUTATION = gql`
       }
       isVerified
       isActive
+      visibleContentRating
     }
   }
 `;

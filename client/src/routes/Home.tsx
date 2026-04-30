@@ -376,6 +376,7 @@ const HomePage: React.FC = () => {
             initialAddress={user?.address}
             initialExchangePoints={user?.exchangePoints}
             initialContactMethods={user?.contactMethods}
+            initialVisibleContentRating={(user as any)?.visibleContentRating}
           />
         )}
 

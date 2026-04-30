@@ -63,6 +63,10 @@ import NewsForm from "./NewsForm";
 import BindItemDialog from "./BindItemDialog";
 import BinderPreview from "./BinderPreview";
 import ItemShareDialog from "./ItemShareDialog";
+import {
+  getContentRatingOption,
+  needsAdminApproval,
+} from "../utils/contentRating";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -83,6 +87,18 @@ const ITEM_DETAIL_QUERY = gql`
       holderId
       deposit
       isbn
+      contentRating
+      contentRatingChecked
+    }
+  }
+`;
+
+const UPDATE_ITEM_MUTATION = gql`
+  mutation UpdateItemChecked($id: ID!, $contentRatingChecked: Boolean) {
+    updateItem(id: $id, contentRatingChecked: $contentRatingChecked) {
+      id
+      contentRating
+      contentRatingChecked
     }
   }
 `;
@@ -256,6 +272,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [markReviewedLoading, setMarkReviewedLoading] = useState(false);
+
+  const [updateItemChecked] = useMutation(UPDATE_ITEM_MUTATION, {
+    onCompleted: () => {
+      refetch();
+      setMarkReviewedLoading(false);
+    },
+    onError: () => setMarkReviewedLoading(false),
+  });
 
   const itemShareUrl = useMemo(() => {
     if (!itemId || typeof window === "undefined") return "";
@@ -797,9 +822,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${
-                      ownerData.user.nickname || ownerData.user.email
-                    }`}
+                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
+                      }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -819,9 +843,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${
-                        holderData.user.nickname || holderData.user.email
-                      }`}
+                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
+                        }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -829,9 +852,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${
-                    data.item.deposit
-                  }`}
+                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
+                    }`}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -1080,7 +1102,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               >
                 {convertLinksToClickable(
                   data.item.description?.replace(/#Uncategorized\b/gi, "") ||
-                    "",
+                  "",
                 )}
               </Typography>
             </Box>
@@ -1089,40 +1111,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-            <Box sx={{ mb: 4 }}>
-              <Grid container spacing={2}>
-                {(data.item.thumbnails && data.item.thumbnails.length > 0
-                  ? data.item.thumbnails
-                  : data.item.images || []
-                ).map((image, index) => (
-                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                    <Paper
-                      elevation={2}
-                      sx={{
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "transform 0.2s",
-                        "&:hover": {
-                          transform: "scale(1.05)",
-                        },
-                      }}
-                      onClick={() => handleThumbnailClick(index)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "120px",
-                          objectFit: "cover",
+              <Box sx={{ mb: 4 }}>
+                <Grid container spacing={2}>
+                  {(data.item.thumbnails && data.item.thumbnails.length > 0
+                    ? data.item.thumbnails
+                    : data.item.images || []
+                  ).map((image, index) => (
+                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          transition: "transform 0.2s",
+                          "&:hover": {
+                            transform: "scale(1.05)",
+                          },
                         }}
-                      />
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
+                        onClick={() => handleThumbnailClick(index)}
+                      >
+                        <img
+                          src={image}
+                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                          style={{
+                            width: "100%",
+                            height: "120px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -1138,6 +1160,57 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   />
                 </Typography>
               </Grid>
+              {(data.item as any).contentRating != null &&
+                !(data.item as any).contentRatingChecked && (
+                  <Grid size={12}>
+                    <Typography variant="body1" color="text.secondary" component="div">
+                      <strong>{t("contentRating.label", "Content Rating")}:</strong>{" "}
+                      {(() => {
+                        const opt = getContentRatingOption((data.item as any).contentRating);
+                        return opt ? (
+                          <Chip
+                            label={t(opt.labelKey, opt.labelKey)}
+                            color={opt.color as any}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        ) : null;
+                      })()}
+                      {needsAdminApproval(
+                        (data.item as any).contentRating,
+                        (data.item as any).contentRatingChecked,
+                      ) && (
+                          <Chip
+                            label={t("contentRating.pendingApproval", "Pending approval")}
+                            color="warning"
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                      {/* {user?.role === Role.Admin &&
+                        !(data.item as any).contentRatingChecked && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="success"
+                            sx={{ ml: 1 }}
+                            disabled={markReviewedLoading}
+                            onClick={() => {
+                              setMarkReviewedLoading(true);
+                              updateItemChecked({
+                                variables: {
+                                  id: data.item.id,
+                                  contentRatingChecked: true,
+                                },
+                              });
+                            }}
+                          >
+                            {t("contentRating.markAsReviewed", "Mark as Reviewed")}
+                          </Button>
+                        )} */}
+                    </Typography>
+                  </Grid>
+                )}
               <Grid size={6}>
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("item.status", "Status")}:</strong>{" "}

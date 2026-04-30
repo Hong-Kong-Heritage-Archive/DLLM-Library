@@ -9,6 +9,7 @@
  * - 2: Category 2A
  * - 3: Category 2B
  * - 4: Category 3
+ * - 5: Category 4
  */
 
 // Use this value when the content rating is not defined for a user. 

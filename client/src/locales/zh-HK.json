@@ -885,5 +885,20 @@
     "pageImportSuccess": "第 {{page}} 頁匯入成功！",
     "allImported": "所有頁面都匯入完啦！你可以返回喇。",
     "pagesImported": "已匯入 {{done}} / {{total}} 頁"
+  },
+  "contentRating": {
+    "label": "香港電影分級制",
+    "cat1": "第1級 — 無任何限制，任何年齡人士皆可觀看",
+    "cat2a": "第2A級 — 兒童不宜",
+    "cat2b": "第2B級 — 青少年及兒童不宜",
+    "cat3": "第3級 — 18歲以下人士禁止觀看",
+    "cat4": "第4級 — 限制內容",
+    "pendingApproval": "等待審核",
+    "adminChecked": "管理員已審核",
+    "visibleRating": "內容過濾",
+    "visibleRatingHelper": "分級較高的項目將會從您的feed中隱藏。",
+    "approvalDialog": "內容分級審批",
+    "markAsReviewed": "標記為已審核",
+    "noItemsPending": "沒有待審批項目。"
   }
 }

@@ -454,6 +454,14 @@ export const resolvers: Resolvers = {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
       return itemService.recentItemsWithoutClassifications(limit, 0, user);
     },
+    itemsWithUncheckedContentRating: async (
+      _: any,
+      { limit = 100 }: any,
+      { loginUser }: Context,
+    ): Promise<Item[]> => {
+      const user = loginUser ? await userService.userById(loginUser.uid) : null;
+      return itemService.itemsWithUncheckedContentRating(limit, user);
+    },
     itemsByKeywordExperimental: async (
       _: any,
       { keyword = "" }: any,

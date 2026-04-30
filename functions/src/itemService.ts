@@ -1343,6 +1343,29 @@ export class ItemService {
     return items;
   }
 
+  async itemsWithUncheckedContentRating(
+    limit: number = 100,
+    user: User | UserModel | null = null,
+  ): Promise<Item[]> {
+    const snapshot = await db
+      .collection("items")
+      .where("contentRatingChecked", "==", false)
+      .orderBy("updated", "desc")
+      .limit(limit)
+      .get();
+
+    const items: Item[] = [];
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const rv = await this._itemQueryToItem(doc, user);
+        if (rv != null) {
+          items.push(rv);
+        }
+      }),
+    );
+    return items;
+  }
+
   /**
    * Generate thumbnail for an image by downloading, resizing to 1/4 dimensions,
    * and uploading back to Google Cloud Storage

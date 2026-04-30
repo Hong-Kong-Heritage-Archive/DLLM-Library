@@ -771,5 +771,20 @@
     "pageImportSuccess": "Page {{page}} imported successfully!",
     "allImported": "All pages have been imported! You can now go back.",
     "pagesImported": "{{done}} of {{total}} page(s) imported"
+  },
+  "contentRating": {
+    "label": "Content Rating",
+    "cat1": "Category I — General",
+    "cat2a": "Category IIA — Not suitable for children",
+    "cat2b": "Category IIB — Not suitable for young persons",
+    "cat3": "Category III — Adults only",
+    "cat4": "Category IV — Restricted content",
+    "pendingApproval": "Pending admin approval",
+    "adminChecked": "Verified by admin",
+    "visibleRating": "Content filter",
+    "visibleRatingHelper": "Items with a higher rating will be hidden from your feed.",
+    "approvalDialog": "Content Rating Approval",
+    "markAsReviewed": "Mark as Reviewed",
+    "noItemsPending": "No items pending approval."
   }
 }
