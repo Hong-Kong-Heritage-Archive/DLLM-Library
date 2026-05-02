@@ -1296,6 +1296,20 @@ export class ItemService {
     return items;
   }
 
+  async recentItemsContentRatingNotChecked(
+    limit: number = 20,
+    offset: number = 0,
+    loggedInUser: User | UserModel | null = null,
+  ): Promise<Item[]> {
+
+    if ( loggedInUser?.role != Role.Admin ) {  
+      console.log("recentItemsContentRatingNotChecked requires admin privileges")
+      return [];
+    }
+
+    return [];
+  }
+
   async recentItemsWithoutClassifications(
     limit: number = 20,
     offset: number = 0,
