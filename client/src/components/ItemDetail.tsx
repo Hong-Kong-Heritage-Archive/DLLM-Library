@@ -1274,6 +1274,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           >
             {/* Bind Button - Show for all verified users */}
             {/* temp: only show for admins until we have binder capacity management */}
+            {/* Remove bind
             {user && user.isVerified && user.role === Role.Admin && (
               <Button
                 variant="outlined"
@@ -1285,6 +1286,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {t("binder.bindItem", "Bind to Binder")}
               </Button>
             )}
+              */}
 
             {/* Face-to-Face Transfer Button - Show for owner or holder */}
             {(isOwner || isHolder) && (
@@ -1354,6 +1356,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       )}
 
       {/* Binders Containing This Item Section - NEW */}
+      {/*}
       {data?.item &&
         bindersData &&
         bindersData.bindersFromItemId &&
@@ -1402,7 +1405,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             )}
           </Paper>
         )}
-
+      */}
       {/* Edit Item Dialog */}
       {user && (
         <ItemForm

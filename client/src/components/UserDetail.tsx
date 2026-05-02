@@ -638,7 +638,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 <FolderIcon sx={{ mr: 1 }} />
                 {t("user.rootBinder", "Root Binder")}
               </Typography>
-
+              {/*
               {binderLoading ? (
                 <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
                   <CircularProgress />
@@ -660,7 +660,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   </Grid>
                 </Grid>
               )}
-
+              */}
               <Typography
                 variant="caption"
                 color="text.secondary"
@@ -668,7 +668,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
               >
                 {t(
                   "user.rootBinderHelper",
-                  "The root binder contains all items organized by this user. Click to explore the contents."
+                  "The root binder contains all items organized by this user. Click to explore the contents.",
                 )}
               </Typography>
             </Paper>
