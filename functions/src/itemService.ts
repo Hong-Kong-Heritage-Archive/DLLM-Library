@@ -1342,7 +1342,6 @@ export class ItemService {
 
     await Promise.all(
       itemsSnapshot.docs.map(async (doc) => {
-        const data = doc.data() as ItemModel;
         const rv = await this._itemQueryToItem(doc, loggedInUser);
         if (rv != null) {
           items.push(rv);
