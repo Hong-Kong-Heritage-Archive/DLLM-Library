@@ -95,23 +95,28 @@ describe("ItemService.shouldCensorItem", () => {
 
   // Test Defaults - visible by default.
   // Owner, holder, user all different.
-    let item = {
-      ownerId : "1",
-      holderId : "2",
-      contentRating: 2,
-    } as any;
-    let user = {
-      id : "3",
-      visibleContentRating : 3,
-    } as any;
+    let item = null as any;
+    let user = null as any;
 
   function censorItems(){
     item.contentRating = 3;
     user.visibleContentRating = 2;
   }
 
+  // Reset values
   beforeEach(() => {
     service = new ItemService(mockCategoryService);
+
+    item = {
+      ownerId : "1",
+      holderId : "2",
+      contentRating: 2,
+    } as any;
+    user = {
+      id : "3",
+      visibleContentRating : 3,
+    } as any;
+
   });
 
   it("Show users items below or at visible content rating", () => {
@@ -161,12 +166,41 @@ describe("ItemService.shouldCensorItem", () => {
     expect((service as any).shouldCensorItem(item, user)).toEqual(false);
   });
 
-    it("Show all items when bypass is true", () => {
+  it("Show all items when bypass is true", () => {
     censorItems();
     item.ownerId = "1";
     user.id = "2";
 
     expect((service as any).shouldCensorItem(item, user)).toEqual(false);
   });
+
+  it("Shadow ban test - basic test", () => {
+    // Shadow ban items that are not censored
+    item.shadowBanned = true;
+    expect((service as any).shouldCensorItem(item, user)).toEqual(true);
+  });
+
+  it("Shadow ban test - item visible to owner", () => {
+    item.ownerId = "1";
+    user.id = "1";
+
+    item.shadowBanned = true;
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });  
+
+  it("Shadow ban test - item visible to holder", () => {
+    item.holderId = "2";
+    user.id = "2";
+
+    item.shadowBanned = true;
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });
+
+  it("Shadow ban test - item visible to admin", () => {
+    user.role = Role.Admin;
+
+    item.shadowBanned = true;
+    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+  });  
 
 });

@@ -124,7 +124,9 @@ type Item {
   isbn: String # 可選ISBN （針對書籍）or ISBN13
   clssfctns: [String!] # Classifications 分類標籤 with ordering assigned by admin
   contentRating: Int!
-  contentRatingChecked: Boolean!
+  # The following are visible to admin only
+  contentRatingChecked: Boolean
+  shadowBanned : Boolean
 }
 
 interface ItemCommentBase {
@@ -398,6 +400,9 @@ type Query {
   # Get recent items without classifications assigned for admin review
   recentItemsWithoutClassifications(limit: Int): [Item!]
 
+  # Get recent items contentRating not checked for admin review
+  recentItemsContentRatingNotChecked(limit: Int): [Item!]
+
   # Get Binder by ID
   binder(id: ID!): Binder
 
@@ -451,7 +456,9 @@ type Mutation {
     classifications: [String!]
     isbn: String
     contentRating: Int
-    contentRatingChecked: Boolean # Allowed for admin only
+    # Allowed for admin only
+    contentRatingChecked: Boolean 
+    shadowBanned: Boolean
   ): Item!
   createItemsFromJSON(bookJson: [String!]!, deposit: Int! = 0): [Item!]!
   deleteItem(id: ID!): Boolean!

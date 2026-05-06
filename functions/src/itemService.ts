@@ -549,6 +549,7 @@ export class ItemService {
    * - Allow admin to view all books so that they can change/verify content rating.
    * - Hide items above or at censor threshold if content rating is not checked by admin.
    * - Always hide items with content rating above user threshold.
+   * - Support shadow banning items.
    * 
    * Note: Owners and holders should have visiblity. This is for useful for actions such as transfer items.
    */
@@ -582,6 +583,10 @@ export class ItemService {
       return true;
     }
 
+    if (item.shadowBanned) {
+      return true;
+    }
+
     return false;
   }
 
@@ -604,6 +609,12 @@ export class ItemService {
 
     if (this.shouldCensorItem(data, loggedInUser, bypassContentRatingCheck)) {
       return null;
+    }
+
+    // Filter out all admin only fields. Evaluted after the censor function.
+    if ( loggedInUser?.role != Role.Admin ) {
+      data.contentRatingChecked = undefined;
+      data.shadowBanned = undefined;
     }
 
     // validate thumbnail exist or not.
@@ -971,6 +982,7 @@ export class ItemService {
     isbn?: string | null | undefined,
     contentRating?: number,
     contentRatingChecked?: boolean,
+    shadowBanned?: boolean,
   ): Promise<Item> {
     // First, get the existing item to verify ownership
     const itemDoc = await this.itemModelById(itemId);
@@ -1070,14 +1082,22 @@ export class ItemService {
     }
 
     // Only Admin is allowed to change the following.
-    if (contentRatingChecked !== undefined) {
+    if (contentRatingChecked !== undefined || shadowBanned !== undefined) {
       if (user.role !== Role.Admin) {
         throw new Error(
           `User ${user.id} does not have permission to contentRatingChecked of itemId: ${itemId}`,
         );
       }
-      updateData.contentRatingChecked = contentRatingChecked;
-      existingData.contentRatingChecked = contentRatingChecked;
+
+      if ( contentRatingChecked !== undefined ) {
+        updateData.contentRatingChecked = contentRatingChecked;
+        existingData.contentRatingChecked = contentRatingChecked;
+      }
+
+      if ( shadowBanned !== undefined ) {
+        updateData.shadowBanned = shadowBanned;
+        existingData.shadowBanned = shadowBanned;
+      }
     }
 
     // Handle category changes with comparison
@@ -1287,6 +1307,41 @@ export class ItemService {
     const items: Item[] = [];
     await Promise.all(
       snapshot.docs.map(async (doc) => {
+        const rv = await this._itemQueryToItem(doc, loggedInUser);
+        if (rv != null) {
+          items.push(rv);
+        }
+      }),
+    );
+    return items;
+  }
+
+  async recentItemsContentRatingNotChecked(
+    limit: number = 20,
+    offset: number = 0,
+    loggedInUser: User | UserModel | null = null,
+  ): Promise<Item[]> {
+
+    if ( loggedInUser?.role != Role.Admin ) {  
+      console.log("recentItemsContentRatingNotChecked requires admin privileges")
+      return [];
+    }
+
+    // for the eariest items that are not checked.
+    let query = db
+      .collection("items")
+      .where("contentRating", ">=", CONTENT_RATING_CENSOR_THRESHOLD )
+      .where("contentRatingChecked", "==", false)
+      .orderBy("updated", "asc");
+
+    const itemsSnapshot = await query.limit(limit).offset(offset).get();
+
+    console.log("Found " + itemsSnapshot.size + " items with content rating above or at censor threshold and not checked by admin");
+
+    const items: Item[] = [];
+
+    await Promise.all(
+      itemsSnapshot.docs.map(async (doc) => {
         const rv = await this._itemQueryToItem(doc, loggedInUser);
         if (rv != null) {
           items.push(rv);
