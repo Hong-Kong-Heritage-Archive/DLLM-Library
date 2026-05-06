@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -31,6 +31,7 @@ import {
   Storage as StorageIcon,
   ExpandMore as ExpandMoreIcon,
   Folder as FolderIcon,
+  Share as ShareIcon,
 } from "@mui/icons-material";
 import { gql, useQuery } from "@apollo/client";
 import { User, Item, Category, Binder } from "../generated/graphql";
@@ -44,6 +45,7 @@ import UpdateUser from "./UserProfile";
 import { USER_DETAIL_QUERY } from "../hook/user";
 import ContactMethods from "./ContactMethods";
 import BinderPreview from "./BinderPreview";
+import UserProfileShareDialog from "./UserProfileShareDialog";
 
 // GraphQL query to fetch user's items with pagination and category filter
 const USER_ITEMS_QUERY = gql`
@@ -146,6 +148,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
     useState<boolean>(true);
   // State for controlling UpdateUser dialog
   const [showUpdateUser, setShowUpdateUser] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [expanded, setExpanded] = React.useState(false);
 
   const {
@@ -196,6 +199,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
     variables: { binderId: userId! },
     skip: !userId,
   });
+
+  const profileShareUrl = useMemo(() => {
+    if (!userId || typeof window === "undefined") return "";
+    return `${window.location.origin}/user/${userId}`;
+  }, [userId]);
 
   // Reset page when category changes or exchange point toggle changes
   useEffect(() => {
@@ -393,13 +401,21 @@ const UserDetail: React.FC<UserDetailProps> = ({
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header with Back Button */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
+          mb: 3,
+        }}
+      >
         {onBack && (
           <IconButton onClick={handleBack} sx={{ mr: 2 }}>
             <ArrowBack />
           </IconButton>
         )}
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
+        <Typography variant="h4" sx={{ flexGrow: 1, minWidth: 0 }}>
           {userData?.user ? (
             <>
               <PersonIcon sx={{ mr: 1, verticalAlign: "middle" }} />
@@ -453,6 +469,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
             t("user.loadingProfile", "Profile Loading")
           )}
         </Typography>
+        {userData?.user && (
+          <Button
+            variant="outlined"
+            color="primary"
+            size="large"
+            startIcon={<ShareIcon />}
+            onClick={() => setShareDialogOpen(true)}
+          >
+            {t("user.shareProfile", "Share profile")}
+          </Button>
+        )}
       </Box>
 
       {/* Loading State */}
@@ -831,6 +858,15 @@ const UserDetail: React.FC<UserDetailProps> = ({
               onClose={() => setShowUpdateUser(false)}
             />
           )}
+
+          <UserProfileShareDialog
+            open={shareDialogOpen}
+            onClose={() => setShareDialogOpen(false)}
+            profileUrl={profileShareUrl}
+            displayName={
+              userData.user.nickname || userData.user.email || userData.user.id
+            }
+          />
 
           {/* User's Items - Only show when a category is selected - Grid Layout */}
           {selectedCategory && (

@@ -18,7 +18,13 @@ const UserDetailPage: React.FC = () => {
     return <Navigate to="/" replace />;
   }
 
-  return <UserDetail userId={id} currentUser={user} onBack={navigateBack} />;
+  return (
+    <UserDetail
+      userId={id}
+      currentUser={user}
+      onBack={navigateBack}
+    />
+  );
 };
 
 export default UserDetailPage;

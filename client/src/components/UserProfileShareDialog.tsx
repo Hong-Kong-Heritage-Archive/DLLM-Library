@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,11 +10,6 @@ import {
   Alert,
   Grid,
   Snackbar,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   SvgIcon,
   type SvgIconProps,
 } from "@mui/material";
@@ -35,11 +30,6 @@ function ThreadsIcon(props: SvgIconProps) {
   );
 }
 
-function applyItemNameTemplate(template: string, itemName: string): string {
-  return template.replace(/\{\{itemName\}\}/g, itemName);
-}
-
-/** Threads intent/post only honours `text`; URL must be part of the text. */
 function buildShareText(message: string, pageUrl: string): string {
   const m = message.trim();
   const u = pageUrl.trim();
@@ -56,68 +46,50 @@ function toAbsolutePageUrl(url: string): string {
   }
 }
 
-export interface ItemShareDialogProps {
+export interface UserProfileShareDialogProps {
   open: boolean;
   onClose: () => void;
-  itemName: string;
-  itemUrl: string;
-  adminTemplates: string[];
+  profileUrl: string;
+  displayName: string;
 }
 
-const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
+const UserProfileShareDialog: React.FC<UserProfileShareDialogProps> = ({
   open,
   onClose,
-  itemName,
-  itemUrl,
-  adminTemplates,
+  profileUrl,
+  displayName,
 }) => {
   const { t } = useTranslation();
-  const [message, setMessage] = useState("");
-  const [presetIndex, setPresetIndex] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const presetOptions = useMemo(() => {
-    if (adminTemplates.length > 0) {
-      return adminTemplates.map((tpl) => applyItemNameTemplate(tpl, itemName));
-    }
-    return [
-      t("item.sharePreset1", "Check out {{itemName}}!", { itemName }),
+  const shareLine = useMemo(
+    () =>
       t(
-        "item.sharePreset2",
-        "I found this in the library: {{itemName}}",
-        { itemName },
+        "user.shareProfileShareText",
+        "See @{{displayName}}'s profile on Book Guide",
+        { displayName },
       ),
-      t("item.sharePreset3", "{{itemName}} — worth a look.", { itemName }),
-    ];
-  }, [adminTemplates, itemName, t]);
+    [displayName, t],
+  );
 
-  useEffect(() => {
-    if (!open) return;
-    const next = presetOptions[0] ?? "";
-    setPresetIndex(0);
-    setMessage(next);
-  }, [open, presetOptions]);
-
-  const messageTrimmed = message.trim();
-  const [copiedWithMessage, setCopiedWithMessage] = useState(false);
+  const sharePayload = useMemo(
+    () => buildShareText(shareLine, profileUrl),
+    [shareLine, profileUrl],
+  );
 
   const handleCopyLink = async () => {
-    const payload = buildShareText(messageTrimmed, itemUrl);
-    const hadMessage = Boolean(messageTrimmed);
     try {
-      await navigator.clipboard.writeText(payload);
-      setCopiedWithMessage(hadMessage);
+      await navigator.clipboard.writeText(sharePayload);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 3000);
     } catch (err) {
       console.error("Failed to copy:", err);
       const textArea = document.createElement("textarea");
-      textArea.value = payload;
+      textArea.value = sharePayload;
       document.body.appendChild(textArea);
       textArea.select();
       try {
         document.execCommand("copy");
-        setCopiedWithMessage(hadMessage);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 3000);
       } catch (e) {
@@ -131,11 +103,9 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
     if (!navigator.share) return;
     try {
       await navigator.share({
-        title: itemName,
-        text: messageTrimmed
-          ? `${messageTrimmed}\n${itemUrl}`
-          : `${itemName}\n${itemUrl}`,
-        url: itemUrl,
+        title: t("user.shareProfileShareTitle", "Book Guide"),
+        text: sharePayload,
+        url: profileUrl,
       });
     } catch (err) {
       console.log("Share cancelled or failed:", err);
@@ -143,13 +113,12 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
   };
 
   const shareViaWhatsApp = () => {
-    const text = buildShareText(messageTrimmed, itemUrl);
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(sharePayload)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const shareViaFacebook = () => {
-    const absolute = toAbsolutePageUrl(itemUrl);
+    const absolute = toAbsolutePageUrl(profileUrl);
     if (!absolute) return;
     const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const base = mobile
@@ -160,20 +129,19 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
   };
 
   const shareViaThreads = () => {
-    const text = buildShareText(messageTrimmed, itemUrl);
     window.open(
-      `https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`,
+      `https://www.threads.net/intent/post?text=${encodeURIComponent(sharePayload)}`,
       "_blank",
       "noopener,noreferrer",
     );
   };
 
   const shareViaTelegram = () => {
-    const absolute = toAbsolutePageUrl(itemUrl);
+    const absolute = toAbsolutePageUrl(profileUrl);
     if (!absolute) return;
     const params = new URLSearchParams();
     params.set("url", absolute);
-    if (messageTrimmed) params.set("text", messageTrimmed);
+    params.set("text", shareLine);
     window.open(
       `https://t.me/share/url?${params.toString()}`,
       "_blank",
@@ -182,11 +150,6 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
   };
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-  const handlePresetChange = (index: number) => {
-    setPresetIndex(index);
-    setMessage(presetOptions[index] ?? "");
-  };
 
   return (
     <>
@@ -200,44 +163,37 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <ShareIcon sx={{ mr: 1 }} />
-            {t("item.shareTitle", "Share item")}
+            {t("user.shareProfileTitle", "Share profile")}
           </Box>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 2.5, overflow: "visible" }}>
-          <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-            <InputLabel id="item-share-preset-label">
-              {t("item.sharePickTemplate", "Quick message")}
-            </InputLabel>
-            <Select
-              labelId="item-share-preset-label"
-              label={t("item.sharePickTemplate", "Quick message")}
-              value={Math.min(presetIndex, Math.max(0, presetOptions.length - 1))}
-              onChange={(e) =>
-                handlePresetChange(Number(e.target.value))
-              }
-            >
-              {presetOptions.map((label, i) => (
-                <MenuItem key={i} value={i}>
-                  {label.length > 72 ? `${label.slice(0, 72)}…` : label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <TextField
-            fullWidth
-            multiline
-            minRows={3}
-            label={t("item.shareMessageLabel", "Additional message (optional)")}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-
+        <DialogContent>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-              {t("item.sharePageLink", "Page link")}
+              {t("user.sharePreviewLabel", "Message")}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                wordBreak: "break-word",
+                bgcolor: "grey.100",
+                p: 1.5,
+                borderRadius: 1,
+                border: 1,
+                borderColor: "divider",
+              }}
+            >
+              {shareLine}
+            </Typography>
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{ mb: 0.5 }}
+            >
+              {t("user.shareProfilePageLink", "Page link")}
             </Typography>
             <Typography
               variant="body2"
@@ -251,7 +207,7 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
                 borderColor: "divider",
               }}
             >
-              {itemUrl}
+              {profileUrl}
             </Typography>
           </Box>
 
@@ -264,13 +220,13 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
                 onClick={handleNativeShare}
                 size="large"
               >
-                {t("item.shareViaSystem", "Share via…")}
+                {t("user.shareProfileViaSystem", "Share via…")}
               </Button>
             </Box>
           )}
 
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-            {t("item.shareViaApps", "Share on")}
+            {t("user.shareProfileViaApps", "Share on")}
           </Typography>
           <Grid container spacing={1}>
             <Grid size={{ xs: 6 }}>
@@ -320,7 +276,10 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
                 startIcon={<ContentCopyIcon />}
                 onClick={handleCopyLink}
               >
-                {t("item.shareCopyLink", "Copy message & link")}
+                {t(
+                  "user.shareProfileCopyMessageAndLink",
+                  "Copy message & link",
+                )}
               </Button>
             </Grid>
           </Grid>
@@ -348,16 +307,14 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
           variant="filled"
           sx={{ width: "100%" }}
         >
-          {copiedWithMessage
-            ? t(
-                "item.shareCopiedMessageAndLink",
-                "Message and link copied to clipboard!",
-              )
-            : t("item.shareLinkCopied", "Link copied")}
+          {t(
+            "user.shareProfileCopiedMessageAndLink",
+            "Message and link copied to clipboard!",
+          )}
         </Alert>
       </Snackbar>
     </>
   );
 };
 
-export default ItemShareDialog;
+export default UserProfileShareDialog;
