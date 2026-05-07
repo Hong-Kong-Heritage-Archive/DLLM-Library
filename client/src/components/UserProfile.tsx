@@ -3,6 +3,11 @@ import ReactDOM from "react-dom";
 import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { useTranslation } from "react-i18next";
 import {
+  DEFAULT_CONTENT_RATING,
+  CONTENT_RATING_OPTIONS,
+  CONTENT_RATING_CENSOR_THRESHOLD,
+} from "../utils/contentRating";
+import {
   Button,
   TextField,
   Dialog,
@@ -62,7 +67,6 @@ import {
   GET_EXCHANGE_POINTS,
 } from "../hook/user";
 import ContactMethods from "./ContactMethods";
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
 // Import icons for social platforms from Material UI
@@ -116,6 +120,7 @@ interface UserProfileProps {
   initialAddress?: string | undefined | null;
   initialExchangePoints?: string[] | undefined | null;
   initialContactMethods?: ContactMethod[] | undefined | null; // Add initial contact methods
+  initialVisibleContentRating?: number;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -128,6 +133,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   initialAddress = "",
   initialExchangePoints = [],
   initialContactMethods = [],
+  initialVisibleContentRating = DEFAULT_CONTENT_RATING,
 }) => {
   const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(open);
@@ -142,6 +148,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
       value: cm.value,
       isPublic: cm.isPublic,
     })) || []
+  );
+  const [visibleContentRating, setVisibleContentRating] = useState<number>(
+    initialVisibleContentRating ?? DEFAULT_CONTENT_RATING
   );
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
   const [selectedPointForMap, setSelectedPointForMap] =
@@ -543,7 +552,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         index !== editingContactMethodIndex &&
         cm.type === newContactMethod.type &&
         cm.value.trim().toLowerCase() ===
-          newContactMethod.value.trim().toLowerCase()
+        newContactMethod.value.trim().toLowerCase()
     );
 
     if (isDuplicate) {
@@ -562,9 +571,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
         prev.map((cm, index) =>
           index === editingContactMethodIndex
             ? {
-                ...newContactMethod,
-                value: newContactMethod.value.trim(),
-              }
+              ...newContactMethod,
+              value: newContactMethod.value.trim(),
+            }
             : cm
         )
       );
@@ -620,16 +629,17 @@ const UserProfile: React.FC<UserProfileProps> = ({
       email: email || "",
       address: finalAddress,
       nickname: nickname,
+      visibleContentRating,
       ...(isCreateUser
         ? {}
         : {
-            exchangePoints: selectedExchangePoints,
-            contactMethods: contactMethods.map((cm) => ({
-              type: cm.type,
-              value: cm.value.trim(),
-              isPublic: cm.isPublic,
-            })),
-          }),
+          exchangePoints: selectedExchangePoints,
+          contactMethods: contactMethods.map((cm) => ({
+            type: cm.type,
+            value: cm.value.trim(),
+            isPublic: cm.isPublic,
+          })),
+        }),
     };
 
     if (isCreateUser) {
@@ -879,6 +889,43 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 </FormControl>
               </Box>
             )}
+
+            {/* Visible Content Rating */}
+            {!isCreateUser && (
+              <Box sx={{ mt: 2 }}>
+                <FormControl fullWidth>
+                  <InputLabel id="visible-content-rating-label">
+                    {t("contentRating.visibleRating", "Content filter")}
+                  </InputLabel>
+                  <Select
+                    labelId="visible-content-rating-label"
+                    value={visibleContentRating}
+                    label={t("contentRating.visibleRating", "Content filter")}
+                    onChange={(e) =>
+                      setVisibleContentRating(Number(e.target.value))
+                    }
+                  >
+                    {CONTENT_RATING_OPTIONS.filter(
+                      (opt) => opt.value <= CONTENT_RATING_CENSOR_THRESHOLD
+                    ).map((opt) => (
+                      <MenuItem key={opt.value} value={opt.value}>
+                        {t(opt.labelKey, opt.labelKey)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 0.5 }}
+                  >
+                    {t(
+                      "contentRating.visibleRatingHelper",
+                      "Items with a higher rating will be hidden from your feed."
+                    )}
+                  </Typography>
+                </FormControl>
+              </Box>
+            )}
           </DialogContent>
 
           {mutationError && (
@@ -912,8 +959,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   ? t("common.creating")
                   : t("common.updating")
                 : isCreateUser
-                ? t("auth.createProfile")
-                : t("userProfile.updateProfile")}
+                  ? t("auth.createProfile")
+                  : t("userProfile.updateProfile")}
             </Button>
             <Button
               onClick={handleClose}
@@ -1016,13 +1063,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <Typography variant="caption" color="text.secondary">
                   {newContactMethod.isPublic
                     ? t(
-                        "userProfile.publicContactHelp",
-                        "This contact method will be visible to all users"
-                      )
+                      "userProfile.publicContactHelp",
+                      "This contact method will be visible to all users"
+                    )
                     : t(
-                        "userProfile.privateContactHelp",
-                        "This contact method will only be shared during transactions"
-                      )}
+                      "userProfile.privateContactHelp",
+                      "This contact method will only be shared during transactions"
+                    )}
                 </Typography>
               </Box>
             }

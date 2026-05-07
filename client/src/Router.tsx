@@ -19,6 +19,7 @@ import ExchangePointsPage from "./routes/ExchangePoints";
 import ProfilePage from "./routes/Profile";
 // import BinderDetail from "./components/BinderDetail";
 import GoodReadsImportPage from "./routes/GoodReadsImport";
+import NotFound from "./routes/NotFound";
 
 export const createRouter = (
   email?: string | null,
@@ -113,6 +114,14 @@ export const createRouter = (
         {
           path: "import/goodreads",
           element: <GoodReadsImportPage />,
+        },
+        {
+          path: "not-found",
+          element: <NotFound />,
+        },
+        {
+          path: "*",
+          element: <NotFound />,
         },
       ],
     },

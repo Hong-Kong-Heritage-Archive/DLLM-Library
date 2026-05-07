@@ -20,6 +20,7 @@ const ME_QUERY = gql`
       role
       exchangePoints
       nickname
+      visibleContentRating
       location {
         latitude
         longitude
