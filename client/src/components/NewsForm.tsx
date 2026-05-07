@@ -449,10 +449,10 @@ const NewsForm: React.FC<NewsFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                      ...img,
-                      isUploading: true,
-                      uploadProgress: progress.percentage,
-                    }
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                   : img
               )
             );
@@ -462,11 +462,11 @@ const NewsForm: React.FC<NewsFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                      ...img,
-                      isUploading: false,
-                      uploadProgress: 100,
-                      gsUrl: gsUrl,
-                    }
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                   : img
               )
             );
@@ -479,10 +479,10 @@ const NewsForm: React.FC<NewsFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                      ...img,
-                      isUploading: false,
-                      uploadError: error,
-                    }
+                    ...img,
+                    isUploading: false,
+                    uploadError: error,
+                  }
                   : img
               )
             );
@@ -513,7 +513,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
             newImages.length > 0 ||
             allImageUrls.length !== originalValues.images.length ||
             JSON.stringify(allImageUrls) !==
-              JSON.stringify(originalValues.images);
+            JSON.stringify(originalValues.images);
 
           if (hasImageChanges) {
             variables.images = allImageUrls;
@@ -845,7 +845,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                 disabled={isProcessingImages || isUploading}
                 sx={{ mb: 2 }}
               >
-                {t("news.addImages", "Add Images")}
+                {t("common.addImages", "Add Images")}
               </Button>
 
               <Menu
@@ -993,14 +993,14 @@ const NewsForm: React.FC<NewsFormProps> = ({
               {isProcessingImages
                 ? t("common.processingImages", "Processing...")
                 : isUploading
-                ? t("common.uploading", "Uploading...")
-                : loading
-                ? isEditMode
-                  ? t("common.updating", "Updating...")
-                  : t("common.creating", "Creating...")
-                : isEditMode
-                ? t("common.save", "Save")
-                : t("news.publish", "Publish")}
+                  ? t("common.uploading", "Uploading...")
+                  : loading
+                    ? isEditMode
+                      ? t("common.updating", "Updating...")
+                      : t("common.creating", "Creating...")
+                    : isEditMode
+                      ? t("common.save", "Save")
+                      : t("news.publish", "Publish")}
             </Button>
           </DialogActions>
         </form>

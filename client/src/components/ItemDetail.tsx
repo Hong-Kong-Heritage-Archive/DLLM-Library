@@ -1,5 +1,4 @@
-// ItemDetail.tsx - Updated version
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -63,6 +62,9 @@ import NewsForm from "./NewsForm";
 import BindItemDialog from "./BindItemDialog";
 import BinderPreview from "./BinderPreview";
 import ItemShareDialog from "./ItemShareDialog";
+import {
+  getContentRatingOption,
+} from "../utils/contentRating";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -83,6 +85,9 @@ const ITEM_DETAIL_QUERY = gql`
       holderId
       deposit
       isbn
+      contentRating
+      contentRatingChecked
+      shadowBanned
     }
   }
 `;
@@ -280,14 +285,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   // Query for owner details
   const { data: ownerData, refetch: refetchOwner } = useQuery(USER_QUERY, {
-    variables: { userId: data?.item.ownerId },
-    skip: !data?.item.ownerId,
+    variables: { userId: data?.item?.ownerId },
+    skip: !data?.item?.ownerId,
   });
 
   // Query for holder details (if different from owner)
   const { data: holderData } = useQuery(USER_QUERY, {
-    variables: { userId: data?.item.holderId },
-    skip: !data?.item.holderId || data?.item.holderId === data?.item.ownerId,
+    variables: { userId: data?.item?.holderId },
+    skip: !data?.item?.holderId || data?.item?.holderId === data?.item?.ownerId,
   });
   // Query for open transactions
   const {
@@ -336,7 +341,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     onCompleted: () => {
       setSuccessSnackbarOpen(true);
       // Refetch owner data to update pinItems
-      if (data?.item.ownerId) {
+      if (data?.item?.ownerId) {
         refetchOwner(); // Use refetchOwner instead of refetch
       }
     },
@@ -352,7 +357,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       onCompleted: () => {
         setSuccessSnackbarOpen(true);
         // Refetch owner data to update pinItems
-        if (data?.item.ownerId) {
+        if (data?.item?.ownerId) {
           refetchOwner(); // Use refetchOwner instead of refetch
         }
       },
@@ -372,12 +377,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     fetchPolicy: "cache-and-network",
   });
 
-  const isOwner = user && data?.item.ownerId === user.id;
+  const isOwner = user && data?.item?.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
   const isHolder =
     user &&
-    (data?.item.holderId === user.id ||
-      (isOwner && data?.item.holderId === null));
+    (data?.item?.holderId === user.id ||
+      (isOwner && data?.item?.holderId === null));
   const canCreateTransaction = user && !isHolder;
 
   // Get open transactions and find oldest one
@@ -731,6 +736,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     navigate(`/binder/${binderId}`);
   };
 
+  // Redirect to not-found when item query resolved but returned null (censored or missing)
+  useEffect(() => {
+    if (!loading && !error && data && !data.item) {
+      navigate("/not-found", {
+        replace: true,
+        state: { reason: user ? "rating" : "login" },
+      });
+    }
+  }, [loading, error, data, user, navigate]);
+
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       {/* Header with Back Button */}
@@ -797,9 +812,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${
-                      ownerData.user.nickname || ownerData.user.email
-                    }`}
+                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
+                      }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -819,9 +833,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${
-                        holderData.user.nickname || holderData.user.email
-                      }`}
+                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
+                        }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -829,9 +842,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${
-                    data.item.deposit
-                  }`}
+                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
+                    }`}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -844,6 +856,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             <CircularProgress size={24} />
             <Typography>{t("item.loadItems")}</Typography>
           </Box>
+        )}
+        {data?.item && (
+          <IconButton
+            color="primary"
+            onClick={() => setShareDialogOpen(true)}
+            aria-label={t("item.shareItem", "Share item")}
+            sx={{ ml: 1 }}
+          >
+            <ShareIcon />
+          </IconButton>
         )}
         {data?.item && (
           <IconButton
@@ -1080,7 +1102,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               >
                 {convertLinksToClickable(
                   data.item.description?.replace(/#Uncategorized\b/gi, "") ||
-                    "",
+                  "",
                 )}
               </Typography>
             </Box>
@@ -1089,40 +1111,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-            <Box sx={{ mb: 4 }}>
-              <Grid container spacing={2}>
-                {(data.item.thumbnails && data.item.thumbnails.length > 0
-                  ? data.item.thumbnails
-                  : data.item.images || []
-                ).map((image, index) => (
-                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                    <Paper
-                      elevation={2}
-                      sx={{
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "transform 0.2s",
-                        "&:hover": {
-                          transform: "scale(1.05)",
-                        },
-                      }}
-                      onClick={() => handleThumbnailClick(index)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                        style={{
-                          width: "100%",
-                          height: "120px",
-                          objectFit: "cover",
+              <Box sx={{ mb: 4 }}>
+                <Grid container spacing={2}>
+                  {(data.item.thumbnails && data.item.thumbnails.length > 0
+                    ? data.item.thumbnails
+                    : data.item.images || []
+                  ).map((image, index) => (
+                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          transition: "transform 0.2s",
+                          "&:hover": {
+                            transform: "scale(1.05)",
+                          },
                         }}
-                      />
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
+                        onClick={() => handleThumbnailClick(index)}
+                      >
+                        <img
+                          src={image}
+                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                          style={{
+                            width: "100%",
+                            height: "120px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -1138,6 +1160,25 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   />
                 </Typography>
               </Grid>
+              {(data.item as any).contentRating != null &&
+                (isOwner || !(data.item as any).contentRatingChecked) && (
+                  <Grid size={12}>
+                    <Typography variant="body1" color="text.secondary" component="div">
+                      <strong>{t("contentRating.label", "Content Rating")}:</strong>{" "}
+                      {(() => {
+                        const opt = getContentRatingOption((data.item as any).contentRating);
+                        return opt ? (
+                          <Chip
+                            label={t(opt.labelKey, opt.labelKey)}
+                            color={opt.color as any}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        ) : null;
+                      })()}
+                    </Typography>
+                  </Grid>
+                )}
               <Grid size={6}>
                 <Typography variant="body1" color="text.secondary">
                   <strong>{t("item.status", "Status")}:</strong>{" "}
@@ -1311,7 +1352,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 onClick={handleCreateNewsClick}
                 startIcon={<ArticleIcon />}
               >
-                {t("item.createNews", "Create News")}
+                {t("news.createNews", "Create News")}
               </Button>
             )}
 
@@ -1328,6 +1369,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </>
             )}
 
+            <Button
+              variant="outlined"
+              color="primary"
+              size="large"
+              startIcon={<ShareIcon />}
+              onClick={() => setShareDialogOpen(true)}
+            >
+              {t("item.shareItem", "Share item")}
+            </Button>
             <Button
               variant="outlined"
               color="primary"
@@ -1550,6 +1600,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         <Box sx={{ mt: 4 }}>
           <ItemComments itemId={itemId!} currentUser={user} />
         </Box>
+      )}
+
+      {data?.item && (
+        <ItemShareDialog
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          itemName={data.item.name}
+          itemUrl={itemShareUrl}
+          adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
+        />
       )}
 
       {data?.item && (

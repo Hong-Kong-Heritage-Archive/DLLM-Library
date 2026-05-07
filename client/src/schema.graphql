@@ -397,6 +397,7 @@ type Query {
 
   # Get recent items without classifications assigned for admin review
   recentItemsWithoutClassifications(limit: Int): [Item!]
+  itemsWithUncheckedContentRating(limit: Int): [Item!]
 
   # Get Binder by ID
   binder(id: ID!): Binder

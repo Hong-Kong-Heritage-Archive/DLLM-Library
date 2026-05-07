@@ -92,6 +92,7 @@
     "creating": "製造中...",
     "error": "出事：{{message}}",
     "back": "返回",
+    "goHome": "返回首頁",
     "close": "關閉",
     "edit": "編輯",
     "cancel": "取消",
@@ -131,7 +132,7 @@
     "noCategory": "無分類",
     "errorLoading": "載入資料時發生錯誤",
     "bind": "綁定",
-    "binding": "綁定中..."    
+    "binding": "綁定中..."
   },
   "time": {
     "secondsAgo": "幾秒鐘前",
@@ -307,6 +308,8 @@
     "actionSuccess": "成功完成交易！",
     "details": "物品詳情",
     "noItemId": "未提供物品ID",
+    "loginToView": "此物品可能需要登錄才能查看。請登入後繼續。",
+    "contentRatingRestricted": "此物品目前不可用。其內容分級可能超出您的偏好設定。",
     "owner": "物主",
     "holder": "持有者",
     "detailsloading": "資料加載中",
@@ -902,5 +905,28 @@
     "pageImportSuccess": "第 {{page}} 頁匯入成功！",
     "allImported": "所有頁面已匯入完成！您現在可以返回。",
     "pagesImported": "已匯入 {{done}} / {{total}} 頁"
+  },
+  "contentRating": {
+    "label": "內容分級",
+    "cat1": "第1級 — 全大眾",
+    "cat2a": "第2A級 — 兒童不宜",
+    "cat2b": "第2B級 — 青少年及兒童不宜",
+    "cat3": "第3級 — 只准成年人",
+    "cat4": "第4級 — 限制內容",
+    "pendingApproval": "待管理員審核",
+    "adminChecked": "管理員已驗證",
+    "visibleRating": "內容過濾",
+    "visibleRatingHelper": "分級較高的項目將會從您的動態中隱藏。",
+    "approvalDialog": "內容分級審核",
+    "markAsReviewed": "標記為已審核",
+    "approve": "批准",
+    "shadowBan": "隱性封禁",
+    "noItemsPending": "沒有待審核項目。"
+  },
+  "notFound": {
+    "title": "找不到頁面",
+    "message": "您查找的頁面不存在。",
+    "loginRequired": "需要登入",
+    "contentRestricted": "內容受限"
   }
 }

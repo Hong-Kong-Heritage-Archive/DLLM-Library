@@ -551,7 +551,7 @@ export class ItemService {
    * - Always hide items with content rating above user threshold.
    * - Support shadow banning items.
    * 
-   * Note: Owners and holders should have visiblity. This is for useful for actions such as transfer items.
+   * Note: Owners and holders should have visibility. This is useful for actions such as transfer items.
    */
   shouldCensorItem(
     item: Item | ItemModel,
@@ -1085,7 +1085,7 @@ export class ItemService {
     if (contentRatingChecked !== undefined || shadowBanned !== undefined) {
       if (user.role !== Role.Admin) {
         throw new Error(
-          `User ${user.id} does not have permission to contentRatingChecked of itemId: ${itemId}`,
+          `User ${user.id} does not have permission to update admin-only fields (contentRatingChecked, shadowBanned) of itemId: ${itemId}`,
         );
       }
 
@@ -1392,6 +1392,29 @@ export class ItemService {
           if (rv != null) {
             items.push(rv);
           }
+        }
+      }),
+    );
+    return items;
+  }
+
+  async itemsWithUncheckedContentRating(
+    limit: number = 100,
+    user: User | UserModel | null = null,
+  ): Promise<Item[]> {
+    const snapshot = await db
+      .collection("items")
+      .where("contentRatingChecked", "==", false)
+      .orderBy("updated", "desc")
+      .limit(limit)
+      .get();
+
+    const items: Item[] = [];
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const rv = await this._itemQueryToItem(doc, user);
+        if (rv != null) {
+          items.push(rv);
         }
       }),
     );

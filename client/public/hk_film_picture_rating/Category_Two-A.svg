@@ -1,0 +1,13 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <desc>Hong Kong film rating system - Category 2</desc>
+  <rect id="background" width="500" height="500" fill="white" />
+  <rect id="interior" x="20" y="20" width="460" height="460" fill="black" />
+  <rect id="upperstroke" x="50" y="100" width="200" height="25" fill="white" />
+  <rect id="lowerstroke" x="50" y="375" width="200" height="25" fill="white" />
+  <rect id="leftstroke" x="75" y="100" width="50" height="300" fill="white" />
+  <rect id="rightstroke" x="175" y="100" width="50" height="300" fill="white" />
+  <text x="260" y="400" font-family="Arial" font-size="300" fill="white">A</text>
+</svg>

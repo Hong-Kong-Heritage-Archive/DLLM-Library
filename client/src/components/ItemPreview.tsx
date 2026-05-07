@@ -9,6 +9,10 @@ import {
   Chip,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import {
+  getContentRatingOption,
+  DEFAULT_CONTENT_RATING,
+} from "../utils/contentRating";
 
 interface ItemPreviewProps {
   item: {
@@ -21,6 +25,7 @@ interface ItemPreviewProps {
     publishedYear?: number | null;
     createdAt: string;
     category: string[];
+    contentRating?: number | null;
   };
   distance?: number; // Optional distance parameter
   onClick: (itemId: string) => void;
@@ -198,6 +203,27 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
               }}
             />
           )}
+
+          {/* Content Rating Badge - Top Left */}
+          {item.contentRating != null &&
+            item.contentRating >= DEFAULT_CONTENT_RATING && (() => {
+              const opt = getContentRatingOption(item.contentRating!);
+              return opt ? (
+                <Chip
+                  label={t(opt.labelKey, opt.labelKey)}
+                  size="small"
+                  color={opt.color as any}
+                  sx={{
+                    position: "absolute",
+                    top: 4,
+                    left: 4,
+                    fontSize: "0.5rem",
+                    height: 14,
+                    "& .MuiChip-label": { px: 0.5 },
+                  }}
+                />
+              ) : null;
+            })()}
         </Box>
 
         {/* Book Info */}

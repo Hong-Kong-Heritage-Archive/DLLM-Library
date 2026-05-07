@@ -105,6 +105,7 @@
     "creating": "Creating...",
     "error": "Error: {{message}}",
     "back": "Back",
+    "goHome": "Go Home",
     "close": "Close",
     "edit": "Edit",
     "cancel": "Cancel",
@@ -298,6 +299,8 @@
     "previewAlt": "Image preview {{index}}",
     "createSuccess": "Item created successfully!",
     "noItemId": "No item ID provided.",
+    "loginToView": "This item may require you to sign in. Please log in to continue.",
+    "contentRatingRestricted": "This item is not available. Its content rating may exceed your current preference settings, or it may be pending admin review.",
     "errorLoading": "Error loading item details",
     "myLentItems": "Items I've lent",
     "loadingLentItems": "Loading your lent items...",
@@ -771,5 +774,28 @@
     "pageImportSuccess": "Page {{page}} imported successfully!",
     "allImported": "All pages have been imported! You can now go back.",
     "pagesImported": "{{done}} of {{total}} page(s) imported"
+  },
+  "contentRating": {
+    "label": "Content Rating",
+    "cat1": "Category I — General",
+    "cat2a": "Category IIA — Not suitable for children",
+    "cat2b": "Category IIB — Not suitable for young persons",
+    "cat3": "Category III — Adults only",
+    "cat4": "Category IV — Restricted content",
+    "pendingApproval": "Pending admin approval",
+    "adminChecked": "Verified by admin",
+    "visibleRating": "Content filter",
+    "visibleRatingHelper": "Items with a higher rating will be hidden from your feed.",
+    "approvalDialog": "Content Rating Approval",
+    "markAsReviewed": "Mark as Reviewed",
+    "approve": "Approve",
+    "shadowBan": "Shadow ban",
+    "noItemsPending": "No items pending approval."
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "The page you are looking for does not exist.",
+    "loginRequired": "Sign In Required",
+    "contentRestricted": "Content Restricted"
   }
 }

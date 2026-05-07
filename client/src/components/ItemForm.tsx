@@ -53,7 +53,11 @@ import {
 } from "../utils/imageUpload";
 import { useTranslation } from "react-i18next";
 import BookCoverSearchDialog from "./BookCoverSearchDialog";
-import { set } from "date-fns";
+import {
+  DEFAULT_CONTENT_RATING,
+  CONTENT_RATING_OPTIONS,
+  CONTENT_RATING_CENSOR_THRESHOLD,
+} from "../utils/contentRating";
 
 const CREATE_ITEM_MUTATION = gql`
   mutation CreateItem(
@@ -66,6 +70,7 @@ const CREATE_ITEM_MUTATION = gql`
     $publishedYear: Int
     $status: ItemStatus!
     $deposit: Int
+    $contentRating: Int
   ) {
     createItem(
       name: $name
@@ -77,6 +82,7 @@ const CREATE_ITEM_MUTATION = gql`
       publishedYear: $publishedYear
       status: $status
       deposit: $deposit
+      contentRating: $contentRating
     ) {
       id
       name
@@ -91,6 +97,8 @@ const CREATE_ITEM_MUTATION = gql`
       ownerId
       updatedAt
       deposit
+      contentRating
+      contentRatingChecked
     }
   }
 `;
@@ -108,6 +116,9 @@ const UPDATE_ITEM_MUTATION = gql`
     $publishedYear: Int
     $status: ItemStatus
     $deposit: Int
+    $contentRating: Int
+    $contentRatingChecked: Boolean
+    $shadowBanned: Boolean
   ) {
     updateItem(
       id: $id
@@ -121,6 +132,9 @@ const UPDATE_ITEM_MUTATION = gql`
       publishedYear: $publishedYear
       status: $status
       deposit: $deposit
+      contentRating: $contentRating
+      contentRatingChecked: $contentRatingChecked
+      shadowBanned: $shadowBanned
     ) {
       id
       name
@@ -135,6 +149,9 @@ const UPDATE_ITEM_MUTATION = gql`
       ownerId
       updatedAt
       deposit
+      contentRating
+      contentRatingChecked
+      shadowBanned
     }
   }
 `;
@@ -182,6 +199,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [classifications, setClassifications] = useState<string[]>([]);
+  const [contentRating, setContentRating] = useState<number>(DEFAULT_CONTENT_RATING);
 
   const isAdmin = user.role === "ADMIN";
 
@@ -197,6 +215,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     images: string[];
     deposit: number;
     classifications: string[];
+    contentRating: number;
   } | null>(null);
 
   // Image menu states
@@ -243,8 +262,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
       setPublishedYear(itemPublishedYear);
       setStatus(itemStatus);
       setLanguage(itemLanguage);
+      const itemContentRating = (item as any).contentRating ?? DEFAULT_CONTENT_RATING;
       setDeposit(itemDeposit);
       setClassifications(itemClassifications);
+      setContentRating(itemContentRating);
 
       // Store original values for comparison
       setOriginalValues({
@@ -257,6 +278,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         images: itemImages,
         deposit: itemDeposit,
         classifications: itemClassifications,
+        contentRating: (item as any).contentRating ?? DEFAULT_CONTENT_RATING,
         isbn: item.isbn || "",
       });
 
@@ -341,6 +363,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setImageMenuAnchor(null);
     setOriginalValues(null);
     setClassifications([]);
+    setContentRating(DEFAULT_CONTENT_RATING);
   };
 
   const handleCloseSuccessSnackbar = () => {
@@ -498,10 +521,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                      ...img,
-                      isUploading: true,
-                      uploadProgress: progress.percentage,
-                    }
+                    ...img,
+                    isUploading: true,
+                    uploadProgress: progress.percentage,
+                  }
                   : img,
               ),
             );
@@ -511,11 +534,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                      ...img,
-                      isUploading: false,
-                      uploadProgress: 100,
-                      gsUrl: gsUrl,
-                    }
+                    ...img,
+                    isUploading: false,
+                    uploadProgress: 100,
+                    gsUrl: gsUrl,
+                  }
                   : img,
               ),
             );
@@ -528,10 +551,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                      ...img,
-                      isUploading: false,
-                      uploadError: error,
-                    }
+                    ...img,
+                    isUploading: false,
+                    uploadError: error,
+                  }
                   : img,
               ),
             );
@@ -602,7 +625,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
             newImages.length > 0 ||
             allImageUrls.length !== originalValues.images.length ||
             JSON.stringify(allImageUrls) !==
-              JSON.stringify(originalValues.images);
+            JSON.stringify(originalValues.images);
 
           if (hasImageChanges) {
             variables.images = allImageUrls;
@@ -615,6 +638,10 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
           if (hasClassificationChanges) {
             variables.classifications = classifications;
+          }
+
+          if (contentRating !== (originalValues?.contentRating ?? DEFAULT_CONTENT_RATING)) {
+            variables.contentRating = contentRating;
           }
 
           // Only proceed if there are actually changes
@@ -638,6 +665,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
           language,
           status,
           deposit,
+          contentRating,
         };
 
         if (description?.trim()) {
@@ -763,6 +791,23 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 onChange={(e) => setDeposit(Number(e.target.value))}
                 helperText={t("item.depositHelper")}
               />
+
+              <TextField
+                select
+                label={t("contentRating.label", "Content Rating")}
+                fullWidth
+                margin="normal"
+                value={contentRating}
+                onChange={(e) => setContentRating(Number(e.target.value))}
+              >
+                {CONTENT_RATING_OPTIONS.filter(
+                  (opt) => opt.value <= CONTENT_RATING_CENSOR_THRESHOLD,
+                ).map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {t(opt.labelKey, opt.labelKey)}
+                  </MenuItem>
+                ))}
+              </TextField>
 
               {/* Image Upload Section */}
               <Box sx={{ mt: 2 }}>
