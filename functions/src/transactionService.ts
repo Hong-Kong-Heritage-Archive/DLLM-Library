@@ -36,6 +36,8 @@ type TransactionModel = Omit<
   gsImageUrls?: string[];
   gsThumbnailUrls?: string[];
   parentTransactionId?: string | null;
+  // Intended for logging purpose only.
+  isReturnTransaction?: boolean;
 };
 
 type EmailDetail = {
@@ -168,7 +170,8 @@ export class TransactionService {
     itemId: string,
     locationType: TransactionLocation,
     locationIndex: number,
-    details: string
+    details: string,
+    isReturnTransaction: boolean = false
   ): Promise<Transaction> {
     // Logic to create a transaction
     const item = await this.itemService.itemById(requestor, itemId);
@@ -178,6 +181,11 @@ export class TransactionService {
     let toList = [requestor.email];
     let ccList: string[] = [];
     let holder: User | null = null;
+
+    if ( isReturnTransaction && item.holderId != requestor.id ) {
+      throw new Error("Return transactions can only be created by the current holder of the item");
+    }
+
     if (item.holderId) {
       holder = await this.userService.userById(item.holderId);
       if (holder) {
@@ -195,6 +203,7 @@ export class TransactionService {
     }
     let location = holder.location;
     let maxOpenTransactions = 2;
+
     // for any ExchangePoint location type, we should create chained transactions
     // for from holder to exchange point, then from exchange point to requestor
     let exchangeId: string | null = null;
@@ -237,6 +246,7 @@ export class TransactionService {
         }
         break;
     }
+
     // check if there is 2 open transactions for the item
     const existingTransactions = await this._transactionsNotStatus(
       itemId,
@@ -263,7 +273,7 @@ export class TransactionService {
 
     const transactionModel: TransactionModel = {
       requestorId: requestor.id,
-      receiverId: exchangeId,
+      receiverId: exchangeId ? exchangeId : isReturnTransaction ? owner.id : undefined,
       itemId: itemId,
       participants: [...new Set(participants)], // Remove duplicates
       created: Timestamp.now(),
@@ -273,9 +283,12 @@ export class TransactionService {
       ), // expire in 14 days
       location: location,
       locationType: locationType,
-      status: TransactionStatus.Pending,
+      // No need for holder approval for return transaction.
+      status: !isReturnTransaction ? TransactionStatus.Pending : TransactionStatus.Approved,
       details: details,
+      isReturnTransaction: isReturnTransaction,
     };
+
     // Save transaction to the database
     const transactionRef = await db
       .collection("transactions")
@@ -292,12 +305,13 @@ export class TransactionService {
         created: transactionModel.created,
         updated: transactionModel.updated,
         expired: transactionModel.expired,
-        receiverId: requestor.id,
+        receiverId: !isReturnTransaction ? requestor.id: owner.id,
         location: location,
         status: TransactionStatus.Pending,
         participants: [requestor.id, exchangeId, owner.id], // Add participants array
         parentTransactionId: transactionRef.id,
         details: details,
+        isReturnTransaction: isReturnTransaction,
       };
       const chainedTransactionRef = await db
         .collection("transactions")
@@ -306,8 +320,8 @@ export class TransactionService {
         throw new Error("Failed to create chained transaction");
       }
     }
-    // Notify the user
 
+    // Notify the user
     sendNotificationViaEmail(
       toList,
       ccList,
@@ -315,6 +329,7 @@ export class TransactionService {
       `You have a new transaction request for item ${item.name} from ${requestor.nickname}.`,
       "transaction/" + transactionRef.id
     );
+
     let rv: Transaction = {
       id: transactionRef.id,
       item: item,
@@ -326,6 +341,7 @@ export class TransactionService {
         ? transactionModel.expired.seconds * 1000
         : undefined,
     };
+
     return rv;
   }
 

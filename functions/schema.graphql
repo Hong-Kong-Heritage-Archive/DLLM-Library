@@ -475,6 +475,7 @@ type Mutation {
     location: TransactionLocation! = HOLDER_LOCATION
     locationIndex: Int! = 0
     details: String
+    isReturnTransaction: Boolean
   ): Transaction!
   # 快速創建交易 By Holder
   # 使用預設位置選項 FACE_TO_FACE

@@ -640,7 +640,7 @@ export const resolvers: Resolvers = {
     },
     createTransaction: async (
       _: any,
-      { itemId, location, locationIndex, details }: any,
+      { itemId, location, locationIndex, details, isReturnTransaction }: any,
       { loginUser }: Context,
     ): Promise<Transaction> => {
       if (!loginUser) throw new Error("Not authenticated");
@@ -652,6 +652,7 @@ export const resolvers: Resolvers = {
         location,
         locationIndex,
         details,
+        isReturnTransaction
       );
     },
     createQuickTransaction: async (
