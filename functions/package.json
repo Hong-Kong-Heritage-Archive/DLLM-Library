@@ -45,6 +45,9 @@
     "ts-jest": "^29.4.6"
   },
   "jest": {
-    "preset": "ts-jest"
+    "preset": "ts-jest",
+    "testMatch": [
+      "**/?(*.)+(spec|test).[t]s?(x)"
+    ]
   }
 }
