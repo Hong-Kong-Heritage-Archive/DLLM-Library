@@ -650,7 +650,7 @@ export class TransactionService {
       const receiverId = data.receiverId ? data.receiverId : data.requestorId;
       if (receiverId !== receiver.id) {
         throw new Error(
-          `User with id ${receiver.id} is not the receiver of transaction with id ${id}`
+          `User with id ${receiver.id} is not the receiver of transaction with id ${id}, which is ${receiverId}`
         );
       }
     } else {
