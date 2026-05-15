@@ -72,16 +72,22 @@ interface ClassificationEditorProps {
   classifications: string[];
   onChange: (classifications: string[]) => void;
   showAddCategoryButton?: boolean;
+  onPendingSelectionChange?: (hasPending: boolean) => void;
 }
 
 export const ClassificationEditor: React.FC<ClassificationEditorProps> = ({
   classifications,
   onChange,
   showAddCategoryButton = false,
+  onPendingSelectionChange,
 }) => {
   const { t, i18n } = useTranslation();
   const [currentSelection, setCurrentSelection] = useState<string[]>([]);
   const [availableOptions, setAvailableOptions] = useState<string[][]>([]);
+
+  useEffect(() => {
+    onPendingSelectionChange?.(currentSelection.length > 0);
+  }, [currentSelection]);
 
   // New Category Dialog State
   const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
@@ -523,8 +529,8 @@ export const ClassificationEditor: React.FC<ClassificationEditorProps> = ({
             <Typography variant="body2" color="text.secondary" gutterBottom>
               {newCategoryParentPath
                 ? t("classification.addingUnder", "Adding under: {{path}}", {
-                    path: newCategoryParentPath,
-                  })
+                  path: newCategoryParentPath,
+                })
                 : t("classification.addingRoot", "Adding as root category")}
             </Typography>
 
@@ -553,13 +559,13 @@ export const ClassificationEditor: React.FC<ClassificationEditorProps> = ({
                     helperText={
                       lang === "en"
                         ? t(
-                            "classification.keyHelper",
-                            "Used as system key (letters, numbers, spaces, and hyphens only)"
-                          )
+                          "classification.keyHelper",
+                          "Used as system key (letters, numbers, spaces, and hyphens only)"
+                        )
                         : t(
-                            "classification.translationHelper",
-                            "Translation for this language"
-                          )
+                          "classification.translationHelper",
+                          "Translation for this language"
+                        )
                     }
                     disabled={dialogSubmitLoading}
                     autoFocus={lang === "en"}

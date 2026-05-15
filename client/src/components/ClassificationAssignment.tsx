@@ -16,6 +16,7 @@ import {
   Alert,
   Paper,
   Divider,
+  Snackbar,
 } from "@mui/material";
 import {
   Close as CloseIcon,
@@ -77,11 +78,18 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const [classifications, setClassifications] = useState<string[]>([]);
+  const [savedClassifications, setSavedClassifications] = useState<string[]>([]);
+  const [unsavedWarning, setUnsavedWarning] = useState(false);
+  const [hasPendingSelection, setHasPendingSelection] = useState(false);
+
+  const isDirty = hasPendingSelection;
 
   const [updateItemClassification, { loading: updateLoading }] = useMutation(
     UPDATE_ITEM_CLASSIFICATION,
     {
       onCompleted: () => {
+        setSavedClassifications(classifications);
+        setHasPendingSelection(false);
         onClassificationUpdated();
         onClose();
       },
@@ -97,14 +105,27 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
   // Initialize classifications when dialog opens
   React.useEffect(() => {
     if (open && item) {
-      setClassifications(item.clssfctns || []);
+      const initial = item.clssfctns || [];
+      setClassifications(initial);
+      setSavedClassifications(initial);
     }
   }, [open, item]);
+
+  const handleClose = () => {
+    if (isDirty) {
+      setUnsavedWarning(true);
+      return;
+    }
+    onClose();
+  };
 
   // Submit classifications
   const handleSubmit = () => {
     if (!item) return;
-
+    if (isDirty) {
+      setUnsavedWarning(true);
+      return;
+    }
     updateItemClassification({
       variables: {
         id: item.id,
@@ -128,7 +149,7 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth="md"
       fullWidth
       PaperProps={{
@@ -144,7 +165,7 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
       >
         <Typography variant="h6">{item.name}</Typography>
         <Button
-          onClick={onClose}
+          onClick={handleClose}
           startIcon={<CloseIcon />}
           size="small"
           color="inherit"
@@ -283,11 +304,12 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
           classifications={classifications}
           onChange={setClassifications}
           showAddCategoryButton={true}
+          onPendingSelectionChange={setHasPendingSelection}
         />
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} color="inherit" disabled={updateLoading}>
+        <Button onClick={handleClose} color="inherit" disabled={updateLoading}>
           {t("common.cancel", "Cancel")}
         </Button>
         <Button
@@ -301,6 +323,36 @@ const ItemDetailDialog: React.FC<ItemDetailDialogProps> = ({
           {t("classification.saveClassifications", "Save Classifications")}
         </Button>
       </DialogActions>
+
+      <Snackbar
+        open={unsavedWarning}
+        autoHideDuration={4000}
+        onClose={() => setUnsavedWarning(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity="warning"
+          variant="filled"
+          onClose={() => setUnsavedWarning(false)}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => {
+                setUnsavedWarning(false);
+                onClose();
+              }}
+            >
+              {t("common.discard", "Discard")}
+            </Button>
+          }
+        >
+          {t(
+            "classification.unaddedClassificationsWarning",
+            "Unadded classifications — save before closing or remove them."
+          )}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };

@@ -177,6 +177,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   } | null>(null);
 
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
+  const [showErrorSnackbar, setShowErrorSnackbar] = useState(false);
+  const [snackbarErrorMsg, setSnackbarErrorMsg] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
   // NEW: track whether current address differs from initial
@@ -201,8 +203,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
       onCompleted: (data) => {
         setShowSuccessSnackbar(true);
         if (onUserCreated) onUserCreated(data);
-        handleClose();
+        setInternalOpen(false);
         resetForm();
+      },
+      onError: (err) => {
+        setSnackbarErrorMsg(err.message);
+        setShowErrorSnackbar(true);
       },
     }
   );
@@ -215,9 +221,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
     CREATE_USER_MUTATION,
     {
       onCompleted: (data) => {
+        setShowSuccessSnackbar(true);
         if (onUserCreated) onUserCreated(data);
-        handleClose();
+        setInternalOpen(false);
         resetForm();
+      },
+      onError: (err) => {
+        setSnackbarErrorMsg(err.message);
+        setShowErrorSnackbar(true);
       },
     }
   );
@@ -248,6 +259,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const handleCloseSuccessSnackbar = () => {
     setShowSuccessSnackbar(false);
+    onClose?.();
+  };
+
+  const handleCloseErrorSnackbar = () => {
+    setShowErrorSnackbar(false);
   };
 
   // Update internal state when props change
@@ -1156,6 +1172,21 @@ const UserProfile: React.FC<UserProfileProps> = ({
           {isCreateUser
             ? t("userProfile.createSuccess")
             : t("userProfile.updateSuccess")}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={showErrorSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseErrorSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseErrorSnackbar}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {snackbarErrorMsg}
         </Alert>
       </Snackbar>
     </Box>

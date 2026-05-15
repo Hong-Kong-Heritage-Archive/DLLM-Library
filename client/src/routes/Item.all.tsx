@@ -205,23 +205,23 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched && activeFilterType !== "none"
         ? {
-            ...location,
-            radiusKm: searchRadiusKm,
-            classifications:
-              activeFilterType === "classification" && selectedClassification
-                ? [selectedClassification]
-                : null,
-            category:
-              activeFilterType === "category" && selectedCategory
-                ? [selectedCategory]
-                : null,
-            keyword:
-              activeFilterType === "keyword" && searchKeyword
-                ? searchKeyword
-                : null,
-            limit: ITEMS_PER_PAGE,
-            offset: (page - 1) * ITEMS_PER_PAGE,
-          }
+          ...location,
+          radiusKm: searchRadiusKm,
+          classifications:
+            activeFilterType === "classification" && selectedClassification
+              ? [selectedClassification]
+              : null,
+          category:
+            activeFilterType === "category" && selectedCategory
+              ? [selectedCategory]
+              : null,
+          keyword:
+            activeFilterType === "keyword" && searchKeyword
+              ? searchKeyword
+              : null,
+          limit: ITEMS_PER_PAGE,
+          offset: (page - 1) * ITEMS_PER_PAGE,
+        }
         : undefined,
     skip: !location || !hasSearched || activeFilterType === "none",
   });
@@ -232,21 +232,21 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched && activeFilterType !== "none"
         ? {
-            ...location,
-            radiusKm: searchRadiusKm,
-            classifications:
-              activeFilterType === "classification" && selectedClassification
-                ? [selectedClassification]
-                : null,
-            category:
-              activeFilterType === "category" && selectedCategory
-                ? [selectedCategory]
-                : null,
-            keyword:
-              activeFilterType === "keyword" && searchKeyword
-                ? searchKeyword
-                : null,
-          }
+          ...location,
+          radiusKm: searchRadiusKm,
+          classifications:
+            activeFilterType === "classification" && selectedClassification
+              ? [selectedClassification]
+              : null,
+          category:
+            activeFilterType === "category" && selectedCategory
+              ? [selectedCategory]
+              : null,
+          keyword:
+            activeFilterType === "keyword" && searchKeyword
+              ? searchKeyword
+              : null,
+        }
         : undefined,
     skip: !location || !hasSearched || activeFilterType === "none",
   });
@@ -449,11 +449,11 @@ const ItemAllPage: React.FC = () => {
       distance:
         item.location && location
           ? calculateDistance(
-              item.location.latitude,
-              item.location.longitude,
-              location.latitude,
-              location.longitude,
-            )
+            item.location.latitude,
+            item.location.longitude,
+            location.latitude,
+            location.longitude,
+          )
           : 0,
     })) || [];
 
@@ -769,20 +769,20 @@ const ItemAllPage: React.FC = () => {
                               return null;
                             }),
                         )
-                        /*classificationOptions.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option
-                              .split("/")
-                              .map((part) =>
-                                translateCategory(
-                                  part,
-                                  configData?.itemConfig?.categoryMaps,
-                                  i18n.language,
-                                ),
-                              )
-                              .join(" → ")}
-                          </MenuItem>
-                        ))*/
+                          /*classificationOptions.map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {option
+                                .split("/")
+                                .map((part) =>
+                                  translateCategory(
+                                    part,
+                                    configData?.itemConfig?.categoryMaps,
+                                    i18n.language,
+                                  ),
+                                )
+                                .join(" → ")}
+                            </MenuItem>
+                          ))*/
                         }
                       </Select>
                     </FormControl>
@@ -893,15 +893,15 @@ const ItemAllPage: React.FC = () => {
                   ? t("common.loading", "Loading...")
                   : totalItemsData?.totalItemsCountByLocation
                     ? t(
-                        "itemsAll.resultsFoundTotal",
-                        "Found {{count}} item(s)",
-                        {
-                          count: totalItemsData.totalItemsCountByLocation,
-                        },
-                      )
+                      "itemsAll.resultsFoundTotal",
+                      "Found {{count}} item(s)",
+                      {
+                        count: totalItemsData.totalItemsCountByLocation,
+                      },
+                    )
                     : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
-                        count: itemsWithDistance.length,
-                      })}
+                      count: itemsWithDistance.length,
+                    })}
               </Typography>
             </Box>
 
