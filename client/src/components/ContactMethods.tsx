@@ -454,7 +454,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
       )}
 
       {/* Public/Private Filter for read mode */}
-      {showPublicPrivateFilter && readOnly && (
+      {/* {showPublicPrivateFilter && readOnly && (
         <Box sx={{ mb: 2 }}>
           <FormControlLabel
             control={
@@ -467,7 +467,7 @@ const ContactMethods: React.FC<ContactMethodsProps> = ({
             label={t("userProfile.contactMethods.showPublicOnly", "Show public only")}
           />
         </Box>
-      )}
+      )} */}
 
       {/* Helper text for edit mode */}
       {!readOnly && (

@@ -255,16 +255,6 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
         ))}
       </Grid>
 
-      {/* Show message if there are more items available */}
-      {category && items.length === maxItems && (
-        <Box sx={{ mt: 2, textAlign: "center" }}>
-          <Typography variant="caption" color="text.secondary">
-            {t("item.recent.showingItems", "Showing {{count}} of many items", {
-              count: maxItems,
-            })}
-          </Typography>
-        </Box>
-      )}
     </Box>
   );
 };

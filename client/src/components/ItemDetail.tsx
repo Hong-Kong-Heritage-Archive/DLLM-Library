@@ -661,23 +661,25 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     }
 
     return (
-      <Box sx={{ mb: 2 }}>
-        <Typography
+      <>
+        {/* <Box sx={{ mb: 2 }}>
+          <Typography
           variant="caption"
           color="text.secondary"
           sx={{ mb: 0.5, display: "block" }}
         >
           {t("item.classification", "Classification")}:
-        </Typography>
-        <Box
+        </Typography> */}
+        {/* <Box
           sx={{
             display: "flex",
             alignItems: "center",
             flexWrap: "wrap",
             gap: 0.5,
           }}
-        >
-          {clssfctns.map((pathString, index) => {
+        > */}
+        {
+          clssfctns.map((pathString, index) => {
             const segments = pathString.split("/").filter((seg) => seg.trim());
 
             return (
@@ -726,9 +728,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 )}
               </Box>
             );
-          })}
-        </Box>
-      </Box>
+          })
+        }
+        {/* </Box> */}
+        {/* </Box> */}
+      </>
     );
   };
 
@@ -856,16 +860,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             <CircularProgress size={24} />
             <Typography>{t("item.loadItems")}</Typography>
           </Box>
-        )}
-        {data?.item && (
-          <IconButton
-            color="primary"
-            onClick={() => setShareDialogOpen(true)}
-            aria-label={t("item.shareItem", "Share item")}
-            sx={{ ml: 1 }}
-          >
-            <ShareIcon />
-          </IconButton>
         )}
         {data?.item && (
           <IconButton
@@ -1053,38 +1047,41 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </Card>
             )}
 
-          {/* Classification Path - NEW: Add before Categories */}
-          {renderClassificationPath(data.item.clssfctns)}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 0.5, display: "block" }}
+            >
+              {t("item.categories", "Categories")}:
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              {/* Classification Path - NEW: Add before Categories */}
+              {renderClassificationPath(data.item.clssfctns)}
 
-          {/* Categories */}
-          {data.item.category && data.item.category.length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mb: 0.5, display: "block" }}
-              >
-                {t("item.categories", "Categories")}:
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {data.item.category.map((category, index) => (
-                  <Chip
-                    key={index}
-                    label={category}
-                    variant="outlined"
-                    sx={{
-                      backgroundColor:
-                        category === "Comic" ? "primary.light" : "default",
-                      color:
-                        category === "Comic"
-                          ? "primary.contrastText"
-                          : "default",
-                    }}
-                  />
-                ))}
-              </Box>
+              {/* Categories */}
+              {data.item.category && data.item.category.length > 0 && (
+                <>
+                  {data.item.category.map((category, index) => (
+                    <Chip
+                      key={index}
+                      label={category}
+                      variant="outlined"
+                      sx={{
+                        backgroundColor:
+                          category === "Comic" ? "primary.light" : "default",
+                        color:
+                          category === "Comic"
+                            ? "primary.contrastText"
+                            : "default",
+                      }}
+                    />
+                  ))}
+                </>
+              )}
             </Box>
-          )}
+          </Box>
+
 
           {/* Description */}
           {data.item.description && (
@@ -1352,7 +1349,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 onClick={handleCreateNewsClick}
                 startIcon={<ArticleIcon />}
               >
-                {t("news.createNews", "Create News")}
+                {t("item.createNews", "Create News")}
               </Button>
             )}
 
@@ -1369,7 +1366,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </>
             )}
 
-            <Button
+            {/* <Button
               variant="outlined"
               color="primary"
               size="large"
@@ -1377,16 +1374,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               onClick={() => setShareDialogOpen(true)}
             >
               {t("item.shareItem", "Share item")}
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              size="large"
-              startIcon={<ShareIcon />}
-              onClick={() => setShareDialogOpen(true)}
-            >
-              {t("item.shareItem", "Share item")}
-            </Button>
+            </Button> */}
             {(canCreateTransaction || !user) && (
               <Button
                 variant="contained"
