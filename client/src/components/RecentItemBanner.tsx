@@ -287,22 +287,6 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
           </Grid>
         ))}
       </Grid>
-
-      {/* Show message if there are more items available */}
-      {category && items.length === maxItems && (
-        <Box sx={{ mt: 2, textAlign: "center" }}>
-          <Typography
-            variant="caption"
-            sx={{
-              color: "#888888",
-              fontFamily: '"Noto Serif TC", sans-serif',
-              fontSize: "12px",
-            }}
-          >
-            顯示 {maxItems} / 多項藏品
-          </Typography>
-        </Box>
-      )}
     </Box>
   );
 };

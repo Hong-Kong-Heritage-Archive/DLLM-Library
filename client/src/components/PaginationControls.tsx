@@ -25,6 +25,8 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  if (!hasPrevPage && !hasNextPage) return null;
+
   return (
     <Box
       sx={{
@@ -48,23 +50,13 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
       {showPageInfo && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Typography variant="body2">
-            {t("common.pageNum", { page: currentPage })}
+            {totalItems !== undefined && totalItems !== 0
+              ? t("common.pageOfTotal", "Page {{page}} of {{total}}", {
+                page: currentPage,
+                total: Math.ceil(totalItems / itemsPerPage),
+              })
+              : t("common.pageOfUnknown", "Page {{page}}", { page: currentPage })}
           </Typography>
-          {totalItems !== undefined && (
-            <Typography variant="body2" color="text.secondary">
-              (
-              {t(
-                "common.showing",
-                "showing {{start}}-{{end}} of {{total}}",
-                {
-                  start: (currentPage - 1) * itemsPerPage + 1,
-                  end: Math.min(currentPage * itemsPerPage, totalItems),
-                  total: totalItems,
-                }
-              )}
-              )
-            </Typography>
-          )}
         </Box>
       )}
 

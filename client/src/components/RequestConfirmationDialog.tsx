@@ -281,7 +281,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                   />
 
                   {/* Holder Exchange Point Option */}
-                  {holderExchangePointIds.length > 0 && (
+                  {/* {holderExchangePointIds.length > 0 && (
                     <FormControlLabel
                       value={TransactionLocation.HolderPublicExchangePoint}
                       control={<Radio />}
@@ -299,10 +299,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                         </Box>
                       }
                     />
-                  )}
+                  )} */}
 
                   {/* Requestor Exchange Point Option */}
-                  {requestorExchangePointIds.length > 0 && (
+                  {/* {requestorExchangePointIds.length > 0 && (
                     <FormControlLabel
                       value={TransactionLocation.RequestorPublicExchangePoint}
                       control={<Radio />}
@@ -320,7 +320,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                         </Box>
                       }
                     />
-                  )}
+                  )} */}
                 </RadioGroup>
 
                 {/* Exchange Point Selection Dropdown */}

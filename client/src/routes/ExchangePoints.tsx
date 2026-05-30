@@ -86,7 +86,7 @@ const ExchangePointsPage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: "bold" }}>
-        {t("navigation.exchangePoints", "Exchange Points")}
+        {t("navigation.exchangePoints", "Exchange Points")} ({exchangePointsCountData?.exchangePointsCount || 0})
       </Typography>
 
       {exchangePointsLoading && (
@@ -143,7 +143,7 @@ const ExchangePointsPage: React.FC = () => {
             </Box>
           )}
 
-          <Typography
+          {/* <Typography
             variant="body2"
             color="text.secondary"
             sx={{ mt: 2, textAlign: "center" }}
@@ -156,7 +156,7 @@ const ExchangePointsPage: React.FC = () => {
                 total: exchangePointsCountData?.exchangePointsCount || 0,
               }
             )}
-          </Typography>
+          </Typography> */}
         </>
       )}
 
