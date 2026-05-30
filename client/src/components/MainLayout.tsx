@@ -24,6 +24,7 @@ import {
   Article as ArticleIcon,
   SwapHoriz as LoanIcon,
   Label as ClassificationIcon,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -89,7 +90,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       variables: { userId: user?.id! },
       skip: !user?.id,
       pollInterval: 30000, // Poll every 30 seconds
-    }
+    },
   );
 
   const notificationCount =
@@ -99,8 +100,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const getActiveTab = () => {
     const path = location.pathname;
     if (path === "/" || path === "/home") return 0;
-    if (path.startsWith("/news")) return 1;
-    if (path.startsWith("/exchange-points")) return 2;
+    if (path.startsWith("/item/all")) return 1;
+    if (path.startsWith("/news")) return 2;
+    //if (path.startsWith("/exchange-points")) return 2;
     if (path.startsWith("/loan-items")) return 3;
     if (path.startsWith("/profile") || path.startsWith("/user/")) return 4;
     return 0; // Default to home
@@ -116,7 +118,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   // Handlers
   const handleBottomNavigation = (
     _: React.SyntheticEvent,
-    newValue: number
+    newValue: number,
   ) => {
     setBottomNavValue(newValue);
 
@@ -125,10 +127,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         navigate("/");
         break;
       case 1:
-        navigate("/news");
+        //navigate("/news");
+        navigate("/item/all");
         break;
       case 2:
-        navigate("/exchange-points");
+        //navigate("/exchange-points");
+        navigate("/news");
         break;
       case 3:
         // Loan Items - only accessible when logged in
@@ -190,92 +194,193 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        bgcolor: "#fbf9f4",
+      }}
+    >
       {/* Top AppBar */}
-      <AppBar position="sticky">
-        <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, cursor: "pointer" }}
+      <AppBar
+        position="sticky"
+        sx={{ bgcolor: "#fbf9f4", borderBottom: "none", pt: 0.5, px: 0.5 }}
+      >
+        <Toolbar
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 1,
+            py: 0.5,
+          }}
+        >
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              minWidth: 0,
+            }}
             onClick={() => navigate("/")}
           >
-            {appTitle}
-          </Typography>
-
-          <LanguageSwitcher />
-
-          {/* Notification Bell - only show for authenticated users */}
-          {user && (
-            <IconButton
-              color="inherit"
-              onClick={handleNotificationsClick}
-              sx={{ mr: 1 }}
-              title={t("transactions.viewTransactions", "View Transactions")}
+            <Typography
+              component="div"
+              sx={{
+                fontFamily: '"Playfair Display", "Georgia", serif',
+                fontWeight: 900,
+                color: "#1e1e1e",
+                cursor: "pointer",
+                letterSpacing: "-0.5px",
+                lineHeight: "1.1",
+                fontSize: { xs: "18px", sm: "24px", md: "28px" },
+              }}
             >
-              <Badge badgeContent={notificationCount} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-          )}
+              BookGuide
+              <Box
+                component="span"
+                sx={{
+                  color: "#b80c53",
+                  fontSize: { xs: "13px", sm: "16px", md: "20px" },
+                  fontWeight: 700,
+                  ml: 0.5,
+                }}
+              >
+                Sydney
+              </Box>
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                fontFamily: '"Roboto Mono", monospace, sans-serif',
+                color: "#666666",
+                fontSize: { xs: "9px", sm: "11px" },
+                mt: 0.2,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              Hong Kong books. Keep them moving.
+            </Typography>
+          </Box>
 
-          {/* Menu Button - only show for Admin users */}
-          {user && user?.role === Role.Admin && (
-            <>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              flexShrink: 0,
+            }}
+          >
+            <LanguageSwitcher color="#1e1e1e" />
+
+            {/* Notification Bell - only show for authenticated users */}
+            {user ? (
               <IconButton
-                color="inherit"
-                onClick={handleMenuClick}
-                title={t("common.menu", "Menu")}
+                onClick={handleNotificationsClick}
+                sx={{
+                  bgcolor: "#e5dec9",
+                  color: "#1e1e1e",
+                  width: "40px",
+                  height: "40px",
+                  "&:hover": { bgcolor: "#d8ceb4" },
+                }}
+                title={t("transactions.viewTransactions", "View Transactions")}
               >
-                <MenuIcon />
+                <Badge
+                  variant="dot"
+                  overlap="circular"
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#b80c53",
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      right: 2,
+                      top: 2,
+                    },
+                  }}
+                  invisible={notificationCount === 0}
+                >
+                  <NotificationsIcon sx={{ fontSize: "20px" }} />
+                </Badge>
               </IconButton>
-
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
+            ) : (
+              <IconButton
+                onClick={() => setAuthDialogOpen(true)}
+                sx={{
+                  bgcolor: "#e5dec9",
+                  color: "#1e1e1e",
+                  width: "40px",
+                  height: "40px",
+                  "&:hover": { bgcolor: "#d8ceb4" },
                 }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
+                title={t("auth.signIn", "Sign In")}
               >
-                <MenuItem onClick={handleAddNews}>
-                  <ListItemIcon>
-                    <ArticleIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>{t("news.create", "Add News")}</ListItemText>
-                </MenuItem>
+                <PersonIcon sx={{ fontSize: "20px" }} />
+              </IconButton>
+            )}
 
-                <MenuItem onClick={handleClassificationAssignment}>
-                  <ListItemIcon>
-                    <ClassificationIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t(
-                      "classification.assignClassifications",
-                      "Assign Classifications"
-                    )}
-                  </ListItemText>
-                </MenuItem>
+            {/* Menu Button - only show for Admin users */}
+            {user && user?.role === Role.Admin && (
+              <>
+                <IconButton
+                  color="inherit"
+                  onClick={handleMenuClick}
+                  title={t("common.menu", "Menu")}
+                  sx={{ color: "#1e1e1e" }}
+                >
+                  <MenuIcon />
+                </IconButton>
 
-                <MenuItem onClick={handleContentRatingApproval}>
-                  <ListItemIcon>
-                    <ClassificationIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    {t(
-                      "contentRating.approvalDialog",
-                      "Content Rating Approval"
-                    )}
-                  </ListItemText>
-                </MenuItem>
-              </Menu>
-            </>
-          )}
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                >
+                  <MenuItem onClick={handleAddNews}>
+                    <ListItemIcon>
+                      <ArticleIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>{t("news.create", "Add News")}</ListItemText>
+                  </MenuItem>
+
+                  <MenuItem onClick={handleClassificationAssignment}>
+                    <ListItemIcon>
+                      <ClassificationIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      {t(
+                        "classification.assignClassifications",
+                        "Assign Classifications",
+                      )}
+                    </ListItemText>
+                  </MenuItem>
+
+                  <MenuItem onClick={handleContentRatingApproval}>
+                    <ListItemIcon>
+                      <ClassificationIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      {t(
+                        "contentRating.approvalDialog",
+                        "Content Rating Approval",
+                      )}
+                    </ListItemText>
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
+          </Box>
         </Toolbar>
       </AppBar>
 
@@ -301,37 +406,162 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           left: 0,
           right: 0,
           zIndex: 1100,
+          boxShadow: "0 -2px 10px rgba(0,0,0,0.05)",
+          borderTop: "1px solid rgba(0,0,0,0.04)",
         }}
-        elevation={3}
+        elevation={0}
       >
         <BottomNavigation
           value={bottomNavValue}
           onChange={handleBottomNavigation}
           showLabels
+          sx={{
+            height: "72px",
+            backgroundColor: "#ffffff",
+            "& .MuiBottomNavigationAction-root": {
+              minWidth: "auto",
+              padding: "8px 0",
+              color: "#666666",
+              transition: "all 0.2s ease-in-out",
+              "& .MuiSvgIcon-root": {
+                fontSize: "24px",
+                transition: "all 0.2s ease-in-out",
+              },
+              "& .MuiBottomNavigationAction-label": {
+                fontFamily: '"Noto Serif TC", sans-serif',
+                fontSize: "12px",
+                fontWeight: "bold",
+                mt: "4px",
+                "&.Mui-selected": {
+                  fontSize: "12px",
+                  color: "#b80c53",
+                },
+              },
+              "&.Mui-selected": {
+                color: "#b80c53",
+                "& .MuiSvgIcon-root": {
+                  color: "#b80c53",
+                },
+              },
+            },
+          }}
         >
           <BottomNavigationAction
-            label={t("navigation.home", "Home")}
-            icon={<HomeIcon />}
+            label="首頁"
+            icon={
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "56px",
+                  height: "32px",
+                  borderRadius: "16px",
+                  backgroundColor:
+                    bottomNavValue === 0
+                      ? "rgba(224, 18, 107, 0.12)"
+                      : "transparent",
+                  color: bottomNavValue === 0 ? "#b80c53" : "inherit",
+                }}
+              >
+                <HomeIcon />
+              </Box>
+            }
           />
           <BottomNavigationAction
-            label={t("navigation.news", "News")}
-            icon={<NewsIcon />}
+            label="尋書"
+            icon={
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "56px",
+                  height: "32px",
+                  borderRadius: "16px",
+                  backgroundColor:
+                    bottomNavValue === 1
+                      ? "rgba(224, 18, 107, 0.12)"
+                      : "transparent",
+                  color: bottomNavValue === 1 ? "#b80c53" : "inherit",
+                }}
+              >
+                <SearchIcon />
+              </Box>
+            }
+            data-tour="item-nav"
+          />
+          <BottomNavigationAction
+            label="新聞"
+            icon={
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "56px",
+                  height: "32px",
+                  borderRadius: "16px",
+                  backgroundColor:
+                    bottomNavValue === 2
+                      ? "rgba(224, 18, 107, 0.12)"
+                      : "transparent",
+                  color: bottomNavValue === 2 ? "#b80c53" : "inherit",
+                }}
+              >
+                <NewsIcon />
+              </Box>
+            }
             data-tour="news-nav"
           />
-          <BottomNavigationAction
-            label={t("navigation.exchangePoints", "Exchange Points")}
-            icon={<LocationIcon />}
-          />
-          {/* Loan Items - Only show when user is logged in */}
           {user?.isVerified && (
             <BottomNavigationAction
-              label={t("navigation.loanItems", "Loans")}
-              icon={<LoanIcon />}
+              label="書況"
+              icon={
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "56px",
+                    height: "32px",
+                    borderRadius: "16px",
+                    backgroundColor:
+                      bottomNavValue === 3
+                        ? "rgba(224, 18, 107, 0.12)"
+                        : "transparent",
+                    color: bottomNavValue === 3 ? "#b80c53" : "inherit",
+                  }}
+                >
+                  <LoanIcon />
+                </Box>
+              }
             />
           )}
           <BottomNavigationAction
-            label={t("navigation.profile", "Profile")}
-            icon={<PersonIcon />}
+            label="個人"
+            icon={
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "56px",
+                  height: "32px",
+                  borderRadius: "16px",
+                  backgroundColor:
+                    bottomNavValue === (user?.isVerified ? 4 : 3)
+                      ? "rgba(224, 18, 107, 0.12)"
+                      : "transparent",
+                  color:
+                    bottomNavValue === (user?.isVerified ? 4 : 3)
+                      ? "#b80c53"
+                      : "inherit",
+                }}
+              >
+                <PersonIcon />
+              </Box>
+            }
             data-tour="profile-nav"
           />
         </BottomNavigation>

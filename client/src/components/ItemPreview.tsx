@@ -1,18 +1,13 @@
 import React from "react";
 import {
   Card,
-  CardMedia,
   CardContent,
   CardActionArea,
   Typography,
   Box,
-  Chip,
+  styled,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import {
-  getContentRatingOption,
-  DEFAULT_CONTENT_RATING,
-} from "../utils/contentRating";
 
 interface ItemPreviewProps {
   item: {
@@ -31,31 +26,70 @@ interface ItemPreviewProps {
   onClick: (itemId: string) => void;
 }
 
-const ItemPreview: React.FC<ItemPreviewProps> = ({
-  item,
-  distance,
-  onClick,
-}) => {
+// Consistent Dynamic Pastel Color Pool for cards (all with clean dark pastel tones)
+const DYNAMIC_COLORS = [
+  "#3c3029", // Dark Warm Cocoa / Charcoal
+  "#213329", // Deep Forest Slate
+  "#202538", // Dark Twilight Navy
+  "#3b2b35", // Plum Berry Velvet
+  "#2a3b40", // Dark Sage Sea
+];
+
+// Simple deterministic hash to select color based on item ID
+const getDeterministicColor = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % DYNAMIC_COLORS.length;
+  return DYNAMIC_COLORS[index];
+};
+
+const CustomBadge = styled(Box)({
+  borderRadius: "4px",
+  padding: "2px 6px",
+  fontSize: "11px",
+  fontWeight: "bold",
+  fontFamily: '"Noto Serif TC", sans-serif',
+  display: "inline-block",
+});
+
+const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
   const { t } = useTranslation();
+  const cardColor = getDeterministicColor(item.id);
 
-  const hasImage = item.images && item.images.length > 0;
-
-  const getStatusColor = (status: string) => {
+  // Translate short status labels or use defaults
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case "AVAILABLE":
-        return "success.main";
+        return "可借";
       case "EXCHANGEABLE":
-        return "info.main";
+        return "可換";
       case "GIFT":
-        return "secondary.main";
-      case "RESERVED":
-        return "warning.main";
-      case "TRANSFERRED":
-        return "grey.500";
+        return "贈送";
       default:
-        return "grey.500";
+        return t(`shortStatus.${status}`, status);
     }
   };
+
+  // Condition shorthand translation match
+  const getConditionLabel = (cond: string) => {
+    switch (cond) {
+      case "NEW":
+      case "AS_NEW":
+        return "全新";
+      case "NEAR_NEW":
+        return "近全新";
+      case "GOOD":
+        return "良好";
+      case "FAIR":
+        return "一般";
+      default:
+        return t(`item.conditions.${cond}`, cond);
+    }
+  };
+
+  const hasImage = item.images && item.images.length > 0;
 
   return (
     <Card
@@ -66,11 +100,14 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
         cursor: "pointer",
         transition: "all 0.2s ease-in-out",
         "&:hover": {
-          transform: "translateY(-2px)",
-          boxShadow: 3,
+          transform: "translateY(-4px)",
+          boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
         },
-        borderRadius: 1,
+        borderRadius: "16px",
         overflow: "hidden",
+        border: "none",
+        backgroundColor: "#ffffff",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
       }}
     >
       <CardActionArea
@@ -83,220 +120,173 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({
           justifyContent: "flex-start",
         }}
       >
-        {/* Book Cover / Image Area */}
+        {/* UPPER HALF (Dark dyn color background or thumbnail imagery) */}
         <Box
           sx={{
             width: "100%",
-            paddingTop: "140%", // 5:7 aspect ratio for book covers
+            height: "140%", // Increased height to cover around ~70% of standard card height (70% of ~320px)
             position: "relative",
-            backgroundColor: hasImage ? "transparent" : "grey.100",
-            overflow: "hidden",
+            backgroundColor: cardColor,
+            backgroundImage: hasImage
+              ? `linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.45)), url(${item.images![0]})`
+              : "none",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            p: 1.5,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
           }}
         >
-          {hasImage ? (
-            <Box
-              component="img"
-              src={item.images![0]}
-              alt={item.name}
+          {/* Top Row: Year (Left - visible only if no image), Status Badge (Right) */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <Typography
               sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          ) : (
-            <Box
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                p: 1,
+                color: "rgba(255, 255, 255, 0.65)",
+                fontSize: "13px",
+                fontFamily: '"Roboto Mono", monospace',
+                textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                visibility: hasImage ? "hidden" : "visible", // Hide year on top layer if thumbnail is present to avoid duplication
               }}
             >
+              {item.publishedYear || new Date(item.createdAt).getFullYear()}
+            </Typography>
+            <CustomBadge
+              sx={{
+                backgroundColor: hasImage
+                  ? "rgba(0,0,0,0.5)"
+                  : "rgba(255, 255, 255, 0.15)",
+                color: "#ffffff",
+                border: hasImage
+                  ? "1px solid rgba(255, 255, 255, 0.2)"
+                  : "1px solid rgba(255, 255, 255, 0.4)",
+                backdropFilter: "blur(2px)",
+              }}
+            >
+              {getStatusLabel(item.status)}
+            </CustomBadge>
+          </Box>
+
+          {/* Bottom Row: Title (Hidden if image is present to prevent duplication) & Condition Overlay */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+            {!hasImage && (
               <Typography
-                variant="caption"
+                variant="h6"
                 sx={{
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  color: "text.secondary",
+                  fontWeight: "900",
+                  fontSize: "12px",
+                  lineHeight: "1.3",
+                  color: "#ffffff",
                   overflow: "hidden",
                   display: "-webkit-box",
-                  WebkitLineClamp: 4,
+                  WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
-                  fontSize: "0.7rem",
-                  lineHeight: 1.2,
+                  fontFamily: '"Noto Serif TC", "Playfair Display", serif',
+                  letterSpacing: "-0.2px",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
                 }}
               >
                 {item.name}
               </Typography>
-            </Box>
-          )}
-
-          {/* Status Badge - Top Right */}
-          <Chip
-            label={t(`shortStatus.${item.status}`, item.status)}
-            size="small"
-            sx={{
-              position: "absolute",
-              top: 4,
-              right: 4,
-              backgroundColor: getStatusColor(item.status),
-              color: "white",
-              fontSize: "0.55rem",
-              height: 16,
-              fontWeight: "bold",
-              "& .MuiChip-label": {
-                px: 0.5,
-              },
-            }}
-          />
-
-          {/* Condition Badge - Bottom Left */}
-          <Chip
-            label={t(
-              `item.conditions.${item.condition}`,
-              item.condition
             )}
-            size="small"
-            variant="filled"
-            sx={{
-              position: "absolute",
-              bottom: 4,
-              left: 4,
-              backgroundColor: "rgba(0, 0, 0, 0.6)",
-              color: "white",
-              fontSize: "0.55rem",
-              height: 16,
-              fontWeight: "medium",
-              "& .MuiChip-label": {
-                px: 0.5,
-              },
-            }}
-          />
-
-          {/* Distance Badge - Bottom Right (if distance provided) */}
-          {distance !== undefined && (
-            <Chip
-              label={`${distance.toFixed(1)} km`}
-              size="small"
-              variant="filled"
-              sx={{
-                position: "absolute",
-                bottom: 4,
-                right: 4,
-                backgroundColor: "rgba(25, 118, 210, 0.9)", // primary color with transparency
-                color: "white",
-                fontSize: "0.55rem",
-                height: 16,
-                fontWeight: "medium",
-                "& .MuiChip-label": {
-                  px: 0.5,
-                },
-              }}
-            />
-          )}
-
-          {/* Content Rating Badge - Top Left */}
-          {item.contentRating != null &&
-            item.contentRating >= DEFAULT_CONTENT_RATING && (() => {
-              const opt = getContentRatingOption(item.contentRating!);
-              return opt ? (
-                <Chip
-                  label={t(opt.labelKey, opt.labelKey)}
-                  size="small"
-                  color={opt.color as any}
-                  sx={{
-                    position: "absolute",
-                    top: 4,
-                    left: 4,
-                    fontSize: "0.5rem",
-                    height: 14,
-                    "& .MuiChip-label": { px: 0.5 },
-                  }}
-                />
-              ) : null;
-            })()}
+            <Box>
+              <CustomBadge
+                sx={{
+                  backgroundColor: "rgba(0,0,0,0.45)",
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: "7px",
+                }}
+              >
+                {getConditionLabel(item.condition)}
+              </CustomBadge>
+            </Box>
+          </Box>
         </Box>
 
-        {/* Book Info */}
+        {/* BOTTOM HALF (White background with detailed information and tags) */}
         <CardContent
           sx={{
-            p: 1,
-            pb: 1,
-            "&:last-child": {
-              pb: 1,
-            },
+            p: 1.5,
             flexGrow: 1,
             display: "flex",
             flexDirection: "column",
+            justifyContent: "space-between",
+            backgroundColor: "#ffffff",
           }}
         >
-          {/* Title */}
-          <Typography
-            variant="caption"
-            sx={{
-              fontWeight: "medium",
-              fontSize: "0.7rem",
-              lineHeight: 1.2,
-              mb: 0.5,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              minHeight: "2em",
-            }}
-          >
-            {item.name}
-          </Typography>
-
-          {/* Published Year */}
-          {item.publishedYear && (
+          {/* Book Title & year summary */}
+          <Box sx={{ mb: 1 }}>
             <Typography
-              variant="caption"
-              color="text.secondary"
               sx={{
-                fontSize: "0.6rem",
-                mb: 0.5,
+                fontWeight: "bold",
+                fontSize: "9px",
+                lineHeight: "1.3",
+                color: "#1e1e1e",
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                fontFamily: '"Noto Serif TC", "Playfair Display", serif',
               }}
             >
-              {item.publishedYear}
+              {item.name}
             </Typography>
-          )}
+            <Typography
+              sx={{
+                fontSize: "8px",
+                color: "#666666",
+                mt: 0.5,
+                fontFamily: '"Roboto Mono", monospace',
+              }}
+            >
+              {item.publishedYear || new Date(item.createdAt).getFullYear()}
+            </Typography>
+          </Box>
 
-          {/* Categories - Show first category only */}
+          {/* Dynamic Badges / Category Tags matching bottom design */}
           {item.category && item.category.length > 0 && (
-            <Box sx={{ mt: "auto" }}>
-              <Chip
-                label={item.category[0]}
-                size="small"
-                variant="outlined"
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 0.5,
+                alignItems: "center",
+              }}
+            >
+              <Box
                 sx={{
-                  fontSize: "0.55rem",
-                  height: 16,
-                  maxWidth: "100%",
-                  "& .MuiChip-label": {
-                    px: 0.5,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  },
+                  backgroundColor: "#f5eedc",
+                  color: "#1e1e1e",
+                  borderRadius: "4px",
+                  px: "6px",
+                  py: "2px",
+                  fontSize: "8px",
+                  fontFamily: '"Noto Serif TC", sans-serif',
                 }}
-              />
+              >
+                {item.category[0]}
+              </Box>
               {item.category.length > 1 && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ fontSize: "0.55rem", ml: 0.5 }}
+                <Box
+                  sx={{
+                    backgroundColor: "#f5eedc",
+                    color: "#1e1e1e",
+                    borderRadius: "4px",
+                    px: "6px",
+                    py: "2px",
+                    fontSize: "6px",
+                    fontFamily: '"Noto Serif TC", sans-serif',
+                  }}
                 >
                   +{item.category.length - 1}
-                </Typography>
+                </Box>
               )}
             </Box>
           )}

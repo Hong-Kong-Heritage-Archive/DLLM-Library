@@ -4,27 +4,27 @@ const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#db036b", // Changed from blue to pink
-      contrastText: "#ffffff", // White text on pink background
+      main: "#b80c53", // Deep magenta
+      contrastText: "#ffffff",
     },
     secondary: {
-      main: "#25975d", // Dark grey for secondary elements
-      contrastText: "#ffffff", // White text
+      main: "#213329", // Forest Green/Dark
+      contrastText: "#ffffff",
     },
     background: {
-      default: "#e0e0e0", // Light grey background (instead of white)
-      paper: "#f5f5f5", // Slightly lighter grey for paper/cards
+      default: "#fbf9f4", // Main Cream Background
+      paper: "#ffffff", // Cards split white or card content
     },
     text: {
-      primary: "#000000", // Black text on light backgrounds
-      secondary: "#424242", // Dark grey for secondary text
+      primary: "#1e1e1e", // Deep Charcoal
+      secondary: "#666666",
     },
     info: {
-      main: "#db036b",
+      main: "#b80c53",
       contrastText: "#ffffff",
     },
     success: {
-      main: "#2e7d32", // Keep success colors reasonable
+      main: "#213329",
       contrastText: "#ffffff",
     },
     warning: {
@@ -32,26 +32,37 @@ const theme = createTheme({
       contrastText: "#000000",
     },
     error: {
-      main: "#d32f2f",
+      main: "#b80c53",
       contrastText: "#ffffff",
     },
+  },
+  typography: {
+    fontFamily: [
+      '"Playfair Display"',
+      '"Georgia"',
+      '"PingFang HK"',
+      '"PingFang TC"',
+      '"Noto Serif TC"',
+      '"Microsoft JhengHei"',
+      "sans-serif",
+    ].join(","),
   },
   components: {
     MuiButton: {
       styleOverrides: {
         contained: {
-          backgroundColor: "#db036b",
+          backgroundColor: "#b80c53",
           color: "#ffffff",
           "&:hover": {
-            backgroundColor: "#25975d",
+            backgroundColor: "#9c1e43",
           },
         },
         outlined: {
-          borderColor: "#000000",
-          color: "#000000",
+          borderColor: "#1e1e1e",
+          color: "#1e1e1e",
           "&:hover": {
-            backgroundColor: "#f5f5f5",
-            borderColor: "#333333",
+            backgroundColor: "#fbf9f4",
+            borderColor: "#1e1e1e",
           },
         },
       },
@@ -59,15 +70,16 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#db036b",
-          color: "#ffffff",
+          backgroundColor: "#fbf9f4",
+          color: "#1e1e1e",
+          boxShadow: "none",
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         colorPrimary: {
-          backgroundColor: "#25975d",
+          backgroundColor: "#213329",
           color: "#ffffff",
         },
       },
@@ -75,21 +87,21 @@ const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: "#f5f5f5",
+          backgroundColor: "#fbf9f4",
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: "#e0f5e0",
+          backgroundColor: "#ffffff",
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: "#e0ffe0",
+          backgroundColor: "#ffffff",
           border: "1px solid #e0e0e0",
         },
       },

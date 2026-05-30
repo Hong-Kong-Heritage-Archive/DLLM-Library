@@ -19,6 +19,7 @@ import {
   ListItemText,
   FormControlLabel,
   Checkbox,
+  Select,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -38,13 +39,12 @@ import { User, Item, Category, Binder } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
-import ItemPreview from "./ItemPreview";
+import BookSpinePreview from "./BookSpinePreview";
 import PaginationControls from "./PaginationControls";
-import { TagCloud } from "react-tagcloud";
+// import { TagCloud } from "react-tagcloud";
 import UpdateUser from "./UserProfile";
 import { USER_DETAIL_QUERY } from "../hook/user";
 import ContactMethods from "./ContactMethods";
-import BinderPreview from "./BinderPreview";
 import UserProfileShareDialog from "./UserProfileShareDialog";
 
 // GraphQL query to fetch user's items with pagination and category filter
@@ -71,6 +71,7 @@ const USER_ITEMS_QUERY = gql`
       images
       thumbnails
       category
+      clssfctns
       publishedYear
       language
       location {
@@ -306,9 +307,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Prepare data for TagCloud component
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-      value: categoryItem.category,
-      count: categoryItem.count,
-    }))
+        value: categoryItem.category,
+        count: categoryItem.count,
+      }))
     : [];
 
   // Custom renderer for TagCloud
@@ -354,11 +355,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -369,11 +370,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -620,8 +621,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   }}
                 >
                   {pinnedItemsWithDistance.map((item) => (
-                    <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
-                      <ItemPreview
+                    <Grid key={item.id} size={{ xs: 2, sm: 1.5, md: 1 }}>
+                      <BookSpinePreview
                         item={item}
                         distance={item.distance}
                         onClick={handleItemClick}
@@ -644,62 +645,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Alert severity="info">
                 {isCurrentUser
                   ? t(
-                    "user.noPinnedItemsYou",
-                    "You haven't pinned any items yet.",
-                  )
+                      "user.noPinnedItemsYou",
+                      "You haven't pinned any items yet.",
+                    )
                   : t(
-                    "user.noPinnedItemsUser",
-                    "This user hasn't pinned any items.",
-                  )}
+                      "user.noPinnedItemsUser",
+                      "This user hasn't pinned any items.",
+                    )}
               </Alert>
             )}
           </Paper>
 
-          {/* Root Binder Section - Add this BEFORE Item Categories Tag Cloud */}
-          {binderData?.binder && (
-            <Paper elevation={1} sx={{ p: 4, mb: 3 }}>
-              <Typography
-                variant="h6"
-                sx={{ mb: 2, display: "flex", alignItems: "center" }}
-              >
-                <FolderIcon sx={{ mr: 1 }} />
-                {t("user.rootBinder", "Root Binder")}
-              </Typography>
-              {/*
-              {binderLoading ? (
-                <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-                  <CircularProgress />
-                </Box>
-              ) : binderError ? (
-                <Alert severity="info">
-                  {t(
-                    "user.noRootBinder",
-                    "This user hasn't created a root binder yet."
-                  )}
-                </Alert>
-              ) : (
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                    <BinderPreview
-                      binder={binderData.binder}
-                      onClick={handleBinderClick}
-                    />
-                  </Grid>
-                </Grid>
-              )}
-              */}
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: "block", mt: 2 }}
-              >
-                {t(
-                  "user.rootBinderHelper",
-                  "The root binder contains all items organized by this user. Click to explore the contents.",
-                )}
-              </Typography>
-            </Paper>
-          )}
 
           {/* Item Categories Tag Cloud */}
           {userData.user.itemCategory &&
@@ -768,110 +724,31 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     </Typography>
                   </Box>
                 )}
-
-                {selectedCategory && (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    {t(
-                      "user.filteringByCategory",
-                      "Filtering by category: {{category}}",
-                      {
-                        category: selectedCategory,
-                      },
-                    )}
-                    <Chip
-                      label={t("common.clearFilter", "Clear Filter")}
-                      size="small"
-                      onClick={() => setSelectedCategory(null)}
-                      onDelete={() => setSelectedCategory(null)}
-                      sx={{ ml: 1 }}
-                    />
-                  </Alert>
-                )}
-
-                {!selectedCategory && (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    {t(
-                      "user.selectCategoryToViewItems",
-                      "Select a category below to view items.",
-                    )}
-                  </Alert>
-                )}
-
-                {/* React TagCloud */}
-                <Box
-                  sx={{
-                    minHeight: 200,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                    p: 2,
-                    bgcolor: "background.paper",
-                  }}
-                >
-                  {tagCloudData.length > 0 ? (
-                    <TagCloud
-                      minSize={14}
-                      maxSize={32}
-                      tags={tagCloudData}
-                      onClick={(tag) => handleCategoryClick(tag)}
-                      renderer={customRenderer}
-                      shuffle={false}
-                      colorOptions={{
-                        luminosity: "dark",
-                        hue: "blue",
-                      }}
-                    />
+{tagCloudData.length > 0 ? (
+                    <Select
+                      native
+                      value={selectedCategory || ""}
+                      onChange={(e) =>
+                        setSelectedCategory(e.target.value || null)
+                      }
+                    >
+                      <option value="">
+                        {t("user.allCategories", "All Categories")}
+                      </option>
+                      {tagCloudData.map((tag) => (
+                        <option key={tag.value} value={tag.value}>
+                          {tag.value} ({tag.count})
+                        </option>
+                      ))}
+                    </Select>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
                       {t("user.noCategories", "No categories available")}
                     </Typography>
                   )}
-                </Box>
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 2, display: "block" }}
-                >
-                  {t(
-                    "user.tagCloudHelper",
-                    "Click on a category to filter items. Larger tags indicate more items in that category.",
-                  )}
-                </Typography>
-              </Paper>
-            )}
-
-          {/* UpdateUser Dialog - Only render when needed */}
-          {showUpdateUser && (
-            <UpdateUser
-              email={userData.user.email}
-              onUserCreated={handleUserCreated}
-              open={showUpdateUser}
-              isCreateUser={false}
-              initialNickname={userData.user?.nickname}
-              initialAddress={userData.user?.address}
-              initialExchangePoints={userData.user?.exchangePoints}
-              initialContactMethods={userData.user?.contactMethods || []}
-              initialVisibleContentRating={(userData.user as any)?.visibleContentRating}
-              onClose={() => setShowUpdateUser(false)}
-            />
-          )}
-
-          <UserProfileShareDialog
-            open={shareDialogOpen}
-            onClose={() => setShareDialogOpen(false)}
-            profileUrl={profileShareUrl}
-            displayName={
-              userData.user.nickname || userData.user.email || userData.user.id
-            }
-          />
-
           {/* User's Items - Only show when a category is selected - Grid Layout */}
           {selectedCategory && (
-            <Paper elevation={1} sx={{ p: 4 }}>
+            <>
               <Box
                 sx={{
                   mb: 2,
@@ -883,16 +760,16 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 <Typography variant="h6">
                   {isCurrentUser
                     ? t("user.yourItemsInCategory", "Your {{category}} Items", {
-                      category: selectedCategory,
-                    })
-                    : t(
-                      "user.userItemsInCategory",
-                      "{{name}}'s {{category}} Items",
-                      {
-                        name: userData.user.nickname || userData.user.email,
                         category: selectedCategory,
-                      },
-                    )}
+                      })
+                    : t(
+                        "user.userItemsInCategory",
+                        "{{name}}'s {{category}} Items",
+                        {
+                          name: userData.user.nickname || userData.user.email,
+                          category: selectedCategory,
+                        },
+                      )}
                   {isExchangePointAdmin && includeExchangePointItems && (
                     <Chip
                       label={t(
@@ -912,11 +789,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     ? t("common.loading", "Loading...")
                     : totalItemsData?.totalItemsCountByUser
                       ? t("itemsAll.itemsFound", "Found {{count}} item(s)", {
-                        count: totalItemsData.totalItemsCountByUser,
-                      })
+                          count: totalItemsData.totalItemsCountByUser,
+                        })
                       : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
-                        count: itemsWithDistance.length,
-                      })}
+                          count: itemsWithDistance.length,
+                        })}
                 </Typography>
               </Box>
 
@@ -938,8 +815,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     }}
                   >
                     {itemsWithDistance.map((item) => (
-                      <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
-                        <ItemPreview
+                      <Grid key={item.id} size={{ xs: 2, sm: 1.5, md: 1 }}>
+                        <BookSpinePreview
                           item={item}
                           distance={item.distance}
                           onClick={handleItemClick}
@@ -967,24 +844,55 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   <Alert severity="info">
                     {isCurrentUser
                       ? t(
-                        "user.noItemsInCategoryYou",
-                        "You haven't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        },
-                      )
+                          "user.noItemsInCategoryYou",
+                          "You haven't added any {{category}} items yet.",
+                          {
+                            category: selectedCategory,
+                          },
+                        )
                       : t(
-                        "user.noItemsInCategoryUser",
-                        "This user hasn't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        },
-                      )}
+                          "user.noItemsInCategoryUser",
+                          "This user hasn't added any {{category}} items yet.",
+                          {
+                            category: selectedCategory,
+                          },
+                        )}
                   </Alert>
                 )
               )}
-            </Paper>
+            </>
           )}
+
+              </Paper>
+            )}
+
+          {/* UpdateUser Dialog - Only render when needed */}
+          {showUpdateUser && (
+            <UpdateUser
+              email={userData.user.email}
+              onUserCreated={handleUserCreated}
+              open={showUpdateUser}
+              isCreateUser={false}
+              initialNickname={userData.user?.nickname}
+              initialAddress={userData.user?.address}
+              initialExchangePoints={userData.user?.exchangePoints}
+              initialContactMethods={userData.user?.contactMethods || []}
+              initialVisibleContentRating={
+                (userData.user as any)?.visibleContentRating
+              }
+              onClose={() => setShowUpdateUser(false)}
+            />
+          )}
+
+          <UserProfileShareDialog
+            open={shareDialogOpen}
+            onClose={() => setShareDialogOpen(false)}
+            profileUrl={profileShareUrl}
+            displayName={
+              userData.user.nickname || userData.user.email || userData.user.id
+            }
+          />
+
         </>
       )}
     </Container>

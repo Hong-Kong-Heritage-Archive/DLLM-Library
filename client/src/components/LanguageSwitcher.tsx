@@ -6,7 +6,6 @@ import {
   SelectChangeEvent,
   Box,
 } from "@mui/material";
-import { Language } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 
 interface LanguageSwitcherProps {
@@ -23,33 +22,49 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   };
   const langList = ["zh-HK", "en", "zh-TW"];
 
+  const getLanguageLabel = (langCode: string) => {
+    if (langCode.startsWith("zh")) return "中文";
+    return "EN";
+  };
+
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1, color }}>
-      <Language />
-      <FormControl size="small" sx={{ minWidth: 120 }}>
+    <Box sx={{ display: "flex", alignItems: "center", color }}>
+      <FormControl size="small" sx={{ minWidth: 80 }}>
         <Select
           value={i18n.language}
           onChange={handleLanguageChange}
           variant="outlined"
           sx={{
-            color,
+            color: "#1e1e1e",
+            fontSize: "14px",
+            fontFamily: '"Noto Serif TC", sans-serif',
+            backgroundColor: "#fbf9f4",
+            borderRadius: "6px",
+            height: "36px",
             "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: color,
+              borderColor: "#cccccc",
+              borderWidth: "1px",
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: color,
+              borderColor: "#999999",
             },
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: color,
+              borderColor: "#b80c53",
             },
             "& .MuiSvgIcon-root": {
-              color,
+              color: "#333333",
+            },
+            "& .MuiSelect-select": {
+              paddingLeft: "12px",
+              paddingRight: "24px !important",
+              paddingTop: "6px",
+              paddingBottom: "6px",
             },
           }}
         >
           {langList.map((lang) => (
-            <MenuItem key={lang} value={lang}>
-              {t(`languages.${lang}`)}
+            <MenuItem key={lang} value={lang} sx={{ fontSize: "14px" }}>
+              {getLanguageLabel(lang)}
             </MenuItem>
           ))}
         </Select>

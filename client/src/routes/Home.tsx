@@ -227,6 +227,7 @@ const HomePage: React.FC = () => {
         </ListItem>
 
         {/* View All Items Button */}
+        {/*}
         <ListItem>
           <Button
             variant="contained"
@@ -250,7 +251,7 @@ const HomePage: React.FC = () => {
             </Button>
           )}
         </ListItem>
-
+          */}
         {/* User Picked Recommendations Section - Only for active users */}
         {user?.isActive && (
           <>

@@ -140,7 +140,9 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
     if (titleOverride) return titleOverride;
     if (category && category !== "") {
       return isRecent
-        ? t("item.recent.recentInCategory", "Recent in {{category}}", { category })
+        ? t("item.recent.recentInCategory", "Recent in {{category}}", {
+            category,
+          })
         : t("item.recent.hotInCategory", "Hot in {{category}}", { category });
     }
     if (recommendationType === RecommendationType.UserPicked) {
@@ -203,21 +205,39 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   }
 
   return (
-    <Box sx={{ width: "100%", mb: 4 }}>
+    <Box sx={{ width: "100%", mb: 5 }}>
       {/* Header */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
+          alignItems: "flex-end",
+          mb: 2.5,
+          borderBottom: "1px solid rgba(0, 0, 0, 0.05)",
+          pb: 1.5,
         }}
       >
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "900",
+              color: "#1e1e1e",
+              fontFamily: '"Noto Serif TC", "Playfair Display", serif',
+              letterSpacing: "-0.5px",
+              mb: 0.5,
+            }}
+          >
             {getTitle()}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#666666",
+              fontFamily: '"Noto Serif TC", sans-serif',
+              fontSize: "13px",
+            }}
+          >
             {getDescription()}
           </Typography>
         </Box>
@@ -226,9 +246,22 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
             variant="text"
             size="small"
             onClick={handleViewAll}
-            sx={{ flexShrink: 0 }}
+            sx={{
+              flexShrink: 0,
+              color: "#b80c53",
+              fontWeight: "bold",
+              fontFamily: '"Noto Serif TC", sans-serif',
+              fontSize: "14px",
+              textTransform: "none",
+              padding: 0,
+              minWidth: 0,
+              "&:hover": {
+                background: "none",
+                textDecoration: "underline",
+              },
+            }}
           >
-            {t("common.viewAll", "View All")}
+            全部查看
           </Button>
         )}
       </Box>
@@ -236,7 +269,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
       {/* Items Grid - Responsive layout */}
       <Grid
         container
-        spacing={{ xs: 1, sm: 2 }}
+        spacing={{ xs: 1.5, sm: 2 }}
         sx={{
           width: "100%",
         }}
@@ -258,10 +291,15 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
       {/* Show message if there are more items available */}
       {category && items.length === maxItems && (
         <Box sx={{ mt: 2, textAlign: "center" }}>
-          <Typography variant="caption" color="text.secondary">
-            {t("item.recent.showingItems", "Showing {{count}} of many items", {
-              count: maxItems,
-            })}
+          <Typography
+            variant="caption"
+            sx={{
+              color: "#888888",
+              fontFamily: '"Noto Serif TC", sans-serif',
+              fontSize: "12px",
+            }}
+          >
+            顯示 {maxItems} / 多項藏品
           </Typography>
         </Box>
       )}
