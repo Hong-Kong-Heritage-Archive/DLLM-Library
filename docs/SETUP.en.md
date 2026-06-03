@@ -53,7 +53,6 @@ The application uses Gmail to send email notifications. Follow these steps to ge
     Navigate to [https://myaccount.google.com/](https://myaccount.google.com/)
 
 2.  **Access Security settings:**
-
     - Click on "Security" in the left sidebar
     - Scroll down to "How you sign in to Google"
 
@@ -65,13 +64,11 @@ The application uses Gmail to send email notifications. Follow these steps to ge
 ### Step 2: Generate App Password
 
 1.  **Access App Passwords:**
-
     - After enabling 2-Step Verification, go back to Security settings
     - Scroll down and click on "App passwords"
     - You may need to sign in again
 
 2.  **Create a new App Password:**
-
     - Under "Select app", choose "Mail"
     - Under "Select device", choose "Other (Custom name)"
     - Enter a name like "DLLM Library" or "Firebase Functions"
@@ -96,12 +93,11 @@ The application uses Gmail to send email notifications. Follow these steps to ge
       // ...existing fields (like project_id, private_key, client_email, etc.)...
       "gmail_user": "your-email@gmail.com",
       "gmail_app_password": "abcdefghijklmnop",
-      "hosting_url": "https://dllm-library.web.app"
+      "hosting_url": "https://bookguide-staging.web.app/"
     }
     ```
 
     Replace the values with:
-
     - `gmail_user`: Your Gmail address (e.g., `library@gmail.com`)
     - `gmail_app_password`: The 16-character App Password you generated (without spaces)
     - `hosting_url`: Your Firebase Hosting URL (usually `https://your-project-id.web.app`)
@@ -122,7 +118,7 @@ The application uses Gmail to send email notifications. Follow these steps to ge
       "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/...",
       "gmail_user": "dllmlibrary@gmail.com",
       "gmail_app_password": "abcdefghijklmnop",
-      "hosting_url": "https://dllm-library.web.app"
+      "hosting_url": "https://bookguide-staging.web.app/"
     }
     ```
 
@@ -288,7 +284,6 @@ If emails are not being sent, check the following:
 If you get authentication errors:
 
 1. **Regenerate the App Password:**
-
    - Go to [Google Account Security](https://myaccount.google.com/security)
    - Navigate to "App passwords"
    - Delete the old password

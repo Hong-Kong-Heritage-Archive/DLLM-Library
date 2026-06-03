@@ -116,7 +116,7 @@ export type Item = {
   clssfctns?: Maybe<Array<Scalars['String']['output']>>;
   condition: ItemCondition;
   contentRating: Scalars['Int']['output'];
-  contentRatingChecked: Scalars['Boolean']['output'];
+  contentRatingChecked?: Maybe<Scalars['Boolean']['output']>;
   createdAt: Scalars['Date']['output'];
   deposit?: Maybe<Scalars['Int']['output']>;
   description?: Maybe<Scalars['String']['output']>;
@@ -129,6 +129,7 @@ export type Item = {
   name: Scalars['String']['output'];
   ownerId: Scalars['ID']['output'];
   publishedYear?: Maybe<Scalars['Int']['output']>;
+  shadowBanned?: Maybe<Scalars['Boolean']['output']>;
   status: ItemStatus;
   thumbnails?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['Date']['output'];
@@ -219,16 +220,14 @@ export type LocationInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addBindToBinder: Binder;
   addCategoryTree: Scalars['String']['output'];
   addItemComment: Scalars['ID']['output'];
-  approveTransaction: Transaction;
   cancelTransaction: Scalars['Boolean']['output'];
+  contactHolder: Scalars['Boolean']['output'];
   createItem: Item;
   createItemsFromJSON: Array<Item>;
   createNewsPost: NewsPost;
   createQuickTransaction: Transaction;
-  createTransaction: Transaction;
   createUser: User;
   deleteCategoryTree: Scalars['Boolean']['output'];
   deleteItem: Scalars['Boolean']['output'];
@@ -240,24 +239,12 @@ export type Mutation = {
   hideNewsPost: Scalars['Boolean']['output'];
   pinItem: Scalars['Boolean']['output'];
   receiveTransaction: Transaction;
-  removeBindFromBinder: Binder;
-  transferTransaction: Transaction;
   unpinItem: Scalars['Boolean']['output'];
-  updateBindInBinder: Binder;
-  updateBinder: Binder;
   updateHostConfig: HostConfig;
   updateItem: Item;
   updateNewsPost: NewsPost;
   updateUser: User;
   upsertCategoryMap?: Maybe<Array<CategoryMap>>;
-};
-
-
-export type MutationAddBindToBinderArgs = {
-  beforeBindId?: InputMaybe<Scalars['ID']['input']>;
-  bind: BindInput;
-  newBinderName?: InputMaybe<Scalars['String']['input']>;
-  parentId: Scalars['ID']['input'];
 };
 
 
@@ -273,13 +260,18 @@ export type MutationAddItemCommentArgs = {
 };
 
 
-export type MutationApproveTransactionArgs = {
+export type MutationCancelTransactionArgs = {
   id: Scalars['ID']['input'];
 };
 
 
-export type MutationCancelTransactionArgs = {
-  id: Scalars['ID']['input'];
+export type MutationContactHolderArgs = {
+  details?: InputMaybe<Scalars['String']['input']>;
+  emailContent?: InputMaybe<Scalars['String']['input']>;
+  itemId: Scalars['ID']['input'];
+  location?: TransactionLocation;
+  locationIndex?: Scalars['Int']['input'];
+  subject?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -316,14 +308,6 @@ export type MutationCreateNewsPostArgs = {
 export type MutationCreateQuickTransactionArgs = {
   details?: InputMaybe<Scalars['String']['input']>;
   itemId: Scalars['ID']['input'];
-};
-
-
-export type MutationCreateTransactionArgs = {
-  details?: InputMaybe<Scalars['String']['input']>;
-  itemId: Scalars['ID']['input'];
-  location?: TransactionLocation;
-  locationIndex?: Scalars['Int']['input'];
 };
 
 
@@ -386,35 +370,8 @@ export type MutationReceiveTransactionArgs = {
 };
 
 
-export type MutationRemoveBindFromBinderArgs = {
-  bindId: Scalars['ID']['input'];
-  parentId: Scalars['ID']['input'];
-};
-
-
-export type MutationTransferTransactionArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
 export type MutationUnpinItemArgs = {
   itemId: Scalars['ID']['input'];
-};
-
-
-export type MutationUpdateBindInBinderArgs = {
-  bindId: Scalars['ID']['input'];
-  newBind: BindInput;
-  parentId: Scalars['ID']['input'];
-};
-
-
-export type MutationUpdateBinderArgs = {
-  bindIds?: InputMaybe<Array<Scalars['ID']['input']>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ID']['input'];
-  images?: InputMaybe<Array<Scalars['String']['input']>>;
-  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -437,6 +394,7 @@ export type MutationUpdateItemArgs = {
   language?: InputMaybe<Language>;
   name?: InputMaybe<Scalars['String']['input']>;
   publishedYear?: InputMaybe<Scalars['Int']['input']>;
+  shadowBanned?: InputMaybe<Scalars['Boolean']['input']>;
   status?: InputMaybe<ItemStatus>;
 };
 
@@ -481,9 +439,6 @@ export type NewsPost = {
 
 export type Query = {
   __typename?: 'Query';
-  binder?: Maybe<Binder>;
-  binderPathsByUser: Array<BinderPath>;
-  bindersFromItemId?: Maybe<Array<Binder>>;
   commentsByItemId: ItemCommentsConnection;
   commentsByUserId: ItemCommentsByUserConnection;
   defaultCategories: Array<Scalars['String']['output']>;
@@ -508,6 +463,7 @@ export type Query = {
   openTransactionsByItem: Array<Transaction>;
   openTransactionsByUser: Array<Transaction>;
   recentAddedItems: Array<Item>;
+  recentItemsContentRatingNotChecked?: Maybe<Array<Item>>;
   recentItemsWithoutClassifications?: Maybe<Array<Item>>;
   recentUpdateCategories: Array<Scalars['String']['output']>;
   recommendedItems: Array<Item>;
@@ -520,21 +476,6 @@ export type Query = {
   transactionsByUser: Array<Transaction>;
   user?: Maybe<User>;
   users: Array<User>;
-};
-
-
-export type QueryBinderArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryBinderPathsByUserArgs = {
-  userId: Scalars['ID']['input'];
-};
-
-
-export type QueryBindersFromItemIdArgs = {
-  itemId: Scalars['ID']['input'];
 };
 
 
@@ -677,6 +618,11 @@ export type QueryRecentAddedItemsArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryRecentItemsContentRatingNotCheckedArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -839,41 +785,6 @@ export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string> } };
 
-export type BinderPathsByUserQueryVariables = Exact<{
-  userId: Scalars['ID']['input'];
-}>;
-
-
-export type BinderPathsByUserQuery = { __typename?: 'Query', binderPathsByUser: Array<{ __typename?: 'BinderPath', id: string, path: string }> };
-
-export type AddBindToBinderMutationVariables = Exact<{
-  parentId: Scalars['ID']['input'];
-  newBinderName?: InputMaybe<Scalars['String']['input']>;
-  bind: BindInput;
-  beforeBindId?: InputMaybe<Scalars['ID']['input']>;
-}>;
-
-
-export type AddBindToBinderMutation = { __typename?: 'Mutation', addBindToBinder: { __typename?: 'Binder', id: string, name: string, updatedAt: any, binds: Array<{ __typename?: 'Bind', id: string, type: BindType, name: string }> } };
-
-export type BinderDetailQueryVariables = Exact<{
-  binderId: Scalars['ID']['input'];
-}>;
-
-
-export type BinderDetailQuery = { __typename?: 'Query', binder?: { __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } } | null };
-
-export type UpdateBinderMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
-  bindIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
-}>;
-
-
-export type UpdateBinderMutation = { __typename?: 'Mutation', updateBinder: { __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } } };
-
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
@@ -915,15 +826,17 @@ export type PendingContentRatingItemsQueryVariables = Exact<{
 }>;
 
 
-export type PendingContentRatingItemsQuery = { __typename?: 'Query', recentItemsWithoutClassifications?: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, contentRating: number, contentRatingChecked: boolean, ownerId: string }> | null };
+export type PendingContentRatingItemsQuery = { __typename?: 'Query', recentItemsContentRatingNotChecked?: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, contentRating: number, contentRatingChecked?: boolean | null, shadowBanned?: boolean | null, ownerId: string }> | null };
 
 export type ApproveContentRatingMutationVariables = Exact<{
   id: Scalars['ID']['input'];
+  contentRating?: InputMaybe<Scalars['Int']['input']>;
   contentRatingChecked?: InputMaybe<Scalars['Boolean']['input']>;
+  shadowBanned?: InputMaybe<Scalars['Boolean']['input']>;
 }>;
 
 
-export type ApproveContentRatingMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, contentRating: number, contentRatingChecked: boolean } };
+export type ApproveContentRatingMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, contentRating: number, contentRatingChecked?: boolean | null, shadowBanned?: boolean | null } };
 
 export type AddItemCommentMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -946,25 +859,19 @@ export type ItemQueryVariables = Exact<{
 }>;
 
 
-export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, clssfctns?: Array<string> | null, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposit?: number | null, isbn?: string | null, contentRating: number, contentRatingChecked: boolean } | null };
+export type ItemQuery = { __typename?: 'Query', item?: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, clssfctns?: Array<string> | null, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, holderId?: string | null, deposit?: number | null, isbn?: string | null, contentRating: number, contentRatingChecked?: boolean | null, shadowBanned?: boolean | null } | null };
 
-export type UpdateItemCheckedMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  contentRatingChecked?: InputMaybe<Scalars['Boolean']['input']>;
-}>;
-
-
-export type UpdateItemCheckedMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, contentRating: number, contentRatingChecked: boolean } };
-
-export type CreateTransactionMutationVariables = Exact<{
+export type ContactHolderMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
   location: TransactionLocation;
   locationIndex?: InputMaybe<Scalars['Int']['input']>;
+  subject: Scalars['String']['input'];
+  emailContent: Scalars['String']['input'];
   details: Scalars['String']['input'];
 }>;
 
 
-export type CreateTransactionMutation = { __typename?: 'Mutation', createTransaction: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any } };
+export type ContactHolderMutation = { __typename?: 'Mutation', contactHolder: boolean };
 
 export type CreateQuickTransactionMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -1002,13 +909,6 @@ export type UnpinItemMutationVariables = Exact<{
 
 export type UnpinItemMutation = { __typename?: 'Mutation', unpinItem: boolean };
 
-export type BindersFromItemIdQueryVariables = Exact<{
-  itemId: Scalars['ID']['input'];
-}>;
-
-
-export type BindersFromItemIdQuery = { __typename?: 'Query', bindersFromItemId?: Array<{ __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } }> | null };
-
 export type CreateItemMutationVariables = Exact<{
   name: Scalars['String']['input'];
   category: Array<Scalars['String']['input']> | Scalars['String']['input'];
@@ -1023,7 +923,7 @@ export type CreateItemMutationVariables = Exact<{
 }>;
 
 
-export type CreateItemMutation = { __typename?: 'Mutation', createItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposit?: number | null, contentRating: number, contentRatingChecked: boolean } };
+export type CreateItemMutation = { __typename?: 'Mutation', createItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposit?: number | null, contentRating: number, contentRatingChecked?: boolean | null } };
 
 export type UpdateItemMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1039,10 +939,11 @@ export type UpdateItemMutationVariables = Exact<{
   deposit?: InputMaybe<Scalars['Int']['input']>;
   contentRating?: InputMaybe<Scalars['Int']['input']>;
   contentRatingChecked?: InputMaybe<Scalars['Boolean']['input']>;
+  shadowBanned?: InputMaybe<Scalars['Boolean']['input']>;
 }>;
 
 
-export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposit?: number | null, contentRating: number, contentRatingChecked: boolean } };
+export type UpdateItemMutation = { __typename?: 'Mutation', updateItem: { __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, ownerId: string, updatedAt: any, deposit?: number | null, contentRating: number, contentRatingChecked?: boolean | null, shadowBanned?: boolean | null } };
 
 export type GetUserOpenTransactionsForCountQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1112,20 +1013,6 @@ export type GetTransactionQueryVariables = Exact<{
 
 export type GetTransactionQuery = { __typename?: 'Query', transaction?: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any, details?: string | null, images?: Array<string> | null, item: { __typename?: 'Item', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, condition: ItemCondition, category: Array<string>, ownerId: string, holderId?: string | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }, requestor: { __typename?: 'User', id: string, nickname?: string | null, email: string, role: Role, address?: string | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }, receiver?: { __typename?: 'User', id: string, nickname?: string | null, email: string, role: Role, address?: string | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null } | null };
 
-export type ApproveTransactionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type ApproveTransactionMutation = { __typename?: 'Mutation', approveTransaction: { __typename?: 'Transaction', id: string, status: TransactionStatus, updatedAt: any } };
-
-export type TransferTransactionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type TransferTransactionMutation = { __typename?: 'Mutation', transferTransaction: { __typename?: 'Transaction', id: string, status: TransactionStatus, updatedAt: any } };
-
 export type ReceiveTransactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
@@ -1160,13 +1047,6 @@ export type TotalItemsByUserQueryVariables = Exact<{
 
 
 export type TotalItemsByUserQuery = { __typename?: 'Query', totalItemsCountByUser: number };
-
-export type UserRootBinderQueryVariables = Exact<{
-  binderId: Scalars['ID']['input'];
-}>;
-
-
-export type UserRootBinderQuery = { __typename?: 'Query', binder?: { __typename?: 'Binder', id: string, name: string, description?: string | null, images?: Array<string> | null, thumbnails?: Array<string> | null, bindedCount: number, updatedAt: any, binds: Array<{ __typename?: 'Bind', type: BindType, id: string, name: string }>, owner: { __typename?: 'User', id: string, nickname?: string | null, email: string } } | null };
 
 export type GeocodeAddressQueryVariables = Exact<{
   address: Scalars['String']['input'];
@@ -1310,6 +1190,13 @@ export type RecentAddedItemsQueryVariables = Exact<{
 
 export type RecentAddedItemsQuery = { __typename?: 'Query', recentAddedItems: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any }> };
 
+export type TotalItemsCountQueryVariables = Exact<{
+  classifications?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type TotalItemsCountQuery = { __typename?: 'Query', totalItemsCount: number };
+
 export type GetHostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1450,210 +1337,6 @@ export type HostConfigQueryHookResult = ReturnType<typeof useHostConfigQuery>;
 export type HostConfigLazyQueryHookResult = ReturnType<typeof useHostConfigLazyQuery>;
 export type HostConfigSuspenseQueryHookResult = ReturnType<typeof useHostConfigSuspenseQuery>;
 export type HostConfigQueryResult = Apollo.QueryResult<HostConfigQuery, HostConfigQueryVariables>;
-export const BinderPathsByUserDocument = gql`
-    query BinderPathsByUser($userId: ID!) {
-  binderPathsByUser(userId: $userId) {
-    id
-    path
-  }
-}
-    `;
-
-/**
- * __useBinderPathsByUserQuery__
- *
- * To run a query within a React component, call `useBinderPathsByUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useBinderPathsByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useBinderPathsByUserQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useBinderPathsByUserQuery(baseOptions: Apollo.QueryHookOptions<BinderPathsByUserQuery, BinderPathsByUserQueryVariables> & ({ variables: BinderPathsByUserQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>(BinderPathsByUserDocument, options);
-      }
-export function useBinderPathsByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>(BinderPathsByUserDocument, options);
-        }
-export function useBinderPathsByUserSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>(BinderPathsByUserDocument, options);
-        }
-export type BinderPathsByUserQueryHookResult = ReturnType<typeof useBinderPathsByUserQuery>;
-export type BinderPathsByUserLazyQueryHookResult = ReturnType<typeof useBinderPathsByUserLazyQuery>;
-export type BinderPathsByUserSuspenseQueryHookResult = ReturnType<typeof useBinderPathsByUserSuspenseQuery>;
-export type BinderPathsByUserQueryResult = Apollo.QueryResult<BinderPathsByUserQuery, BinderPathsByUserQueryVariables>;
-export const AddBindToBinderDocument = gql`
-    mutation AddBindToBinder($parentId: ID!, $newBinderName: String, $bind: BindInput!, $beforeBindId: ID) {
-  addBindToBinder(
-    parentId: $parentId
-    newBinderName: $newBinderName
-    bind: $bind
-    beforeBindId: $beforeBindId
-  ) {
-    id
-    name
-    binds {
-      id
-      type
-      name
-    }
-    updatedAt
-  }
-}
-    `;
-export type AddBindToBinderMutationFn = Apollo.MutationFunction<AddBindToBinderMutation, AddBindToBinderMutationVariables>;
-
-/**
- * __useAddBindToBinderMutation__
- *
- * To run a mutation, you first call `useAddBindToBinderMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddBindToBinderMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [addBindToBinderMutation, { data, loading, error }] = useAddBindToBinderMutation({
- *   variables: {
- *      parentId: // value for 'parentId'
- *      newBinderName: // value for 'newBinderName'
- *      bind: // value for 'bind'
- *      beforeBindId: // value for 'beforeBindId'
- *   },
- * });
- */
-export function useAddBindToBinderMutation(baseOptions?: Apollo.MutationHookOptions<AddBindToBinderMutation, AddBindToBinderMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<AddBindToBinderMutation, AddBindToBinderMutationVariables>(AddBindToBinderDocument, options);
-      }
-export type AddBindToBinderMutationHookResult = ReturnType<typeof useAddBindToBinderMutation>;
-export type AddBindToBinderMutationResult = Apollo.MutationResult<AddBindToBinderMutation>;
-export type AddBindToBinderMutationOptions = Apollo.BaseMutationOptions<AddBindToBinderMutation, AddBindToBinderMutationVariables>;
-export const BinderDetailDocument = gql`
-    query BinderDetail($binderId: ID!) {
-  binder(id: $binderId) {
-    id
-    name
-    description
-    images
-    thumbnails
-    binds {
-      type
-      id
-      name
-    }
-    bindedCount
-    updatedAt
-    owner {
-      id
-      nickname
-      email
-    }
-  }
-}
-    `;
-
-/**
- * __useBinderDetailQuery__
- *
- * To run a query within a React component, call `useBinderDetailQuery` and pass it any options that fit your needs.
- * When your component renders, `useBinderDetailQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useBinderDetailQuery({
- *   variables: {
- *      binderId: // value for 'binderId'
- *   },
- * });
- */
-export function useBinderDetailQuery(baseOptions: Apollo.QueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables> & ({ variables: BinderDetailQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
-      }
-export function useBinderDetailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
-        }
-export function useBinderDetailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BinderDetailQuery, BinderDetailQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<BinderDetailQuery, BinderDetailQueryVariables>(BinderDetailDocument, options);
-        }
-export type BinderDetailQueryHookResult = ReturnType<typeof useBinderDetailQuery>;
-export type BinderDetailLazyQueryHookResult = ReturnType<typeof useBinderDetailLazyQuery>;
-export type BinderDetailSuspenseQueryHookResult = ReturnType<typeof useBinderDetailSuspenseQuery>;
-export type BinderDetailQueryResult = Apollo.QueryResult<BinderDetailQuery, BinderDetailQueryVariables>;
-export const UpdateBinderDocument = gql`
-    mutation UpdateBinder($id: ID!, $name: String, $description: String, $images: [String!], $bindIds: [ID!]) {
-  updateBinder(
-    id: $id
-    name: $name
-    description: $description
-    images: $images
-    bindIds: $bindIds
-  ) {
-    id
-    name
-    description
-    images
-    thumbnails
-    binds {
-      type
-      id
-      name
-    }
-    bindedCount
-    updatedAt
-    owner {
-      id
-      nickname
-      email
-    }
-  }
-}
-    `;
-export type UpdateBinderMutationFn = Apollo.MutationFunction<UpdateBinderMutation, UpdateBinderMutationVariables>;
-
-/**
- * __useUpdateBinderMutation__
- *
- * To run a mutation, you first call `useUpdateBinderMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateBinderMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateBinderMutation, { data, loading, error }] = useUpdateBinderMutation({
- *   variables: {
- *      id: // value for 'id'
- *      name: // value for 'name'
- *      description: // value for 'description'
- *      images: // value for 'images'
- *      bindIds: // value for 'bindIds'
- *   },
- * });
- */
-export function useUpdateBinderMutation(baseOptions?: Apollo.MutationHookOptions<UpdateBinderMutation, UpdateBinderMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateBinderMutation, UpdateBinderMutationVariables>(UpdateBinderDocument, options);
-      }
-export type UpdateBinderMutationHookResult = ReturnType<typeof useUpdateBinderMutation>;
-export type UpdateBinderMutationResult = Apollo.MutationResult<UpdateBinderMutation>;
-export type UpdateBinderMutationOptions = Apollo.BaseMutationOptions<UpdateBinderMutation, UpdateBinderMutationVariables>;
 export const RecentItemsWithoutClassificationsDocument = gql`
     query RecentItemsWithoutClassifications($limit: Int) {
   recentItemsWithoutClassifications(limit: $limit) {
@@ -1852,7 +1535,7 @@ export type AddCategoryTreeMutationResult = Apollo.MutationResult<AddCategoryTre
 export type AddCategoryTreeMutationOptions = Apollo.BaseMutationOptions<AddCategoryTreeMutation, AddCategoryTreeMutationVariables>;
 export const PendingContentRatingItemsDocument = gql`
     query PendingContentRatingItems($limit: Int) {
-  recentItemsWithoutClassifications(limit: $limit) {
+  recentItemsContentRatingNotChecked(limit: $limit) {
     id
     name
     category
@@ -1862,6 +1545,7 @@ export const PendingContentRatingItemsDocument = gql`
     thumbnails
     contentRating
     contentRatingChecked
+    shadowBanned
     ownerId
   }
 }
@@ -1891,9 +1575,6 @@ export function usePendingContentRatingItemsLazyQuery(baseOptions?: Apollo.LazyQ
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PendingContentRatingItemsQuery, PendingContentRatingItemsQueryVariables>(PendingContentRatingItemsDocument, options);
         }
-// @ts-ignore
-export function usePendingContentRatingItemsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PendingContentRatingItemsQuery, PendingContentRatingItemsQueryVariables>): Apollo.UseSuspenseQueryResult<PendingContentRatingItemsQuery, PendingContentRatingItemsQueryVariables>;
-export function usePendingContentRatingItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PendingContentRatingItemsQuery, PendingContentRatingItemsQueryVariables>): Apollo.UseSuspenseQueryResult<PendingContentRatingItemsQuery | undefined, PendingContentRatingItemsQueryVariables>;
 export function usePendingContentRatingItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PendingContentRatingItemsQuery, PendingContentRatingItemsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<PendingContentRatingItemsQuery, PendingContentRatingItemsQueryVariables>(PendingContentRatingItemsDocument, options);
@@ -1903,11 +1584,17 @@ export type PendingContentRatingItemsLazyQueryHookResult = ReturnType<typeof use
 export type PendingContentRatingItemsSuspenseQueryHookResult = ReturnType<typeof usePendingContentRatingItemsSuspenseQuery>;
 export type PendingContentRatingItemsQueryResult = Apollo.QueryResult<PendingContentRatingItemsQuery, PendingContentRatingItemsQueryVariables>;
 export const ApproveContentRatingDocument = gql`
-    mutation ApproveContentRating($id: ID!, $contentRatingChecked: Boolean) {
-  updateItem(id: $id, contentRatingChecked: $contentRatingChecked) {
+    mutation ApproveContentRating($id: ID!, $contentRating: Int, $contentRatingChecked: Boolean, $shadowBanned: Boolean) {
+  updateItem(
+    id: $id
+    contentRating: $contentRating
+    contentRatingChecked: $contentRatingChecked
+    shadowBanned: $shadowBanned
+  ) {
     id
     contentRating
     contentRatingChecked
+    shadowBanned
   }
 }
     `;
@@ -1927,7 +1614,9 @@ export type ApproveContentRatingMutationFn = Apollo.MutationFunction<ApproveCont
  * const [approveContentRatingMutation, { data, loading, error }] = useApproveContentRatingMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      contentRating: // value for 'contentRating'
  *      contentRatingChecked: // value for 'contentRatingChecked'
+ *      shadowBanned: // value for 'shadowBanned'
  *   },
  * });
  */
@@ -2042,6 +1731,7 @@ export const ItemDocument = gql`
     isbn
     contentRating
     contentRatingChecked
+    shadowBanned
   }
 }
     `;
@@ -2078,86 +1768,49 @@ export type ItemQueryHookResult = ReturnType<typeof useItemQuery>;
 export type ItemLazyQueryHookResult = ReturnType<typeof useItemLazyQuery>;
 export type ItemSuspenseQueryHookResult = ReturnType<typeof useItemSuspenseQuery>;
 export type ItemQueryResult = Apollo.QueryResult<ItemQuery, ItemQueryVariables>;
-export const UpdateItemCheckedDocument = gql`
-    mutation UpdateItemChecked($id: ID!, $contentRatingChecked: Boolean) {
-  updateItem(id: $id, contentRatingChecked: $contentRatingChecked) {
-    id
-    contentRating
-    contentRatingChecked
-  }
-}
-    `;
-export type UpdateItemCheckedMutationFn = Apollo.MutationFunction<UpdateItemCheckedMutation, UpdateItemCheckedMutationVariables>;
-
-/**
- * __useUpdateItemCheckedMutation__
- *
- * To run a mutation, you first call `useUpdateItemCheckedMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateItemCheckedMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateItemCheckedMutation, { data, loading, error }] = useUpdateItemCheckedMutation({
- *   variables: {
- *      id: // value for 'id'
- *      contentRatingChecked: // value for 'contentRatingChecked'
- *   },
- * });
- */
-export function useUpdateItemCheckedMutation(baseOptions?: Apollo.MutationHookOptions<UpdateItemCheckedMutation, UpdateItemCheckedMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateItemCheckedMutation, UpdateItemCheckedMutationVariables>(UpdateItemCheckedDocument, options);
-      }
-export type UpdateItemCheckedMutationHookResult = ReturnType<typeof useUpdateItemCheckedMutation>;
-export type UpdateItemCheckedMutationResult = Apollo.MutationResult<UpdateItemCheckedMutation>;
-export type UpdateItemCheckedMutationOptions = Apollo.BaseMutationOptions<UpdateItemCheckedMutation, UpdateItemCheckedMutationVariables>;
-export const CreateTransactionDocument = gql`
-    mutation CreateTransaction($itemId: ID!, $location: TransactionLocation!, $locationIndex: Int, $details: String!) {
-  createTransaction(
+export const ContactHolderDocument = gql`
+    mutation ContactHolder($itemId: ID!, $location: TransactionLocation!, $locationIndex: Int, $subject: String!, $emailContent: String!, $details: String!) {
+  contactHolder(
     itemId: $itemId
     location: $location
     locationIndex: $locationIndex
+    subject: $subject
+    emailContent: $emailContent
     details: $details
-  ) {
-    id
-    status
-    createdAt
-    updatedAt
-  }
+  )
 }
     `;
-export type CreateTransactionMutationFn = Apollo.MutationFunction<CreateTransactionMutation, CreateTransactionMutationVariables>;
+export type ContactHolderMutationFn = Apollo.MutationFunction<ContactHolderMutation, ContactHolderMutationVariables>;
 
 /**
- * __useCreateTransactionMutation__
+ * __useContactHolderMutation__
  *
- * To run a mutation, you first call `useCreateTransactionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateTransactionMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useContactHolderMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useContactHolderMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createTransactionMutation, { data, loading, error }] = useCreateTransactionMutation({
+ * const [contactHolderMutation, { data, loading, error }] = useContactHolderMutation({
  *   variables: {
  *      itemId: // value for 'itemId'
  *      location: // value for 'location'
  *      locationIndex: // value for 'locationIndex'
+ *      subject: // value for 'subject'
+ *      emailContent: // value for 'emailContent'
  *      details: // value for 'details'
  *   },
  * });
  */
-export function useCreateTransactionMutation(baseOptions?: Apollo.MutationHookOptions<CreateTransactionMutation, CreateTransactionMutationVariables>) {
+export function useContactHolderMutation(baseOptions?: Apollo.MutationHookOptions<ContactHolderMutation, ContactHolderMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreateTransactionMutation, CreateTransactionMutationVariables>(CreateTransactionDocument, options);
+        return Apollo.useMutation<ContactHolderMutation, ContactHolderMutationVariables>(ContactHolderDocument, options);
       }
-export type CreateTransactionMutationHookResult = ReturnType<typeof useCreateTransactionMutation>;
-export type CreateTransactionMutationResult = Apollo.MutationResult<CreateTransactionMutation>;
-export type CreateTransactionMutationOptions = Apollo.BaseMutationOptions<CreateTransactionMutation, CreateTransactionMutationVariables>;
+export type ContactHolderMutationHookResult = ReturnType<typeof useContactHolderMutation>;
+export type ContactHolderMutationResult = Apollo.MutationResult<ContactHolderMutation>;
+export type ContactHolderMutationOptions = Apollo.BaseMutationOptions<ContactHolderMutation, ContactHolderMutationVariables>;
 export const CreateQuickTransactionDocument = gql`
     mutation CreateQuickTransaction($itemId: ID!, $details: String!) {
   createQuickTransaction(itemId: $itemId, details: $details) {
@@ -2363,62 +2016,6 @@ export function useUnpinItemMutation(baseOptions?: Apollo.MutationHookOptions<Un
 export type UnpinItemMutationHookResult = ReturnType<typeof useUnpinItemMutation>;
 export type UnpinItemMutationResult = Apollo.MutationResult<UnpinItemMutation>;
 export type UnpinItemMutationOptions = Apollo.BaseMutationOptions<UnpinItemMutation, UnpinItemMutationVariables>;
-export const BindersFromItemIdDocument = gql`
-    query BindersFromItemId($itemId: ID!) {
-  bindersFromItemId(itemId: $itemId) {
-    id
-    name
-    description
-    images
-    thumbnails
-    binds {
-      type
-      id
-      name
-    }
-    bindedCount
-    updatedAt
-    owner {
-      id
-      nickname
-      email
-    }
-  }
-}
-    `;
-
-/**
- * __useBindersFromItemIdQuery__
- *
- * To run a query within a React component, call `useBindersFromItemIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useBindersFromItemIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useBindersFromItemIdQuery({
- *   variables: {
- *      itemId: // value for 'itemId'
- *   },
- * });
- */
-export function useBindersFromItemIdQuery(baseOptions: Apollo.QueryHookOptions<BindersFromItemIdQuery, BindersFromItemIdQueryVariables> & ({ variables: BindersFromItemIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<BindersFromItemIdQuery, BindersFromItemIdQueryVariables>(BindersFromItemIdDocument, options);
-      }
-export function useBindersFromItemIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BindersFromItemIdQuery, BindersFromItemIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<BindersFromItemIdQuery, BindersFromItemIdQueryVariables>(BindersFromItemIdDocument, options);
-        }
-export function useBindersFromItemIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BindersFromItemIdQuery, BindersFromItemIdQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<BindersFromItemIdQuery, BindersFromItemIdQueryVariables>(BindersFromItemIdDocument, options);
-        }
-export type BindersFromItemIdQueryHookResult = ReturnType<typeof useBindersFromItemIdQuery>;
-export type BindersFromItemIdLazyQueryHookResult = ReturnType<typeof useBindersFromItemIdLazyQuery>;
-export type BindersFromItemIdSuspenseQueryHookResult = ReturnType<typeof useBindersFromItemIdSuspenseQuery>;
-export type BindersFromItemIdQueryResult = Apollo.QueryResult<BindersFromItemIdQuery, BindersFromItemIdQueryVariables>;
 export const CreateItemDocument = gql`
     mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!, $deposit: Int, $contentRating: Int) {
   createItem(
@@ -2487,7 +2084,7 @@ export type CreateItemMutationHookResult = ReturnType<typeof useCreateItemMutati
 export type CreateItemMutationResult = Apollo.MutationResult<CreateItemMutation>;
 export type CreateItemMutationOptions = Apollo.BaseMutationOptions<CreateItemMutation, CreateItemMutationVariables>;
 export const UpdateItemDocument = gql`
-    mutation UpdateItem($id: ID!, $name: String, $category: [String!], $classifications: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus, $deposit: Int, $contentRating: Int, $contentRatingChecked: Boolean) {
+    mutation UpdateItem($id: ID!, $name: String, $category: [String!], $classifications: [String!], $condition: ItemCondition, $description: String, $images: [String!], $language: Language, $publishedYear: Int, $status: ItemStatus, $deposit: Int, $contentRating: Int, $contentRatingChecked: Boolean, $shadowBanned: Boolean) {
   updateItem(
     id: $id
     name: $name
@@ -2502,6 +2099,7 @@ export const UpdateItemDocument = gql`
     deposit: $deposit
     contentRating: $contentRating
     contentRatingChecked: $contentRatingChecked
+    shadowBanned: $shadowBanned
   ) {
     id
     name
@@ -2518,6 +2116,7 @@ export const UpdateItemDocument = gql`
     deposit
     contentRating
     contentRatingChecked
+    shadowBanned
   }
 }
     `;
@@ -2549,6 +2148,7 @@ export type UpdateItemMutationFn = Apollo.MutationFunction<UpdateItemMutation, U
  *      deposit: // value for 'deposit'
  *      contentRating: // value for 'contentRating'
  *      contentRatingChecked: // value for 'contentRatingChecked'
+ *      shadowBanned: // value for 'shadowBanned'
  *   },
  * });
  */
@@ -3012,76 +2612,6 @@ export type GetTransactionQueryHookResult = ReturnType<typeof useGetTransactionQ
 export type GetTransactionLazyQueryHookResult = ReturnType<typeof useGetTransactionLazyQuery>;
 export type GetTransactionSuspenseQueryHookResult = ReturnType<typeof useGetTransactionSuspenseQuery>;
 export type GetTransactionQueryResult = Apollo.QueryResult<GetTransactionQuery, GetTransactionQueryVariables>;
-export const ApproveTransactionDocument = gql`
-    mutation ApproveTransaction($id: ID!) {
-  approveTransaction(id: $id) {
-    id
-    status
-    updatedAt
-  }
-}
-    `;
-export type ApproveTransactionMutationFn = Apollo.MutationFunction<ApproveTransactionMutation, ApproveTransactionMutationVariables>;
-
-/**
- * __useApproveTransactionMutation__
- *
- * To run a mutation, you first call `useApproveTransactionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useApproveTransactionMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [approveTransactionMutation, { data, loading, error }] = useApproveTransactionMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useApproveTransactionMutation(baseOptions?: Apollo.MutationHookOptions<ApproveTransactionMutation, ApproveTransactionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ApproveTransactionMutation, ApproveTransactionMutationVariables>(ApproveTransactionDocument, options);
-      }
-export type ApproveTransactionMutationHookResult = ReturnType<typeof useApproveTransactionMutation>;
-export type ApproveTransactionMutationResult = Apollo.MutationResult<ApproveTransactionMutation>;
-export type ApproveTransactionMutationOptions = Apollo.BaseMutationOptions<ApproveTransactionMutation, ApproveTransactionMutationVariables>;
-export const TransferTransactionDocument = gql`
-    mutation TransferTransaction($id: ID!) {
-  transferTransaction(id: $id) {
-    id
-    status
-    updatedAt
-  }
-}
-    `;
-export type TransferTransactionMutationFn = Apollo.MutationFunction<TransferTransactionMutation, TransferTransactionMutationVariables>;
-
-/**
- * __useTransferTransactionMutation__
- *
- * To run a mutation, you first call `useTransferTransactionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useTransferTransactionMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [transferTransactionMutation, { data, loading, error }] = useTransferTransactionMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useTransferTransactionMutation(baseOptions?: Apollo.MutationHookOptions<TransferTransactionMutation, TransferTransactionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<TransferTransactionMutation, TransferTransactionMutationVariables>(TransferTransactionDocument, options);
-      }
-export type TransferTransactionMutationHookResult = ReturnType<typeof useTransferTransactionMutation>;
-export type TransferTransactionMutationResult = Apollo.MutationResult<TransferTransactionMutation>;
-export type TransferTransactionMutationOptions = Apollo.BaseMutationOptions<TransferTransactionMutation, TransferTransactionMutationVariables>;
 export const ReceiveTransactionDocument = gql`
     mutation ReceiveTransaction($id: ID!, $images: [String!]) {
   receiveTransaction(id: $id, images: $images) {
@@ -3258,62 +2788,6 @@ export type TotalItemsByUserQueryHookResult = ReturnType<typeof useTotalItemsByU
 export type TotalItemsByUserLazyQueryHookResult = ReturnType<typeof useTotalItemsByUserLazyQuery>;
 export type TotalItemsByUserSuspenseQueryHookResult = ReturnType<typeof useTotalItemsByUserSuspenseQuery>;
 export type TotalItemsByUserQueryResult = Apollo.QueryResult<TotalItemsByUserQuery, TotalItemsByUserQueryVariables>;
-export const UserRootBinderDocument = gql`
-    query UserRootBinder($binderId: ID!) {
-  binder(id: $binderId) {
-    id
-    name
-    description
-    images
-    thumbnails
-    binds {
-      type
-      id
-      name
-    }
-    bindedCount
-    updatedAt
-    owner {
-      id
-      nickname
-      email
-    }
-  }
-}
-    `;
-
-/**
- * __useUserRootBinderQuery__
- *
- * To run a query within a React component, call `useUserRootBinderQuery` and pass it any options that fit your needs.
- * When your component renders, `useUserRootBinderQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useUserRootBinderQuery({
- *   variables: {
- *      binderId: // value for 'binderId'
- *   },
- * });
- */
-export function useUserRootBinderQuery(baseOptions: Apollo.QueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables> & ({ variables: UserRootBinderQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
-      }
-export function useUserRootBinderLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
-        }
-export function useUserRootBinderSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserRootBinderQuery, UserRootBinderQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<UserRootBinderQuery, UserRootBinderQueryVariables>(UserRootBinderDocument, options);
-        }
-export type UserRootBinderQueryHookResult = ReturnType<typeof useUserRootBinderQuery>;
-export type UserRootBinderLazyQueryHookResult = ReturnType<typeof useUserRootBinderLazyQuery>;
-export type UserRootBinderSuspenseQueryHookResult = ReturnType<typeof useUserRootBinderSuspenseQuery>;
-export type UserRootBinderQueryResult = Apollo.QueryResult<UserRootBinderQuery, UserRootBinderQueryVariables>;
 export const GeocodeAddressDocument = gql`
     query GeocodeAddress($address: String!) {
   geocodeAddress(address: $address) {
@@ -4134,6 +3608,44 @@ export type RecentAddedItemsQueryHookResult = ReturnType<typeof useRecentAddedIt
 export type RecentAddedItemsLazyQueryHookResult = ReturnType<typeof useRecentAddedItemsLazyQuery>;
 export type RecentAddedItemsSuspenseQueryHookResult = ReturnType<typeof useRecentAddedItemsSuspenseQuery>;
 export type RecentAddedItemsQueryResult = Apollo.QueryResult<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>;
+export const TotalItemsCountDocument = gql`
+    query TotalItemsCount($classifications: [String!]) {
+  totalItemsCount(classifications: $classifications)
+}
+    `;
+
+/**
+ * __useTotalItemsCountQuery__
+ *
+ * To run a query within a React component, call `useTotalItemsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTotalItemsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTotalItemsCountQuery({
+ *   variables: {
+ *      classifications: // value for 'classifications'
+ *   },
+ * });
+ */
+export function useTotalItemsCountQuery(baseOptions?: Apollo.QueryHookOptions<TotalItemsCountQuery, TotalItemsCountQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TotalItemsCountQuery, TotalItemsCountQueryVariables>(TotalItemsCountDocument, options);
+      }
+export function useTotalItemsCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalItemsCountQuery, TotalItemsCountQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TotalItemsCountQuery, TotalItemsCountQueryVariables>(TotalItemsCountDocument, options);
+        }
+export function useTotalItemsCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TotalItemsCountQuery, TotalItemsCountQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TotalItemsCountQuery, TotalItemsCountQueryVariables>(TotalItemsCountDocument, options);
+        }
+export type TotalItemsCountQueryHookResult = ReturnType<typeof useTotalItemsCountQuery>;
+export type TotalItemsCountLazyQueryHookResult = ReturnType<typeof useTotalItemsCountLazyQuery>;
+export type TotalItemsCountSuspenseQueryHookResult = ReturnType<typeof useTotalItemsCountSuspenseQuery>;
+export type TotalItemsCountQueryResult = Apollo.QueryResult<TotalItemsCountQuery, TotalItemsCountQueryVariables>;
 export const GetHostConfigDocument = gql`
     query GetHostConfig {
   hostConfig {

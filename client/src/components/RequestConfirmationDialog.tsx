@@ -49,8 +49,6 @@ interface RequestConfirmationDialogProps {
   owner: User | null;
   holder: User | null;
   requestor: User | null;
-  existingTransactions?: Transaction[];
-  transactionsLoading?: boolean;
 }
 
 const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
@@ -62,12 +60,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   owner,
   holder,
   requestor,
-  existingTransactions = [],
-  transactionsLoading = false,
 }) => {
   const { t } = useTranslation();
   const [selectedLocation, setSelectedLocation] = useState<TransactionLocation>(
-    TransactionLocation.HolderLocation
+    TransactionLocation.HolderLocation,
   );
   const [selectedExchangePointIndex, setSelectedExchangePointIndex] =
     useState<number>(0);
@@ -91,7 +87,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   const exchangePointsData = {
     users:
       allExchangePointsData?.exchangePoints?.filter((exchangePoint: User) =>
-        allExchangePointIds.includes(exchangePoint.id)
+        allExchangePointIds.includes(exchangePoint.id),
       ) || [],
   };
 
@@ -140,19 +136,13 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
         : requestorExchangePointIds;
 
     return exchangePointsData.users.filter((ep: User) =>
-      targetExchangePointIds.includes(ep.id)
+      targetExchangePointIds.includes(ep.id),
     );
   };
 
   const exchangePointOptions = getExchangePointOptions();
 
-  // Check if user has existing request
-  const hasExistingRequest = existingTransactions.some(
-    (t) => t.requestor?.id === requestor?.id
-  );
-
   return (
-
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -162,18 +152,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
       </DialogTitle>
 
       <DialogContent>
-        {transactionsLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : hasExistingRequest ? (
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            {t(
-              "item.alreadyRequested",
-              "You have already requested this item."
-            )}
-          </Alert>
-        ) : (
+        {
           <Box>
             {/* Item Information */}
             {item && (
@@ -190,8 +169,9 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
                   <Chip
-                    label={`${t("item.condition", "Condition")}: ${item.condition
-                      }`}
+                    label={`${t("item.condition", "Condition")}: ${
+                      item.condition
+                    }`}
                     size="small"
                     variant="outlined"
                   />
@@ -327,141 +307,61 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 {(selectedLocation ===
                   TransactionLocation.HolderPublicExchangePoint ||
                   selectedLocation ===
-                  TransactionLocation.RequestorPublicExchangePoint) && (
-                    <Box sx={{ mt: 2, pl: 4 }}>
-                      <FormControl fullWidth disabled={exchangePointsLoading}>
-                        <InputLabel id="exchange-point-select-label">
-                          {t("item.selectExchangePoint", "Select Exchange Point")}
-                        </InputLabel>
-                        <Select
-                          labelId="exchange-point-select-label"
-                          value={selectedExchangePointIndex}
-                          label={t(
-                            "item.selectExchangePoint",
-                            "Select Exchange Point"
-                          )}
-                          onChange={(e) =>
-                            setSelectedExchangePointIndex(
-                              e.target.value as number
-                            )
-                          }
-                        >
-                          {exchangePointsLoading ? (
-                            <MenuItem value="">
-                              <CircularProgress size={20} />
-                            </MenuItem>
-                          ) : (
-                            exchangePointOptions.map(
-                              (ep: User, index: number) => (
-                                <MenuItem key={ep.id} value={index}>
-                                  <Box>
+                    TransactionLocation.RequestorPublicExchangePoint) && (
+                  <Box sx={{ mt: 2, pl: 4 }}>
+                    <FormControl fullWidth disabled={exchangePointsLoading}>
+                      <InputLabel id="exchange-point-select-label">
+                        {t("item.selectExchangePoint", "Select Exchange Point")}
+                      </InputLabel>
+                      <Select
+                        labelId="exchange-point-select-label"
+                        value={selectedExchangePointIndex}
+                        label={t(
+                          "item.selectExchangePoint",
+                          "Select Exchange Point",
+                        )}
+                        onChange={(e) =>
+                          setSelectedExchangePointIndex(
+                            e.target.value as number,
+                          )
+                        }
+                      >
+                        {exchangePointsLoading ? (
+                          <MenuItem value="">
+                            <CircularProgress size={20} />
+                          </MenuItem>
+                        ) : (
+                          exchangePointOptions.map(
+                            (ep: User, index: number) => (
+                              <MenuItem key={ep.id} value={index}>
+                                <Box>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ fontWeight: "medium" }}
+                                  >
+                                    {ep.nickname}
+                                  </Typography>
+                                  {ep.address && (
                                     <Typography
-                                      variant="body2"
-                                      sx={{ fontWeight: "medium" }}
+                                      variant="caption"
+                                      color="text.secondary"
                                     >
-                                      {ep.nickname}
+                                      {ep.address}
                                     </Typography>
-                                    {ep.address && (
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                      >
-                                        {ep.address}
-                                      </Typography>
-                                    )}
-                                  </Box>
-                                </MenuItem>
-                              )
-                            )
-                          )}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  )}
+                                  )}
+                                </Box>
+                              </MenuItem>
+                            ),
+                          )
+                        )}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                )}
               </FormControl>
             </Box>
 
             <Divider sx={{ my: 2 }} />
-
-            {/* Existing Open Transactions */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="h6"
-                sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
-              >
-                <PendingIcon />
-                {t("item.existingRequests", "Existing Requests")}
-              </Typography>
-
-              {existingTransactions.length === 0 ? (
-                <Alert severity="success" sx={{ mb: 2 }}>
-                  {t(
-                    "item.noExistingRequests",
-                    "No existing open requests for this item. You'll be the first!"
-                  )}
-                </Alert>
-              ) : (
-                <>
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    {t(
-                      "item.existingRequestsWarning",
-                      `There ${existingTransactions.length === 1 ? "is" : "are"
-                      } ${existingTransactions.length} existing open request${existingTransactions.length === 1 ? "" : "s"
-                      } for this item. Your request will be added to the queue.`
-                    )}
-                  </Alert>
-
-                  <Box sx={{ maxHeight: 200, overflowY: "auto" }}>
-                    {existingTransactions.map((transaction) => (
-                      <Box
-                        key={transaction.id}
-                        sx={{
-                          mb: 1,
-                          p: 2,
-                          border: "1px solid",
-                          borderColor: "grey.300",
-                          borderRadius: 1,
-                          backgroundColor: "grey.50",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 1,
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ fontWeight: "bold" }}
-                          >
-                            {transaction.requestor?.nickname ||
-                              transaction.requestor?.email}
-                          </Typography>
-                          <Chip
-                            label={transaction.status}
-                            size="small"
-                            color={getStatusColor(transaction.status)}
-                            variant="outlined"
-                          />
-                        </Box>
-
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <ScheduleIcon fontSize="small" color="action" />
-                          <Typography variant="caption" color="text.secondary">
-                            {t("item.requestedOn", "Requested on")}:{" "}
-                            {formatDate(transaction.createdAt)}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ))}
-                  </Box>
-                </>
-              )}
-            </Box>
 
             {/* People Information */}
             <Box sx={{ mb: 3 }}>
@@ -531,20 +431,20 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 <Typography variant="body2">
                   {t(
                     "item.ownerWillBeNotified",
-                    "The owner will be notified of your request."
+                    "The owner will be notified of your request.",
                   )}
                 </Typography>
               ) : (
                 <Typography variant="body2">
                   {t(
                     "item.ownerAndHolderWillBeNotified",
-                    "Both the owner and current holder will be notified of your request, as they are different people."
+                    "Both the owner and current holder will be notified of your request, as they are different people.",
                   )}
                 </Typography>
               )}
             </Box>
           </Box>
-        )}
+        }
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>
@@ -555,7 +455,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
           onClick={handleConfirm}
           variant="contained"
           color="primary"
-          disabled={loading || hasExistingRequest || transactionsLoading}
+          disabled={loading}
           size="large"
           sx={{ minWidth: 120 }}
         >

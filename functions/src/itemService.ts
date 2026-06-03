@@ -297,11 +297,15 @@ export class ItemService {
   async itemById(
     loggedInUser: User | UserModel | null,
     itemId: string,
-    bypassContentRatingCheck: boolean = false // use with care
+    bypassContentRatingCheck: boolean = false, // use with care
   ): Promise<Item | null> {
     const data = await this.itemModelById(itemId);
     if (!data) return null;
-    let item = await this._itemModelToItem(data, loggedInUser, bypassContentRatingCheck);
+    let item = await this._itemModelToItem(
+      data,
+      loggedInUser,
+      bypassContentRatingCheck,
+    );
     return item;
   }
 
@@ -454,7 +458,7 @@ export class ItemService {
     await Promise.all(
       snapshot.docs.map(async (doc) => {
         const item = await this._itemQueryToItem(doc, loggedInUser);
-        if ( item != null ){
+        if (item != null) {
           filteredItems.push(item);
         }
       }),
@@ -539,6 +543,27 @@ export class ItemService {
     return item;
   }
 
+  isHolder(item: Item, user: User | UserModel): boolean {
+    if (user) {
+      if (item.holderId) {
+        if (item.holderId === user.id) {
+          return true;
+        }
+      } else if (item.ownerId === user.id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  getHolderId(item: Item | ItemModel): string | null {
+    if (item.holderId) {
+      return item.holderId;
+    } else {
+      return item.ownerId;
+    }
+  }
+
   /*
    * This function assumes censor info is already present in the item data.
    *
@@ -550,7 +575,7 @@ export class ItemService {
    * - Hide items above or at censor threshold if content rating is not checked by admin.
    * - Always hide items with content rating above user threshold.
    * - Support shadow banning items.
-   * 
+   *
    * Note: Owners and holders should have visibility. This is useful for actions such as transfer items.
    */
   shouldCensorItem(
@@ -558,13 +583,14 @@ export class ItemService {
     loggedInUser: User | UserModel | null,
     bypassContentRatingCheck: boolean = false, // Use with care!
   ): boolean {
-    if ( bypassContentRatingCheck ) {
+    if (bypassContentRatingCheck) {
       return false;
     }
 
     if (
       loggedInUser != null &&
-      ( item.holderId === loggedInUser.id || item.ownerId === loggedInUser.id || loggedInUser.role === Role.Admin)
+      (this.getHolderId(item) === loggedInUser.id ||
+        loggedInUser.role === Role.Admin)
     ) {
       return false;
     }
@@ -612,7 +638,7 @@ export class ItemService {
     }
 
     // Filter out all admin only fields. Evaluted after the censor function.
-    if ( loggedInUser?.role != Role.Admin ) {
+    if (loggedInUser?.role != Role.Admin) {
       data.contentRatingChecked = undefined;
       data.shadowBanned = undefined;
     }
@@ -1089,12 +1115,12 @@ export class ItemService {
         );
       }
 
-      if ( contentRatingChecked !== undefined ) {
+      if (contentRatingChecked !== undefined) {
         updateData.contentRatingChecked = contentRatingChecked;
         existingData.contentRatingChecked = contentRatingChecked;
       }
 
-      if ( shadowBanned !== undefined ) {
+      if (shadowBanned !== undefined) {
         updateData.shadowBanned = shadowBanned;
         existingData.shadowBanned = shadowBanned;
       }
@@ -1263,8 +1289,8 @@ export class ItemService {
     }
   }
 
-  async updateItemHolder(itemId: string, holder: User): Promise<boolean> {
-    if (!holder.location) {
+  async updateItemHolder(itemId: string, newHolder: User): Promise<boolean> {
+    if (!newHolder.location) {
       console.warn("Cannot update item holder: Missing location");
       return false;
     }
@@ -1275,19 +1301,17 @@ export class ItemService {
     }
     const updateData = itemDoc.data() as ItemModel;
 
-    if (holder && holder.id !== updateData?.ownerId) {
-      updateData.holderId = holder.id;
-    } else {
+    if (newHolder.id === updateData?.ownerId) {
       updateData.holderId = null;
+    } else {
+      updateData.holderId = newHolder.id;
     }
     updateData.updated = Timestamp.now();
-    if (holder.location) {
-      updateData.location = holder.location;
-      updateData.geohash = geofire.geohashForLocation([
-        holder.location.latitude,
-        holder.location.longitude,
-      ]);
-    }
+    updateData.location = newHolder.location;
+    updateData.geohash = geofire.geohashForLocation([
+      newHolder.location.latitude,
+      newHolder.location.longitude,
+    ]);
 
     await itemRef.update(updateData);
     return true;
@@ -1321,22 +1345,27 @@ export class ItemService {
     offset: number = 0,
     loggedInUser: User | UserModel | null = null,
   ): Promise<Item[]> {
-
-    if ( loggedInUser?.role != Role.Admin ) {  
-      console.log("recentItemsContentRatingNotChecked requires admin privileges")
+    if (loggedInUser?.role != Role.Admin) {
+      console.log(
+        "recentItemsContentRatingNotChecked requires admin privileges",
+      );
       return [];
     }
 
     // for the eariest items that are not checked.
     let query = db
       .collection("items")
-      .where("contentRating", ">=", CONTENT_RATING_CENSOR_THRESHOLD )
+      .where("contentRating", ">=", CONTENT_RATING_CENSOR_THRESHOLD)
       .where("contentRatingChecked", "==", false)
       .orderBy("updated", "asc");
 
     const itemsSnapshot = await query.limit(limit).offset(offset).get();
 
-    console.log("Found " + itemsSnapshot.size + " items with content rating above or at censor threshold and not checked by admin");
+    console.log(
+      "Found " +
+        itemsSnapshot.size +
+        " items with content rating above or at censor threshold and not checked by admin",
+    );
 
     const items: Item[] = [];
 

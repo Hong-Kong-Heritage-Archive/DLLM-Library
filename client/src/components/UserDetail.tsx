@@ -83,27 +83,17 @@ const USER_ITEMS_QUERY = gql`
   }
 `;
 
-const USER_ROOT_BINDER_QUERY = gql`
-  query UserRootBinder($binderId: ID!) {
-    binder(id: $binderId) {
-      id
-      name
-      description
-      images
-      thumbnails
-      binds {
-        type
-        id
-        name
-      }
-      bindedCount
-      updatedAt
-      owner {
-        id
-        nickname
-        email
-      }
-    }
+const USER_ITEMS_COUNT_QUERY = gql`
+  query TotalItemsByUser(
+    $userId: ID!
+    $category: [String!]
+    $isExchangePointItem: Boolean
+  ) {
+    totalItemsCountByUser(
+      userId: $userId
+      category: $category
+      isExchangePointItem: $isExchangePointItem
+    )
   }
 `;
 
@@ -198,13 +188,15 @@ const UserDetail: React.FC<UserDetailProps> = ({
     skip: !userId || !hasNextPageEstimate,
   });
 
-  const {
-    data: binderData,
-    loading: binderLoading,
-    error: binderError,
-  } = useQuery<{ binder: Binder }>(USER_ROOT_BINDER_QUERY, {
-    variables: { binderId: userId! },
-    skip: !userId,
+  const { data: totalItemsData, loading: totalItemsLoading } = useQuery<{
+    totalItemsCountByUser: number;
+  }>(USER_ITEMS_COUNT_QUERY, {
+    variables: {
+      userId: userId!,
+      category: selectedCategory ? [selectedCategory] : undefined,
+      isExchangePointItem: isExchangePointAdmin && includeExchangePointItems,
+    },
+    skip: !userId || !selectedCategory, // Only query when category is selected
   });
 
   const profileShareUrl = useMemo(() => {
@@ -212,7 +204,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
     return `${window.location.origin}/user/${userId}`;
   }, [userId]);
 
-  // Reset page when exchange point toggle changes (category handled in handleCategoryClick)
+  // Reset page when category changes or exchange point toggle changes
   useEffect(() => {
     setItemsPage(1);
     setSearchParams((prev) => {
@@ -220,8 +212,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
       params.set("page", "1");
       return params;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [includeExchangePointItems]);
+  }, [selectedCategory, includeExchangePointItems]);
 
   const handleItemsPageChange = (newPage: number) => {
     setItemsPage(newPage);
@@ -364,8 +355,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
     );
   };
 
-  // Attach distance to fetched items
-  const allItemsWithDistance =
+  // Calculate distances for items
+  const itemsWithDistance =
     itemsData?.itemsByUser.map((item) => ({
       ...item,
       distance:
@@ -378,8 +369,6 @@ const UserDetail: React.FC<UserDetailProps> = ({
             )
           : 0,
     })) || [];
-
-  const itemsWithDistance = allItemsWithDistance; // backend already paged
 
   // Calculate distances for pinned items
   const pinnedItemsWithDistance =
@@ -535,6 +524,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={3}>
+                <Grid size={{ xs: 6 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("user.email", "Email")}:</strong>{" "}
+                    {userData.user.email}
+                  </Typography>
+                </Grid>
+
                 <Grid size={{ xs: 6 }}>
                   <Typography variant="body1" color="text.secondary">
                     <strong>{t("user.joinedOn", "Joined on")}:</strong>{" "}

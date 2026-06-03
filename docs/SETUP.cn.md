@@ -53,7 +53,6 @@
     導航至 [https://myaccount.google.com/](https://myaccount.google.com/)
 
 2.  **存取安全性設定：**
-
     - 點擊左側欄中的「安全性」
     - 向下捲動至「登入 Google 的方式」
 
@@ -65,13 +64,11 @@
 ### 步驟 2: 產生應用程式密碼
 
 1.  **存取應用程式密碼：**
-
     - 啟用兩步驟驗證後，返回安全性設定
     - 向下捲動並點擊「應用程式密碼」
     - 您可能需要再次登入
 
 2.  **建立新的應用程式密碼：**
-
     - 在「選取應用程式」下，選擇「郵件」
     - 在「選取裝置」下，選擇「其他(自訂名稱)」
     - 輸入名稱，例如「DLLM Library」或「Firebase Functions」
@@ -96,12 +93,11 @@
       // ...現有欄位 (如 project_id, private_key, client_email 等)...
       "gmail_user": "your-email@gmail.com",
       "gmail_app_password": "abcdefghijklmnop",
-      "hosting_url": "https://dllm-library.web.app"
+      "hosting_url": "https://bookguide-staging.web.app/"
     }
     ```
 
     將值替換為：
-
     - `gmail_user`: 您的 Gmail 地址 (例如：`library@gmail.com`)
     - `gmail_app_password`: 您產生的 16 字元應用程式密碼 (不含空格)
     - `hosting_url`: 您的 Firebase Hosting URL (通常是 `https://your-project-id.web.app`)
@@ -122,7 +118,7 @@
       "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/...",
       "gmail_user": "dllmlibrary@gmail.com",
       "gmail_app_password": "abcdefghijklmnop",
-      "hosting_url": "https://dllm-library.web.app"
+      "hosting_url": "https://bookguide-staging.web.app/"
     }
     ```
 
@@ -288,7 +284,6 @@ Firebase Emulator Suite 可讓您在本機端運行整個專案。
 如果您遇到身份驗證錯誤：
 
 1. **重新產生應用程式密碼：**
-
    - 前往 [Google 帳戶安全性](https://myaccount.google.com/security)
    - 導航至「應用程式密碼」
    - 刪除舊密碼

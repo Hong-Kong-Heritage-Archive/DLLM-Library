@@ -27,7 +27,7 @@ import { CategoryService } from "./categoryService";
 import { CommentService } from "./commentService";
 import { RecommendService } from "./recommendService";
 import { SystemService } from "./systemService";
-import { BinderService } from "./binderService";
+//import { BinderService } from "./binderService";
 
 interface Context {
   loginUser: LoginUser | null;
@@ -41,7 +41,7 @@ const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
 const commentService = new CommentService(userService);
 const recommendService = new RecommendService(itemService);
-const binderService = new BinderService(itemService, userService);
+//const binderService = new BinderService(itemService, userService);
 
 export const DateScalar = new GraphQLScalarType({
   name: "Date",
@@ -212,7 +212,9 @@ export const resolvers: Resolvers = {
       }: any,
       { loginUser }: Context,
     ): Promise<Item[]> => {
-      const loggedInUserById = loginUser ? await userService.userById(loginUser.uid) : null;
+      const loggedInUserById = loginUser
+        ? await userService.userById(loginUser.uid)
+        : null;
       return itemService.itemsByUser(
         loggedInUserById,
         userId,
@@ -230,7 +232,7 @@ export const resolvers: Resolvers = {
       { loginUser }: Context,
     ): Promise<Item[]> => {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
-      if ( !user ) {
+      if (!user) {
         throw new Error("Not authenticated");
       }
 
@@ -249,7 +251,7 @@ export const resolvers: Resolvers = {
       { loginUser }: Context,
     ): Promise<Item[]> => {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
-      if ( !user ) {
+      if (!user) {
         throw new Error("Not authenticated");
       }
 
@@ -470,23 +472,6 @@ export const resolvers: Resolvers = {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
       return itemService.itemsByKeywordExperimental(keyword, user);
     },
-    binder: async (_: any, { id }: any, __: any): Promise<Binder | null> => {
-      return binderService.binder(id);
-    },
-    binderPathsByUser: async (
-      _: any,
-      { userId }: any,
-      __: any,
-    ): Promise<BinderPath[]> => {
-      return binderService.binderPathsByUser(userId);
-    },
-    bindersFromItemId: async (
-      _: any,
-      { itemId }: any,
-      __: any,
-    ): Promise<Binder[] | null> => {
-      return binderService.binderFromItemId(itemId);
-    },
   },
   Mutation: {
     createUser: async (
@@ -638,19 +623,21 @@ export const resolvers: Resolvers = {
         gsUrl: rv.gsUrl,
       };
     },
-    createTransaction: async (
+    contactHolder: async (
       _: any,
-      { itemId, location, locationIndex, details }: any,
+      { itemId, location, locationIndex, subject, emailContent, details }: any,
       { loginUser }: Context,
-    ): Promise<Transaction> => {
+    ): Promise<boolean> => {
       if (!loginUser) throw new Error("Not authenticated");
       const requestor = await userService.me(loginUser);
       if (!requestor) throw new Error("Owner not found");
-      return transactionService.createTransaction(
+      return transactionService.contactHolder(
         requestor,
         itemId,
         location,
         locationIndex,
+        subject,
+        emailContent,
         details,
       );
     },
@@ -664,6 +651,7 @@ export const resolvers: Resolvers = {
       if (!holder) throw new Error("Holder not found");
       return transactionService.createQuickTransaction(holder, itemId, details);
     },
+    /*
     approveTransaction: async (
       _: any,
       { id }: any,
@@ -684,7 +672,7 @@ export const resolvers: Resolvers = {
       if (!holder) throw new Error("User not found");
       return transactionService.transferTransaction(holder, id);
     },
-
+*/
     receiveTransaction: async (
       _: any,
       { id, images }: any,
@@ -774,51 +762,6 @@ export const resolvers: Resolvers = {
       const user = await userService.me(loginUser);
       if (!user || user.role !== Role.Admin) throw new Error("Admin only");
       return systemService.updateHostConfig(input);
-    },
-    addBindToBinder: async (
-      _: any,
-      { parentId, newBinderName, bind, beforeBindId }: any,
-      { loginUser }: Context,
-    ): Promise<Binder> => {
-      if (!loginUser) throw new Error("Not authenticated");
-      const owner = await userService.me(loginUser);
-      if (!owner) throw new Error("Owner not found");
-      let newBinder: Binder;
-      if (newBinderName) {
-        // Create a new Binder and bind to parent
-        newBinder = await binderService.createBinder(
-          owner,
-          parentId,
-          newBinderName,
-          bind,
-        );
-      } else {
-        // Just add bind to parent binder
-        newBinder = await binderService.addBindToBinder(
-          owner,
-          parentId,
-          beforeBindId,
-          bind,
-        );
-      }
-      return newBinder;
-    },
-    updateBinder: async (
-      _: any,
-      { id, name, description, images, bindIds }: any,
-      { loginUser }: Context,
-    ): Promise<Binder> => {
-      if (!loginUser) throw new Error("Not authenticated");
-      const owner = await userService.me(loginUser);
-      if (!owner) throw new Error("Owner not found");
-      return binderService.updateBinder(
-        owner,
-        id,
-        name,
-        description,
-        images,
-        bindIds,
-      );
     },
   },
 };

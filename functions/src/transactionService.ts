@@ -47,7 +47,7 @@ export class TransactionService {
   // Implement methods like createTransaction, approveTransaction, etc.
   constructor(
     private itemService: ItemService,
-    private userService: UserService // geofire.geohashForLocation is a function that takes a location and returns a geohash
+    private userService: UserService, // geofire.geohashForLocation is a function that takes a location and returns a geohash
   ) {}
 
   async transactionById(id: string): Promise<Transaction | null> {
@@ -60,7 +60,6 @@ export class TransactionService {
       data.status !== TransactionStatus.Expired
     ) {
       if (data.expired && data.expired.toDate() < new Date()) {
-        
         if (!user) {
           throw new Error(`User with id ${data.requestorId} not found`);
         }
@@ -85,13 +84,12 @@ export class TransactionService {
   async transactionsNotStatus(
     itemId: string | null,
     userId: string | null,
-    statuses: TransactionStatus[]
+    statuses: TransactionStatus[],
   ): Promise<Transaction[]> {
-
     const transactionsMap = await this._transactionsNotStatus(
       itemId,
       userId,
-      statuses
+      statuses,
     );
     const transactions: Transaction[] = [];
     for (const [id, data] of transactionsMap) {
@@ -104,7 +102,7 @@ export class TransactionService {
   async _transactionsNotStatus(
     itemId: string | null,
     userId: string | null,
-    statuses: TransactionStatus[]
+    statuses: TransactionStatus[],
   ): Promise<Map<string, TransactionModel>> {
     let query = db.collection("transactions").orderBy("updated", "desc");
 
@@ -131,7 +129,7 @@ export class TransactionService {
 
   async _transactionModeltoTransaction(
     id: string,
-    data: TransactionModel
+    data: TransactionModel,
   ): Promise<Transaction> {
     const item = await this.itemService.itemById(null, data.itemId, true);
     if (!item) {
@@ -162,13 +160,126 @@ export class TransactionService {
       images: data.images,
     };
   }
+  // contact all party for the transaction
+  async contactHolder(
+    requestor: User,
+    itemId: string,
+    locationType: TransactionLocation,
+    locationIndex: number,
+    subject: string,
+    emailContent: string,
+    details: string,
+  ): Promise<boolean> {
+    // Logic to create a transaction
+    const item = await this.itemService.itemById(requestor, itemId);
+    if (!item) {
+      throw new Error(`Item with id ${itemId} not found`);
+    }
+    let toList = [requestor.email];
+    let ccList: string[] = [];
+    let holder: User | null = null;
+    if (item.holderId) {
+      holder = await this.userService.userById(item.holderId);
+      if (holder) {
+        toList.push(holder.email);
+      }
+    }
+    const owner = await this.userService.userById(item.ownerId);
+    if (owner) {
+      if (holder === null) {
+        holder = owner;
+      }
+      toList.push(owner.email);
+    } else {
+      throw new Error(`Owner with id ${item.ownerId} not found`);
+    }
+    let location = holder.location;
+    let locationName = holder.address;
+    // for any ExchangePoint location type, we should create chained transactions
+    // for from holder to exchange point, then from exchange point to requestor
+    let exchangeId: string | null = null;
+    let exchangeName: string | undefined | null = undefined;
+    switch (locationType) {
+      case TransactionLocation.HolderLocation:
+        location = holder.location;
+        break;
+      case TransactionLocation.RequestorLocation:
+        location = requestor.location;
+        locationName = requestor.address;
+        break;
+      case TransactionLocation.RequestorPublicExchangePoint:
+        if (
+          requestor.exchangePoints &&
+          requestor.exchangePoints.length > locationIndex
+        ) {
+          exchangeId = requestor.exchangePoints[locationIndex];
+          const exchangePoint = await this.userService.userById(exchangeId);
+          if (exchangePoint) {
+            toList.push(exchangePoint.email);
+            exchangeName = exchangePoint.nickname;
+            location = exchangePoint.location;
+          } else {
+            throw new Error(`Exchange point with id ${exchangeId} not found`);
+          }
+        }
+        break;
+      case TransactionLocation.HolderPublicExchangePoint:
+        if (
+          holder.exchangePoints &&
+          holder.exchangePoints.length > locationIndex
+        ) {
+          exchangeId = holder.exchangePoints[locationIndex];
+          const exchangePoint = await this.userService.userById(exchangeId);
+          if (exchangePoint) {
+            exchangeName = exchangePoint.nickname;
+            location = exchangePoint.location;
+          } else {
+            throw new Error(`Exchange point with id ${exchangeId} not found`);
+          }
+        }
+        break;
+    }
+    const participants = [requestor.id, owner.id];
+    if (holder) {
+      participants.push(holder.id);
+    }
+    if (emailContent === "") {
+      if (exchangeId) {
+        emailContent = `I'm ${requestor.nickname}. I was thinking about reading ${item.name} and know you have a copy via BookGuide. Would it be alright if I borrowed it from you for a bit?
+  If you're happy to lend it, I have a slight favor to ask about getting it. Since our schedules are a bit all over the place, could you pass the book to ${exchangeName}? I can easily meet up with ${exchangeName} to grab it later on.
+  Let me know if that works for you. No rush at all!`;
+      } else {
+        emailContent = `I'm ${requestor.nickname}. I was thinking about reading ${item.name} and know you have a copy via BookGuide. Would it be alright if I borrowed it from you for a bit?
+If you're happy to lend it, I have a slight favor to ask about getting it. Can we meet ${locationName} within 2 weeks.
+Let me know if that works for you. No rush at all!`;
+      }
+    }
+    if (subject === "") {
+      subject = `Interested in borrowing your ${item.name}`;
+    }
+    if (exchangeId) {
+      participants.push(exchangeId);
+    }
 
+    // Notify the users
+
+    sendNotificationViaEmail(
+      toList,
+      ccList,
+      subject,
+      emailContent,
+      "item/" + itemId,
+    );
+    return true;
+  }
+
+  /*
   async createTransaction(
     requestor: User,
     itemId: string,
     locationType: TransactionLocation,
     locationIndex: number,
-    details: string
+    details: string,
   ): Promise<Transaction> {
     // Logic to create a transaction
     const item = await this.itemService.itemById(requestor, itemId);
@@ -245,12 +356,12 @@ export class TransactionService {
         TransactionStatus.Completed,
         TransactionStatus.Cancelled,
         TransactionStatus.Expired,
-      ]
+      ],
     );
 
     if (existingTransactions.size >= maxOpenTransactions) {
       throw new Error(
-        `There are already ${maxOpenTransactions} open transactions for item with id ${itemId}`
+        `There are already ${maxOpenTransactions} open transactions for item with id ${itemId}`,
       );
     }
     const participants = [requestor.id, owner.id];
@@ -269,7 +380,7 @@ export class TransactionService {
       created: Timestamp.now(),
       updated: Timestamp.now(),
       expired: Timestamp.fromDate(
-        new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       ), // expire in 14 days
       location: location,
       locationType: locationType,
@@ -313,7 +424,7 @@ export class TransactionService {
       ccList,
       "New Transaction Request",
       `You have a new transaction request for item ${item.name} from ${requestor.nickname}.`,
-      "transaction/" + transactionRef.id
+      "transaction/" + transactionRef.id,
     );
     let rv: Transaction = {
       id: transactionRef.id,
@@ -328,20 +439,20 @@ export class TransactionService {
     };
     return rv;
   }
-
+*/
   async createQuickTransaction(
     holder: User,
     itemId: string,
-    details: string
+    details: string,
   ): Promise<Transaction> {
     // Logic to create a quick transaction
     const item = await this.itemService.itemById(holder, itemId);
     if (!item) {
       throw new Error(`Item with id ${itemId} not found`);
     }
-    if (item.holderId !== holder.id && item.ownerId !== holder.id) {
+    if (!this.itemService.isHolder(item, holder)) {
       throw new Error(
-        `User with id ${holder.id} is not the holder or owner of item with id ${itemId}`
+        `User with id ${holder.id} is not the holder or owner of item with id ${itemId}`,
       );
     }
 
@@ -384,7 +495,7 @@ export class TransactionService {
     // Logic to approve a transaction
     if (data.status !== TransactionStatus.Pending) {
       throw new Error(
-        `Transaction with id ${id} is not in pending status, current status: ${data.status}`
+        `Transaction with id ${id} is not in pending status, current status: ${data.status}`,
       );
     }
     // if the item is not owned by the owner, throw an error
@@ -394,7 +505,7 @@ export class TransactionService {
     }
     if (item.ownerId !== owner.id) {
       throw new Error(
-        `Owner with id ${owner.id} is not the owner of item with id ${data.itemId}`
+        `Owner with id ${owner.id} is not the owner of item with id ${data.itemId}`,
       );
     }
 
@@ -408,7 +519,7 @@ export class TransactionService {
       owner,
       item,
       data,
-      emailDetail
+      emailDetail,
     );
     return rv;
   }
@@ -420,7 +531,7 @@ export class TransactionService {
   async _cancelTransaction(
     user: User,
     id: string,
-    expired: boolean
+    expired: boolean,
   ): Promise<boolean> {
     const data = await this._transactionById(id);
     // Logic to approve a transaction
@@ -430,7 +541,7 @@ export class TransactionService {
       data.status == TransactionStatus.Expired
     ) {
       throw new Error(
-        `Transaction with id ${id} is not in open status, current status: ${data.status}`
+        `Transaction with id ${id} is not in open status, current status: ${data.status}`,
       );
     }
     // either owner and requestor can cancel the transaction
@@ -448,7 +559,7 @@ export class TransactionService {
       data.receiverId !== user.id
     ) {
       throw new Error(
-        `User with id ${user.id} is not the requestor receiver or owner of item with id ${data.itemId}`
+        `User with id ${user.id} is not the requestor receiver or owner of item with id ${data.itemId}`,
       );
     }
     let owner: User = user;
@@ -473,7 +584,7 @@ export class TransactionService {
       owner,
       item,
       data,
-      emailDetail
+      emailDetail,
     );
     if (!rv) {
       throw new Error(`Failed to cancel transaction with id ${id}`);
@@ -491,7 +602,7 @@ export class TransactionService {
           owner,
           item,
           data,
-          null
+          null,
         );
       }
     }
@@ -504,7 +615,7 @@ export class TransactionService {
     owner: User,
     item: Item,
     data: TransactionModel,
-    emailDetail: EmailDetail | null
+    emailDetail: EmailDetail | null,
   ): Promise<Transaction> {
     // Save the updated transaction to the database
     const requestor = await this.userService.userById(data.requestorId);
@@ -553,7 +664,7 @@ export class TransactionService {
         ccList,
         emailDetail.subject,
         emailDetail.body,
-        "transaction/" + id
+        "transaction/" + id,
       );
     }
     let rv: Transaction = {
@@ -575,7 +686,7 @@ export class TransactionService {
     const data = await this._transactionById(id);
     if (data.status !== TransactionStatus.Approved) {
       throw new Error(
-        `Transaction with id ${id} is not in approved status, current status: ${data.status}`
+        `Transaction with id ${id} is not in approved status, current status: ${data.status}`,
       );
     }
     // check if the item is holder by owner, confirm that the user is the owner or holder
@@ -587,7 +698,7 @@ export class TransactionService {
     const holderId = item.holderId ? item.holderId : item.ownerId;
     if (holderId !== user.id) {
       throw new Error(
-        `User with id ${user.id} is not the holder or owner of item with id ${data.itemId}`
+        `User with id ${user.id} is not the holder or owner of item with id ${data.itemId}`,
       );
     }
     let owner: User = user;
@@ -609,7 +720,7 @@ export class TransactionService {
       owner,
       item,
       data,
-      emailDetail
+      emailDetail,
     );
     if (!rv) {
       throw new Error(`Failed to transfer transaction with id ${id}`);
@@ -620,13 +731,13 @@ export class TransactionService {
   async receiveTransaction(
     receiver: User,
     id: string,
-    images: string[]
+    images: string[],
   ): Promise<Transaction> {
     // Logic to receive a transaction
     const data = await this._transactionById(id);
     if (data.status !== TransactionStatus.Transfered) {
       throw new Error(
-        `Transaction with id ${id} is not in transfered status, current status: ${data.status}`
+        `Transaction with id ${id} is not in transfered status, current status: ${data.status}`,
       );
     }
     if (data.locationType !== TransactionLocation.FaceToFace) {
@@ -634,7 +745,7 @@ export class TransactionService {
       const receiverId = data.receiverId ? data.receiverId : data.requestorId;
       if (receiverId !== receiver.id) {
         throw new Error(
-          `User with id ${receiver.id} is not the receiver of transaction with id ${id}`
+          `User with id ${receiver.id} is not the receiver of transaction with id ${id}`,
         );
       }
     } else {
@@ -665,7 +776,7 @@ export class TransactionService {
           } catch (error) {
             console.error(
               `Failed to get public URL for image ${image}:`,
-              error
+              error,
             );
           }
         } else {
@@ -675,16 +786,6 @@ export class TransactionService {
       }
     }
 
-    const updated = await this.itemService.updateItemHolder(item.id, receiver);
-    if (!updated) {
-      throw new Error(
-        `Failed to update item holder for item with id ${item.id}`
-      );
-    }
-    const emailDetail: EmailDetail = {
-      subject: `Transaction Received for Item: ${item.name}`,
-      body: `Your transaction request for item ${item.name} has been received.`,
-    };
     let owner: User = receiver;
     if (item.ownerId !== receiver.id) {
       let ownerRv = await this.userService.userById(item.ownerId);
@@ -693,6 +794,17 @@ export class TransactionService {
       }
       owner = ownerRv;
     }
+
+    const updated = await this.itemService.updateItemHolder(item.id, receiver);
+    if (!updated) {
+      throw new Error(
+        `Failed to update item holder for item with id ${item.id}`,
+      );
+    }
+    const emailDetail: EmailDetail = {
+      subject: `Transaction Received for Item: ${item.name}`,
+      body: `Your transaction request for item ${item.name} has been received.`,
+    };
 
     if (publicImageUrls && publicImageUrls.length > 0) {
       data.images = publicImageUrls;
@@ -708,7 +820,7 @@ export class TransactionService {
       owner,
       item,
       data,
-      emailDetail
+      emailDetail,
     );
     if (!rv) {
       throw new Error(`Failed to complete transaction with id ${id}`);

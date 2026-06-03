@@ -59,12 +59,8 @@ import { AuthDialog } from "./Auth";
 import ImageGalleryModal from "./ImageGalleryModal";
 import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
-import BindItemDialog from "./BindItemDialog";
-import BinderPreview from "./BinderPreview";
 import ItemShareDialog from "./ItemShareDialog";
-import {
-  getContentRatingOption,
-} from "../utils/contentRating";
+import { getContentRatingOption } from "../utils/contentRating";
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -92,24 +88,23 @@ const ITEM_DETAIL_QUERY = gql`
   }
 `;
 
-const CREATE_TRANSACTION_MUTATION = gql`
-  mutation CreateTransaction(
+const CONTACT_HOLDER_MUTATION = gql`
+  mutation ContactHolder(
     $itemId: ID!
     $location: TransactionLocation!
     $locationIndex: Int
+    $subject: String!
+    $emailContent: String!
     $details: String!
   ) {
-    createTransaction(
+    contactHolder(
       itemId: $itemId
       location: $location
       locationIndex: $locationIndex
+      subject: $subject
+      emailContent: $emailContent
       details: $details
-    ) {
-      id
-      status
-      createdAt
-      updatedAt
-    }
+    )
   }
 `;
 
@@ -185,31 +180,6 @@ const GET_ITEM_CONFIG = gql`
       categoryMaps {
         language
         value
-      }
-    }
-  }
-`;
-
-// Add new query for binders containing this item
-const BINDERS_FROM_ITEM_QUERY = gql`
-  query BindersFromItemId($itemId: ID!) {
-    bindersFromItemId(itemId: $itemId) {
-      id
-      name
-      description
-      images
-      thumbnails
-      binds {
-        type
-        id
-        name
-      }
-      bindedCount
-      updatedAt
-      owner {
-        id
-        nickname
-        email
       }
     }
   }
@@ -294,24 +264,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     variables: { userId: data?.item?.holderId },
     skip: !data?.item?.holderId || data?.item?.holderId === data?.item?.ownerId,
   });
-  // Query for open transactions
-  const {
-    data: transactionsData,
-    loading: transactionsLoading,
-    refetch: refetchTransactions,
-  } = useQuery(OPEN_TRANSACTIONS_QUERY, {
-    variables: { itemId: itemId! },
-    skip: !itemId,
-    fetchPolicy: "cache-and-network",
-  });
 
-  const [createTransaction, { loading: createTransactionLoading }] =
-    useMutation(CREATE_TRANSACTION_MUTATION, {
+  const [contactHolder, { loading: contactHolderLoading }] = useMutation(
+    CONTACT_HOLDER_MUTATION,
+    {
       onCompleted: (data) => {
         setRequestDialogOpen(false);
         setSuccessSnackbarOpen(true);
-        refetchTransactions(); // Refresh transactions after creating new one
-        console.log("Transaction created:", data.createTransaction);
+        console.log("Transaction created:", data.contactHolder);
       },
       onError: (error) => {
         setRequestDialogOpen(false);
@@ -319,7 +279,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         setErrorSnackbarOpen(true);
         console.error("Transaction creation error:", error);
       },
-    });
+    },
+  );
 
   const [createQuickTransaction, { loading: quickTransactionLoading }] =
     useMutation(CREATE_QUICK_TRANSACTION_MUTATION, {
@@ -368,15 +329,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     },
   );
 
-  // Add query for binders containing this item
-  const { data: bindersData, loading: bindersLoading } = useQuery<{
-    bindersFromItemId: Binder[];
-  }>(BINDERS_FROM_ITEM_QUERY, {
-    variables: { itemId: itemId! },
-    skip: !itemId,
-    fetchPolicy: "cache-and-network",
-  });
-
   const isOwner = user && data?.item?.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
   const isHolder =
@@ -384,16 +336,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     (data?.item?.holderId === user.id ||
       (isOwner && data?.item?.holderId === null));
   const canCreateTransaction = user && !isHolder;
-
-  // Get open transactions and find oldest one
-  const openTransactions: Transaction[] =
-    transactionsData?.openTransactionsByItem || [];
-  const oldestTransaction =
-    openTransactions && openTransactions.length > 0
-      ? openTransactions[0]
-      : null;
-
-  const isRequestor = user && oldestTransaction?.requestor?.id === user.id;
 
   // Calculate distance between user and item owner
   const getDistanceToOwner = (): string | null => {
@@ -516,11 +458,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
     try {
       const details = buildDetailsString();
-      await createTransaction({
+      await contactHolder({
         variables: {
           itemId,
           location,
           locationIndex: locationIndex || 0,
+          subject: "",
+          emailContent: "",
           details: details,
         },
       });
@@ -678,58 +622,56 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             gap: 0.5,
           }}
         > */}
-        {
-          clssfctns.map((pathString, index) => {
-            const segments = pathString.split("/").filter((seg) => seg.trim());
+        {clssfctns.map((pathString, index) => {
+          const segments = pathString.split("/").filter((seg) => seg.trim());
 
-            return (
-              <Box
-                key={index}
-                sx={{ display: "flex", alignItems: "center", mb: 0.5 }}
-              >
-                {segments.map((segment, segIndex) => (
-                  <React.Fragment key={segIndex}>
-                    <Chip
-                      label={translateCategory(
-                        segment,
-                        configData?.itemConfig?.categoryMaps,
-                        i18n.language,
-                      )}
-                      size="small"
-                      variant={
-                        segIndex === segments.length - 1 ? "filled" : "outlined"
-                      }
-                      color="info"
+          return (
+            <Box
+              key={index}
+              sx={{ display: "flex", alignItems: "center", mb: 0.5 }}
+            >
+              {segments.map((segment, segIndex) => (
+                <React.Fragment key={segIndex}>
+                  <Chip
+                    label={translateCategory(
+                      segment,
+                      configData?.itemConfig?.categoryMaps,
+                      i18n.language,
+                    )}
+                    size="small"
+                    variant={
+                      segIndex === segments.length - 1 ? "filled" : "outlined"
+                    }
+                    color="info"
+                    sx={{
+                      fontWeight:
+                        segIndex === segments.length - 1 ? "bold" : "normal",
+                      backgroundColor:
+                        segIndex === segments.length - 1
+                          ? "info.main"
+                          : "info.light",
+                      "& .MuiChip-label": {
+                        color: "white",
+                      },
+                    }}
+                  />
+                  {segIndex < segments.length - 1 && (
+                    <ChevronRightIcon
                       sx={{
-                        fontWeight:
-                          segIndex === segments.length - 1 ? "bold" : "normal",
-                        backgroundColor:
-                          segIndex === segments.length - 1
-                            ? "info.main"
-                            : "info.light",
-                        "& .MuiChip-label": {
-                          color: "white",
-                        },
+                        fontSize: 16,
+                        color: "text.secondary",
+                        mx: 0.5,
                       }}
                     />
-                    {segIndex < segments.length - 1 && (
-                      <ChevronRightIcon
-                        sx={{
-                          fontSize: 16,
-                          color: "text.secondary",
-                          mx: 0.5,
-                        }}
-                      />
-                    )}
-                  </React.Fragment>
-                ))}
-                {index < clssfctns.length - 1 && (
-                  <Box sx={{ mx: 1, color: "text.secondary" }}>/</Box>
-                )}
-              </Box>
-            );
-          })
-        }
+                  )}
+                </React.Fragment>
+              ))}
+              {index < clssfctns.length - 1 && (
+                <Box sx={{ mx: 1, color: "text.secondary" }}>/</Box>
+              )}
+            </Box>
+          );
+        })}
         {/* </Box> */}
         {/* </Box> */}
       </>
@@ -816,8 +758,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                      }`}
+                    label={`${t("item.owner", "Owner")}: ${
+                      ownerData.user.nickname || ownerData.user.email
+                    }`}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -837,8 +780,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        }`}
+                      label={`${t("item.holder", "Holder")}: ${
+                        holderData.user.nickname || holderData.user.email
+                      }`}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -846,8 +790,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
-                    }`}
+                  label={`${t("item.deposit", "deposit")}: ${
+                    data.item.deposit
+                  }`}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -890,163 +835,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       {/* Item Content */}
       {data?.item && (
         <Paper elevation={1} sx={{ p: 4 }}>
-          {/* Pending Transaction Alert for Owner */}
-          {isOwner &&
-            oldestTransaction?.status === TransactionStatus.Pending && (
-              <Card
-                sx={{ mb: 4, border: "2px solid", borderColor: "warning.main" }}
-              >
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <ScheduleIcon color="warning" sx={{ mr: 1 }} />
-                    <Typography variant="h6" color="warning.dark">
-                      {t("item.pendingRequest")}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>{oldestTransaction?.requestor?.nickname}</strong>
-                    {t("item.hasRequested")}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {t("item.requestedOn", "Requested on")}:{" "}
-                    {formatDate(oldestTransaction?.createdAt)}
-                  </Typography>
-
-                  {oldestTransaction?.requestor?.email && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {t("item.contact", "Contact")}:{" "}
-                      {oldestTransaction?.requestor?.email}
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-          {/* Approved Transaction Alert for Holder */}
-          {isHolder &&
-            oldestTransaction?.status === TransactionStatus.Approved && (
-              <Card
-                sx={{ mb: 4, border: "2px solid", borderColor: "success.main" }}
-              >
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <TransferIcon color="success" sx={{ mr: 1 }} />
-                    <Typography variant="h6" color="success.dark">
-                      {t("item.approvedTransfer")}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>{oldestTransaction?.requestor?.nickname}</strong>
-                    {t("item.approvedForTransfer")}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {t("item.approvedOn")}:{" "}
-                    {formatDate(oldestTransaction?.updatedAt)}
-                  </Typography>
-
-                  {oldestTransaction?.requestor?.email && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {t("item.contact")}: {oldestTransaction?.requestor?.email}
-                    </Typography>
-                  )}
-
-                  <Alert severity="info" sx={{ mt: 2 }}>
-                    {t("item.transferInstructions")}
-                  </Alert>
-                </CardContent>
-              </Card>
-            )}
-
-          {/* Transferred Transaction Alert for Requestor */}
-          {isRequestor &&
-            oldestTransaction?.status === TransactionStatus.Transfered && (
-              <Card
-                sx={{ mb: 4, border: "2px solid", borderColor: "info.main" }}
-              >
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <ReceiveIcon color="info" sx={{ mr: 1 }} />
-                    <Typography variant="h6" color="info.dark">
-                      {t("item.readyToReceive")}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="body1" sx={{ mb: 2 }}>
-                    {t("item.itemTransferred")}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {t("item.transferredOn")}:{" "}
-                    {formatDate(oldestTransaction?.updatedAt)}
-                  </Typography>
-
-                  <Alert
-                    severity="warning"
-                    icon={<NewHolderIcon />}
-                    sx={{ mb: 2 }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: "bold", mb: 1 }}
-                    >
-                      {t("item.importantReminder")}
-                    </Typography>
-                    <Typography variant="body2">
-                      {t("item.receiveInstructions")}
-                    </Typography>
-                    <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
-                      <Typography component="li" variant="body2">
-                        {t(
-                          "item.responsibility1",
-                          "Responding to future requests from other users",
-                        )}
-                      </Typography>
-                      <Typography component="li" variant="body2">
-                        {t(
-                          "item.responsibility2",
-                          "Handing over the item to the next requestor when needed",
-                        )}
-                      </Typography>
-                      <Typography component="li" variant="body2">
-                        {t(
-                          "item.responsibility3",
-                          "Returning the item to the original owner if requested",
-                        )}
-                      </Typography>
-                    </Box>
-                  </Alert>
-
-                  <Alert severity="info" sx={{ mt: 2 }}>
-                    {t("item.confirmReceiptInstructions")}
-                  </Alert>
-                </CardContent>
-              </Card>
-            )}
-
           <Box sx={{ mb: 4 }}>
             <Typography
               variant="caption"
@@ -1082,7 +870,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             </Box>
           </Box>
 
-
           {/* Description */}
           {data.item.description && (
             <Box sx={{ mb: 4 }}>
@@ -1099,7 +886,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               >
                 {convertLinksToClickable(
                   data.item.description?.replace(/#Uncategorized\b/gi, "") ||
-                  "",
+                    "",
                 )}
               </Typography>
             </Box>
@@ -1108,40 +895,40 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* Images */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={{ mb: 4 }}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "transform 0.2s",
-                          "&:hover": {
-                            transform: "scale(1.05)",
-                          },
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={2}>
+                {(data.item.thumbnails && data.item.thumbnails.length > 0
+                  ? data.item.thumbnails
+                  : data.item.images || []
+                ).map((image, index) => (
+                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "transform 0.2s",
+                        "&:hover": {
+                          transform: "scale(1.05)",
+                        },
+                      }}
+                      onClick={() => handleThumbnailClick(index)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
                         }}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1}`}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           {/* Item Info Grid */}
           <Box sx={{ mb: 4 }}>
@@ -1160,10 +947,18 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               {(data.item as any).contentRating != null &&
                 (isOwner || !(data.item as any).contentRatingChecked) && (
                   <Grid size={12}>
-                    <Typography variant="body1" color="text.secondary" component="div">
-                      <strong>{t("contentRating.label", "Content Rating")}:</strong>{" "}
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      component="div"
+                    >
+                      <strong>
+                        {t("contentRating.label", "Content Rating")}:
+                      </strong>{" "}
                       {(() => {
-                        const opt = getContentRatingOption((data.item as any).contentRating);
+                        const opt = getContentRatingOption(
+                          (data.item as any).contentRating,
+                        );
                         return opt ? (
                           <Chip
                             label={t(opt.labelKey, opt.labelKey)}
@@ -1381,9 +1176,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 color="primary"
                 size="large"
                 onClick={handleRequestClick}
-                disabled={createTransactionLoading}
+                disabled={contactHolderLoading}
               >
-                {createTransactionLoading ? (
+                {contactHolderLoading ? (
                   <CircularProgress size={20} sx={{ mr: 1 }} />
                 ) : null}
                 {t("item.request")}
@@ -1524,13 +1319,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         open={requestDialogOpen}
         onClose={handleCloseRequestDialog}
         onConfirm={handleConfirmRequest}
-        loading={createTransactionLoading}
+        loading={contactHolderLoading}
         item={data?.item || null}
         owner={ownerData?.user || null}
         holder={holderData?.user || null}
         requestor={user || null}
-        existingTransactions={openTransactions}
-        transactionsLoading={transactionsLoading}
       />
 
       {/* Face-to-Face Confirmation Dialog */}
@@ -1618,19 +1411,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           relatedItem={data?.item || null}
           onSuccess={handleEditSuccess}
           onError={handleEditError}
-        />
-      )}
-
-      {/* Bind Item Dialog */}
-      {user && user.isVerified && data?.item && (
-        <BindItemDialog
-          open={bindDialogOpen}
-          onClose={() => setBindDialogOpen(false)}
-          source={data.item}
-          sourceType="item"
-          user={user}
-          onSuccess={handleBindSuccess}
-          onError={handleBindError}
         />
       )}
     </Container>

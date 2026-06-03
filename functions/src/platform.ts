@@ -50,7 +50,7 @@ async function GenerateSignedUrlForUpload(
   userId: string,
   fileName: string,
   contentType: string,
-  folder?: string
+  folder?: string,
 ): Promise<{ expires: number; signedUrl: string; gsUrl: string }> {
   const fullPath = folder
     ? `${folder}/${userId}/${fileName}`
@@ -107,7 +107,7 @@ async function GetPublicUrlForGSFile(gsFileUrl: string): Promise<string> {
 async function UploadBufferToGCS(
   uploadPath: string,
   buffer: Buffer,
-  contentType: string
+  contentType: string,
 ): Promise<string> {
   const bucket = admin.storage().bucket(serviceAccount.bucket_name);
   const uploadFile = bucket.file(uploadPath);
@@ -142,7 +142,7 @@ async function sendNotificationViaEmail(
   cc: string[],
   subject: string,
   body: string,
-  subpath?: string
+  subpath?: string,
 ): Promise<void> {
   try {
     const transporter = createTransporter();
@@ -153,7 +153,7 @@ async function sendNotificationViaEmail(
       : null;
 
     const mailOptions = {
-      from: `DLLM Library <${emailConfig.user}>`,
+      from: `BookGuide <${emailConfig.user}>`,
       to: to.join(", "),
       cc: cc.length > 0 ? cc.join(", ") : undefined,
       subject: subject,
@@ -161,7 +161,7 @@ async function sendNotificationViaEmail(
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #1976d2; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="margin: 0; font-size: 24px;">DLLM Library</h1>
+            <h1 style="margin: 0; font-size: 24px;">Book Guide</h1>
           </div>
           <div style="background-color: #f5f5f5; padding: 30px; border-radius: 0 0 8px 8px;">
             <div style="background-color: white; padding: 20px; border-radius: 4px; line-height: 1.6;">

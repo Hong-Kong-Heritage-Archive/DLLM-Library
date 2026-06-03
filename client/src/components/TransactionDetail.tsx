@@ -142,26 +142,6 @@ const GET_TRANSACTION = gql`
   }
 `;
 
-const APPROVE_TRANSACTION = gql`
-  mutation ApproveTransaction($id: ID!) {
-    approveTransaction(id: $id) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
-
-const TRANSFER_TRANSACTION = gql`
-  mutation TransferTransaction($id: ID!) {
-    transferTransaction(id: $id) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
-
 const RECEIVE_TRANSACTION = gql`
   mutation ReceiveTransaction($id: ID!, $images: [String!]) {
     receiveTransaction(id: $id, images: $images) {
@@ -378,13 +358,13 @@ const getRoleInstructions = (
           role: t("transactions.roleRequestor", "Requestor"),
           instruction: isQuickExchange
             ? t(
-              "transactions.requestorInstructionTransferredQuick",
-              "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
-            )
+                "transactions.requestorInstructionTransferredQuick",
+                "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
+              )
             : t(
-              "transactions.requestorInstructionTransferred",
-              "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
-            ),
+                "transactions.requestorInstructionTransferred",
+                "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
+              ),
           severity: isQuickExchange ? "warning" : "info",
         };
       case TransactionStatus.Completed:
@@ -501,8 +481,6 @@ const TransactionDetailPage: React.FC = () => {
     skip: !transactionId,
   });
 
-  const [approveTransaction] = useMutation(APPROVE_TRANSACTION);
-  const [transferTransaction] = useMutation(TRANSFER_TRANSACTION);
   const [receiveTransaction] = useMutation(RECEIVE_TRANSACTION);
   const [cancelTransaction] = useMutation(CANCEL_TRANSACTION);
 
@@ -614,9 +592,9 @@ const TransactionDetailPage: React.FC = () => {
         <Alert severity="error">
           {error
             ? `${t(
-              "transactions.errorLoading",
-              "Error loading transaction",
-            )}: ${error.message}`
+                "transactions.errorLoading",
+                "Error loading transaction",
+              )}: ${error.message}`
             : t("transactions.notFound", "Transaction not found")}
         </Alert>
       </Container>
@@ -1015,9 +993,9 @@ const TransactionDetailPage: React.FC = () => {
                     secondary={
                       holder
                         ? t(
-                          "transactions.holderIsRequestor",
-                          "Requestor has the item",
-                        )
+                            "transactions.holderIsRequestor",
+                            "Requestor has the item",
+                          )
                         : t("transactions.ownerHasItem", "Owner has the item")
                     }
                   />
@@ -1373,67 +1351,31 @@ const TransactionDetailPage: React.FC = () => {
           {/* Owner Actions - Pending */}
           {(isOwner || isRequestor) &&
             transaction.status === TransactionStatus.Pending && (
-              <>
-                <Box>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => handleAction("approve", approveTransaction)}
-                    disabled={actionLoading === "approve"}
-                    startIcon={
-                      actionLoading === "approve" ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <CheckCircleIcon />
-                      )
-                    }
-                    fullWidth
-                  >
-                    {t("transactions.approve", "Approve")}
-                  </Button>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block", mt: 0.5, px: 1 }}
-                  >
-                    {getActionButtonDescription(
-                      t,
-                      "approve",
-                      transaction.status,
-                    )}
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleAction("cancel", cancelTransaction)}
-                    disabled={actionLoading === "cancel"}
-                    startIcon={
-                      actionLoading === "cancel" ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <CancelIcon />
-                      )
-                    }
-                    fullWidth
-                  >
-                    {t("transactions.cancel", "Cancel")}
-                  </Button>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block", mt: 0.5, px: 1 }}
-                  >
-                    {getActionButtonDescription(
-                      t,
-                      "cancel",
-                      transaction.status,
-                    )}
-                  </Typography>
-                </Box>
-              </>
+              <Box>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleAction("cancel", cancelTransaction)}
+                  disabled={actionLoading === "cancel"}
+                  startIcon={
+                    actionLoading === "cancel" ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <CancelIcon />
+                    )
+                  }
+                  fullWidth
+                >
+                  {t("transactions.cancel", "Cancel")}
+                </Button>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.5, px: 1 }}
+                >
+                  {getActionButtonDescription(t, "cancel", transaction.status)}
+                </Typography>
+              </Box>
             )}
 
           {/* Owner and Requestor Actions - Approved */}
@@ -1465,40 +1407,6 @@ const TransactionDetailPage: React.FC = () => {
                     {getActionButtonDescription(
                       t,
                       "cancel",
-                      transaction.status,
-                    )}
-                  </Typography>
-                </Box>
-              )}
-
-              {isHolder && (
-                <Box>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() =>
-                      handleAction("transfer", transferTransaction)
-                    }
-                    disabled={actionLoading === "transfer"}
-                    startIcon={
-                      actionLoading === "transfer" ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <LocalShippingIcon />
-                      )
-                    }
-                    fullWidth
-                  >
-                    {t("transactions.transfer", "Mark as Transferred")}
-                  </Button>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block", mt: 0.5, px: 1 }}
-                  >
-                    {getActionButtonDescription(
-                      t,
-                      "transfer",
                       transaction.status,
                     )}
                   </Typography>
@@ -1566,13 +1474,13 @@ const TransactionDetailPage: React.FC = () => {
             ((isReceiver || isQuickExchange || isHolder) &&
               transaction.status === TransactionStatus.Transfered)
           ) && (
-              <Alert severity="info">
-                {t(
-                  "transactions.noActionsAvailable",
-                  "No actions available for this transaction.",
-                )}
-              </Alert>
-            )}
+            <Alert severity="info">
+              {t(
+                "transactions.noActionsAvailable",
+                "No actions available for this transaction.",
+              )}
+            </Alert>
+          )}
 
           {/* Share Button - Always available */}
           <Divider sx={{ my: 1 }} />

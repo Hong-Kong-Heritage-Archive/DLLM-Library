@@ -126,7 +126,7 @@ type Item {
   contentRating: Int!
   # The following are visible to admin only
   contentRatingChecked: Boolean
-  shadowBanned : Boolean
+  shadowBanned: Boolean
 }
 
 interface ItemCommentBase {
@@ -404,13 +404,13 @@ type Query {
   recentItemsContentRatingNotChecked(limit: Int): [Item!]
 
   # Get Binder by ID
-  binder(id: ID!): Binder
+  #  binder(id: ID!): Binder
 
   # Get all Binder Paths for User
-  binderPathsByUser(userId: ID!): [BinderPath!]!
+  #  binderPathsByUser(userId: ID!): [BinderPath!]!
 
   # Get all Binders that bind to the Item ID
-  bindersFromItemId(itemId: ID!): [Binder!]
+  #  bindersFromItemId(itemId: ID!): [Binder!]
 }
 
 # 變更
@@ -418,7 +418,12 @@ type Mutation {
   # 主機配置管理
   updateHostConfig(input: HostConfigInput!): HostConfig!
   # 用戶管理
-  createUser(email: String!, address: String, nickname: String, visibleContentRating: Int): User!
+  createUser(
+    email: String!
+    address: String
+    nickname: String
+    visibleContentRating: Int
+  ): User!
   updateUser(
     nickname: String
     address: String
@@ -457,7 +462,7 @@ type Mutation {
     isbn: String
     contentRating: Int
     # Allowed for admin only
-    contentRatingChecked: Boolean 
+    contentRatingChecked: Boolean
     shadowBanned: Boolean
   ): Item!
   createItemsFromJSON(bookJson: [String!]!, deposit: Int! = 0): [Item!]!
@@ -470,19 +475,27 @@ type Mutation {
   editItemComment(itemId: ID!, commentId: ID!, content: String!): Boolean!
 
   # 交易管理
-  createTransaction(
-    itemId: ID!
-    location: TransactionLocation! = HOLDER_LOCATION
-    locationIndex: Int! = 0
-    details: String
-  ): Transaction!
+  #  createTransaction(
+  #    itemId: ID!
+  #    location: TransactionLocation! = HOLDER_LOCATION
+  #    locationIndex: Int! = 0
+  #    details: String
+  #  ): Transaction!
   # 快速創建交易 By Holder
   # 使用預設位置選項 FACE_TO_FACE
   # 只需提供 itemId 即可
   # 此交易將直接進入 TRANSFERED 狀態
+  contactHolder(
+    itemId: ID!
+    location: TransactionLocation! = HOLDER_LOCATION
+    locationIndex: Int! = 0
+    subject: String
+    emailContent: String
+    details: String
+  ): Boolean!
   createQuickTransaction(itemId: ID!, details: String): Transaction!
-  approveTransaction(id: ID!): Transaction!
-  transferTransaction(id: ID!): Transaction!
+  #  approveTransaction(id: ID!): Transaction!
+  #  transferTransaction(id: ID!): Transaction!
   receiveTransaction(id: ID!, images: [String!]): Transaction!
   cancelTransaction(id: ID!): Boolean!
 
@@ -521,29 +534,29 @@ type Mutation {
 
   generateItemIndexIncremental: Boolean!
 
-  addBindToBinder(
-    parentId: ID!
-    newBinderName: String # if newBinderName is provided, a new Binder bind to Binder
-    bind: BindInput!
-    beforeBindId: ID # Item ID or Binder ID to insert before, null to append at the end
-  ): Binder!
+  #  addBindToBinder(
+  #    parentId: ID!
+  #    newBinderName: String # if newBinderName is provided, a new Binder bind to Binder
+  #    bind: BindInput!
+  #    beforeBindId: ID # Item ID or Binder ID to insert before, null to append at the end
+  #  ): Binder!
 
-  updateBinder(
-    id: ID!
-    name: String
-    description: String
-    images: [String!]
-    bindIds: [ID!] # List of Item IDs or Binder IDs for re-arranging
-  ): Binder!
-  updateBindInBinder(
-    parentId: ID!
-    bindId: ID! # Item ID or Binder ID to update
-    newBind: BindInput!
-  ): Binder!
-  removeBindFromBinder(
-    parentId: ID!
-    bindId: ID! # Item ID or Binder ID to remove
-  ): Binder!
+  #  updateBinder(
+  #    id: ID!
+  #    name: String
+  #    description: String
+  #    images: [String!]
+  #    bindIds: [ID!] # List of Item IDs or Binder IDs for re-arranging
+  #  ): Binder!
+  #  updateBindInBinder(
+  #    parentId: ID!
+  #    bindId: ID! # Item ID or Binder ID to update
+  #    newBind: BindInput!
+  #  ): Binder!
+  #  removeBindFromBinder(
+  #    parentId: ID!
+  #    bindId: ID! # Item ID or Binder ID to remove
+  #  ): Binder!
 }
 
 # 輸入類型
