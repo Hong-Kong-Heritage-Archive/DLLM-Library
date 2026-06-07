@@ -133,7 +133,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
   const scrollRight = () => {
     const maxIndex = Math.max(
       0,
-      (data?.newsRecentPosts.length || 0) - cardsPerView
+      (data?.newsRecentPosts.length || 0) - cardsPerView,
     );
     const newIndex = Math.min(maxIndex, currentIndex + cardsPerView);
     setCurrentIndex(newIndex);
@@ -208,7 +208,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
       <NewsDetail
         newsId={selectedNewsId}
         open={!!selectedNewsId}
-        onClose={handleCloseDialog}
+        onBack={handleCloseDialog}
       />
     </>
   );

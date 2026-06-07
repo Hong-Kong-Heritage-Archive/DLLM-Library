@@ -117,6 +117,11 @@ export class ItemService {
     return results.slice(0, requestedLimit);
   }
 
+  async itemExist(itemId: string): Promise<boolean> {
+    const itemDoc = await db.collection("items").doc(itemId).get();
+    return itemDoc.exists;
+  }
+
   async items(
     loggedInUser: User | UserModel | null,
     classifications: string[],

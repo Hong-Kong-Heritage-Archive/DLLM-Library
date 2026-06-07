@@ -237,8 +237,10 @@ export type Mutation = {
   generateItemIndexIncremental: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
+  lockNewsPost: Scalars['Boolean']['output'];
   pinItem: Scalars['Boolean']['output'];
   receiveTransaction: Transaction;
+  unlockNewsPost: Scalars['Boolean']['output'];
   unpinItem: Scalars['Boolean']['output'];
   updateHostConfig: HostConfig;
   updateItem: Item;
@@ -299,6 +301,8 @@ export type MutationCreateItemsFromJsonArgs = {
 export type MutationCreateNewsPostArgs = {
   content: Scalars['String']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+  newsStatus?: NewsStatus;
+  newsType?: InputMaybe<NewsType>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title: Scalars['String']['input'];
@@ -359,6 +363,11 @@ export type MutationHideNewsPostArgs = {
 };
 
 
+export type MutationLockNewsPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationPinItemArgs = {
   itemId: Scalars['ID']['input'];
 };
@@ -367,6 +376,11 @@ export type MutationPinItemArgs = {
 export type MutationReceiveTransactionArgs = {
   id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type MutationUnlockNewsPostArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -403,6 +417,7 @@ export type MutationUpdateNewsPostArgs = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+  newsType?: InputMaybe<NewsType>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -425,17 +440,33 @@ export type MutationUpsertCategoryMapArgs = {
 
 export type NewsPost = {
   __typename?: 'NewsPost';
+  coEditors?: Maybe<Array<User>>;
   content: Scalars['String']['output'];
   createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
   isVisible: Scalars['Boolean']['output'];
+  newsStatus: NewsStatus;
+  newsType?: Maybe<NewsType>;
   relatedItems?: Maybe<Array<Item>>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   title: Scalars['String']['output'];
   updatedAt: Scalars['Date']['output'];
   user: User;
 };
+
+export enum NewsStatus {
+  CoEditing = 'CO_EDITING',
+  Draft = 'DRAFT',
+  Published = 'PUBLISHED'
+}
+
+export enum NewsType {
+  Announcement = 'ANNOUNCEMENT',
+  Event = 'EVENT',
+  Topic = 'TOPIC',
+  Update = 'UPDATE'
+}
 
 export type Query = {
   __typename?: 'Query';
@@ -597,8 +628,11 @@ export type QueryNewsPostArgs = {
 
 
 export type QueryNewsRecentPostsArgs = {
+  itemId?: InputMaybe<Scalars['ID']['input']>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  newsStatus?: InputMaybe<NewsStatus>;
+  newsType?: InputMaybe<NewsType>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -957,7 +991,7 @@ export type NewsPostQueryVariables = Exact<{
 }>;
 
 
-export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, status: ItemStatus }> | null, user: { __typename?: 'User', id: string, nickname?: string | null } } | null };
+export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, createdAt: any, category: Array<string>, contentRating: number }> | null, user: { __typename?: 'User', id: string, nickname?: string | null } } | null };
 
 export type CreateNewsPostMutationVariables = Exact<{
   title: Scalars['String']['input'];
@@ -2215,8 +2249,14 @@ export const NewsPostDocument = gql`
     relatedItems {
       id
       name
-      category
+      description
+      condition
       status
+      images
+      publishedYear
+      createdAt
+      category
+      contentRating
     }
     createdAt
     updatedAt

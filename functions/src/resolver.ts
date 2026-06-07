@@ -20,6 +20,7 @@ import {
   Bind,
   Binder,
   BinderPath,
+  NewsStatus,
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
@@ -590,7 +591,15 @@ export const resolvers: Resolvers = {
     },
     createNewsPost: async (
       _: any,
-      { title, content, images, relatedItemIds, tags }: any,
+      {
+        title,
+        content,
+        images,
+        relatedItemIds,
+        tags,
+        newsType,
+        newsStatus,
+      }: any,
       { loginUser }: Context,
     ): Promise<NewsPost> => {
       if (!loginUser) throw new Error("Not authenticated");
@@ -603,7 +612,49 @@ export const resolvers: Resolvers = {
         images,
         relatedItemIds,
         tags,
+        newsType,
+        newsStatus,
       );
+    },
+    updateNewsPost: async (
+      _: any,
+      { id, title, content, images, relatedItemIds, tags, newsType }: any,
+      { loginUser }: Context,
+    ): Promise<NewsPost> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.updateNews(
+        id,
+        user,
+        title,
+        content,
+        images,
+        relatedItemIds,
+        tags,
+        newsType,
+        null,
+      );
+    },
+    lockNewsPost: async (
+      _: any,
+      { id }: any,
+      { loginUser }: Context,
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.lockNewsPost(id, user);
+    },
+    unlockNewsPost: async (
+      _: any,
+      { id }: any,
+      { loginUser }: Context,
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.unlockNewsPost(id, user);
     },
     generateSignedUrl: async (
       _: any,
