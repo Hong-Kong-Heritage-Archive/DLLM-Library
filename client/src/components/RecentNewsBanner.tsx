@@ -13,21 +13,20 @@ import { Link } from "react-router";
 import {
   useNewsRecentPostsQuery,
   NewsRecentPostsQueryVariables,
-  User,
-  Role,
+  NewsStatus,
 } from "../generated/graphql";
-import NewsDetail from "./NewsDetail";
 import NewsSummary from "./NewsSummary";
 
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
-interface RecentNewsBannerProps {}
+interface RecentNewsBannerProps {
+  newsStatus: NewsStatus;
+}
 
-const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
+const RecentNewsBanner: React.FC<RecentNewsBannerProps> = ({ newsStatus }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
   const [cardsPerView, setCardsPerView] = useState(4);
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -43,6 +42,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
       tags: [],
       limit: 2,
       offset: 0,
+      newsStatus,
     } as NewsRecentPostsQueryVariables,
   });
 
@@ -140,6 +140,13 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
 
   if (loading) return <CircularProgress />;
   if (error) return <Typography>Error: {error.message}</Typography>;
+  let title = t("news.trending");
+  if (newsStatus === NewsStatus.Draft) {
+    title = t("news.draft");
+  }
+  if (newsStatus === NewsStatus.CoEditing) {
+    title = t("news.coedit");
+  }
 
   return (
     <>
@@ -162,7 +169,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
               fontWeight: "bold",
             }}
           >
-            {t("news.trending")}
+            {title || t("news.trending")}
           </Typography>
         </Box>
 
@@ -183,7 +190,7 @@ const RecentNewsBanner: React.FC<RecentNewsBannerProps> = () => {
           <Typography
             variant="body2"
             component={Link}
-            to="/news/all"
+            to={`/news/all?status=${newsStatus}`}
             sx={{
               color: "primary.main",
               textDecoration: "none",

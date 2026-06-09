@@ -42,10 +42,12 @@ export class NewsService {
 
   async RecentNews(
     loginUser: User | null,
-    keyword: string,
+    keyword: string | null | undefined,
     tags: string[],
     limit: number = 20,
     offset: number = 0,
+    newsType: NewsType | undefined | null,
+    newsStatus: NewsStatus | undefined | null,
   ): Promise<NewsPost[]> {
     let newsQuery = db
       .collection("news")
@@ -58,11 +60,29 @@ export class NewsService {
       newsQuery = newsQuery
         .where("name", ">=", keyword)
         .where("name", "<=", keyword + "\uf8ff");
+    if (newsType) newsQuery = newsQuery.where("newsType", "==", newsType);
+    if (newsStatus) newsQuery = newsQuery.where("newsStatus", "==", newsStatus);
     const newsDocs = await newsQuery.get();
     const newsPosts: NewsPost[] = [];
     for (const doc of newsDocs.docs) {
       const data = doc.data() as NewsModel;
       if (!data) continue;
+      let dataChanged = false;
+      if (!data.newsStatus) {
+        data.newsStatus = NewsStatus.Published;
+        dataChanged = true;
+      }
+      if (!data.newsType) {
+        data.newsType = NewsType.Announcement;
+        dataChanged = true;
+      }
+      if (dataChanged) {
+        await doc.ref.update({
+          newsStatus: data.newsStatus,
+          newsType: data.newsType,
+        });
+      }
+
       const newsPost = await this.converyNewsModelToNewsPost(
         loginUser,
         data,
@@ -349,6 +369,8 @@ export class NewsService {
 
     const newsData: Partial<NewsModel> = {
       updated: now,
+      content: newsModel.content,
+      relatedItemIds: newsModel.relatedItemIds,
     };
     if (user.id !== newsModel.userId) {
       // check if user in co-editors

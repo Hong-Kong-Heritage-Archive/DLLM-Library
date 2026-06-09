@@ -21,6 +21,7 @@ import {
   Binder,
   BinderPath,
   NewsStatus,
+  NewsType,
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
@@ -320,11 +321,19 @@ export const resolvers: Resolvers = {
     },
     newsRecentPosts: async (
       _: any,
-      { keyword, tags = [], limit = 10, offset = 0 }: any,
+      { keyword, tags = [], limit = 10, offset = 0, newsType, newsStatus }: any,
       { loginUser }: Context,
     ): Promise<NewsPost[]> => {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
-      return newsService.RecentNews(user, keyword, tags, limit, offset);
+      return newsService.RecentNews(
+        user,
+        keyword,
+        tags,
+        limit,
+        offset,
+        newsType,
+        newsStatus,
+      );
     },
     geocodeAddress: async (
       _parent: any,

@@ -17,12 +17,13 @@ import {
   NavigateBefore as PrevIcon,
   NavigateNext as NextIcon,
 } from "@mui/icons-material";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import {
   useNewsPostQuery,
   NewsPostQueryVariables,
   User,
   Role,
+  NewsStatus,
 } from "../generated/graphql";
 import ReactMarkdown from "react-markdown";
 import remarkDirective from "remark-directive";
@@ -76,6 +77,12 @@ const DETAIL_NEWS_QUERY = gql`
   }
 `;
 
+const PUBLISH_NEWS_MUTATION = gql`
+  mutation PublishNews($newsPostId: ID!) {
+    lockNewsPost(id: $newsPostId)
+  }
+`;
+
 interface NewsDetailProps {
   newsId: string | null;
   open: boolean;
@@ -97,6 +104,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
     variables: { newsPostId: newsId! } as NewsPostQueryVariables,
     skip: !newsId,
   });
+
+  const [lockNewsPost, { loading: updateLoading }] = useMutation(
+    PUBLISH_NEWS_MUTATION,
+    {
+      onCompleted: () => {
+        setSuccessSnackbarOpen(true);
+        refetch();
+      },
+      onError: (error) => {
+        setErrorMessage(error.message);
+        setErrorSnackbarOpen(true);
+      },
+    },
+  );
 
   const isOwner = user && data?.newsPost?.user?.id === user.id;
   const isAdmin = user && user.role === Role.Admin;
@@ -197,6 +218,16 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
               {new Date(data.newsPost.updatedAt).toLocaleDateString()}
             </Typography>
           </Box>
+          {data.newsPost.coEditors && data.newsPost.coEditors.length > 0 && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                {t("news.coEditors")}:{" "}
+                {data.newsPost.coEditors
+                  .map((editor) => editor.nickname)
+                  .join(", ")}
+              </Typography>
+            </Box>
+          )}
           {hasMarkdownSyntax(data.newsPost.content) ? (
             <Paper
               elevation={0}
@@ -456,19 +487,36 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
           )}
         </Box>
       )}
-      {(isOwner || isAdmin) && data?.newsPost && (
-        <>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            onClick={() => setEditDialogOpen(true)}
-          >
-            {t("news.editItem")}
-          </Button>
-        </>
-      )}
-
+      {(isOwner ||
+        isAdmin ||
+        data?.newsPost?.newsStatus === NewsStatus.CoEditing) &&
+        data?.newsPost && (
+          <>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={() => setEditDialogOpen(true)}
+            >
+              {t("news.editItem")}
+            </Button>
+          </>
+        )}
+      {(isOwner || isAdmin) &&
+        data?.newsPost?.newsStatus !== NewsStatus.Published && (
+          <>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={() =>
+                lockNewsPost({ variables: { newsPostId: data?.newsPost?.id } })
+              }
+            >
+              {t("news.publishItem")}
+            </Button>
+          </>
+        )}
       {/* Success Snackbar */}
       <Snackbar
         open={successSnackbarOpen}

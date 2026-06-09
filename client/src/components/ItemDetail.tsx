@@ -16,6 +16,14 @@ import {
   Modal,
   Backdrop,
   Fade,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -38,13 +46,11 @@ import {
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
   Item,
-  Transaction,
   User,
-  TransactionStatus,
+  Role,
+  NewsStatus,
   TransactionLocation,
   CategoryMap,
-  Role,
-  Binder,
   HostConfig,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
@@ -185,6 +191,43 @@ const GET_ITEM_CONFIG = gql`
   }
 `;
 
+const UPDATE_BOOKLIST_MUTATION = gql`
+  mutation UpdateBooklist($id: ID!, $relatedItemIds: [ID!]) {
+    updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
+      id
+      relatedItems {
+        id
+      }
+    }
+  }
+`;
+
+const BOOKLIST_RECENT_POSTS_QUERY = gql`
+  query BooklistRecentPosts(
+    $limit: Int
+    $offset: Int
+    $newsStatus: NewsStatus
+  ) {
+    newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
+      id
+      title
+      relatedItems {
+        id
+      }
+    }
+  }
+`;
+
+interface BooklistRecentPostsQueryData {
+  newsRecentPosts: Array<{
+    id: string;
+    title: string;
+    relatedItems?: Array<{
+      id: string;
+    }> | null;
+  }>;
+}
+
 interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
@@ -204,6 +247,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   // State for request dialog and notifications
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -226,6 +270,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   // Add state for bind dialog
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
+  const [booklistDialogOpen, setBooklistDialogOpen] = useState(false);
+  const [selectedNewsPostId, setSelectedNewsPostId] = useState("");
 
   // State for location prompt dialog
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
@@ -242,6 +288,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     {
       variables: { itemId: itemId! },
       skip: !itemId,
+    },
+  );
+
+  const newsRecent = useQuery<BooklistRecentPostsQueryData>(
+    BOOKLIST_RECENT_POSTS_QUERY,
+    {
+      variables: {
+        limit: 20,
+        offset: 0,
+        newsStatus: NewsStatus.CoEditing,
+      },
     },
   );
 
@@ -329,6 +386,36 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     },
   );
 
+  const [updateBooklist, { loading: updateBooklistLoading }] = useMutation(
+    UPDATE_BOOKLIST_MUTATION,
+    {
+      onCompleted: () => {
+        setBooklistDialogOpen(false);
+        setSelectedNewsPostId("");
+        setSuccessMessage(t("item.addBooklistSuccess", "Added to booklist"));
+        setSuccessSnackbarOpen(true);
+        newsRecent.refetch();
+      },
+      onError: (mutationError) => {
+        setErrorMessage(mutationError.message);
+        setErrorSnackbarOpen(true);
+      },
+    },
+  );
+
+  const availableBooklists = useMemo(() => {
+    if (!itemId || !newsRecent.data?.newsRecentPosts) {
+      return [];
+    }
+
+    return newsRecent.data.newsRecentPosts.filter(
+      (newsPost) =>
+        !newsPost.relatedItems?.some(
+          (relatedItem) => relatedItem.id === itemId,
+        ),
+    );
+  }, [itemId, newsRecent.data?.newsRecentPosts]);
+
   const isOwner = user && data?.item?.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
   const isHolder =
@@ -385,6 +472,69 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     }
 
     setRequestDialogOpen(true);
+  };
+
+  const handleAddToBooklistClick = () => {
+    if (availableBooklists.length === 0) {
+      setErrorMessage(
+        t(
+          "item.noAvailableBooklists",
+          "No recent booklists are available for this item",
+        ),
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+
+    setSelectedNewsPostId(availableBooklists[0]?.id ?? "");
+    setBooklistDialogOpen(true);
+  };
+
+  const handleCloseBooklistDialog = () => {
+    if (updateBooklistLoading) {
+      return;
+    }
+
+    setBooklistDialogOpen(false);
+    setSelectedNewsPostId("");
+  };
+
+  const handleConfirmAddToBooklist = async () => {
+    if (!itemId || !selectedNewsPostId) {
+      return;
+    }
+
+    const selectedNewsPost = availableBooklists.find(
+      (newsPost) => newsPost.id === selectedNewsPostId,
+    );
+
+    if (!selectedNewsPost) {
+      setErrorMessage(
+        t("item.invalidBooklistSelection", "Please choose a valid booklist"),
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+
+    const relatedItemIds = Array.from(
+      new Set([
+        ...(selectedNewsPost.relatedItems?.map(
+          (relatedItem) => relatedItem.id,
+        ) ?? []),
+        itemId,
+      ]),
+    );
+
+    try {
+      await updateBooklist({
+        variables: {
+          id: selectedNewsPost.id,
+          relatedItemIds,
+        },
+      });
+    } catch (mutationError) {
+      console.error("Error updating booklist:", mutationError);
+    }
   };
 
   const handleAuthSuccess = () => {
@@ -500,6 +650,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const handleCloseSuccessSnackbar = () => {
     setSuccessSnackbarOpen(false);
+    setSuccessMessage("");
   };
 
   const handleCloseErrorSnackbar = () => {
@@ -1148,6 +1299,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </Button>
             )}
 
+            {user && availableBooklists.length > 0 && (
+              <Button
+                variant="contained"
+                color="secondary"
+                size="large"
+                onClick={handleAddToBooklistClick}
+                disabled={newsRecent.loading || updateBooklistLoading}
+                startIcon={<ArticleIcon />}
+              >
+                {t("item.addbooklist", "Add to Booklist")}
+              </Button>
+            )}
+
             {(isOwner || isAdmin) && (
               <>
                 <Button
@@ -1335,6 +1499,56 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         itemName={data?.item?.name || ""}
       />
 
+      <Dialog
+        open={booklistDialogOpen}
+        onClose={handleCloseBooklistDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{t("item.addbooklist", "Add to Booklist")}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <FormControl fullWidth>
+              <InputLabel id="booklist-select-label">
+                {t("item.booklist", "Booklist")}
+              </InputLabel>
+              <Select
+                labelId="booklist-select-label"
+                value={selectedNewsPostId}
+                label={t("item.booklist", "Booklist")}
+                onChange={(event) =>
+                  setSelectedNewsPostId(event.target.value as string)
+                }
+              >
+                {availableBooklists.map((newsPost) => (
+                  <MenuItem key={newsPost.id} value={newsPost.id}>
+                    {newsPost.title}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseBooklistDialog}
+            disabled={updateBooklistLoading}
+          >
+            {t("common.cancel", "Cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmAddToBooklist}
+            variant="contained"
+            disabled={!selectedNewsPostId || updateBooklistLoading}
+          >
+            {updateBooklistLoading ? (
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+            ) : null}
+            {t("common.add", "Add")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Success Snackbar */}
       <Snackbar
         open={successSnackbarOpen}
@@ -1347,7 +1561,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           severity="success"
           sx={{ width: "100%" }}
         >
-          {t("item.requestSuccess")}
+          {successMessage || t("item.requestSuccess")}
         </Alert>
       </Snackbar>
 

@@ -166,7 +166,12 @@
   },
   "news": {
     "title": "News",
-    "trending": "Trending News",
+    "trending": "Articles",
+    "draft": "Draft News",
+    "editItem": "Edit",
+    "coedit": "Co-edit articles",
+    "coEditors": "Co-editors",
+    "publishItem": "Publish",
     "content": "Content",
     "author": "Author",
     "publishedAt": "Published At",
