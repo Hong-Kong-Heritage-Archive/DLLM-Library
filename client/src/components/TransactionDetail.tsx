@@ -358,13 +358,13 @@ const getRoleInstructions = (
           role: t("transactions.roleRequestor", "Requestor"),
           instruction: isQuickExchange
             ? t(
-                "transactions.requestorInstructionTransferredQuick",
-                "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
-              )
+              "transactions.requestorInstructionTransferredQuick",
+              "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
+            )
             : t(
-                "transactions.requestorInstructionTransferred",
-                "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
-              ),
+              "transactions.requestorInstructionTransferred",
+              "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
+            ),
           severity: isQuickExchange ? "warning" : "info",
         };
       case TransactionStatus.Completed:
@@ -592,9 +592,9 @@ const TransactionDetailPage: React.FC = () => {
         <Alert severity="error">
           {error
             ? `${t(
-                "transactions.errorLoading",
-                "Error loading transaction",
-              )}: ${error.message}`
+              "transactions.errorLoading",
+              "Error loading transaction",
+            )}: ${error.message}`
             : t("transactions.notFound", "Transaction not found")}
         </Alert>
       </Container>
@@ -764,6 +764,196 @@ const TransactionDetailPage: React.FC = () => {
           </Typography>
         </Alert>
       )}
+
+
+
+      {/* Action Buttons - Enhanced with descriptions */}
+      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          {t("transactions.actions", "Actions")}
+        </Typography>
+
+        {/* Current Status Indicator */}
+        <Box sx={{ mt: 3, p: 2, bgcolor: "action.hover", borderRadius: 1 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+            {t("transactions.currentStatus", "Current Status")}:
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {getStatusIcon(transaction.status)}
+            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+              {t(
+                `transactions.status.${transaction.status.toLowerCase()}`,
+                transaction.status,
+              )}
+            </Typography>
+          </Box>
+          {roleInstructions && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {roleInstructions.instruction}
+            </Typography>
+          )}
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 3 }}>
+          {/* Owner Actions - Pending */}
+          {(isOwner || isRequestor) &&
+            transaction.status === TransactionStatus.Pending && (
+              <Box>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleAction("cancel", cancelTransaction)}
+                  disabled={actionLoading === "cancel"}
+                  startIcon={
+                    actionLoading === "cancel" ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <CancelIcon />
+                    )
+                  }
+                  fullWidth
+                >
+                  {t("transactions.cancel", "Cancel")}
+                </Button>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.5, px: 1 }}
+                >
+                  {getActionButtonDescription(t, "cancel", transaction.status)}
+                </Typography>
+              </Box>
+            )}
+
+          {/* Owner and Requestor Actions - Approved */}
+          {transaction.status === TransactionStatus.Approved && (
+            <>
+              {(isOwner || isRequestor) && (
+                <Box>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleAction("cancel", cancelTransaction)}
+                    disabled={actionLoading === "cancel"}
+                    startIcon={
+                      actionLoading === "cancel" ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <CancelIcon />
+                      )
+                    }
+                    fullWidth
+                  >
+                    {t("transactions.cancel", "Cancel")}
+                  </Button>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mt: 0.5, px: 1 }}
+                  >
+                    {getActionButtonDescription(
+                      t,
+                      "cancel",
+                      transaction.status,
+                    )}
+                  </Typography>
+                </Box>
+              )}
+            </>
+          )}
+
+          {/* Receive Button - Transferred */}
+          {(isRequestor || isReceiver || isQuickExchange) &&
+            transaction.status === TransactionStatus.Transfered && (
+              <>
+                <Box>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={handleReceiveClick}
+                    disabled={actionLoading === "receive"}
+                    startIcon={
+                      actionLoading === "receive" ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <DoneIcon />
+                      )
+                    }
+                    fullWidth
+                  >
+                    {t("transactions.receive", "Confirm Received")}
+                  </Button>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mt: 0.5, px: 1 }}
+                  >
+                    {getActionButtonDescription(
+                      t,
+                      "receive",
+                      transaction.status,
+                    )}
+                  </Typography>
+                </Box>
+
+                {isQuickExchange && !user && (
+                  <Alert severity="info">
+                    {t(
+                      "transactions.signInToConfirm",
+                      "Please sign in or create an account to confirm receipt of this item.",
+                    )}
+                  </Alert>
+                )}
+              </>
+            )}
+
+          {/* No actions available */}
+          {!(
+            (isOwner &&
+              (transaction.status === TransactionStatus.Pending ||
+                transaction.status === TransactionStatus.Approved)) ||
+            (isRequestor &&
+              (transaction.status === TransactionStatus.Pending ||
+                transaction.status === TransactionStatus.Transfered)) ||
+            (isHolder &&
+              (transaction.status === TransactionStatus.Pending ||
+                transaction.status === TransactionStatus.Transfered)) ||
+            ((isReceiver || isQuickExchange || isHolder) &&
+              transaction.status === TransactionStatus.Transfered)
+          ) && (
+              <Alert severity="info">
+                {t(
+                  "transactions.noActionsAvailable",
+                  "No actions available for this transaction.",
+                )}
+              </Alert>
+            )}
+
+          {/* Share Button - Always available */}
+          <Divider sx={{ my: 1 }} />
+          <Box>
+            <Button
+              variant="outlined"
+              startIcon={<ShareIcon />}
+              onClick={() => setShareDialogOpen(true)}
+              fullWidth
+            >
+              {t("transactions.share", "Share Transaction")}
+            </Button>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mt: 0.5, px: 1 }}
+            >
+              {t(
+                "transactions.shareDescription",
+                "Share this transaction link with the other party for easy access and coordination.",
+              )}
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+
 
       {/* Transaction Info */}
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -976,9 +1166,7 @@ const TransactionDetailPage: React.FC = () => {
                   variant="subtitle1"
                   sx={{ mb: 1, color: "info.main", fontWeight: "bold" }}
                 >
-                  {holder
-                    ? t("transactions.holderInfo", "Current Holder")
-                    : t("transactions.ownerInfo", "Owner")}
+                  {t("transactions.holderInfo", "Current Holder")}
                 </Typography>
                 <ListItem sx={{ px: 0 }}>
                   <ListItemIcon>
@@ -993,10 +1181,10 @@ const TransactionDetailPage: React.FC = () => {
                     secondary={
                       holder
                         ? t(
-                            "transactions.holderIsRequestor",
-                            "Requestor has the item",
-                          )
-                        : t("transactions.ownerHasItem", "Owner has the item")
+                          "transactions.holderIsRequestor",
+                          "Requestor has the item",
+                        )
+                        : t("transactions.ownerHasItem", "Owner is holding the item")
                     }
                   />
                 </ListItem>
@@ -1153,7 +1341,7 @@ const TransactionDetailPage: React.FC = () => {
             sx={{ mb: 2, display: "flex", alignItems: "center" }}
           >
             <LocationOnIcon sx={{ mr: 1 }} />
-            {t("transactions.exchangeLocation", "Exchange Location")}
+            {t("transactions.proposedExchangeLocation", "Proposed Exchange Location")}
           </Typography>
 
           <Box
@@ -1260,29 +1448,8 @@ const TransactionDetailPage: React.FC = () => {
                 style={{ width: "100%", height: "auto" }}
               />
             )}
-            npm
           </Box>
 
-          {/* Current Status Indicator */}
-          <Box sx={{ mt: 3, p: 2, bgcolor: "action.hover", borderRadius: 1 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
-              {t("transactions.currentStatus", "Current Status")}:
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {getStatusIcon(transaction.status)}
-              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                {t(
-                  `transactions.status.${transaction.status.toLowerCase()}`,
-                  transaction.status,
-                )}
-              </Typography>
-            </Box>
-            {roleInstructions && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                {roleInstructions.instruction}
-              </Typography>
-            )}
-          </Box>
         </Paper>
       )}
 
@@ -1340,172 +1507,6 @@ const TransactionDetailPage: React.FC = () => {
             </ImageList>
           </Paper>
         )}
-
-      {/* Action Buttons - Enhanced with descriptions */}
-      <Paper elevation={1} sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          {t("transactions.actions", "Actions")}
-        </Typography>
-
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* Owner Actions - Pending */}
-          {(isOwner || isRequestor) &&
-            transaction.status === TransactionStatus.Pending && (
-              <Box>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleAction("cancel", cancelTransaction)}
-                  disabled={actionLoading === "cancel"}
-                  startIcon={
-                    actionLoading === "cancel" ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <CancelIcon />
-                    )
-                  }
-                  fullWidth
-                >
-                  {t("transactions.cancel", "Cancel")}
-                </Button>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: "block", mt: 0.5, px: 1 }}
-                >
-                  {getActionButtonDescription(t, "cancel", transaction.status)}
-                </Typography>
-              </Box>
-            )}
-
-          {/* Owner and Requestor Actions - Approved */}
-          {transaction.status === TransactionStatus.Approved && (
-            <>
-              {(isOwner || isRequestor) && (
-                <Box>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleAction("cancel", cancelTransaction)}
-                    disabled={actionLoading === "cancel"}
-                    startIcon={
-                      actionLoading === "cancel" ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <CancelIcon />
-                      )
-                    }
-                    fullWidth
-                  >
-                    {t("transactions.cancel", "Cancel")}
-                  </Button>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block", mt: 0.5, px: 1 }}
-                  >
-                    {getActionButtonDescription(
-                      t,
-                      "cancel",
-                      transaction.status,
-                    )}
-                  </Typography>
-                </Box>
-              )}
-            </>
-          )}
-
-          {/* Receive Button - Transferred */}
-          {(isRequestor || isReceiver || isQuickExchange) &&
-            transaction.status === TransactionStatus.Transfered && (
-              <>
-                <Box>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={handleReceiveClick}
-                    disabled={actionLoading === "receive"}
-                    startIcon={
-                      actionLoading === "receive" ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <DoneIcon />
-                      )
-                    }
-                    fullWidth
-                  >
-                    {t("transactions.receive", "Confirm Received")}
-                  </Button>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block", mt: 0.5, px: 1 }}
-                  >
-                    {getActionButtonDescription(
-                      t,
-                      "receive",
-                      transaction.status,
-                    )}
-                  </Typography>
-                </Box>
-
-                {isQuickExchange && !user && (
-                  <Alert severity="info">
-                    {t(
-                      "transactions.signInToConfirm",
-                      "Please sign in or create an account to confirm receipt of this item.",
-                    )}
-                  </Alert>
-                )}
-              </>
-            )}
-
-          {/* No actions available */}
-          {!(
-            (isOwner &&
-              (transaction.status === TransactionStatus.Pending ||
-                transaction.status === TransactionStatus.Approved)) ||
-            (isRequestor &&
-              (transaction.status === TransactionStatus.Pending ||
-                transaction.status === TransactionStatus.Transfered)) ||
-            (isHolder &&
-              (transaction.status === TransactionStatus.Pending ||
-                transaction.status === TransactionStatus.Transfered)) ||
-            ((isReceiver || isQuickExchange || isHolder) &&
-              transaction.status === TransactionStatus.Transfered)
-          ) && (
-            <Alert severity="info">
-              {t(
-                "transactions.noActionsAvailable",
-                "No actions available for this transaction.",
-              )}
-            </Alert>
-          )}
-
-          {/* Share Button - Always available */}
-          <Divider sx={{ my: 1 }} />
-          <Box>
-            <Button
-              variant="outlined"
-              startIcon={<ShareIcon />}
-              onClick={() => setShareDialogOpen(true)}
-              fullWidth
-            >
-              {t("transactions.share", "Share Transaction")}
-            </Button>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: "block", mt: 0.5, px: 1 }}
-            >
-              {t(
-                "transactions.shareDescription",
-                "Share this transaction link with the other party for easy access and coordination.",
-              )}
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
 
       {/* Unified Authentication Dialog */}
       <AuthDialog

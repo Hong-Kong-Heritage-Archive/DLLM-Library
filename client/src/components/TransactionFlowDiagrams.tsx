@@ -1812,7 +1812,7 @@ export const TransactionFlowDiagrams: React.FC = () => {
       {/* Legend */}
       <Paper elevation={1} sx={{ p: 2, mt: 3, bgcolor: "grey.50" }}>
         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
-          {t("transactions.legend", "Legend")}:
+          {t("transactions.legend.title", "Legend")}:
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -1826,7 +1826,7 @@ export const TransactionFlowDiagrams: React.FC = () => {
                 }}
               />
               <Typography variant="body2">
-                {t("transactions.statusPending", "Pending / Request")}
+                {t("transactions.legend.pending", "Pending / Request")}
               </Typography>
             </Box>
           </Grid>
@@ -1841,7 +1841,7 @@ export const TransactionFlowDiagrams: React.FC = () => {
                 }}
               />
               <Typography variant="body2">
-                {t("transactions.statusApproved", "Approved")}
+                {t("transactions.legend.approved", "Approved")}
               </Typography>
             </Box>
           </Grid>
@@ -1856,7 +1856,7 @@ export const TransactionFlowDiagrams: React.FC = () => {
                 }}
               />
               <Typography variant="body2">
-                {t("transactions.statusTransferred", "Transferred")}
+                {t("transactions.legend.transfered", "Transferred")}
               </Typography>
             </Box>
           </Grid>
@@ -1871,7 +1871,7 @@ export const TransactionFlowDiagrams: React.FC = () => {
                 }}
               />
               <Typography variant="body2">
-                {t("transactions.statusCompleted", "Completed")}
+                {t("transactions.legend.completed", "Completed")}
               </Typography>
             </Box>
           </Grid>

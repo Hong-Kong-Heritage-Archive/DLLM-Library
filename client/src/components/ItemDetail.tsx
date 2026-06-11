@@ -23,23 +23,16 @@ import {
   Select,
   MenuItem,
   List,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
   ArrowBack,
   LocationOn as LocationOnIcon,
-  CheckCircle as ApproveIcon,
-  Cancel as RejectIcon,
-  Schedule as ScheduleIcon,
   SwapHoriz as TransferIcon,
-  GetApp as ReceiveIcon,
-  Home as NewHolderIcon,
-  Close as CloseIcon,
-  NavigateBefore as PrevIcon,
-  NavigateNext as NextIcon,
   PushPin as PinIcon, // Add this import
   ChevronRight as ChevronRightIcon,
   Article as ArticleIcon,
-  Folder as BinderIcon,
   Share as ShareIcon,
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
@@ -453,7 +446,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       holder.user.location.longitude,
     );
 
-    return formatDistance(distance);
+    const formattedDistance = formatDistance(distance);
+    return distance <= 2
+      ? t("item.here", "In the neighborhood")
+      : distance > 100
+        ? t("item.moreThanDistance", "More than 100km away")
+        : t("item.awayDistance", { distance: formattedDistance });
   };
 
   const handleUserClick = (userId: string) => {
@@ -567,10 +565,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     setPendingRequestAction(false);
   };
 
-  const handleSwitchAuthMode = () => {
-    setAuthDefaultSignUp(!authDefaultSignUp);
-  };
-
   const handleFaceToFaceClick = () => {
     setFaceToFaceDialogOpen(true);
   };
@@ -663,6 +657,89 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         prev === images.length - 1 ? 0 : prev + 1,
       );
     }
+  };
+
+  const StatusBox = ({ status }: { status: string }) => {
+    const STATUS_BOX_VARIANTS = {
+      AVAILABLE: {
+        icon: "🎉",
+        badgeColor: "success.main",
+        backgroundColor: "success.light",
+        borderColor: "success.main",
+        titleKey: "item.availableMessage",
+        descriptionKey: "item.availableDescription",
+      },
+      EXCHANGEABLE: {
+        icon: "🔄",
+        badgeColor: "info.main",
+        backgroundColor: "info.light",
+        borderColor: "info.main",
+        titleKey: "item.exchangeableMessage",
+        descriptionKey: "item.exchangeableDescription",
+      },
+      GIFT: {
+        icon: "🎁",
+        badgeColor: "warning.main",
+        backgroundColor: "warning.light",
+        borderColor: "warning.main",
+        titleKey: "item.gift",
+        descriptionKey: "item.giftDescription",
+      },
+    } as const;
+
+    const variant =
+      STATUS_BOX_VARIANTS[status as keyof typeof STATUS_BOX_VARIANTS];
+
+    if (!variant) return null;
+
+    return (
+      <Box
+        // sx={{
+        //   mb: 2,
+        //   display: "flex",
+        //   alignItems: "center",
+        //   gap: 2,
+        //   p: 2.5,
+        //   backgroundColor: "white",
+        //   borderRadius: 2,
+        //   border: "1px solid",
+        //   borderColor: "grey.200",
+        // }}
+        sx={{
+          my: 4,
+          p: 3,
+          backgroundColor: variant.backgroundColor,
+          borderRadius: 2,
+          border: "2px solid",
+          borderColor: variant.borderColor,
+        }}
+      >
+        <Box
+        // sx={{
+        //   width: 40,
+        //   height: 40,
+        //   borderRadius: "50%",
+        //   backgroundColor: variant.badgeColor,
+        //   display: "flex",
+        //   alignItems: "center",
+        //   justifyContent: "center",
+        //   flexShrink: 0,
+        // }}
+        >
+          <Typography sx={{ fontSize: "1.2rem", lineHeight: 1 }}>
+            {variant.icon}
+          </Typography>
+        </Box>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+            {t(variant.titleKey)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t(variant.descriptionKey)}
+          </Typography>
+        </Box>
+      </Box>
+    );
   };
 
   // Format date for display
@@ -812,10 +889,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     );
   };
 
-  const handleBinderClick = (binderId: string) => {
-    navigate(`/binder/${binderId}`);
-  };
-
   // Redirect to not-found when item query resolved but returned null (censored or missing)
   useEffect(() => {
     if (!loading && !error && data && !data.item) {
@@ -894,7 +967,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   <Chip
                     label={`${t("item.owner", "Owner")}: ${
                       ownerData.user.nickname || ownerData.user.email
-                    }`}
+                    } `}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -916,7 +989,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     <Chip
                       label={`${t("item.holder", "Holder")}: ${
                         holderData.user.nickname || holderData.user.email
-                      }`}
+                      } `}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -926,7 +999,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 <Chip
                   label={`${t("item.deposit", "deposit")}: ${
                     data.item.deposit
-                  }`}
+                  } `}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -968,7 +1041,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
       {/* Item Content */}
       {data?.item && (
-        <Paper elevation={1} sx={{ p: 4 }}>
+        <Paper
+          elevation={1}
+          sx={{ p: 4 }}
+          //  sx={{ p: 4, backgroundColor: "grey.50", border: "1px solid", borderColor: "grey.200", borderRadius: 3 }}
+        >
           <Box sx={{ mb: 4 }}>
             <Typography
               variant="caption"
@@ -978,10 +1055,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               {t("item.categories", "Categories")}:
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {/* Classification Path - NEW: Add before Categories */}
               {renderClassificationPath(data.item.clssfctns)}
-
-              {/* Categories */}
               {data.item.category && data.item.category.length > 0 && (
                 <>
                   {data.item.category.map((category, index) => (
@@ -1011,7 +1085,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 variant="body1"
                 sx={{
                   whiteSpace: "pre-wrap",
-                  backgroundColor: "grey.50",
+                  backgroundColor: "white",
                   p: 3,
                   borderRadius: 2,
                   border: "1px solid",
@@ -1026,7 +1100,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             </Box>
           )}
 
-          {/* Images */}
+          {/* IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
             <Box sx={{ mb: 4 }}>
@@ -1042,15 +1116,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                         overflow: "hidden",
                         cursor: "pointer",
                         transition: "transform 0.2s",
-                        "&:hover": {
-                          transform: "scale(1.05)",
-                        },
+                        "&:hover": { transform: "scale(1.05)" },
                       }}
                       onClick={() => handleThumbnailClick(index)}
                     >
                       <img
                         src={image}
-                        alt={`${data.item.name} - Thumbnail ${index + 1}`}
+                        alt={`${data.item.name} - Thumbnail ${index + 1} `}
                         style={{
                           width: "100%",
                           height: "120px",
@@ -1064,203 +1136,162 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             </Box>
           )}
 
-          {/* Item Info Grid */}
-          <Box sx={{ mb: 4 }}>
-            <Grid container spacing={3}>
-              <Grid size={6}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.condition", "Condition")}:</strong>{" "}
-                  <Chip
-                    label={data.item.condition}
-                    color="default"
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-              </Grid>
-              {(data.item as any).contentRating != null &&
-                (isOwner || !(data.item as any).contentRatingChecked) && (
-                  <Grid size={12}>
-                    <Typography
-                      variant="body1"
-                      color="text.secondary"
-                      component="div"
-                    >
-                      <strong>
-                        {t("contentRating.label", "Content Rating")}:
-                      </strong>{" "}
-                      {(() => {
-                        const opt = getContentRatingOption(
-                          (data.item as any).contentRating,
-                        );
-                        return opt ? (
-                          <Chip
-                            label={t(opt.labelKey, opt.labelKey)}
-                            color={opt.color as any}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        ) : null;
-                      })()}
-                    </Typography>
-                  </Grid>
-                )}
-              <Grid size={6}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.status", "Status")}:</strong>{" "}
-                  <Chip
-                    label={t(
-                      `shortStatus.${data.item.status}`,
-                      data.item.status,
-                    )}
-                    color={
-                      data.item.status === "AVAILABLE"
-                        ? "success"
-                        : data.item.status === "EXCHANGEABLE"
-                          ? "info"
-                          : data.item.status === "GIFT"
-                            ? "warning"
-                            : "default"
-                    }
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-              </Grid>
-              <Grid size={6}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("common.language")}:</strong> {data.item.language}
-                </Typography>
-              </Grid>
-              {data.item.publishedYear && (
+          {/* ITEM INFO GRID */}
+          <Card
+            elevation={0}
+            sx={{
+              mb: 4,
+              backgroundColor: "white",
+              border: "1px solid",
+              borderColor: "grey.200",
+              borderRadius: 2,
+            }}
+          >
+            <CardContent>
+              <Grid container spacing={3}>
                 <Grid size={6}>
                   <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.publishedYear")}:</strong>{" "}
-                    {data.item.publishedYear}
-                  </Typography>
-                </Grid>
-              )}
-              <Grid size={user && getDistanceToOwner() ? 6 : 12}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>{t("item.addedOn")}:</strong>{" "}
-                  {new Date(data.item.createdAt).toLocaleDateString()}
-                </Typography>
-              </Grid>
-              {/* Distance Display */}
-              {user && getDistanceToOwner() && (
-                <Grid size={6}>
-                  <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.distance")}:</strong>{" "}
+                    <strong>{t("item.status", "Status")}:</strong>{" "}
                     <Chip
-                      label={`${getDistanceToOwner()} ${t(
-                        "item.away",
-                        "away",
-                      )}`}
-                      color="info"
+                      label={t(
+                        `shortStatus.${data.item.status} `,
+                        data.item.status,
+                      )}
+                      color={
+                        data.item.status === "AVAILABLE"
+                          ? "success"
+                          : data.item.status === "EXCHANGEABLE"
+                            ? "info"
+                            : data.item.status === "GIFT"
+                              ? "warning"
+                              : "default"
+                      }
                       size="small"
                       sx={{ ml: 1 }}
-                      icon={<LocationOnIcon fontSize="small" />}
                     />
                   </Typography>
                 </Grid>
-              )}
-            </Grid>
-          </Box>
+                {user && getDistanceToOwner() && (
+                  <Grid size={6}>
+                    <Typography variant="body1" color="text.secondary">
+                      <strong>{t("item.distance")}:</strong>{" "}
+                      <Chip
+                        label={getDistanceToOwner()}
+                        color="info"
+                        size="small"
+                        sx={{ ml: 1 }}
+                        icon={<LocationOnIcon fontSize="small" />}
+                      />
+                    </Typography>
+                  </Grid>
+                )}
+                <Grid size={6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("common.language")}:</strong>{" "}
+                    {data.item.language}
+                  </Typography>
+                </Grid>
+                {data.item.publishedYear && (
+                  <Grid size={6}>
+                    <Typography variant="body1" color="text.secondary">
+                      <strong>{t("item.publishedYear")}:</strong>{" "}
+                      {data.item.publishedYear}
+                    </Typography>
+                  </Grid>
+                )}
+                {/* <Grid size={6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.deposit", "Deposit")}:</strong> {data.item.deposit}
+                  </Typography>
+                </Grid> */}
+                <Grid size={6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.condition", "Condition")}:</strong>{" "}
+                    <Chip
+                      label={data.item.condition}
+                      color="default"
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  </Typography>
+                </Grid>
+                <Grid size={user && getDistanceToOwner() ? 6 : 6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.addedOn")}:</strong>{" "}
+                    {new Date(data.item.createdAt).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                {(data.item as any).contentRating != null &&
+                  (isOwner || !(data.item as any).contentRatingChecked) && (
+                    <Grid size={12}>
+                      <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        component="div"
+                      >
+                        <strong>
+                          {t("contentRating.label", "Content Rating")}:
+                        </strong>{" "}
+                        {(() => {
+                          const opt = getContentRatingOption(
+                            (data.item as any).contentRating,
+                          );
+                          return opt ? (
+                            <Chip
+                              label={t(opt.labelKey, opt.labelKey)}
+                              color={opt.color as any}
+                              size="small"
+                              sx={{ ml: 1 }}
+                            />
+                          ) : null;
+                        })()}
+                      </Typography>
+                    </Grid>
+                  )}
+              </Grid>
+            </CardContent>
+          </Card>
 
-          {/* Status Action Boxes */}
-          {data.item.status === "AVAILABLE" && (
-            <Box
+          {/* STATUS + PRIMARY ACTION — "can I get this?" */}
+          <StatusBox status={data.item.status} />
+
+          {(canCreateTransaction || !user) && (
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              fullWidth
+              onClick={handleRequestClick}
               sx={{
-                mt: 4,
-                p: 3,
-                backgroundColor: "success.light",
+                mb: 4,
+                py: 1.5,
+                fontSize: "1rem",
+                fontWeight: 700,
                 borderRadius: 2,
-                border: "2px solid",
-                borderColor: "success.main",
               }}
+              disabled={contactHolderLoading}
             >
-              <Typography variant="h6" color="success.dark">
-                🎉 {t("item.availableMessage")}
-              </Typography>
-              <Typography variant="body2" color="success.dark" sx={{ mt: 1 }}>
-                {t("item.availableDescription")}
-              </Typography>
-            </Box>
+              {contactHolderLoading ? (
+                <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
+              ) : null}
+              {t("item.request")}
+            </Button>
           )}
 
-          {data.item.status === "EXCHANGEABLE" && (
-            <Box
-              sx={{
-                mt: 4,
-                p: 3,
-                backgroundColor: "info.light",
-                borderRadius: 2,
-                border: "2px solid",
-                borderColor: "info.main",
-              }}
-            >
-              <Typography variant="h6" color="info.dark">
-                🔄 {t("item.exchangeableMessage")}
-              </Typography>
-              <Typography variant="body2" color="info.dark" sx={{ mt: 1 }}>
-                {t("item.exchangeableDescription")}
-              </Typography>
-            </Box>
-          )}
-
-          {data.item.status === "GIFT" && (
-            <Box
-              sx={{
-                mt: 4,
-                p: 3,
-                backgroundColor: "warning.light",
-                borderRadius: 2,
-                border: "2px solid",
-                borderColor: "warning.main",
-              }}
-            >
-              <Typography variant="h6" color="warning.dark">
-                🎁 {t("item.gift")}
-              </Typography>
-              <Typography variant="body2" color="warning.dark" sx={{ mt: 1 }}>
-                {t("item.giftDescription")}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Action Buttons */}
+          {/* 7. SECONDARY ACTIONS */}
           <Box
             sx={{
-              mt: 4,
               display: "flex",
-              flexWrap: "wrap",
-              gap: 2,
               justifyContent: "flex-end",
-              alignItems: "center",
+              gap: 1,
+              flexWrap: "wrap",
             }}
           >
-            {/* Bind Button - Show for all verified users */}
-            {/* temp: only show for admins until we have binder capacity management */}
-            {/* Remove bind
-            {user && user.isVerified && user.role === Role.Admin && (
-              <Button
-                variant="outlined"
-                color="primary"
-                size="large"
-                onClick={handleBindClick}
-                startIcon={<BinderIcon />}
-              >
-                {t("binder.bindItem", "Bind to Binder")}
-              </Button>
-            )}
-              */}
-
-            {/* Face-to-Face Transfer Button - Show for owner or holder */}
             {(isOwner || isHolder) && (
               <Button
                 variant="outlined"
                 color="secondary"
-                size="large"
+                size="small"
                 onClick={handleFaceToFaceClick}
                 disabled={quickTransactionLoading}
                 startIcon={<TransferIcon />}
@@ -1268,13 +1299,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {t("item.faceToFaceTransfer", "Face-to-Face Transfer")}
               </Button>
             )}
-
-            {/* Create News Button - Show for admins only */}
             {isAdmin && (
               <Button
-                variant="contained"
+                variant="outlined"
                 color="secondary"
-                size="large"
+                size="small"
                 onClick={handleCreateNewsClick}
                 startIcon={<ArticleIcon />}
               >
@@ -1296,39 +1325,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             )}
 
             {(isOwner || isAdmin) && (
-              <>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  {t("item.editItem")}
-                </Button>
-              </>
-            )}
-
-            {/* <Button
-              variant="outlined"
-              color="primary"
-              size="large"
-              startIcon={<ShareIcon />}
-              onClick={() => setShareDialogOpen(true)}
-            >
-              {t("item.shareItem", "Share item")}
-            </Button> */}
-            {(canCreateTransaction || !user) && (
               <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={handleRequestClick}
-                disabled={contactHolderLoading}
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={() => setEditDialogOpen(true)}
               >
-                {contactHolderLoading ? (
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                ) : null}
-                {t("item.request")}
+                {t("item.editItem")}
               </Button>
             )}
           </Box>
@@ -1548,16 +1551,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         <Box sx={{ mt: 4 }}>
           <ItemComments itemId={itemId!} currentUser={user} />
         </Box>
-      )}
-
-      {data?.item && (
-        <ItemShareDialog
-          open={shareDialogOpen}
-          onClose={() => setShareDialogOpen(false)}
-          itemName={data.item.name}
-          itemUrl={itemShareUrl}
-          adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
-        />
       )}
 
       {data?.item && (

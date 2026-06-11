@@ -658,8 +658,8 @@ const NewsPage: React.FC = () => {
                     sx={{ mb: 2 }}
                   >
                     {splashScreenImage
-                      ? t("news.changeImage", "Change Image")
-                      : t("news.addImage", "Add Image")}
+                      ? t("common.changeImage", "Change Image")
+                      : t("common.addImage", "Add Image")}
                   </Button>
 
                   <Menu
