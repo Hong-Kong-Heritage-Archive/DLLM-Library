@@ -144,8 +144,9 @@ export class NewsService {
   ): Promise<{ content: string; relatedItemIds: string[] }> {
     if (!content) content = "";
     if (!relatedItemIds) relatedItemIds = [];
-    // check if content has item id in format :item{id="abc"}
-    const regex = /:item\{id="([^"]+)"\}/g;
+    // check if content has item id in format :item{id="abc"} or :itemWithComment{id="abc", comment="..."} and extract item id, if item id exist, add it to relatedItemIds, otherwise, ignore it
+    const regex =
+      /:item(?:WithComment)?\{id="([^"]+)"(?:, comment="[^"]*")?\}/g;
     let match;
     const foundItemIds = new Set<string>();
     while ((match = regex.exec(content)) !== null) {
@@ -296,6 +297,98 @@ export class NewsService {
       tags,
       newsStatus,
       newsType,
+    );
+    return rv;
+  }
+
+  async addItemToNewsPost(
+    id: string,
+    itemId: string,
+    comment: string | null | undefined,
+    user: User,
+  ): Promise<NewsPost> {
+    const docRef = await db.collection("news").doc(id).get();
+    if (!docRef.exists) {
+      throw new Error("News not found");
+    }
+    const newsModel = docRef.data() as NewsModel;
+    if (!newsModel) {
+      throw new Error("News data is invalid");
+    }
+    // check the status of news, if it's not co-editing
+    if (
+      newsModel.newsStatus !== NewsStatus.CoEditing &&
+      user.role !== Role.Admin
+    ) {
+      throw new Error(
+        "Only admin can update news that is not in co-editing status",
+      );
+    }
+    let content = newsModel.content || "";
+    let relatedItemIds = newsModel.relatedItemIds || [];
+    let isItemIdsExist = false;
+    if (!relatedItemIds.includes(itemId)) {
+      relatedItemIds.push(itemId);
+    } else {
+      isItemIdsExist = true;
+    }
+    // remove existing item id in content in format :item{id="abc"} if it's already exist in content, otherwise, add it to content, this is to avoid duplicate item id in content when user add same item multiple times, the format of item id in content with comment is :itemWithComment{id="abc", comment="..."}
+    const regex =
+      /:item(?:WithComment)?\{id="([^"]+)"(?:, comment="[^"]*")?\}/g;
+    let match;
+    const foundItemIds = new Set<string>();
+    while ((match = regex.exec(content)) !== null) {
+      const existingItemId = match[1];
+      if (existingItemId === itemId) {
+        if (isItemIdsExist) {
+          // remove the existing item id in content
+          content = content.replace(match[0], "");
+        }
+      } else {
+        foundItemIds.add(existingItemId);
+      }
+    }
+    // if comment exist, add comment to next to Item id in content in format :comment{itemId="abc"}comment content
+    // if the item id is already exist in content, add comment next to item id in content in format :itemWithComment{id="abc", comment="..."}
+    // if the item id is already exist in content but without comment, replace it with format :itemWithComment{id="abc", comment="..."}
+    const itemWithCommentRegex = new RegExp(
+      `:itemWithComment\\{id="${itemId}", comment="[^"]*"\\}`,
+      "g",
+    );
+    const itemRegex = new RegExp(`:item\\{id="${itemId}"\\}`, "g");
+    if (comment) {
+      if (content.match(itemWithCommentRegex)) {
+        // append user.nickname: comment at the end of comment in itemWithComment
+        content = content.replace(itemWithCommentRegex, (match) => {
+          const existingCommentMatch = match.match(/comment="([^"]*)"/);
+          const existingComment = existingCommentMatch
+            ? existingCommentMatch[1]
+            : "";
+          const newComment = `${existingComment}\n${user.nickname}: ${comment}`;
+          return `:itemWithComment{id="${itemId}", comment="${newComment}"}`;
+        });
+      } else if (content.match(itemRegex)) {
+        // replace item with item with comment
+        content = content.replace(
+          itemRegex,
+          `:itemWithComment{id="${itemId}", comment="${user.nickname}: ${comment}"}`,
+        );
+      } else {
+        // add item with comment to content
+        content += `\n:itemWithComment{id="${itemId}", comment="${user.nickname}: ${comment}"}`;
+      }
+    }
+    const rv = await this._updateNews(
+      id,
+      newsModel,
+      user,
+      null,
+      content,
+      null,
+      relatedItemIds,
+      null,
+      null,
+      null,
     );
     return rv;
   }

@@ -654,6 +654,16 @@ export const resolvers: Resolvers = {
         newsType,
       );
     },
+    addItemToNewsPost: async (
+      _: any,
+      { id, itemId, comment }: any,
+      { loginUser }: Context,
+    ): Promise<NewsPost> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.addItemToNewsPost(id, itemId, comment, user);
+    },
     lockNewsPost: async (
       _: any,
       { id }: any,

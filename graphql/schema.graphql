@@ -537,6 +537,7 @@ type Mutation {
     tags: [String!]
     newsType: NewsType
   ): NewsPost!
+  addItemToNewsPost(id: ID!, itemId: ID!, comment: String): NewsPost!
   hideNewsPost(id: ID!): Boolean!
   lockNewsPost(id: ID!): Boolean! # Lock the news post for draft and co-editing to published
   unlockNewsPost(id: ID!): Boolean! # Unlock the news post for co-editing
