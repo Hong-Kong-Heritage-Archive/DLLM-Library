@@ -13,6 +13,7 @@ import {
   NewsRecentPostsQueryVariables,
   User,
   Role,
+  NewsStatus,
 } from "../generated/graphql";
 import { CreateNewsPostMutation } from "../generated/graphql";
 import NewsForm from "./NewsForm";
@@ -21,22 +22,39 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
 const NEWS_RECENT_QUERY = gql`
-  query NewsRecentPosts($limit: Int, $offset: Int) {
-    newsRecentPosts(limit: $limit, offset: $offset) {
+  query NewsRecentPosts($limit: Int, $offset: Int, $newsStatus: NewsStatus) {
+    newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
       id
       title
       images
       createdAt
       tags
+      relatedItems {
+        id
+        name
+        description
+        condition
+        category
+        status
+        images
+        publishedYear
+        language
+        createdAt
+      }
     }
   }
 `;
 interface RecentNewsPageProps {
   user: User | undefined;
+  newsStatus: NewsStatus | undefined;
   onBack: () => void;
 }
 
-const RecentNewsPage: React.FC<RecentNewsPageProps> = ({ user, onBack }) => {
+const RecentNewsPage: React.FC<RecentNewsPageProps> = ({
+  user,
+  newsStatus,
+  onBack,
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data, loading, error, refetch } = useNewsRecentPostsQuery({
@@ -44,6 +62,7 @@ const RecentNewsPage: React.FC<RecentNewsPageProps> = ({ user, onBack }) => {
       tags: [],
       limit: 20,
       offset: 0,
+      newsStatus: newsStatus,
     } as NewsRecentPostsQueryVariables,
   });
 

@@ -8,13 +8,13 @@ import { CategoryService } from "./categoryService";
 import { ItemService } from "./itemService";
 import { UserService } from "./userService";
 import { TransactionService } from "./transactionService";
-import { BinderService } from "./binderService";
+import { NewsService } from "./newsService";
 
 const categoryService = new CategoryService();
 const itemService = new ItemService(categoryService);
 const userService = new UserService(itemService, categoryService);
 const transactionService = new TransactionService(itemService, userService);
-const binderService = new BinderService(itemService, userService);
+const newsService = new NewsService(itemService, userService);
 
 type BrandingConfig = {
   appTitle: string;
@@ -251,14 +251,14 @@ const generateTransactionRedirectScript = (
 };
 
 /**
- * Generate client-side redirection script for binder
+ * Generate client-side redirection script for news
  */
-const generateBinderRedirectScript = (binderId: string, req: Request) => {
+const generateNewsRedirectScript = (newsId: string, req: Request) => {
   return `
 <!-- Client-side redirection script -->
 <script type="text/javascript">
-  // Store the binder ID for the client app to use
-  sessionStorage.setItem('viewBinderId', '${binderId}');
+  // Store the news ID for the client app to use
+  sessionStorage.setItem('viewNewsId', '${newsId}');
 </script>
   `;
 };
@@ -560,11 +560,11 @@ ${redirectScript}
 };
 
 /**
- * Handle binder detail page SSR
+ * Handle news detail page SSR
  */
-export const handleBinderDetailSSR = async (req: Request, res: Response) => {
+export const handleNewsDetailSSR = async (req: Request, res: Response) => {
   try {
-    const binderId = req.params.id;
+    const newsId = req.params.id;
     const indexPath = path.join(__dirname, "..", "index.html");
 
     // Read the HTML template
@@ -575,18 +575,18 @@ export const handleBinderDetailSSR = async (req: Request, res: Response) => {
       }
 
       try {
-        // Get binder data from Firestore
-        const binder = await binderService.binder(binderId);
-        if (binder === null) {
-          // If binder doesn't exist, still render the page but with generic OG tags and redirect
-          const redirectScript = generateBinderRedirectScript(binderId, req);
+        // Get news data from Firestore
+        const news = await newsService.NewsById(null, newsId);
+        if (news === null) {
+          // If news doesn't exist, still render the page but with generic OG tags and redirect
+          const redirectScript = generateNewsRedirectScript(newsId, req);
           const ogTags = `
-<title>${formatBrandTitle("Binder Not Found")}</title>
-<meta name="description" content="The requested binder could not be found." />
-<meta property="og:title" content="${formatBrandTitle("Binder Not Found")}" />
-<meta property="og:description" content="The requested binder could not be found." />
+<title>${formatBrandTitle("News Not Found")}</title>
+<meta name="description" content="The requested news could not be found." />
+<meta property="og:title" content="${formatBrandTitle("News Not Found")}" />
+<meta property="og:description" content="The requested news could not be found." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="${getBaseUrl()}/binder/${binderId}" />
+<meta property="og:url" content="${getBaseUrl()}/news/${newsId}" />
 <meta property="og:image" content="${getLogoUrl()}" />
 ${redirectScript}
           `;
@@ -594,53 +594,53 @@ ${redirectScript}
           return;
         }
 
-        // Get binder data
-        const binderName = binder.name;
-        const binderDescription =
-          binder.description || "No description available";
+        // Get news data
+        const newsTitle = news.title;
+        const newsDescription =
+
+          news.content || "No description available";
         const ownerName =
-          binder.owner?.nickname || binder.owner?.email || "Unknown Owner";
-        const bindedCount = binder.bindedCount || 0;
+          news?.user?.nickname || news?.user?.email || "Unknown Owner";
 
         // Get thumbnail or image URL
         let imageUrl = getLogoUrl(); // Default image
-        if (binder.thumbnails && binder.thumbnails.length > 0) {
-          imageUrl = binder.thumbnails[0];
-        } else if (binder.images && binder.images.length > 0) {
-          imageUrl = binder.images[0];
+        if (news.images && news.images.length > 0) {
+          imageUrl = news.images[0];
+        } else if (news.images && news.images.length > 0) {
+          imageUrl = news.images[0];
         }
 
         // Create Open Graph tags with a client-side redirection script
-        const redirectScript = generateBinderRedirectScript(binderId, req);
+        const redirectScript = generateNewsRedirectScript(newsId, req);
 
         // Create an enhanced description with item count and owner
-        const enhancedDescription = `${binderDescription.substring(0, 120)}${
-          binderDescription.length > 120 ? "..." : ""
-        } | ${bindedCount} item(s) | By: ${ownerName}`;
+        const enhancedDescription = `${newsDescription.substring(0, 120)}${
+          newsDescription.length > 120 ? "..." : ""
+        } | By: ${ownerName}`;
 
         const ogTags = `
-<title>${formatBrandTitle(binderName)}</title>
+<title>${formatBrandTitle(newsTitle)}</title>
 <meta name="description" content="${enhancedDescription}" />
-<meta property="og:title" content="${formatBrandTitle(binderName)}" />
+<meta property="og:title" content="${formatBrandTitle(newsTitle)}" />
 <meta property="og:description" content="${enhancedDescription}" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="${getBaseUrl()}/binder/${binderId}" />
+<meta property="og:url" content="${getBaseUrl()}/news/${newsId}" />
 <meta property="og:image" content="${imageUrl}" />
 ${redirectScript}
         `;
 
         renderHtmlWithOgTags(res, htmlData, ogTags);
       } catch (error) {
-        console.error("Error generating binder SSR content:", error);
+        console.error("Error generating news SSR content:", error);
         // Fallback to generic tags with redirect
-        const redirectScript = generateBinderRedirectScript(binderId, req);
+        const redirectScript = generateNewsRedirectScript(newsId, req);
         const ogTags = `
-<title>${formatBrandTitle("Binder")}</title>
-<meta name="description" content="View this binder in ${getBranding().appTitle}." />
-<meta property="og:title" content="${formatBrandTitle("Binder")}" />
-<meta property="og:description" content="View this binder in ${getBranding().appTitle}." />
+<title>${formatBrandTitle("News")}</title>
+<meta name="description" content="View this news in ${getBranding().appTitle}." />
+<meta property="og:title" content="${formatBrandTitle("News")}" />
+<meta property="og:description" content="View this news in ${getBranding().appTitle}." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="${getBaseUrl()}/binder/${binderId}" />
+<meta property="og:url" content="${getBaseUrl()}/news/${newsId}" />
 <meta property="og:image" content="${getLogoUrl()}" />
 ${redirectScript}
         `;
@@ -648,7 +648,7 @@ ${redirectScript}
       }
     });
   } catch (error) {
-    console.error("Error in binder SSR route:", error);
+    console.error("Error in news SSR route:", error);
     res.status(500).send("Server error");
   }
 };

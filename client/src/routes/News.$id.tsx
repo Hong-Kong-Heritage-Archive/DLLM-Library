@@ -6,17 +6,11 @@ const NewsDetailPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const handleClose = () => {
-    navigate('/news');
+  const handleBack = () => {
+    navigate("/news");
   };
 
-  return (
-    <NewsDetail 
-      newsId={id || null}
-      open={true}
-      onClose={handleClose}
-    />
-  );
+  return <NewsDetail newsId={id || null} open={true} onBack={handleBack} />;
 };
 
 export default NewsDetailPage;

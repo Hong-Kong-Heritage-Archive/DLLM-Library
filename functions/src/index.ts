@@ -16,7 +16,7 @@ import {
   handleItemDetailSSR,
   handleUserProfileSSR,
   handleTransactionDetailSSR,
-  handleBinderDetailSSR,
+  handleNewsDetailSSR,
 } from "./ssrService";
 import { isBotRequest, getBotType } from "./botDetection";
 
@@ -122,20 +122,20 @@ async function startApolloServer() {
     }
   });
 
-  // Handle /binder/:id with bot detection
-  app.get("/binder/:id", (req, res) => {
-    if (isBotRequest(req)) {
-      handleBinderDetailSSR(req, res);
-    } else {
-      // Serve the index.html with the redirect parameter embedded in the URL
-      handleHomePageSSR(req, res, `/binder/${req.params.id}`);
-    }
-  });
-
   // Handle /news
   app.get("/news", (req, res) => {
     // Serve the index.html with the redirect parameter embedded in the URL
     handleHomePageSSR(req, res, "/news");
+  });
+
+  // Handle /news
+  app.get("/news/:id", (req, res) => {
+    if (isBotRequest(req)) {
+      handleNewsDetailSSR(req, res);
+    } else {
+      // Serve the index.html with the redirect parameter embedded in the URL
+      handleHomePageSSR(req, res, `/news/${req.params.id}`);
+    }
   });
 
   // Handle exchange point page

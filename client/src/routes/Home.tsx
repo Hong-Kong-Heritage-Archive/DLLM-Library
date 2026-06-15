@@ -22,6 +22,7 @@ import {
   Item,
   RecommendationType,
   HostConfig,
+  NewsStatus,
 } from "../generated/graphql";
 import RecentItemBanner from "../components/RecentItemBanner";
 import { useOutletContext } from "react-router-dom";
@@ -30,6 +31,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
 import ItemForm from "../components/ItemForm";
+import RecentNewsBanner from "../components/RecentNewsBanner";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
@@ -178,7 +180,7 @@ const HomePage: React.FC = () => {
           <Box sx={{ width: "100%" }}>
             {user?.isVerified ? (
               <Box>
-                <Typography variant="h5" sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
                   {t("home.welcome", { nickname: user.nickname })}
                 </Typography>
                 {!user.isActive && (
@@ -254,6 +256,10 @@ const HomePage: React.FC = () => {
         {/* User Picked Recommendations Section - Only for active users */}
         {user?.isActive && (
           <>
+            <RecentNewsBanner
+              newsStatus={NewsStatus.Published}
+              isFrontPage={true}
+            />
             {userPickedLoading && (
               <ListItem>
                 <Box

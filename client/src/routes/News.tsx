@@ -31,7 +31,12 @@ import {
   ExpandMore as ArrowDropDownIcon,
 } from "@mui/icons-material";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { User, HostConfig, CreateNewsPostMutation } from "../generated/graphql";
+import {
+  User,
+  HostConfig,
+  CreateNewsPostMutation,
+  NewsStatus,
+} from "../generated/graphql";
 import TransactionFlowDiagrams from "../components/TransactionFlowDiagrams";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import { batchProcessImages } from "../utils/ImageProcessor";
@@ -88,7 +93,7 @@ const NewsPage: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [imageMenuAnchor, setImageMenuAnchor] = useState<null | HTMLElement>(
-    null
+    null,
   );
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
@@ -154,7 +159,7 @@ const NewsPage: React.FC = () => {
   };
 
   const handleSplashScreenTextChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     setSplashScreenText(e.target.value);
     setHasChanges(true);
@@ -207,7 +212,7 @@ const NewsPage: React.FC = () => {
         },
         (processed, total) => {
           setProcessingProgress(Math.round((processed / total) * 100));
-        }
+        },
       );
 
       if (processedImages.length > 0) {
@@ -229,7 +234,7 @@ const NewsPage: React.FC = () => {
   };
 
   const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     await processFile(file || null);
@@ -237,7 +242,7 @@ const NewsPage: React.FC = () => {
   };
 
   const handleCameraCapture = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     await processFile(file || null);
@@ -282,23 +287,23 @@ const NewsPage: React.FC = () => {
               setSplashScreenImage((prev) =>
                 prev
                   ? {
-                    ...prev,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
-                  : null
+                      ...prev,
+                      isUploading: true,
+                      uploadProgress: progress.percentage,
+                    }
+                  : null,
               );
             },
             onFileComplete: (_, gsUrl) => {
               setSplashScreenImage((prev) =>
                 prev
                   ? {
-                    ...prev,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
-                  : null
+                      ...prev,
+                      isUploading: false,
+                      uploadProgress: 100,
+                      gsUrl: gsUrl,
+                    }
+                  : null,
               );
             },
             onOverallProgress: (percentage) => {
@@ -308,14 +313,14 @@ const NewsPage: React.FC = () => {
               setSplashScreenImage((prev) =>
                 prev
                   ? {
-                    ...prev,
-                    isUploading: false,
-                    uploadError: error,
-                  }
-                  : null
+                      ...prev,
+                      isUploading: false,
+                      uploadError: error,
+                    }
+                  : null,
               );
             },
-          }
+          },
         );
 
         if (uploadedUrls.length > 0) {
@@ -403,7 +408,9 @@ const NewsPage: React.FC = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       {/* Header */}
-      <RecentNewsBanner user={user} />
+      {isAdmin && <RecentNewsBanner newsStatus={NewsStatus.Draft} />}
+      <RecentNewsBanner newsStatus={NewsStatus.CoEditing} />
+      <RecentNewsBanner newsStatus={NewsStatus.Published} />
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
           {t("news.aboutUs", "About Us")}
@@ -411,13 +418,13 @@ const NewsPage: React.FC = () => {
         <Typography variant="body2" color="text.secondary">
           {isAdmin
             ? t(
-              "news.adminDescription",
-              "Manage community information and chat links"
-            )
+                "news.adminDescription",
+                "Manage community information and chat links",
+              )
             : t(
-              "news.userDescription",
-              "Learn more about our community library"
-            )}
+                "news.userDescription",
+                "Learn more about our community library",
+              )}
         </Typography>
       </Box>
 
@@ -499,13 +506,13 @@ const NewsPage: React.FC = () => {
                 label={t("news.chatLink", "Chat Link")}
                 placeholder={t(
                   "news.chatLinkPlaceholder",
-                  "e.g., https://t.me/your-group"
+                  "e.g., https://t.me/your-group",
                 )}
                 value={chatLink}
                 onChange={handleChatLinkChange}
                 helperText={t(
                   "news.chatLinkHelper",
-                  "Enter the link to your community chat (Telegram, Discord, etc.)"
+                  "Enter the link to your community chat (Telegram, Discord, etc.)",
                 )}
                 disabled={updateLoading}
               />
@@ -523,7 +530,7 @@ const NewsPage: React.FC = () => {
                     >
                       {t(
                         "news.joinOurChat",
-                        "Join our community chat to connect with other members, share ideas, and stay updated!"
+                        "Join our community chat to connect with other members, share ideas, and stay updated!",
                       )}
                     </Typography>
                     <Button
@@ -554,7 +561,7 @@ const NewsPage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary">
                     {t(
                       "news.noChatLink",
-                      "No community chat link configured yet."
+                      "No community chat link configured yet.",
                     )}
                   </Typography>
                 ) : null}
@@ -753,13 +760,13 @@ const NewsPage: React.FC = () => {
                   label={t("news.splashScreenText", "Splash Screen Text")}
                   placeholder={t(
                     "news.splashScreenTextPlaceholder",
-                    "Enter text to display on splash screen..."
+                    "Enter text to display on splash screen...",
                   )}
                   value={splashScreenText}
                   onChange={handleSplashScreenTextChange}
                   helperText={t(
                     "news.splashScreenTextHelper",
-                    "This text will appear when users first open the app"
+                    "This text will appear when users first open the app",
                   )}
                   disabled={isUploading}
                 />
@@ -800,7 +807,7 @@ const NewsPage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary">
                     {t(
                       "news.noSplashScreenText",
-                      "No splash screen text configured yet."
+                      "No splash screen text configured yet.",
                     )}
                   </Typography>
                 ) : null}
@@ -830,13 +837,13 @@ const NewsPage: React.FC = () => {
               label={t("news.aboutUsText", "About Us Text")}
               placeholder={t(
                 "news.aboutUsPlaceholder",
-                "Tell your community about your library, mission, and values..."
+                "Tell your community about your library, mission, and values...",
               )}
               value={aboutUsText}
               onChange={handleAboutUsChange}
               helperText={t(
                 "news.aboutUsHelper",
-                "Describe your community library, its purpose, and how it works"
+                "Describe your community library, its purpose, and how it works",
               )}
               disabled={updateLoading}
             />
@@ -856,7 +863,7 @@ const NewsPage: React.FC = () => {
                 <Typography variant="body2" color="text.secondary">
                   {t(
                     "news.noAboutUsText",
-                    "No information available yet. Please check back later."
+                    "No information available yet. Please check back later.",
                   )}
                 </Typography>
               )}

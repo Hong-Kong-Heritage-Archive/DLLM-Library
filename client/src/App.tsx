@@ -64,7 +64,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
 
   // Check if splash screen should be shown based on cookie
   useEffect(() => {
-    const splashCookie = getCookie("dllm_splash_shown");
+    const splashCookie = getCookie("book_guide_splash_shown");
     console.log("Splash cookie:", splashCookie);
     const shouldShowSplash = !splashCookie;
     setShowSplash(shouldShowSplash);
@@ -102,6 +102,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   useEffect(() => {
     const viewItemId = sessionStorage.getItem("viewItemId");
     const viewUserId = sessionStorage.getItem("viewUserId");
+    const viewNewsId = sessionStorage.getItem("viewNewsId");
     const viewTransactionId = sessionStorage.getItem("viewTransactionId");
     const redirectPath = sessionStorage.getItem("redirectPath");
 
@@ -114,6 +115,9 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
     } else if (viewTransactionId) {
       setInitialPath(`/transaction/${viewTransactionId}`);
       sessionStorage.removeItem("viewTransactionId");
+    } else if (viewNewsId) {
+      setInitialPath(`/news/${viewNewsId}`);
+      sessionStorage.removeItem("viewNewsId");
     } else if (redirectPath) {
       setInitialPath(redirectPath);
       sessionStorage.removeItem("redirectPath");

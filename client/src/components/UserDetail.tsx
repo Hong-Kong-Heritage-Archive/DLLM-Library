@@ -19,6 +19,7 @@ import {
   ListItemText,
   FormControlLabel,
   Checkbox,
+  Select,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -36,12 +37,12 @@ import {
 import { gql, useQuery } from "@apollo/client";
 import { User, Item, Category, Binder } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
-import ItemPreview from "./ItemPreview";
+import BookSpinePreview from "./BookSpinePreview";
 import PaginationControls from "./PaginationControls";
-import { TagCloud } from "react-tagcloud";
-import UserProfile from "./UserProfile";
+// import { TagCloud } from "react-tagcloud";
+import UpdateUser from "./UserProfile";
 import { USER_DETAIL_QUERY } from "../hook/user";
 import ContactMethods from "./ContactMethods";
 import UserProfileShareDialog from "./UserProfileShareDialog";
@@ -70,6 +71,7 @@ const USER_ITEMS_QUERY = gql`
       images
       thumbnails
       category
+      clssfctns
       publishedYear
       language
       location {
@@ -117,8 +119,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [itemsPage, setItemsPage] = useState<number>(1);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [itemsPage, setItemsPage] = useState<number>(
+    parseInt(searchParams.get("page") || "1", 10),
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    searchParams.get("category") || null,
+  );
   const [includeExchangePointItems, setIncludeExchangePointItems] =
     useState<boolean>(true);
   // State for controlling UpdateUser dialog
@@ -138,11 +145,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Check if user is exchange point admin
   const isExchangePointAdmin = userData?.user?.role === "EXCHANGE_POINT_ADMIN";
 
-  const {
-    data: itemsData,
-    loading: itemsLoading,
-    refetch: refetchItems,
-  } = useQuery<{
+  // Count for selected category (or total) comes free from itemCategory metadata
+  const selectedCategoryCount = selectedCategory
+    ? (userData?.user?.itemCategory?.find(
+        (c) => c.category === selectedCategory,
+      )?.count ?? ITEMS_PER_PAGE)
+    : null;
+  const totalUserItemCount =
+    userData?.user?.itemCategory?.reduce((sum, c) => sum + c.count, 0) ?? 0;
+
+  // Both modes: backend-paginated with cache-first. Category count from metadata = total known, no count query.
+  const { data: itemsData, loading: itemsLoading } = useQuery<{
     itemsByUser: Item[];
   }>(USER_ITEMS_QUERY, {
     variables: {
@@ -152,7 +165,27 @@ const UserDetail: React.FC<UserDetailProps> = ({
       category: selectedCategory ? [selectedCategory] : undefined,
       isExchangePointItem: isExchangePointAdmin && includeExchangePointItems,
     },
-    skip: !userId || !selectedCategory, // Only query when category is selected
+    fetchPolicy: "cache-first",
+    skip: !userId,
+  });
+
+  // Count from itemCategory metadata — no extra query needed
+  const totalFilteredCount = selectedCategory
+    ? (selectedCategoryCount ?? 0)
+    : totalUserItemCount;
+
+  // Prefetch next page — silently warms cache so Next is instant.
+  const hasNextPageEstimate = totalFilteredCount > itemsPage * ITEMS_PER_PAGE;
+  useQuery<{ itemsByUser: Item[] }>(USER_ITEMS_QUERY, {
+    variables: {
+      userId: userId!,
+      limit: ITEMS_PER_PAGE,
+      offset: itemsPage * ITEMS_PER_PAGE,
+      category: selectedCategory ? [selectedCategory] : undefined,
+      isExchangePointItem: isExchangePointAdmin && includeExchangePointItems,
+    },
+    fetchPolicy: "cache-first",
+    skip: !userId || !hasNextPageEstimate,
   });
 
   const { data: totalItemsData, loading: totalItemsLoading } = useQuery<{
@@ -174,37 +207,46 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Reset page when category changes or exchange point toggle changes
   useEffect(() => {
     setItemsPage(1);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set("page", "1");
+      return params;
+    });
   }, [selectedCategory, includeExchangePointItems]);
-
-  // Refetch items when page changes, category changes, or exchange point setting changes
-  useEffect(() => {
-    console.log("Refetching items... " + selectedCategory);
-    if (userId && selectedCategory) {
-      refetchItems();
-    }
-  }, [
-    itemsPage,
-    selectedCategory,
-    includeExchangePointItems,
-    refetchItems,
-    userId,
-  ]);
 
   const handleItemsPageChange = (newPage: number) => {
     setItemsPage(newPage);
-    // Scroll to top when page changes
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("page", String(newPage));
+      return next;
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCategoryClick = (tag: TagCloudData) => {
     const category = tag.value;
-    console.log("Clicked category:", tag);
-    if (selectedCategory === category) {
-      // If clicking the same category, deselect it
-      setSelectedCategory(null);
-    } else {
-      setSelectedCategory(category);
-    }
+    const next = selectedCategory === category ? null : category;
+    setSelectedCategory(next);
+    setItemsPage(1);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (next) params.set("category", next);
+      else params.delete("category");
+      params.set("page", "1");
+      return params;
+    });
+  };
+
+  const clearCategory = () => {
+    setSelectedCategory(null);
+    setItemsPage(1);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete("category");
+      params.set("page", "1");
+      return params;
+    });
   };
 
   const handleExchangePointItemsToggle = (
@@ -272,9 +314,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Prepare data for TagCloud component
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-      value: categoryItem.category,
-      count: categoryItem.count,
-    }))
+        value: categoryItem.category,
+        count: categoryItem.count,
+      }))
     : [];
 
   // Custom renderer for TagCloud
@@ -320,11 +362,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -335,11 +377,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -542,27 +584,34 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 )}
               </Grid>
               {/* Contact Methods in read-only mode */}
-              {userData.user.contactMethods &&
-                userData.user.contactMethods.length > 0 && (
-                  <Box
-                    sx={{
-                      mb: 2,
-                      p: 2,
-                      bgcolor: "action.hover",
-                      borderRadius: 1,
-                    }}
-                  >
-                    <ContactMethods
-                      contactMethods={userData.user.contactMethods}
-                      readOnly={true}
-                      title={t("user.contactMethods", "Contact Methods")}
-                      showTitle={true}
-                      showAddButton={false}
-                      showPublicPrivateFilter={!isCurrentUser} // Show filter only for other users
-                      maxHeight={300}
-                    />
-                  </Box>
-                )}
+              {userData?.user?.contactMethods &&
+              userData.user?.contactMethods.length > 0 ? (
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    bgcolor: "action.hover",
+                    borderRadius: 1,
+                  }}
+                >
+                  <ContactMethods
+                    contactMethods={userData.user.contactMethods}
+                    readOnly={true}
+                    title={t("user.contactMethods", "Contact Methods")}
+                    showTitle={true}
+                    showAddButton={false}
+                    showPublicPrivateFilter={!isCurrentUser} // Show filter only for other users
+                    maxHeight={300}
+                  />
+                </Box>
+              ) : (
+                <Box>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("user.email", "Email")}:</strong>{" "}
+                    {userData.user.email}
+                  </Typography>
+                </Box>
+              )}
             </AccordionDetails>
           </Accordion>
 
@@ -586,8 +635,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   }}
                 >
                   {pinnedItemsWithDistance.map((item) => (
-                    <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
-                      <ItemPreview
+                    <Grid key={item.id} size={{ xs: 2, sm: 1.5, md: 1 }}>
+                      <BookSpinePreview
                         item={item}
                         distance={item.distance}
                         onClick={handleItemClick}
@@ -610,13 +659,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Alert severity="info">
                 {isCurrentUser
                   ? t(
-                    "user.noPinnedItemsYou",
-                    "You haven't pinned any items yet.",
-                  )
+                      "user.noPinnedItemsYou",
+                      "You haven't pinned any items yet.",
+                    )
                   : t(
-                    "user.noPinnedItemsUser",
-                    "This user hasn't pinned any items.",
-                  )}
+                      "user.noPinnedItemsUser",
+                      "This user hasn't pinned any items.",
+                    )}
               </Alert>
             )}
           </Paper>
@@ -688,225 +737,281 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     </Typography>
                   </Box>
                 )}
-
-                {selectedCategory && (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    {t(
-                      "user.filteringByCategory",
-                      "Filtering by category: {{category}}",
-                      {
-                        category: selectedCategory,
-                      },
-                    )}
-                    <Chip
-                      label={t("common.clearFilter", "Clear Filter")}
-                      size="small"
-                      onClick={() => setSelectedCategory(null)}
-                      onDelete={() => setSelectedCategory(null)}
-                      sx={{ ml: 1 }}
-                    />
-                  </Alert>
+                {tagCloudData.length > 0 ? (
+                  <Select
+                    native
+                    value={selectedCategory || ""}
+                    onChange={(e) =>
+                      setSelectedCategory(e.target.value || null)
+                    }
+                  >
+                    <option value="">
+                      {t("user.allCategories", "All Categories")}
+                    </option>
+                    {tagCloudData.map((tag) => (
+                      <option key={tag.value} value={tag.value}>
+                        {tag.value} ({tag.count})
+                      </option>
+                    ))}
+                  </Select>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {t("user.noCategories", "No categories available")}
+                  </Typography>
                 )}
-
-                {!selectedCategory && (
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    {t(
-                      "user.selectCategoryToViewItems",
-                      "Select a category below to view items.",
-                    )}
-                  </Alert>
-                )}
-
-                {/* React TagCloud */}
-                <Box
-                  sx={{
-                    minHeight: 200,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                    p: 2,
-                    bgcolor: "background.paper",
-                  }}
-                >
-                  {tagCloudData.length > 0 ? (
-                    <TagCloud
-                      minSize={14}
-                      maxSize={32}
-                      tags={tagCloudData}
-                      onClick={(tag) => handleCategoryClick(tag)}
-                      renderer={customRenderer}
-                      shuffle={false}
-                      colorOptions={{
-                        luminosity: "dark",
-                        hue: "blue",
+                {/* User's Items - Only show when a category is selected - Grid Layout */}
+                {selectedCategory ? (
+                  <>
+                    <Box
+                      sx={{
+                        mb: 2,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
-                    />
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      {t("user.noCategories", "No categories available")}
-                    </Typography>
-                  )}
-                </Box>
+                    >
+                      <Typography variant="h6">
+                        {isCurrentUser
+                          ? t(
+                              "user.yourItemsInCategory",
+                              "Your {{category}} Items",
+                              {
+                                category: selectedCategory,
+                              },
+                            )
+                          : t(
+                              "user.userItemsInCategory",
+                              "{{name}}'s {{category}} Items",
+                              {
+                                name:
+                                  userData.user.nickname || userData.user.email,
+                                category: selectedCategory,
+                              },
+                            )}
+                        {isExchangePointAdmin && includeExchangePointItems && (
+                          <Chip
+                            label={t(
+                              "user.includesCachedItems",
+                              "Includes cached items",
+                            )}
+                            size="small"
+                            variant="outlined"
+                            sx={{ ml: 2 }}
+                          />
+                        )}
+                      </Typography>
 
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 2, display: "block" }}
-                >
-                  {t(
-                    "user.tagCloudHelper",
-                    "Click on a category to filter items. Larger tags indicate more items in that category.",
-                  )}
-                </Typography>
+                      {/* Results count */}
+                      <Typography variant="body2" color="text.secondary">
+                        {itemsLoading
+                          ? t("common.loading", "Loading...")
+                          : t(
+                              "itemsAll.itemsFound",
+                              "Found {{count}} item(s)",
+                              {
+                                count: totalFilteredCount,
+                              },
+                            )}
+                      </Typography>
+                    </Box>
+
+                    {/* Loading State */}
+                    {itemsLoading && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          py: 8,
+                        }}
+                      >
+                        <CircularProgress />
+                      </Box>
+                    )}
+
+                    {/* Items Grid */}
+                    {!itemsLoading && itemsWithDistance.length > 0 ? (
+                      <>
+                        <Grid
+                          container
+                          spacing={{ xs: 1, sm: 2 }}
+                          sx={{
+                            mb: 3,
+                          }}
+                        >
+                          {itemsWithDistance.map((item) => (
+                            <Grid
+                              key={item.id}
+                              size={{ xs: 2, sm: 1.5, md: 1 }}
+                            >
+                              <BookSpinePreview
+                                item={item}
+                                distance={item.distance}
+                                onClick={handleItemClick}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+
+                        {/* Pagination Controls */}
+                        <Box sx={{ mt: 4 }}>
+                          <PaginationControls
+                            currentPage={itemsPage}
+                            onPageChange={handleItemsPageChange}
+                            hasNextPage={
+                              itemsPage * ITEMS_PER_PAGE < totalFilteredCount
+                            }
+                            totalItems={totalFilteredCount}
+                            hasPrevPage={itemsPage > 1}
+                            isLoading={itemsLoading}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            showPageInfo={true}
+                          />
+                        </Box>
+                      </>
+                    ) : (
+                      !itemsLoading && (
+                        <Alert severity="info">
+                          {isCurrentUser
+                            ? t(
+                                "user.noItemsInCategoryYou",
+                                "You haven't added any {{category}} items yet.",
+                                {
+                                  category: selectedCategory,
+                                },
+                              )
+                            : t(
+                                "user.noItemsInCategoryUser",
+                                "This user hasn't added any {{category}} items yet.",
+                                {
+                                  category: selectedCategory,
+                                },
+                              )}
+                        </Alert>
+                      )
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Box
+                      sx={{
+                        mb: 2,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography variant="h6">
+                        {isCurrentUser
+                          ? t("item.myLentItems", "All My Items")
+                          : `${userData.user.nickname || userData.user.email}'s ${t("item.allItems", "All Items")}`}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {itemsLoading
+                          ? t("common.loading", "Loading...")
+                          : t(
+                              "itemsAll.itemsFound",
+                              "Found {{count}} item(s)",
+                              {
+                                count: totalFilteredCount,
+                              },
+                            )}
+                      </Typography>
+                    </Box>
+
+                    {itemsLoading && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          py: 8,
+                        }}
+                      >
+                        <CircularProgress />
+                      </Box>
+                    )}
+
+                    {!itemsLoading && itemsWithDistance.length > 0 ? (
+                      <>
+                        <Grid
+                          container
+                          spacing={{ xs: 1, sm: 2 }}
+                          sx={{ mb: 3 }}
+                        >
+                          {itemsWithDistance.map((item) => (
+                            <Grid
+                              key={item.id}
+                              size={{ xs: 2, sm: 1.5, md: 1 }}
+                            >
+                              <BookSpinePreview
+                                item={item}
+                                distance={item.distance}
+                                onClick={handleItemClick}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                        <Box sx={{ mt: 4 }}>
+                          <PaginationControls
+                            currentPage={itemsPage}
+                            onPageChange={handleItemsPageChange}
+                            hasNextPage={
+                              itemsPage * ITEMS_PER_PAGE < totalFilteredCount
+                            }
+                            totalItems={totalFilteredCount}
+                            hasPrevPage={itemsPage > 1}
+                            isLoading={itemsLoading}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            showPageInfo={true}
+                          />
+                        </Box>
+                      </>
+                    ) : (
+                      !itemsLoading && (
+                        <Alert severity="info">
+                          {isCurrentUser
+                            ? t(
+                                "item.noLentItems",
+                                "You currently have no items.",
+                              )
+                            : t(
+                                "user.noPinnedItemsUser",
+                                "This user hasn't added any items yet.",
+                              )}
+                        </Alert>
+                      )
+                    )}
+                  </>
+                )}
+                {/* UpdateUser Dialog - Only render when needed */}
+                {showUpdateUser && (
+                  <UpdateUser
+                    email={userData.user.email}
+                    onUserCreated={handleUserCreated}
+                    open={showUpdateUser}
+                    isCreateUser={false}
+                    initialNickname={userData.user?.nickname}
+                    initialAddress={userData.user?.address}
+                    initialExchangePoints={userData.user?.exchangePoints}
+                    initialContactMethods={userData.user?.contactMethods || []}
+                    initialVisibleContentRating={
+                      (userData.user as any)?.visibleContentRating
+                    }
+                    onClose={() => setShowUpdateUser(false)}
+                  />
+                )}
+
+                <UserProfileShareDialog
+                  open={shareDialogOpen}
+                  onClose={() => setShareDialogOpen(false)}
+                  profileUrl={profileShareUrl}
+                  displayName={
+                    userData.user.nickname ||
+                    userData.user.email ||
+                    userData.user.id
+                  }
+                />
               </Paper>
             )}
-
-          {/* UpdateUser Dialog - Only render when needed */}
-          {showUpdateUser && (
-            <UserProfile
-              email={userData.user.email}
-              onUserCreated={handleUserCreated}
-              open={showUpdateUser}
-              isCreateUser={false}
-              initialNickname={userData.user?.nickname}
-              initialAddress={userData.user?.address}
-              initialExchangePoints={userData.user?.exchangePoints}
-              initialContactMethods={userData.user?.contactMethods || []}
-              initialVisibleContentRating={
-                (userData.user as any)?.visibleContentRating
-              }
-              onClose={() => setShowUpdateUser(false)}
-            />
-          )}
-
-          <UserProfileShareDialog
-            open={shareDialogOpen}
-            onClose={() => setShareDialogOpen(false)}
-            profileUrl={profileShareUrl}
-            displayName={
-              userData.user.nickname || userData.user.email || userData.user.id
-            }
-          />
-
-          {/* User's Items - Only show when a category is selected - Grid Layout */}
-          {selectedCategory && (
-            <Paper elevation={1} sx={{ p: 4 }}>
-              <Box
-                sx={{
-                  mb: 2,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Typography variant="h6">
-                  {isCurrentUser
-                    ? t("user.yourItemsInCategory", "Your {{category}} Items", {
-                      category: selectedCategory,
-                    })
-                    : t(
-                      "user.userItemsInCategory",
-                      "{{name}}'s {{category}} Items",
-                      {
-                        name: userData.user.nickname || userData.user.email,
-                        category: selectedCategory,
-                      },
-                    )}
-                  {isExchangePointAdmin && includeExchangePointItems && (
-                    <Chip
-                      label={t(
-                        "user.includesCachedItems",
-                        "Includes cached items",
-                      )}
-                      size="small"
-                      variant="outlined"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-
-                {/* Results count */}
-                <Typography variant="body2" color="text.secondary">
-                  {itemsLoading || totalItemsLoading
-                    ? t("common.loading", "Loading...")
-                    : totalItemsData?.totalItemsCountByUser
-                      ? t("itemsAll.itemsFound", "Found {{count}} item(s)", {
-                        count: totalItemsData.totalItemsCountByUser,
-                      })
-                      : t("itemsAll.itemsFound", "Found {{count}} item(s)", {
-                        count: itemsWithDistance.length,
-                      })}
-                </Typography>
-              </Box>
-
-              {/* Loading State */}
-              {(itemsLoading || totalItemsLoading) && (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-                  <CircularProgress />
-                </Box>
-              )}
-
-              {/* Items Grid */}
-              {!itemsLoading && itemsWithDistance.length > 0 ? (
-                <>
-                  <Grid
-                    container
-                    spacing={{ xs: 1, sm: 2 }}
-                    sx={{
-                      mb: 3,
-                    }}
-                  >
-                    {itemsWithDistance.map((item) => (
-                      <Grid key={item.id} size={{ xs: 4, sm: 3, md: 2 }}>
-                        <ItemPreview
-                          item={item}
-                          distance={item.distance}
-                          onClick={handleItemClick}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-
-                  {/* Pagination Controls */}
-                  <Box sx={{ mt: 4 }}>
-                    <PaginationControls
-                      currentPage={itemsPage}
-                      onPageChange={handleItemsPageChange}
-                      hasNextPage={itemsWithDistance.length === ITEMS_PER_PAGE}
-                      totalItems={totalItemsData?.totalItemsCountByUser}
-                      hasPrevPage={itemsPage > 1}
-                      isLoading={itemsLoading || totalItemsLoading}
-                      itemsPerPage={ITEMS_PER_PAGE}
-                      showPageInfo={true}
-                    />
-                  </Box>
-                </>
-              ) : (
-                !itemsLoading && (
-                  <Alert severity="info">
-                    {isCurrentUser
-                      ? t(
-                        "user.noItemsInCategoryYou",
-                        "You haven't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        },
-                      )
-                      : t(
-                        "user.noItemsInCategoryUser",
-                        "This user hasn't added any {{category}} items yet.",
-                        {
-                          category: selectedCategory,
-                        },
-                      )}
-                  </Alert>
-                )
-              )}
-            </Paper>
-          )}
         </>
       )}
     </Container>

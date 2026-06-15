@@ -11,11 +11,21 @@ import {
   Container,
   Paper,
   Snackbar,
-  Card,
-  CardContent,
   Modal,
   Backdrop,
   Fade,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  List,
+  Card,
+  CardContent,
+  TextField,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -30,9 +40,10 @@ import { gql, useQuery, useMutation } from "@apollo/client";
 import {
   Item,
   User,
+  Role,
+  NewsStatus,
   TransactionLocation,
   CategoryMap,
-  Role,
   HostConfig,
 } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
@@ -49,6 +60,30 @@ import { translateCategory } from "../utils/categoryTranslation";
 import NewsForm from "./NewsForm";
 import ItemShareDialog from "./ItemShareDialog";
 import { getContentRatingOption } from "../utils/contentRating";
+import NewsSummary from "./NewsSummary";
+import { SimpleNews } from "./NewsSummary";
+
+const ITEM_RELATED_NEWS_QUERY = gql`
+  query ItemNewsRelatedPosts(
+    $limit: Int
+    $offset: Int
+    $newsStatus: NewsStatus
+    $itemId: ID
+  ) {
+    newsRecentPosts(
+      limit: $limit
+      offset: $offset
+      newsStatus: $newsStatus
+      itemId: $itemId
+    ) {
+      id
+      title
+      createdAt
+      images
+      tags
+    }
+  }
+`;
 
 const ITEM_DETAIL_QUERY = gql`
   query Item($itemId: ID!) {
@@ -132,23 +167,6 @@ const USER_QUERY = gql`
   }
 `;
 
-const OPEN_TRANSACTIONS_QUERY = gql`
-  query OpenTransactionsByItem($itemId: ID!) {
-    openTransactionsByItem(itemId: $itemId) {
-      id
-      requestor {
-        id
-        nickname
-        email
-      }
-      details
-      status
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
 const PIN_ITEM_MUTATION = gql`
   mutation PinItem($itemId: ID!) {
     pinItem(itemId: $itemId)
@@ -173,6 +191,54 @@ const GET_ITEM_CONFIG = gql`
   }
 `;
 
+const UPDATE_BOOKLIST_MUTATION = gql`
+  mutation UpdateBooklist($id: ID!, $relatedItemIds: [ID!]) {
+    updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
+      id
+      relatedItems {
+        id
+      }
+    }
+  }
+`;
+
+const ADD_ITEM_TO_NEWS_POST_MUTATION = gql`
+  mutation AddItemToNewsPost($id: ID!, $itemId: ID!, $comment: String) {
+    addItemToNewsPost(id: $id, itemId: $itemId, comment: $comment) {
+      id
+      relatedItems {
+        id
+      }
+    }
+  }
+`;
+
+const BOOKLIST_RECENT_POSTS_QUERY = gql`
+  query BooklistRecentPosts(
+    $limit: Int
+    $offset: Int
+    $newsStatus: NewsStatus
+  ) {
+    newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
+      id
+      title
+      relatedItems {
+        id
+      }
+    }
+  }
+`;
+
+interface BooklistRecentPostsQueryData {
+  newsRecentPosts: Array<{
+    id: string;
+    title: string;
+    relatedItems?: Array<{
+      id: string;
+    }> | null;
+  }>;
+}
+
 interface ItemDetailProps {
   itemId: string | null;
   user?: User | null;
@@ -192,6 +258,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   // State for request dialog and notifications
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -212,6 +279,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   // Add state for news form dialog
   const [newsFormOpen, setNewsFormOpen] = useState(false);
 
+  const [booklistDialogOpen, setBooklistDialogOpen] = useState(false);
+  const [selectedNewsPostId, setSelectedNewsPostId] = useState("");
+  const [comment, setComment] = useState("");
+
   // State for location prompt dialog
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
 
@@ -230,6 +301,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     },
   );
 
+  const newsRecent = useQuery<BooklistRecentPostsQueryData>(
+    BOOKLIST_RECENT_POSTS_QUERY,
+    {
+      variables: {
+        limit: 20,
+        offset: 0,
+        newsStatus: NewsStatus.CoEditing,
+      },
+    },
+  );
+
   // Query for item config (for classification translation)
   const { data: configData } = useQuery<{
     itemConfig: {
@@ -242,6 +324,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const { data: ownerData, refetch: refetchOwner } = useQuery(USER_QUERY, {
     variables: { userId: data?.item?.ownerId },
     skip: !data?.item?.ownerId,
+  });
+
+  // Query for related news details
+  const itemNewsPosts = useQuery(ITEM_RELATED_NEWS_QUERY, {
+    variables: { itemId: data?.item?.id },
+    skip: !data?.item?.id,
   });
 
   // Query for holder details (if different from owner)
@@ -314,6 +402,47 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     },
   );
 
+  const [updateBooklist, { loading: updateBooklistLoading }] = useMutation(
+    UPDATE_BOOKLIST_MUTATION,
+    {
+      onCompleted: () => {
+        setBooklistDialogOpen(false);
+        setSelectedNewsPostId("");
+        setSuccessMessage(t("item.addBooklistSuccess", "Added to booklist"));
+        setSuccessSnackbarOpen(true);
+        newsRecent.refetch();
+      },
+      onError: (mutationError) => {
+        setErrorMessage(mutationError.message);
+        setErrorSnackbarOpen(true);
+      },
+    },
+  );
+
+  const [addItemToNewsPost, { loading: addItemToNewsPostLoading }] =
+    useMutation(ADD_ITEM_TO_NEWS_POST_MUTATION, {
+      onCompleted: () => {
+        setBooklistDialogOpen(false);
+        setSelectedNewsPostId("");
+        setComment("");
+        setSuccessMessage(t("item.addBooklistSuccess", "Added to booklist"));
+        setSuccessSnackbarOpen(true);
+        newsRecent.refetch();
+      },
+      onError: (mutationError) => {
+        setErrorMessage(mutationError.message);
+        setErrorSnackbarOpen(true);
+      },
+    });
+
+  const availableBooklists = useMemo(() => {
+    if (!itemId || !newsRecent.data?.newsRecentPosts) {
+      return [];
+    }
+
+    return newsRecent.data.newsRecentPosts;
+  }, [itemId, newsRecent.data?.newsRecentPosts]);
+
   const isOwner = user && data?.item?.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
   const isHolder =
@@ -342,7 +471,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     );
 
     const formattedDistance = formatDistance(distance);
-    return distance <= 2 ? t("item.here", "In the neighborhood") : distance > 100 ? t("item.moreThanDistance", "More than 100km away") : t("item.awayDistance", { distance: formattedDistance });
+    return distance <= 2
+      ? t("item.here", "In the neighborhood")
+      : distance > 100
+        ? t("item.moreThanDistance", "More than 100km away")
+        : t("item.awayDistance", { distance: formattedDistance });
   };
 
   const handleUserClick = (userId: string) => {
@@ -371,6 +504,81 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     }
 
     setRequestDialogOpen(true);
+  };
+
+  const handleAddToBooklistClick = () => {
+    if (availableBooklists.length === 0) {
+      setErrorMessage(
+        t(
+          "item.noAvailableBooklists",
+          "No recent booklists are available for this item",
+        ),
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+
+    setSelectedNewsPostId(availableBooklists[0]?.id ?? "");
+    setBooklistDialogOpen(true);
+  };
+
+  const handleCloseBooklistDialog = () => {
+    if (updateBooklistLoading) {
+      return;
+    }
+
+    setBooklistDialogOpen(false);
+    setSelectedNewsPostId("");
+  };
+
+  const handleConfirmAddToBooklist = async () => {
+    if (!itemId || !selectedNewsPostId) {
+      return;
+    }
+
+    const selectedNewsPost = availableBooklists.find(
+      (newsPost) => newsPost.id === selectedNewsPostId,
+    );
+
+    if (!selectedNewsPost) {
+      setErrorMessage(
+        t("item.invalidBooklistSelection", "Please choose a valid booklist"),
+      );
+      setErrorSnackbarOpen(true);
+      return;
+    }
+    try {
+      await addItemToNewsPost({
+        variables: {
+          id: selectedNewsPostId,
+          itemId,
+          comment,
+        },
+      });
+    } catch (mutationError) {
+      console.error("Error adding item to news post:", mutationError);
+    }
+    /*
+    const relatedItemIds = Array.from(
+      new Set([
+        ...(selectedNewsPost.relatedItems?.map(
+          (relatedItem) => relatedItem.id,
+        ) ?? []),
+        itemId,
+      ]),
+    );
+
+    try {
+      await updateBooklist({
+        variables: {
+          id: selectedNewsPost.id,
+          relatedItemIds,
+        },
+      });
+    } catch (mutationError) {
+      console.error("Error updating booklist:", mutationError);
+    }
+*/
   };
 
   const handleAuthSuccess = () => {
@@ -451,6 +659,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const handleCloseSuccessSnackbar = () => {
     setSuccessSnackbarOpen(false);
+    setSuccessMessage("");
   };
 
   const handleCloseErrorSnackbar = () => {
@@ -569,7 +778,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     );
   };
 
-
   // Format date for display
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(undefined, {
@@ -591,6 +799,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const handleEditError = (message: string) => {
     setErrorMessage(message);
     setErrorSnackbarOpen(true);
+  };
+
+  const handleNewsItemClick = (newsId: string) => {
+    navigate(`/news/${newsId}`);
   };
 
   // Check if item is pinned by the current user (owner)
@@ -789,8 +1001,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {/* Show owner name if user is not the owner */}
                 {ownerData?.user && (
                   <Chip
-                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                      } `}
+                    label={`${t("item.owner", "Owner")}: ${
+                      ownerData.user.nickname || ownerData.user.email
+                    } `}
                     color="primary"
                     size="small"
                     sx={{ ml: 2, cursor: "pointer" }}
@@ -810,8 +1023,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        } `}
+                      label={`${t("item.holder", "Holder")}: ${
+                        holderData.user.nickname || holderData.user.email
+                      } `}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -819,8 +1033,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
-                    } `}
+                  label={`${t("item.deposit", "deposit")}: ${
+                    data.item.deposit
+                  } `}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
@@ -862,11 +1077,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
       {/* Item Content */}
       {data?.item && (
-        <Paper elevation={1} sx={{ p: 4 }}
-        //  sx={{ p: 4, backgroundColor: "grey.50", border: "1px solid", borderColor: "grey.200", borderRadius: 3 }}
+        <Paper
+          elevation={1}
+          sx={{ p: 4 }}
+          //  sx={{ p: 4, backgroundColor: "grey.50", border: "1px solid", borderColor: "grey.200", borderRadius: 3 }}
         >
           <Box sx={{ mb: 4 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 0.5, display: "block" }}
+            >
               {t("item.categories", "Categories")}:
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -879,8 +1100,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                       label={category}
                       variant="outlined"
                       sx={{
-                        backgroundColor: category === "Comic" ? "primary.light" : "default",
-                        color: category === "Comic" ? "primary.contrastText" : "default",
+                        backgroundColor:
+                          category === "Comic" ? "primary.light" : "default",
+                        color:
+                          category === "Comic"
+                            ? "primary.contrastText"
+                            : "default",
                       }}
                     />
                   ))}
@@ -904,7 +1129,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 }}
               >
                 {convertLinksToClickable(
-                  data.item.description?.replace(/#Uncategorized\b/gi, "") || "",
+                  data.item.description?.replace(/#Uncategorized\b/gi, "") ||
+                    "",
                 )}
               </Typography>
             </Box>
@@ -913,48 +1139,67 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={{ mb: 4 }}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "transform 0.2s",
-                          "&:hover": { transform: "scale(1.05)" },
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={2}>
+                {(data.item.thumbnails && data.item.thumbnails.length > 0
+                  ? data.item.thumbnails
+                  : data.item.images || []
+                ).map((image, index) => (
+                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "transform 0.2s",
+                        "&:hover": { transform: "scale(1.05)" },
+                      }}
+                      onClick={() => handleThumbnailClick(index)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${data.item.name} - Thumbnail ${index + 1} `}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
                         }}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1} `}
-                          style={{ width: "100%", height: "120px", objectFit: "cover" }}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           {/* ITEM INFO GRID */}
-          <Card elevation={0} sx={{ mb: 4, backgroundColor: "white", border: "1px solid", borderColor: "grey.200", borderRadius: 2 }}>
+          <Card
+            elevation={0}
+            sx={{
+              mb: 4,
+              backgroundColor: "white",
+              border: "1px solid",
+              borderColor: "grey.200",
+              borderRadius: 2,
+            }}
+          >
             <CardContent>
               <Grid container spacing={3}>
                 <Grid size={6}>
                   <Typography variant="body1" color="text.secondary">
                     <strong>{t("item.status", "Status")}:</strong>{" "}
                     <Chip
-                      label={t(`shortStatus.${data.item.status} `, data.item.status)}
+                      label={t(
+                        `shortStatus.${data.item.status} `,
+                        data.item.status,
+                      )}
                       color={
-                        data.item.status === "AVAILABLE" ? "success"
-                          : data.item.status === "EXCHANGEABLE" ? "info"
-                            : data.item.status === "GIFT" ? "warning"
+                        data.item.status === "AVAILABLE"
+                          ? "success"
+                          : data.item.status === "EXCHANGEABLE"
+                            ? "info"
+                            : data.item.status === "GIFT"
+                              ? "warning"
                               : "default"
                       }
                       size="small"
@@ -978,13 +1223,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 )}
                 <Grid size={6}>
                   <Typography variant="body1" color="text.secondary">
-                    <strong>{t("common.language")}:</strong> {data.item.language}
+                    <strong>{t("common.language")}:</strong>{" "}
+                    {data.item.language}
                   </Typography>
                 </Grid>
                 {data.item.publishedYear && (
                   <Grid size={6}>
                     <Typography variant="body1" color="text.secondary">
-                      <strong>{t("item.publishedYear")}:</strong> {data.item.publishedYear}
+                      <strong>{t("item.publishedYear")}:</strong>{" "}
+                      {data.item.publishedYear}
                     </Typography>
                   </Grid>
                 )}
@@ -996,7 +1243,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 <Grid size={6}>
                   <Typography variant="body1" color="text.secondary">
                     <strong>{t("item.condition", "Condition")}:</strong>{" "}
-                    <Chip label={data.item.condition} color="default" size="small" sx={{ ml: 1 }} />
+                    <Chip
+                      label={data.item.condition}
+                      color="default"
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
                   </Typography>
                 </Grid>
                 <Grid size={user && getDistanceToOwner() ? 6 : 6}>
@@ -1008,10 +1260,18 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {(data.item as any).contentRating != null &&
                   (isOwner || !(data.item as any).contentRatingChecked) && (
                     <Grid size={12}>
-                      <Typography variant="body1" color="text.secondary" component="div">
-                        <strong>{t("contentRating.label", "Content Rating")}:</strong>{" "}
+                      <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        component="div"
+                      >
+                        <strong>
+                          {t("contentRating.label", "Content Rating")}:
+                        </strong>{" "}
                         {(() => {
-                          const opt = getContentRatingOption((data.item as any).contentRating);
+                          const opt = getContentRatingOption(
+                            (data.item as any).contentRating,
+                          );
                           return opt ? (
                             <Chip
                               label={t(opt.labelKey, opt.labelKey)}
@@ -1038,7 +1298,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               size="large"
               fullWidth
               onClick={handleRequestClick}
-              sx={{ mb: 4, py: 1.5, fontSize: "1rem", fontWeight: 700, borderRadius: 2 }}
+              sx={{
+                mb: 4,
+                py: 1.5,
+                fontSize: "1rem",
+                fontWeight: 700,
+                borderRadius: 2,
+              }}
               disabled={contactHolderLoading}
             >
               {contactHolderLoading ? (
@@ -1049,7 +1315,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           )}
 
           {/* 7. SECONDARY ACTIONS */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
             {(isOwner || isHolder) && (
               <Button
                 variant="outlined"
@@ -1073,6 +1346,20 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 {t("item.createNews", "Create News")}
               </Button>
             )}
+
+            {user && availableBooklists.length > 0 && (
+              <Button
+                variant="contained"
+                color="secondary"
+                size="large"
+                onClick={handleAddToBooklistClick}
+                disabled={newsRecent.loading || updateBooklistLoading}
+                startIcon={<ArticleIcon />}
+              >
+                {t("item.addbooklist", "Add to Booklist")}
+              </Button>
+            )}
+
             {(isOwner || isAdmin) && (
               <Button
                 variant="outlined"
@@ -1084,10 +1371,30 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </Button>
             )}
           </Box>
-
+          {/* related news */}
+          {itemNewsPosts?.data?.newsRecentPosts &&
+            itemNewsPosts?.data?.newsRecentPosts.length > 0 && (
+              <List
+                sx={{
+                  whiteSpace: "pre-wrap",
+                  backgroundColor: "grey.50",
+                  p: 3,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "grey.200",
+                }}
+              >
+                {itemNewsPosts.data.newsRecentPosts.map((news: SimpleNews) => (
+                  <NewsSummary
+                    key={news.id}
+                    news={news}
+                    onClick={handleNewsItemClick}
+                  />
+                ))}
+              </List>
+            )}
         </Paper>
       )}
-
       {/* Edit Item Dialog */}
       {user && (
         <ItemForm
@@ -1184,6 +1491,69 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         itemName={data?.item?.name || ""}
       />
 
+      <Dialog
+        open={booklistDialogOpen}
+        onClose={handleCloseBooklistDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{t("item.addbooklist", "Add to Booklist")}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <FormControl fullWidth>
+              <InputLabel id="booklist-select-label">
+                {t("item.booklist", "Booklist")}
+              </InputLabel>
+              <Select
+                labelId="booklist-select-label"
+                value={selectedNewsPostId}
+                label={t("item.booklist", "Booklist")}
+                onChange={(event) =>
+                  setSelectedNewsPostId(event.target.value as string)
+                }
+              >
+                {availableBooklists.map((newsPost) => (
+                  <MenuItem key={newsPost.id} value={newsPost.id}>
+                    {newsPost.title}
+                  </MenuItem>
+                ))}
+              </Select>
+              <TextField
+                label={t("item.comment", "Comment")}
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                fullWidth
+                multiline
+                rows={3}
+                sx={{ mt: 2 }}
+              />
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseBooklistDialog}
+            disabled={addItemToNewsPostLoading || updateBooklistLoading}
+          >
+            {t("common.cancel", "Cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmAddToBooklist}
+            variant="contained"
+            disabled={
+              !selectedNewsPostId ||
+              addItemToNewsPostLoading ||
+              updateBooklistLoading
+            }
+          >
+            {addItemToNewsPostLoading ? (
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+            ) : null}
+            {t("common.add", "Add")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Success Snackbar */}
       <Snackbar
         open={successSnackbarOpen}
@@ -1196,7 +1566,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           severity="success"
           sx={{ width: "100%" }}
         >
-          {t("item.requestSuccess")}
+          {successMessage || t("item.requestSuccess")}
         </Alert>
       </Snackbar>
 

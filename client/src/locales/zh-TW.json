@@ -158,14 +158,19 @@
   },
   "news": {
     "title": "新聞",
-    "trending": "最新情報",
+    "trending": "最新文章",
+    "draft": "草稿新聞",
+    "editItem": "編輯",
+    "publishItem": "發布",
+    "coedit": "共同編輯文章", 
+    "coEditors": "共同編輯者",   
     "content": "內容",
     "author": "作者",
     "publishedAt": "發佈時間",
     "create": "發佈文章",
     "createPost": "發佈報道",
     "viewAll": "查看所有新聞",
-    "readMore": "再看",
+    "readMore": "閱讀更多",
     "loadNews": "載入新聞中...",
     "newsDetails": "新聞詳情",
     "error": "載入新聞詳情出錯: {{message}}",
@@ -450,7 +455,8 @@
     "shareCopiedMessageAndLink": "訊息與連結已複製到剪貼簿！",
     "sharePreset1": "推薦閱讀：{{itemName}}！",
     "sharePreset2": "在圖書館找到這本：{{itemName}}",
-    "sharePreset3": "{{itemName}} — 值得一看。"
+    "sharePreset3": "{{itemName}} — 值得一看。",
+    "addbooklist": "加入書單"
   },
   "userProfile": {
     "nickname": "暱稱",

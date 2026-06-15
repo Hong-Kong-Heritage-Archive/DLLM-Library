@@ -169,7 +169,12 @@
   },
   "news": {
     "title": "News",
-    "trending": "Trending News",
+    "trending": "Articles",
+    "draft": "Draft News",
+    "editItem": "Edit",
+    "coedit": "Co-edit articles",
+    "coEditors": "Co-editors",
+    "publishItem": "Publish",
     "content": "Content",
     "author": "Author",
     "publishedAt": "Published At",
@@ -317,7 +322,7 @@
     "loginToView": "This item may require you to sign in. Please log in to continue.",
     "contentRatingRestricted": "This item is not available. Its content rating may exceed your current preference settings, or it may be pending admin review.",
     "errorLoading": "Error loading item details",
-    "myLentItems": "Items I've lent",
+    "myLentItems": "Items Available for Lending",
     "loadingLentItems": "Loading your lent items...",
     "errorLoadingLentItems": "Error loading your lent items",
     "noLentItems": "You currently have no lent items",
@@ -437,7 +442,8 @@
     "shareCopiedMessageAndLink": "Message and link copied to clipboard!",
     "sharePreset1": "Check out {{itemName}}!",
     "sharePreset2": "I found this in the library: {{itemName}}",
-    "sharePreset3": "{{itemName}} — worth a look."
+    "sharePreset3": "{{itemName}} — worth a look.",
+    "addbooklist": "Add to Book List"
   },
   "languages": {
     "en": "English",

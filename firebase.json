@@ -62,13 +62,13 @@
           "function": "graphql"
         },
         {
-          "source": "/binder/**",
-          "function": "graphql"
-        },
-        {
           "source": "/loan-items/**",
           "function": "graphql"
         },
+        {
+          "source": "/news/**",
+          "function": "graphql"
+        },        
         {
           "source": "/news",
           "function": "graphql"
@@ -169,13 +169,13 @@
           "function": "graphql"
         },
         {
-          "source": "/binder/**",
-          "function": "graphql"
-        },
-        {
           "source": "/loan-items/**",
           "function": "graphql"
         },
+        {
+          "source": "/news/**",
+          "function": "graphql"
+        },        
         {
           "source": "/news",
           "function": "graphql"

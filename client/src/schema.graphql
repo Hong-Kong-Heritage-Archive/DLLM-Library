@@ -30,6 +30,19 @@ enum ItemStatus {
   TRANSFERRED # 已轉讓
 }
 
+enum NewsType {
+  ANNOUNCEMENT # 公告
+  EVENT # 活動
+  UPDATE # 更新
+  TOPIC # 主題
+}
+
+enum NewsStatus {
+  CO_EDITING # 共同編輯中
+  DRAFT # 編輯中
+  PUBLISHED # 已發布
+}
+
 # 地點類型
 type Location {
   latitude: Float!
@@ -184,7 +197,10 @@ type NewsPost {
   updatedAt: Date!
   isVisible: Boolean! # 是否公開顯示
   user: User! # 發布者
+  coEditors: [User!] # 共同編輯者列表
   tags: [String!] # 標籤列表
+  newsType: NewsType # 新聞類型
+  newsStatus: NewsStatus! # 新聞狀態
 }
 
 # 虛擬所有權轉移
@@ -366,6 +382,9 @@ type Query {
     tags: [String!]
     limit: Int
     offset: Int
+    newsType: NewsType
+    newsStatus: NewsStatus
+    itemId: ID
   ): [NewsPost!]! # 按關鍵字和標籤搜尋新聞
   # 地理編碼相關
   geocodeAddress(address: String!): Location
@@ -506,6 +525,8 @@ type Mutation {
     images: [String!]
     relatedItemIds: [ID!]
     tags: [String!]
+    newsType: NewsType
+    newsStatus: NewsStatus! = DRAFT
   ): NewsPost!
   updateNewsPost(
     id: ID!
@@ -514,9 +535,12 @@ type Mutation {
     images: [String!]
     relatedItemIds: [ID!]
     tags: [String!]
+    newsType: NewsType
   ): NewsPost!
+  addItemToNewsPost(id: ID!, itemId: ID!, comment: String): NewsPost!
   hideNewsPost(id: ID!): Boolean!
-
+  lockNewsPost(id: ID!): Boolean! # Lock the news post for draft and co-editing to published
+  unlockNewsPost(id: ID!): Boolean! # Unlock the news post for co-editing
   upsertCategoryMap(
     en: String!
     categoryMaps: [CategoryMapInput!]!

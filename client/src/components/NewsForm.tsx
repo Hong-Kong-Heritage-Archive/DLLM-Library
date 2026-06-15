@@ -23,6 +23,8 @@ import {
   Tabs,
   Tab,
   Paper,
+  Select,
+  Checkbox,
 } from "@mui/material";
 import {
   Delete,
@@ -39,7 +41,7 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { Item } from "../generated/graphql";
+import { Item, User, NewsType, NewsStatus } from "../generated/graphql";
 import { batchProcessImages, ProcessedImage } from "../utils/ImageProcessor";
 import {
   uploadImages,
@@ -55,6 +57,8 @@ const CREATE_NEWS_MUTATION = gql`
     $images: [String!]
     $relatedItemIds: [ID!]
     $tags: [String!]
+    $newsType: NewsType
+    $newsStatus: NewsStatus
   ) {
     createNewsPost(
       title: $title
@@ -62,6 +66,8 @@ const CREATE_NEWS_MUTATION = gql`
       images: $images
       relatedItemIds: $relatedItemIds
       tags: $tags
+      newsType: $newsType
+      newsStatus: $newsStatus
     ) {
       id
       title
@@ -87,6 +93,7 @@ const UPDATE_NEWS_MUTATION = gql`
     $images: [String!]
     $relatedItemIds: [ID!]
     $tags: [String!]
+    $newsType: NewsType
   ) {
     updateNewsPost(
       id: $id
@@ -95,6 +102,7 @@ const UPDATE_NEWS_MUTATION = gql`
       images: $images
       relatedItemIds: $relatedItemIds
       tags: $tags
+      newsType: $newsType
     ) {
       id
       title
@@ -108,6 +116,10 @@ const UPDATE_NEWS_MUTATION = gql`
         thumbnails
         images
       }
+      coEditors {
+        id
+        nickname
+      }
     }
   }
 `;
@@ -115,6 +127,7 @@ const UPDATE_NEWS_MUTATION = gql`
 interface NewsFormProps {
   open: boolean;
   onClose: () => void;
+  user?: User | null;
   relatedItem?: Item | null;
   newsPost?: any;
   onSuccess?: () => void;
@@ -161,6 +174,8 @@ const NewsForm: React.FC<NewsFormProps> = ({
 
   // Form state
   const [title, setTitle] = useState("");
+  const [newsType, setNewsType] = useState<NewsType>(NewsType.Announcement);
+  const [newsStatus, setNewsStatus] = useState<NewsStatus>(NewsStatus.Draft);
   const [content, setContent] = useState("");
   const [contentTab, setContentTab] = useState(0); // 0 = Edit, 1 = Preview
   const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
@@ -169,7 +184,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [imageMenuAnchor, setImageMenuAnchor] = useState<null | HTMLElement>(
-    null
+    null,
   );
 
   // Processing states
@@ -184,6 +199,10 @@ const NewsForm: React.FC<NewsFormProps> = ({
     content: string;
     images: string[];
     relatedItemIds: string[];
+    coEditorIds?: string[];
+    newsType: NewsType;
+    newsStatus: NewsStatus;
+    tags: string[];
   } | null>(null);
 
   // Image processing settings
@@ -198,6 +217,8 @@ const NewsForm: React.FC<NewsFormProps> = ({
         setTitle(newsPost.title || "");
         setContent(newsPost.content || "");
         setRelatedItems(newsPost.relatedItems || []);
+        setNewsType(newsPost.newsType || NewsType.Announcement);
+        setNewsStatus(newsPost.newsStatus || NewsStatus.Draft);
 
         const existingImages: ImagePreview[] = (newsPost.images || []).map(
           (url: string, index: number) => ({
@@ -211,7 +232,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
             finalQuality: 1,
             isExisting: true,
             gsUrl: url,
-          })
+          }),
         );
         setImageFiles(existingImages);
 
@@ -220,15 +241,19 @@ const NewsForm: React.FC<NewsFormProps> = ({
           content: newsPost.content || "",
           images: newsPost.images || [],
           relatedItemIds: (newsPost.relatedItems || []).map(
-            (item: Item) => item.id
+            (item: Item) => item.id,
           ),
+          newsType: newsPost.newsType || NewsType.Announcement,
+          newsStatus: newsPost.newsStatus || NewsStatus.Draft,
+          coEditorIds: newsPost.coEditors || [],
+          tags: newsPost.tags || [],
         });
       } else if (relatedItem) {
         // Create mode with pre-populated item
         setTitle(
           t("news.newsAboutItem", "News about {{itemName}}", {
             itemName: relatedItem.name,
-          })
+          }),
         );
         setRelatedItems([relatedItem]);
       }
@@ -247,7 +272,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
         setFormError(error.message);
         onError?.(error.message);
       },
-    }
+    },
   );
 
   const [updateNews, { loading: updateLoading }] = useMutation(
@@ -262,7 +287,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
         setFormError(error.message);
         onError?.(error.message);
       },
-    }
+    },
   );
 
   const loading = createLoading || updateLoading;
@@ -280,6 +305,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
     // Reset form state
     setTitle("");
     setContent("");
+    setNewsType(NewsType.Announcement);
     setImageFiles([]);
     setRelatedItems([]);
     setTags("");
@@ -331,7 +357,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
           setFormError(
             t("news.fileNotImage", "{{fileName}} is not an image file", {
               fileName: file.name,
-            })
+            }),
           );
           continue;
         }
@@ -340,7 +366,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
           setFormError(
             t("news.fileTooLarge", "{{fileName}} is too large (max 50MB)", {
               fileName: file.name,
-            })
+            }),
           );
           continue;
         }
@@ -364,7 +390,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
         },
         (processed, total) => {
           setProcessingProgress(Math.round((processed / total) * 100));
-        }
+        },
       );
 
       const newImagePreviews: ImagePreview[] = processedImages.map((img) => ({
@@ -380,7 +406,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
       setFormError(
         t("news.imageProcessingError", "Image processing error: {{error}}", {
           error: String(error),
-        })
+        }),
       );
     } finally {
       setIsProcessingImages(false);
@@ -389,7 +415,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
   };
 
   const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
     await processFiles(files);
@@ -397,7 +423,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
   };
 
   const handleCameraCapture = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
     await processFiles(files);
@@ -449,12 +475,12 @@ const NewsForm: React.FC<NewsFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                    ...img,
-                    isUploading: true,
-                    uploadProgress: progress.percentage,
-                  }
-                  : img
-              )
+                      ...img,
+                      isUploading: true,
+                      uploadProgress: progress.percentage,
+                    }
+                  : img,
+              ),
             );
           },
           onFileComplete: (fileIndex, gsUrl) => {
@@ -462,13 +488,13 @@ const NewsForm: React.FC<NewsFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                    ...img,
-                    isUploading: false,
-                    uploadProgress: 100,
-                    gsUrl: gsUrl,
-                  }
-                  : img
-              )
+                      ...img,
+                      isUploading: false,
+                      uploadProgress: 100,
+                      gsUrl: gsUrl,
+                    }
+                  : img,
+              ),
             );
           },
           onOverallProgress: (percentage) => {
@@ -479,12 +505,12 @@ const NewsForm: React.FC<NewsFormProps> = ({
               prev.map((img, idx) =>
                 idx === uploadStartIndex + fileIndex
                   ? {
-                    ...img,
-                    isUploading: false,
-                    uploadError: error,
-                  }
-                  : img
-              )
+                      ...img,
+                      isUploading: false,
+                      uploadError: error,
+                    }
+                  : img,
+              ),
             );
           },
         });
@@ -513,7 +539,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
             newImages.length > 0 ||
             allImageUrls.length !== originalValues.images.length ||
             JSON.stringify(allImageUrls) !==
-            JSON.stringify(originalValues.images);
+              JSON.stringify(originalValues.images);
 
           if (hasImageChanges) {
             variables.images = allImageUrls;
@@ -525,6 +551,15 @@ const NewsForm: React.FC<NewsFormProps> = ({
 
           if (hasRelatedItemsChanges) {
             variables.relatedItemIds = relatedItemIds;
+          }
+
+          if (tags !== originalValues.tags.join(",")) {
+            variables.tags = tags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter((tag) => tag);
+          } else {
+            variables.tags = originalValues.tags;
           }
 
           const hasChanges = Object.keys(variables).length > 1;
@@ -543,6 +578,8 @@ const NewsForm: React.FC<NewsFormProps> = ({
           title: title.trim(),
           content: content.trim(),
         };
+        variables.newsType = newsType;
+        variables.newsStatus = newsStatus;
 
         if (allImageUrls.length > 0) {
           variables.images = allImageUrls;
@@ -574,7 +611,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
       setFormError(
         isEditMode
           ? t("news.updateError", "Error updating news")
-          : t("news.createError", "Error creating news")
+          : t("news.createError", "Error creating news"),
       );
     } finally {
       setIsUploading(false);
@@ -588,7 +625,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
 
   const handleContentTabChange = (
     _: React.SyntheticEvent,
-    newValue: number
+    newValue: number,
   ) => {
     setContentTab(newValue);
   };
@@ -657,6 +694,47 @@ const NewsForm: React.FC<NewsFormProps> = ({
               disabled={isProcessingImages || isUploading}
             />
 
+            {!isEditMode && (
+              <>
+                <Checkbox
+                  checked={newsStatus === NewsStatus.CoEditing}
+                  onChange={(e) =>
+                    setNewsStatus(
+                      e.target.checked
+                        ? NewsStatus.CoEditing
+                        : NewsStatus.Draft,
+                    )
+                  }
+                  disabled={isProcessingImages || isUploading}
+                />
+                {t("news.isCoEdit", "Co-Edit")}
+              </>
+            )}
+
+            <Select
+              label={t("news.type", "News Type")}
+              fullWidth
+              value={newsType}
+              onChange={(e) => {
+                console.log(e.target.value);
+                setNewsType(e.target.value as NewsType);
+              }}
+              disabled={isProcessingImages || isUploading || isEditMode}
+            >
+              <MenuItem value={NewsType.Announcement}>
+                {t("news.announcement", "Announcement")}
+              </MenuItem>
+              <MenuItem value={NewsType.Update}>
+                {t("news.update", "Update")}
+              </MenuItem>
+              <MenuItem value={NewsType.Event}>
+                {t("news.event", "Event")}
+              </MenuItem>
+              <MenuItem value={NewsType.Topic}>
+                {t("news.topic", "Topic")}
+              </MenuItem>
+            </Select>
+
             {/* Content with Markdown Support */}
             <Box sx={{ mt: 2 }}>
               <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -679,7 +757,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                   label={t("news.content", "Content")}
                   placeholder={t(
                     "news.markdownSupported",
-                    "Markdown is supported. Use **bold**, *italic*, [links](url), # headers, etc."
+                    "Markdown is supported. Use **bold**, *italic*, [links](url), # headers, etc.",
                   )}
                   fullWidth
                   multiline
@@ -690,7 +768,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                   disabled={isProcessingImages || isUploading}
                   helperText={t(
                     "news.markdownHelp",
-                    "Supports Markdown formatting"
+                    "Supports Markdown formatting",
                   )}
                 />
 
@@ -827,7 +905,7 @@ const NewsForm: React.FC<NewsFormProps> = ({
                     <Typography color="text.secondary" fontStyle="italic">
                       {t(
                         "news.previewEmpty",
-                        "Preview will appear here as you type..."
+                        "Preview will appear here as you type...",
                       )}
                     </Typography>
                   )}

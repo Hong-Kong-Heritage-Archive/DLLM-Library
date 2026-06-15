@@ -1,14 +1,15 @@
 import React from "react";
 import { Box, Typography, ListItem } from "@mui/material";
 
+export interface SimpleNews {
+  id: string;
+  title: string;
+  createdAt: string;
+  images?: string[] | null;
+  tags?: string[] | null;
+}
 interface NewsSummaryProps {
-  news: {
-    id: string;
-    title: string;
-    createdAt: string;
-    images?: string[] | null;
-    tags?: string[] | null;
-  };
+  news: SimpleNews;
   onClick: (newsId: string) => void;
 }
 

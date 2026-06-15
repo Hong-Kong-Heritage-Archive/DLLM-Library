@@ -222,6 +222,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   addCategoryTree: Scalars['String']['output'];
   addItemComment: Scalars['ID']['output'];
+  addItemToNewsPost: NewsPost;
   cancelTransaction: Scalars['Boolean']['output'];
   contactHolder: Scalars['Boolean']['output'];
   createItem: Item;
@@ -237,8 +238,10 @@ export type Mutation = {
   generateItemIndexIncremental: Scalars['Boolean']['output'];
   generateSignedUrl: SignedUrlResponse;
   hideNewsPost: Scalars['Boolean']['output'];
+  lockNewsPost: Scalars['Boolean']['output'];
   pinItem: Scalars['Boolean']['output'];
   receiveTransaction: Transaction;
+  unlockNewsPost: Scalars['Boolean']['output'];
   unpinItem: Scalars['Boolean']['output'];
   updateHostConfig: HostConfig;
   updateItem: Item;
@@ -256,6 +259,13 @@ export type MutationAddCategoryTreeArgs = {
 
 export type MutationAddItemCommentArgs = {
   content: Scalars['String']['input'];
+  itemId: Scalars['ID']['input'];
+};
+
+
+export type MutationAddItemToNewsPostArgs = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
   itemId: Scalars['ID']['input'];
 };
 
@@ -299,6 +309,8 @@ export type MutationCreateItemsFromJsonArgs = {
 export type MutationCreateNewsPostArgs = {
   content: Scalars['String']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+  newsStatus?: NewsStatus;
+  newsType?: InputMaybe<NewsType>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title: Scalars['String']['input'];
@@ -359,6 +371,11 @@ export type MutationHideNewsPostArgs = {
 };
 
 
+export type MutationLockNewsPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationPinItemArgs = {
   itemId: Scalars['ID']['input'];
 };
@@ -367,6 +384,11 @@ export type MutationPinItemArgs = {
 export type MutationReceiveTransactionArgs = {
   id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type MutationUnlockNewsPostArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -403,6 +425,7 @@ export type MutationUpdateNewsPostArgs = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   images?: InputMaybe<Array<Scalars['String']['input']>>;
+  newsType?: InputMaybe<NewsType>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -425,17 +448,33 @@ export type MutationUpsertCategoryMapArgs = {
 
 export type NewsPost = {
   __typename?: 'NewsPost';
+  coEditors?: Maybe<Array<User>>;
   content: Scalars['String']['output'];
   createdAt: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Scalars['String']['output']>>;
   isVisible: Scalars['Boolean']['output'];
+  newsStatus: NewsStatus;
+  newsType?: Maybe<NewsType>;
   relatedItems?: Maybe<Array<Item>>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   title: Scalars['String']['output'];
   updatedAt: Scalars['Date']['output'];
   user: User;
 };
+
+export enum NewsStatus {
+  CoEditing = 'CO_EDITING',
+  Draft = 'DRAFT',
+  Published = 'PUBLISHED'
+}
+
+export enum NewsType {
+  Announcement = 'ANNOUNCEMENT',
+  Event = 'EVENT',
+  Topic = 'TOPIC',
+  Update = 'UPDATE'
+}
 
 export type Query = {
   __typename?: 'Query';
@@ -597,8 +636,11 @@ export type QueryNewsPostArgs = {
 
 
 export type QueryNewsRecentPostsArgs = {
+  itemId?: InputMaybe<Scalars['ID']['input']>;
   keyword?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  newsStatus?: InputMaybe<NewsStatus>;
+  newsType?: InputMaybe<NewsType>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -854,6 +896,16 @@ export type GetItemCommentsQueryVariables = Exact<{
 
 export type GetItemCommentsQuery = { __typename?: 'Query', commentsByItemId: { __typename?: 'ItemCommentsConnection', comments?: Array<{ __typename?: 'ItemComment', id: string, content: string, createdAt: any, userId: string, userNickname: string } | null> | null, pageInfo?: { __typename?: 'ItemCommentPageInfo', hasNextPage: boolean, endCursor?: string | null } | null } };
 
+export type ItemNewsRelatedPostsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  newsStatus?: InputMaybe<NewsStatus>;
+  itemId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type ItemNewsRelatedPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, createdAt: any, images?: Array<string> | null, tags?: Array<string> | null }> };
+
 export type ItemQueryVariables = Exact<{
   itemId: Scalars['ID']['input'];
 }>;
@@ -888,13 +940,6 @@ export type GetUserForItemQueryVariables = Exact<{
 
 export type GetUserForItemQuery = { __typename?: 'Query', user?: { __typename?: 'User', createdAt: any, email: string, id: string, nickname?: string | null, address?: string | null, exchangePoints?: Array<string> | null, contactMethods?: Array<{ __typename?: 'ContactMethod', type: ContactMethodType, value: string, isPublic: boolean }> | null, location?: { __typename?: 'Location', latitude: number, longitude: number } | null, pinItems?: Array<{ __typename?: 'Item', id: string }> | null } | null };
 
-export type OpenTransactionsByItemQueryVariables = Exact<{
-  itemId: Scalars['ID']['input'];
-}>;
-
-
-export type OpenTransactionsByItemQuery = { __typename?: 'Query', openTransactionsByItem: Array<{ __typename?: 'Transaction', id: string, details?: string | null, status: TransactionStatus, createdAt: any, updatedAt: any, requestor: { __typename?: 'User', id: string, nickname?: string | null, email: string } }> };
-
 export type PinItemMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
 }>;
@@ -908,6 +953,23 @@ export type UnpinItemMutationVariables = Exact<{
 
 
 export type UnpinItemMutation = { __typename?: 'Mutation', unpinItem: boolean };
+
+export type UpdateBooklistMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
+}>;
+
+
+export type UpdateBooklistMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null } };
+
+export type BooklistRecentPostsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  newsStatus?: InputMaybe<NewsStatus>;
+}>;
+
+
+export type BooklistRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null }> };
 
 export type CreateItemMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -957,7 +1019,14 @@ export type NewsPostQueryVariables = Exact<{
 }>;
 
 
-export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, category: Array<string>, status: ItemStatus }> | null, user: { __typename?: 'User', id: string, nickname?: string | null } } | null };
+export type NewsPostQuery = { __typename?: 'Query', newsPost?: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, newsStatus: NewsStatus, newsType?: NewsType | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, createdAt: any, category: Array<string>, contentRating: number }> | null, user: { __typename?: 'User', id: string, nickname?: string | null }, coEditors?: Array<{ __typename?: 'User', id: string, nickname?: string | null }> | null } | null };
+
+export type PublishNewsMutationVariables = Exact<{
+  newsPostId: Scalars['ID']['input'];
+}>;
+
+
+export type PublishNewsMutation = { __typename?: 'Mutation', lockNewsPost: boolean };
 
 export type CreateNewsPostMutationVariables = Exact<{
   title: Scalars['String']['input'];
@@ -965,6 +1034,8 @@ export type CreateNewsPostMutationVariables = Exact<{
   images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  newsType?: InputMaybe<NewsType>;
+  newsStatus?: InputMaybe<NewsStatus>;
 }>;
 
 
@@ -977,10 +1048,11 @@ export type UpdateNewsPostMutationVariables = Exact<{
   images?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  newsType?: InputMaybe<NewsType>;
 }>;
 
 
-export type UpdateNewsPostMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, isVisible: boolean, updatedAt: any, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, thumbnails?: Array<string> | null, images?: Array<string> | null }> | null } };
+export type UpdateNewsPostMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, title: string, content: string, images?: Array<string> | null, isVisible: boolean, updatedAt: any, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, thumbnails?: Array<string> | null, images?: Array<string> | null }> | null, coEditors?: Array<{ __typename?: 'User', id: string, nickname?: string | null }> | null } };
 
 export type RecentItemsQueryVariables = Exact<{
   category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
@@ -1001,10 +1073,11 @@ export type RecommendedItemsForBannerQuery = { __typename?: 'Query', recommended
 export type NewsRecentPostsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+  newsStatus?: InputMaybe<NewsStatus>;
 }>;
 
 
-export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null }> };
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any }> | null }> };
 
 export type GetTransactionQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1710,6 +1783,58 @@ export type GetItemCommentsQueryHookResult = ReturnType<typeof useGetItemComment
 export type GetItemCommentsLazyQueryHookResult = ReturnType<typeof useGetItemCommentsLazyQuery>;
 export type GetItemCommentsSuspenseQueryHookResult = ReturnType<typeof useGetItemCommentsSuspenseQuery>;
 export type GetItemCommentsQueryResult = Apollo.QueryResult<GetItemCommentsQuery, GetItemCommentsQueryVariables>;
+export const ItemNewsRelatedPostsDocument = gql`
+    query ItemNewsRelatedPosts($limit: Int, $offset: Int, $newsStatus: NewsStatus, $itemId: ID) {
+  newsRecentPosts(
+    limit: $limit
+    offset: $offset
+    newsStatus: $newsStatus
+    itemId: $itemId
+  ) {
+    id
+    title
+    createdAt
+    images
+    tags
+  }
+}
+    `;
+
+/**
+ * __useItemNewsRelatedPostsQuery__
+ *
+ * To run a query within a React component, call `useItemNewsRelatedPostsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useItemNewsRelatedPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useItemNewsRelatedPostsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *      newsStatus: // value for 'newsStatus'
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useItemNewsRelatedPostsQuery(baseOptions?: Apollo.QueryHookOptions<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>(ItemNewsRelatedPostsDocument, options);
+      }
+export function useItemNewsRelatedPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>(ItemNewsRelatedPostsDocument, options);
+        }
+export function useItemNewsRelatedPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>(ItemNewsRelatedPostsDocument, options);
+        }
+export type ItemNewsRelatedPostsQueryHookResult = ReturnType<typeof useItemNewsRelatedPostsQuery>;
+export type ItemNewsRelatedPostsLazyQueryHookResult = ReturnType<typeof useItemNewsRelatedPostsLazyQuery>;
+export type ItemNewsRelatedPostsSuspenseQueryHookResult = ReturnType<typeof useItemNewsRelatedPostsSuspenseQuery>;
+export type ItemNewsRelatedPostsQueryResult = Apollo.QueryResult<ItemNewsRelatedPostsQuery, ItemNewsRelatedPostsQueryVariables>;
 export const ItemDocument = gql`
     query Item($itemId: ID!) {
   item(id: $itemId) {
@@ -1905,55 +2030,6 @@ export type GetUserForItemQueryHookResult = ReturnType<typeof useGetUserForItemQ
 export type GetUserForItemLazyQueryHookResult = ReturnType<typeof useGetUserForItemLazyQuery>;
 export type GetUserForItemSuspenseQueryHookResult = ReturnType<typeof useGetUserForItemSuspenseQuery>;
 export type GetUserForItemQueryResult = Apollo.QueryResult<GetUserForItemQuery, GetUserForItemQueryVariables>;
-export const OpenTransactionsByItemDocument = gql`
-    query OpenTransactionsByItem($itemId: ID!) {
-  openTransactionsByItem(itemId: $itemId) {
-    id
-    requestor {
-      id
-      nickname
-      email
-    }
-    details
-    status
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useOpenTransactionsByItemQuery__
- *
- * To run a query within a React component, call `useOpenTransactionsByItemQuery` and pass it any options that fit your needs.
- * When your component renders, `useOpenTransactionsByItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useOpenTransactionsByItemQuery({
- *   variables: {
- *      itemId: // value for 'itemId'
- *   },
- * });
- */
-export function useOpenTransactionsByItemQuery(baseOptions: Apollo.QueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables> & ({ variables: OpenTransactionsByItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
-      }
-export function useOpenTransactionsByItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
-        }
-export function useOpenTransactionsByItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>(OpenTransactionsByItemDocument, options);
-        }
-export type OpenTransactionsByItemQueryHookResult = ReturnType<typeof useOpenTransactionsByItemQuery>;
-export type OpenTransactionsByItemLazyQueryHookResult = ReturnType<typeof useOpenTransactionsByItemLazyQuery>;
-export type OpenTransactionsByItemSuspenseQueryHookResult = ReturnType<typeof useOpenTransactionsByItemSuspenseQuery>;
-export type OpenTransactionsByItemQueryResult = Apollo.QueryResult<OpenTransactionsByItemQuery, OpenTransactionsByItemQueryVariables>;
 export const PinItemDocument = gql`
     mutation PinItem($itemId: ID!) {
   pinItem(itemId: $itemId)
@@ -2016,6 +2092,89 @@ export function useUnpinItemMutation(baseOptions?: Apollo.MutationHookOptions<Un
 export type UnpinItemMutationHookResult = ReturnType<typeof useUnpinItemMutation>;
 export type UnpinItemMutationResult = Apollo.MutationResult<UnpinItemMutation>;
 export type UnpinItemMutationOptions = Apollo.BaseMutationOptions<UnpinItemMutation, UnpinItemMutationVariables>;
+export const UpdateBooklistDocument = gql`
+    mutation UpdateBooklist($id: ID!, $relatedItemIds: [ID!]) {
+  updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
+    id
+    relatedItems {
+      id
+    }
+  }
+}
+    `;
+export type UpdateBooklistMutationFn = Apollo.MutationFunction<UpdateBooklistMutation, UpdateBooklistMutationVariables>;
+
+/**
+ * __useUpdateBooklistMutation__
+ *
+ * To run a mutation, you first call `useUpdateBooklistMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateBooklistMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateBooklistMutation, { data, loading, error }] = useUpdateBooklistMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      relatedItemIds: // value for 'relatedItemIds'
+ *   },
+ * });
+ */
+export function useUpdateBooklistMutation(baseOptions?: Apollo.MutationHookOptions<UpdateBooklistMutation, UpdateBooklistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateBooklistMutation, UpdateBooklistMutationVariables>(UpdateBooklistDocument, options);
+      }
+export type UpdateBooklistMutationHookResult = ReturnType<typeof useUpdateBooklistMutation>;
+export type UpdateBooklistMutationResult = Apollo.MutationResult<UpdateBooklistMutation>;
+export type UpdateBooklistMutationOptions = Apollo.BaseMutationOptions<UpdateBooklistMutation, UpdateBooklistMutationVariables>;
+export const BooklistRecentPostsDocument = gql`
+    query BooklistRecentPosts($limit: Int, $offset: Int, $newsStatus: NewsStatus) {
+  newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
+    id
+    title
+    relatedItems {
+      id
+    }
+  }
+}
+    `;
+
+/**
+ * __useBooklistRecentPostsQuery__
+ *
+ * To run a query within a React component, call `useBooklistRecentPostsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBooklistRecentPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBooklistRecentPostsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *      newsStatus: // value for 'newsStatus'
+ *   },
+ * });
+ */
+export function useBooklistRecentPostsQuery(baseOptions?: Apollo.QueryHookOptions<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>(BooklistRecentPostsDocument, options);
+      }
+export function useBooklistRecentPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>(BooklistRecentPostsDocument, options);
+        }
+export function useBooklistRecentPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>(BooklistRecentPostsDocument, options);
+        }
+export type BooklistRecentPostsQueryHookResult = ReturnType<typeof useBooklistRecentPostsQuery>;
+export type BooklistRecentPostsLazyQueryHookResult = ReturnType<typeof useBooklistRecentPostsLazyQuery>;
+export type BooklistRecentPostsSuspenseQueryHookResult = ReturnType<typeof useBooklistRecentPostsSuspenseQuery>;
+export type BooklistRecentPostsQueryResult = Apollo.QueryResult<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>;
 export const CreateItemDocument = gql`
     mutation CreateItem($name: String!, $category: [String!]!, $condition: ItemCondition!, $description: String, $images: [String!], $language: Language!, $publishedYear: Int, $status: ItemStatus!, $deposit: Int, $contentRating: Int) {
   createItem(
@@ -2215,8 +2374,14 @@ export const NewsPostDocument = gql`
     relatedItems {
       id
       name
-      category
+      description
+      condition
       status
+      images
+      publishedYear
+      createdAt
+      category
+      contentRating
     }
     createdAt
     updatedAt
@@ -2225,6 +2390,12 @@ export const NewsPostDocument = gql`
       id
       nickname
     }
+    coEditors {
+      id
+      nickname
+    }
+    newsStatus
+    newsType
   }
 }
     `;
@@ -2261,14 +2432,47 @@ export type NewsPostQueryHookResult = ReturnType<typeof useNewsPostQuery>;
 export type NewsPostLazyQueryHookResult = ReturnType<typeof useNewsPostLazyQuery>;
 export type NewsPostSuspenseQueryHookResult = ReturnType<typeof useNewsPostSuspenseQuery>;
 export type NewsPostQueryResult = Apollo.QueryResult<NewsPostQuery, NewsPostQueryVariables>;
+export const PublishNewsDocument = gql`
+    mutation PublishNews($newsPostId: ID!) {
+  lockNewsPost(id: $newsPostId)
+}
+    `;
+export type PublishNewsMutationFn = Apollo.MutationFunction<PublishNewsMutation, PublishNewsMutationVariables>;
+
+/**
+ * __usePublishNewsMutation__
+ *
+ * To run a mutation, you first call `usePublishNewsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePublishNewsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [publishNewsMutation, { data, loading, error }] = usePublishNewsMutation({
+ *   variables: {
+ *      newsPostId: // value for 'newsPostId'
+ *   },
+ * });
+ */
+export function usePublishNewsMutation(baseOptions?: Apollo.MutationHookOptions<PublishNewsMutation, PublishNewsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PublishNewsMutation, PublishNewsMutationVariables>(PublishNewsDocument, options);
+      }
+export type PublishNewsMutationHookResult = ReturnType<typeof usePublishNewsMutation>;
+export type PublishNewsMutationResult = Apollo.MutationResult<PublishNewsMutation>;
+export type PublishNewsMutationOptions = Apollo.BaseMutationOptions<PublishNewsMutation, PublishNewsMutationVariables>;
 export const CreateNewsPostDocument = gql`
-    mutation CreateNewsPost($title: String!, $content: String!, $images: [String!], $relatedItemIds: [ID!], $tags: [String!]) {
+    mutation CreateNewsPost($title: String!, $content: String!, $images: [String!], $relatedItemIds: [ID!], $tags: [String!], $newsType: NewsType, $newsStatus: NewsStatus) {
   createNewsPost(
     title: $title
     content: $content
     images: $images
     relatedItemIds: $relatedItemIds
     tags: $tags
+    newsType: $newsType
+    newsStatus: $newsStatus
   ) {
     id
     title
@@ -2305,6 +2509,8 @@ export type CreateNewsPostMutationFn = Apollo.MutationFunction<CreateNewsPostMut
  *      images: // value for 'images'
  *      relatedItemIds: // value for 'relatedItemIds'
  *      tags: // value for 'tags'
+ *      newsType: // value for 'newsType'
+ *      newsStatus: // value for 'newsStatus'
  *   },
  * });
  */
@@ -2316,7 +2522,7 @@ export type CreateNewsPostMutationHookResult = ReturnType<typeof useCreateNewsPo
 export type CreateNewsPostMutationResult = Apollo.MutationResult<CreateNewsPostMutation>;
 export type CreateNewsPostMutationOptions = Apollo.BaseMutationOptions<CreateNewsPostMutation, CreateNewsPostMutationVariables>;
 export const UpdateNewsPostDocument = gql`
-    mutation UpdateNewsPost($id: ID!, $title: String, $content: String, $images: [String!], $relatedItemIds: [ID!], $tags: [String!]) {
+    mutation UpdateNewsPost($id: ID!, $title: String, $content: String, $images: [String!], $relatedItemIds: [ID!], $tags: [String!], $newsType: NewsType) {
   updateNewsPost(
     id: $id
     title: $title
@@ -2324,6 +2530,7 @@ export const UpdateNewsPostDocument = gql`
     images: $images
     relatedItemIds: $relatedItemIds
     tags: $tags
+    newsType: $newsType
   ) {
     id
     title
@@ -2336,6 +2543,10 @@ export const UpdateNewsPostDocument = gql`
       name
       thumbnails
       images
+    }
+    coEditors {
+      id
+      nickname
     }
   }
 }
@@ -2361,6 +2572,7 @@ export type UpdateNewsPostMutationFn = Apollo.MutationFunction<UpdateNewsPostMut
  *      images: // value for 'images'
  *      relatedItemIds: // value for 'relatedItemIds'
  *      tags: // value for 'tags'
+ *      newsType: // value for 'newsType'
  *   },
  * });
  */
@@ -2472,13 +2684,25 @@ export type RecommendedItemsForBannerLazyQueryHookResult = ReturnType<typeof use
 export type RecommendedItemsForBannerSuspenseQueryHookResult = ReturnType<typeof useRecommendedItemsForBannerSuspenseQuery>;
 export type RecommendedItemsForBannerQueryResult = Apollo.QueryResult<RecommendedItemsForBannerQuery, RecommendedItemsForBannerQueryVariables>;
 export const NewsRecentPostsDocument = gql`
-    query NewsRecentPosts($limit: Int, $offset: Int) {
-  newsRecentPosts(limit: $limit, offset: $offset) {
+    query NewsRecentPosts($limit: Int, $offset: Int, $newsStatus: NewsStatus) {
+  newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
     id
     title
     images
     createdAt
     tags
+    relatedItems {
+      id
+      name
+      description
+      condition
+      category
+      status
+      images
+      publishedYear
+      language
+      createdAt
+    }
   }
 }
     `;
@@ -2497,6 +2721,7 @@ export const NewsRecentPostsDocument = gql`
  *   variables: {
  *      limit: // value for 'limit'
  *      offset: // value for 'offset'
+ *      newsStatus: // value for 'newsStatus'
  *   },
  * });
  */

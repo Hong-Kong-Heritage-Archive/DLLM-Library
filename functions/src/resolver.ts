@@ -20,6 +20,8 @@ import {
   Bind,
   Binder,
   BinderPath,
+  NewsStatus,
+  NewsType,
 } from "./generated/graphql";
 import { GraphQLScalarType, GraphQLError } from "graphql";
 import { Kind } from "graphql/language";
@@ -319,11 +321,28 @@ export const resolvers: Resolvers = {
     },
     newsRecentPosts: async (
       _: any,
-      { keyword, tags = [], limit = 10, offset = 0 }: any,
+      {
+        keyword,
+        tags = [],
+        limit = 10,
+        offset = 0,
+        newsType,
+        newsStatus,
+        itemId,
+      }: any,
       { loginUser }: Context,
     ): Promise<NewsPost[]> => {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
-      return newsService.RecentNews(user, keyword, tags, limit, offset);
+      return newsService.RecentNews(
+        user,
+        keyword,
+        tags,
+        limit,
+        offset,
+        newsType,
+        newsStatus,
+        itemId,
+      );
     },
     geocodeAddress: async (
       _parent: any,
@@ -590,7 +609,15 @@ export const resolvers: Resolvers = {
     },
     createNewsPost: async (
       _: any,
-      { title, content, images, relatedItemIds, tags }: any,
+      {
+        title,
+        content,
+        images,
+        relatedItemIds,
+        tags,
+        newsType,
+        newsStatus,
+      }: any,
       { loginUser }: Context,
     ): Promise<NewsPost> => {
       if (!loginUser) throw new Error("Not authenticated");
@@ -603,7 +630,59 @@ export const resolvers: Resolvers = {
         images,
         relatedItemIds,
         tags,
+        newsType,
+        newsStatus,
       );
+    },
+    updateNewsPost: async (
+      _: any,
+      { id, title, content, images, relatedItemIds, tags, newsType }: any,
+      { loginUser }: Context,
+    ): Promise<NewsPost> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.updateNews(
+        id,
+        user,
+        title,
+        content,
+        images,
+        relatedItemIds,
+        tags,
+        null,
+        newsType,
+      );
+    },
+    addItemToNewsPost: async (
+      _: any,
+      { id, itemId, comment }: any,
+      { loginUser }: Context,
+    ): Promise<NewsPost> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.addItemToNewsPost(id, itemId, comment, user);
+    },
+    lockNewsPost: async (
+      _: any,
+      { id }: any,
+      { loginUser }: Context,
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.lockNewsPost(id, user);
+    },
+    unlockNewsPost: async (
+      _: any,
+      { id }: any,
+      { loginUser }: Context,
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.unlockNewsPost(id, user);
     },
     generateSignedUrl: async (
       _: any,

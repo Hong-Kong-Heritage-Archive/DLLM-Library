@@ -22,7 +22,7 @@ export const convertLinksToClickable = (text: string) => {
     // Reset regex for testing individual parts
     const testRegex = new RegExp(
       `${urlWithProtocol}|${urlWithoutProtocol}`,
-      "gi"
+      "gi",
     );
     // Reset lastIndex for global regex before testing individual parts
     testRegex.lastIndex = 0;
