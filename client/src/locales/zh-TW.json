@@ -456,7 +456,8 @@
     "sharePreset1": "推薦閱讀：{{itemName}}！",
     "sharePreset2": "在圖書館找到這本：{{itemName}}",
     "sharePreset3": "{{itemName}} — 值得一看。",
-    "addbooklist": "加入書單"
+    "addbooklist": "加入書單",
+    "return": "歸還"
   },
   "userProfile": {
     "nickname": "暱稱",

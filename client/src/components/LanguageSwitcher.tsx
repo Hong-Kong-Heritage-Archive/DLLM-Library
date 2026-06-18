@@ -23,7 +23,14 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const langList = ["zh-HK", "en", "zh-TW"];
 
   const getLanguageLabel = (langCode: string) => {
-    if (langCode.startsWith("zh")) return "中文";
+    switch (langCode) {
+      case "zh-HK":
+        return "港文";
+      case "zh-TW":
+        return "正體";
+      case "en":
+        return "EN";
+    }
     return "EN";
   };
 

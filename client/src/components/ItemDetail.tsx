@@ -449,7 +449,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     user &&
     (data?.item?.holderId === user.id ||
       (isOwner && data?.item?.holderId === null));
-  const canCreateTransaction = user && !isHolder;
+  const canBorrowBook = user && !isHolder;
+  const canReturnBook = user && !isOwner && isHolder;
 
   // Calculate distance between user and item owner
   const getDistanceToOwner = (): string | null => {
@@ -1291,7 +1292,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* STATUS + PRIMARY ACTION — "can I get this?" */}
           <StatusBox status={data.item.status} />
 
-          {(canCreateTransaction || !user) && (
+          {(canBorrowBook || canReturnBook || !user) && (
             <Button
               variant="contained"
               color="primary"
@@ -1310,7 +1311,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               {contactHolderLoading ? (
                 <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
               ) : null}
-              {t("item.request")}
+              {canReturnBook ? t("item.return") : t("item.request")}
             </Button>
           )}
 

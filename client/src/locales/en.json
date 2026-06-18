@@ -443,7 +443,8 @@
     "sharePreset1": "Check out {{itemName}}!",
     "sharePreset2": "I found this in the library: {{itemName}}",
     "sharePreset3": "{{itemName}} — worth a look.",
-    "addbooklist": "Add to Book List"
+    "addbooklist": "Add to Book List",
+    "return": "Return"
   },
   "languages": {
     "en": "English",

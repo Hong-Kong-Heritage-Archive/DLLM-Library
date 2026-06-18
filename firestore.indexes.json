@@ -11,6 +11,10 @@
         {
           "fieldPath": "userId",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -26,6 +30,10 @@
         {
           "fieldPath": "commentId",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -41,6 +49,10 @@
         {
           "fieldPath": "created",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -55,6 +67,10 @@
         },
         {
           "fieldPath": "geohash",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "ASCENDING"
         }
       ],
@@ -75,6 +91,10 @@
         {
           "fieldPath": "name",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -93,6 +113,10 @@
         },
         {
           "fieldPath": "geohash",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "ASCENDING"
         }
       ],
@@ -113,6 +137,10 @@
         {
           "fieldPath": "id",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -131,6 +159,10 @@
         },
         {
           "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -155,6 +187,10 @@
         {
           "fieldPath": "geohash",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -169,6 +205,10 @@
         },
         {
           "fieldPath": "created",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -185,6 +225,10 @@
         {
           "fieldPath": "updated",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -200,6 +244,52 @@
         {
           "fieldPath": "geohash",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "contentRatingChecked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "contentRating",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "contentRatingChecked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updated",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "contentRating",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -214,6 +304,10 @@
         },
         {
           "fieldPath": "clssfctns",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -230,6 +324,10 @@
         {
           "fieldPath": "name",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -244,6 +342,10 @@
         },
         {
           "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -264,6 +366,29 @@
         {
           "fieldPath": "geohash",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "nameIndex",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "geohash",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -282,6 +407,10 @@
         },
         {
           "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -305,6 +434,10 @@
         },
         {
           "fieldPath": "geohash",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -321,6 +454,10 @@
         {
           "fieldPath": "id",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -335,6 +472,71 @@
         },
         {
           "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ownerId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "geohash",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "news",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "newsStatus",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "news",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "relatedItemIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -350,6 +552,10 @@
         },
         {
           "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -370,6 +576,10 @@
         {
           "fieldPath": "updated",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -385,6 +595,10 @@
         {
           "fieldPath": "updated",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -400,6 +614,10 @@
         {
           "fieldPath": "status",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -414,6 +632,10 @@
         },
         {
           "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -433,6 +655,10 @@
         },
         {
           "fieldPath": "status",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -449,6 +675,10 @@
         {
           "fieldPath": "updated",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -468,6 +698,10 @@
         {
           "fieldPath": "status",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -482,6 +716,10 @@
         },
         {
           "fieldPath": "updated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -502,6 +740,10 @@
         {
           "fieldPath": "status",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ],
       "density": "SPARSE_ALL"
@@ -516,6 +758,10 @@
         },
         {
           "fieldPath": "status",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
@@ -531,6 +777,10 @@
         },
         {
           "fieldPath": "created",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ],
