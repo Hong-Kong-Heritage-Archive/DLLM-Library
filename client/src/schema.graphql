@@ -31,6 +31,7 @@ enum ItemStatus {
 }
 
 enum NewsType {
+  GREETING # 問候
   ANNOUNCEMENT # 公告
   EVENT # 活動
   UPDATE # 更新

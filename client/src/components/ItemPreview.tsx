@@ -223,21 +223,22 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
         >
           {/* Book Title & year summary */}
           <Box sx={{ mb: 1 }}>
-            <Typography
-              sx={{
-                fontWeight: "bold",
-                fontSize: "9px",
-                lineHeight: "1.3",
-                color: "#1e1e1e",
-                overflow: "hidden",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                fontFamily: '"Noto Serif TC", "Playfair Display", serif',
-              }}
-            >
-              {item.name}
-            </Typography>
+            {hasImage && (
+              <Typography
+                sx={{
+                  fontWeight: "bold",
+                  fontSize: "9px",
+                  lineHeight: "1.3",
+                  color: "#1e1e1e",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  fontFamily: '"Noto Serif TC", "Playfair Display", serif',
+                  display: "inline-block",
+                }}
+              >
+                {item.name}
+              </Typography>
+            )}
             <Typography
               sx={{
                 fontSize: "8px",

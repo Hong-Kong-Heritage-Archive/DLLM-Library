@@ -57,7 +57,6 @@ const RECOMMENDED_ITEMS_QUERY = gql`
 
 interface RecentItemBannerProps {
   category?: string;
-  isRecent?: boolean;
   recommendationType?: RecommendationType;
   recommendedItems?: Item[];
   titleOverride?: string;
@@ -66,7 +65,6 @@ interface RecentItemBannerProps {
 
 const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   category,
-  isRecent = false,
   recommendationType,
   recommendedItems,
   titleOverride,
@@ -76,6 +74,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useOutletContext<{ user?: User }>();
+  const isRecent = recommendationType === RecommendationType.NewArrivals; // If no recommendation type, treat as recent items
 
   const maxItems = 6;
 
@@ -149,9 +148,9 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
       return t("item.recent.recommendedForYou", "Recommended for You");
     }
     if (isRecent) {
-      return t("item.recent.recentItems", "Recent Items");
+      return ""; //t("item.recent.recentItems", "Recent Items");
     } else {
-      return t("item.recent.updatedItems", "Updated Items");
+      return ""; //t("item.recent.updatedItems", "Updated Items");
     }
   };
 

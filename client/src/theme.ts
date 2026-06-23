@@ -4,23 +4,23 @@ const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#b80c53", // Deep magenta
+      main: "#db036b",
       contrastText: "#ffffff",
     },
     secondary: {
-      main: "#213329", // Forest Green/Dark
+      main: "#190609",
       contrastText: "#ffffff",
     },
     background: {
-      default: "#fbf9f4", // Main Cream Background
-      paper: "#ffffff", // Cards split white or card content
+      default: "#f9f5f6",
+      paper: "#ffffff",
     },
     text: {
-      primary: "#1e1e1e", // Deep Charcoal
-      secondary: "#666666",
+      primary: "#190609",
+      secondary: "#70484d",
     },
     info: {
-      main: "#b80c53",
+      main: "#db036b",
       contrastText: "#ffffff",
     },
     success: {
@@ -32,37 +32,76 @@ const theme = createTheme({
       contrastText: "#000000",
     },
     error: {
-      main: "#b80c53",
+      main: "#890604",
       contrastText: "#ffffff",
     },
   },
+  shape: {
+    borderRadius: 16,
+  },
   typography: {
     fontFamily: [
-      '"Playfair Display"',
-      '"Georgia"',
+      '"IBM Plex Sans"',
+      '"Noto Serif TC"',
       '"PingFang HK"',
       '"PingFang TC"',
-      '"Noto Serif TC"',
       '"Microsoft JhengHei"',
       "sans-serif",
     ].join(","),
+    h1: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: "#190609",
+    },
+    h2: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: "#190609",
+    },
+    h3: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: "#190609",
+    },
+    h4: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: "#190609",
+    },
+    body1: {
+      color: "#70484d",
+      lineHeight: 1.6,
+    },
+    body2: {
+      color: "#70484d",
+      lineHeight: 1.6,
+    },
+    button: {
+      fontWeight: 600,
+      textTransform: "none",
+    },
   },
   components: {
     MuiButton: {
       styleOverrides: {
+        root: {
+          borderRadius: 999,
+          boxShadow: "none",
+          padding: "10px 18px",
+        },
         contained: {
-          backgroundColor: "#b80c53",
+          backgroundColor: "#db036b",
           color: "#ffffff",
           "&:hover": {
-            backgroundColor: "#9c1e43",
+            backgroundColor: "#b3005a",
           },
         },
         outlined: {
-          borderColor: "#1e1e1e",
-          color: "#1e1e1e",
+          borderColor: "#70484d",
+          color: "#190609",
           "&:hover": {
-            backgroundColor: "#fbf9f4",
-            borderColor: "#1e1e1e",
+            backgroundColor: "#f9f5f6",
+            borderColor: "#190609",
           },
         },
       },
@@ -70,16 +109,21 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#fbf9f4",
-          color: "#1e1e1e",
-          boxShadow: "none",
+          backgroundColor: "#ffffff",
+          color: "#190609",
+          boxShadow: "0 1px 4px rgba(25, 6, 9, 0.06)",
         },
       },
     },
     MuiChip: {
       styleOverrides: {
+        root: {
+          borderRadius: 999,
+          backgroundColor: "#f1e9ea",
+          color: "#70484d",
+        },
         colorPrimary: {
-          backgroundColor: "#213329",
+          backgroundColor: "#190609",
           color: "#ffffff",
         },
       },
@@ -87,7 +131,8 @@ const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: "#fbf9f4",
+          backgroundColor: "#f9f5f6",
+          borderRight: "1px solid #e4d8da",
         },
       },
     },
@@ -95,6 +140,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: "#ffffff",
+          boxShadow: "0 1px 3px rgba(25, 6, 9, 0.06)",
         },
       },
     },
@@ -102,7 +148,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: "#ffffff",
-          border: "1px solid #e0e0e0",
+          border: "1px solid #e4d8da",
+          boxShadow: "0 1px 3px rgba(25, 6, 9, 0.06)",
         },
       },
     },
