@@ -175,7 +175,15 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
           </Box>
 
           {/* Bottom Row: Title (Hidden if image is present to prevent duplication) & Condition Overlay */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 0.5,
+              width: "100%",
+              paddingTop: "120%",
+            }}
+          >
             {!hasImage && (
               <Typography
                 variant="h6"
@@ -272,7 +280,9 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
                   fontFamily: '"Noto Serif TC", sans-serif',
                 }}
               >
-                {item.category[0]}
+                {item.category[0].includes(" ")
+                  ? item.category[0].split(" ")[0] + "..."
+                  : item.category[0]}
               </Box>
               {item.category.length > 1 && (
                 <Box
