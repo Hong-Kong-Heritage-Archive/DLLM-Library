@@ -61,13 +61,7 @@ import L from "leaflet";
 import ReceiptImageUploadDialog from "./ReceiptImageUploadDialog";
 import { AuthDialog } from "./Auth";
 import ShareTransactionDialog from "./ShareTransactionDialog";
-
-// Import individual diagram components
-import {
-  FaceToFaceDiagram,
-  DirectExchangeDiagram,
-  ExchangePointDiagram,
-} from "./TransactionFlowDiagrams";
+import { QRCodeSVG } from "qrcode.react";
 
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
@@ -358,13 +352,13 @@ const getRoleInstructions = (
           role: t("transactions.roleRequestor", "Requestor"),
           instruction: isQuickExchange
             ? t(
-              "transactions.requestorInstructionTransferredQuick",
-              "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
-            )
+                "transactions.requestorInstructionTransferredQuick",
+                "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
+              )
             : t(
-              "transactions.requestorInstructionTransferred",
-              "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
-            ),
+                "transactions.requestorInstructionTransferred",
+                "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
+              ),
           severity: isQuickExchange ? "warning" : "info",
         };
       case TransactionStatus.Completed:
@@ -592,9 +586,9 @@ const TransactionDetailPage: React.FC = () => {
         <Alert severity="error">
           {error
             ? `${t(
-              "transactions.errorLoading",
-              "Error loading transaction",
-            )}: ${error.message}`
+                "transactions.errorLoading",
+                "Error loading transaction",
+              )}: ${error.message}`
             : t("transactions.notFound", "Transaction not found")}
         </Alert>
       </Container>
@@ -749,6 +743,26 @@ const TransactionDetailPage: React.FC = () => {
         />
       </Box>
 
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          mb: 3,
+          p: 3,
+          bgcolor: "white",
+          borderRadius: 2,
+          border: 1,
+          borderColor: "divider",
+        }}
+      >
+        <QRCodeSVG
+          value={transactionUrl}
+          size={200}
+          level="H"
+          includeMargin={true}
+        />
+      </Box>
+
       {/* Role-specific Instructions Alert - Add this before Transaction Info */}
       {roleInstructions && (
         <Alert
@@ -764,8 +778,6 @@ const TransactionDetailPage: React.FC = () => {
           </Typography>
         </Alert>
       )}
-
-
 
       {/* Action Buttons - Enhanced with descriptions */}
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -863,7 +875,8 @@ const TransactionDetailPage: React.FC = () => {
           )}
 
           {/* Receive Button - Transferred */}
-          {(isRequestor || isReceiver || isQuickExchange) &&
+          {!isHolder &&
+            (isRequestor || isReceiver || isQuickExchange) &&
             transaction.status === TransactionStatus.Transfered && (
               <>
                 <Box>
@@ -921,13 +934,13 @@ const TransactionDetailPage: React.FC = () => {
             ((isReceiver || isQuickExchange || isHolder) &&
               transaction.status === TransactionStatus.Transfered)
           ) && (
-              <Alert severity="info">
-                {t(
-                  "transactions.noActionsAvailable",
-                  "No actions available for this transaction.",
-                )}
-              </Alert>
-            )}
+            <Alert severity="info">
+              {t(
+                "transactions.noActionsAvailable",
+                "No actions available for this transaction.",
+              )}
+            </Alert>
+          )}
 
           {/* Share Button - Always available */}
           <Divider sx={{ my: 1 }} />
@@ -953,7 +966,6 @@ const TransactionDetailPage: React.FC = () => {
           </Box>
         </Box>
       </Paper>
-
 
       {/* Transaction Info */}
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -1181,10 +1193,13 @@ const TransactionDetailPage: React.FC = () => {
                     secondary={
                       holder
                         ? t(
-                          "transactions.holderIsRequestor",
-                          "Requestor has the item",
-                        )
-                        : t("transactions.ownerHasItem", "Owner is holding the item")
+                            "transactions.holderIsRequestor",
+                            "Requestor has the item",
+                          )
+                        : t(
+                            "transactions.ownerHasItem",
+                            "Owner is holding the item",
+                          )
                     }
                   />
                 </ListItem>
@@ -1341,7 +1356,10 @@ const TransactionDetailPage: React.FC = () => {
             sx={{ mb: 2, display: "flex", alignItems: "center" }}
           >
             <LocationOnIcon sx={{ mr: 1 }} />
-            {t("transactions.proposedExchangeLocation", "Proposed Exchange Location")}
+            {t(
+              "transactions.proposedExchangeLocation",
+              "Proposed Exchange Location",
+            )}
           </Typography>
 
           <Box
@@ -1449,7 +1467,6 @@ const TransactionDetailPage: React.FC = () => {
               />
             )}
           </Box>
-
         </Paper>
       )}
 
