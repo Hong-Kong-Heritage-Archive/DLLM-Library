@@ -11,7 +11,6 @@ import {
   CircularProgress,
   Chip,
   Divider,
-  Alert,
   RadioGroup,
   FormControlLabel,
   Radio,
@@ -20,15 +19,14 @@ import {
   Select,
   MenuItem,
   InputLabel,
+  Paper,
+  TextField,
 } from "@mui/material";
 import {
   Person as PersonIcon,
   LocationOn as LocationOnIcon,
   NotificationImportant as NotificationIcon,
-  PendingActions as PendingIcon,
-  Schedule as ScheduleIcon,
   Home as HomeIcon,
-  StoreMallDirectory as ExchangePointIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@apollo/client";
@@ -36,14 +34,14 @@ import { GET_EXCHANGE_POINTS } from "../hook/user";
 import {
   Item,
   User,
-  Transaction,
   TransactionLocation,
 } from "../generated/graphql";
+import { set } from "date-fns";
 
 interface RequestConfirmationDialogProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (location: TransactionLocation, locationIndex?: number) => void;
+  onConfirm: (location: TransactionLocation, locationIndex?: number, subject?: string, emailContent?: string) => void;
   loading: boolean;
   item: Item | null;
   owner: User | null;
@@ -67,6 +65,14 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   );
   const [selectedExchangePointIndex, setSelectedExchangePointIndex] =
     useState<number>(0);
+  const defaultSubject = t("item.defaultEmailSubject", "Request for Item: {{itemName}}", { itemName: item?.name || "" });
+  const defaultEmailContent = t(
+    "item.defaultEmailContent",
+    "Hello,\n\nI would like to request the item '{{itemName}}'. Please let me know the next steps.\n\nThank you.",
+    { itemName: item?.name || "" }
+  );
+  const [draftSubject, setDraftSubject] = useState(defaultSubject);
+  const [draftEmailContent, setDraftEmailContent] = useState(defaultEmailContent);
 
   const isOwnerAndHolderSame = owner?.id === holder?.id;
   const displayHolder = holder || owner;
@@ -99,31 +105,14 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
     }
   }, [open]);
 
-  const handleConfirm = () => {
-    onConfirm(selectedLocation, selectedExchangePointIndex);
-  };
+  useEffect(() => {
+    // Reset state when dialog opens
+    setDraftSubject(defaultSubject);
+    setDraftEmailContent(defaultEmailContent);
+  }, [t, defaultSubject, defaultEmailContent]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "warning";
-      case "APPROVED":
-        return "success";
-      case "IN_PROGRESS":
-        return "info";
-      default:
-        return "default";
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const handleConfirmRequest = () => {
+    onConfirm(selectedLocation, selectedExchangePointIndex, draftSubject.trim(), draftEmailContent.trim());
   };
 
   // Get exchange point options based on selected location type
@@ -169,9 +158,8 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
                   <Chip
-                    label={`${t("item.condition", "Condition")}: ${
-                      item.condition
-                    }`}
+                    label={`${t("item.condition", "Condition")}: ${item.condition
+                      }`}
                     size="small"
                     variant="outlined"
                   />
@@ -307,57 +295,57 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 {(selectedLocation ===
                   TransactionLocation.HolderPublicExchangePoint ||
                   selectedLocation ===
-                    TransactionLocation.RequestorPublicExchangePoint) && (
-                  <Box sx={{ mt: 2, pl: 4 }}>
-                    <FormControl fullWidth disabled={exchangePointsLoading}>
-                      <InputLabel id="exchange-point-select-label">
-                        {t("item.selectExchangePoint", "Select Exchange Point")}
-                      </InputLabel>
-                      <Select
-                        labelId="exchange-point-select-label"
-                        value={selectedExchangePointIndex}
-                        label={t(
-                          "item.selectExchangePoint",
-                          "Select Exchange Point",
-                        )}
-                        onChange={(e) =>
-                          setSelectedExchangePointIndex(
-                            e.target.value as number,
-                          )
-                        }
-                      >
-                        {exchangePointsLoading ? (
-                          <MenuItem value="">
-                            <CircularProgress size={20} />
-                          </MenuItem>
-                        ) : (
-                          exchangePointOptions.map(
-                            (ep: User, index: number) => (
-                              <MenuItem key={ep.id} value={index}>
-                                <Box>
-                                  <Typography
-                                    variant="body2"
-                                    sx={{ fontWeight: "medium" }}
-                                  >
-                                    {ep.nickname}
-                                  </Typography>
-                                  {ep.address && (
+                  TransactionLocation.RequestorPublicExchangePoint) && (
+                    <Box sx={{ mt: 2, pl: 4 }}>
+                      <FormControl fullWidth disabled={exchangePointsLoading}>
+                        <InputLabel id="exchange-point-select-label">
+                          {t("item.selectExchangePoint", "Select Exchange Point")}
+                        </InputLabel>
+                        <Select
+                          labelId="exchange-point-select-label"
+                          value={selectedExchangePointIndex}
+                          label={t(
+                            "item.selectExchangePoint",
+                            "Select Exchange Point",
+                          )}
+                          onChange={(e) =>
+                            setSelectedExchangePointIndex(
+                              e.target.value as number,
+                            )
+                          }
+                        >
+                          {exchangePointsLoading ? (
+                            <MenuItem value="">
+                              <CircularProgress size={20} />
+                            </MenuItem>
+                          ) : (
+                            exchangePointOptions.map(
+                              (ep: User, index: number) => (
+                                <MenuItem key={ep.id} value={index}>
+                                  <Box>
                                     <Typography
-                                      variant="caption"
-                                      color="text.secondary"
+                                      variant="body2"
+                                      sx={{ fontWeight: "medium" }}
                                     >
-                                      {ep.address}
+                                      {ep.nickname}
                                     </Typography>
-                                  )}
-                                </Box>
-                              </MenuItem>
-                            ),
-                          )
-                        )}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                )}
+                                    {ep.address && (
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                      >
+                                        {ep.address}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </MenuItem>
+                              ),
+                            )
+                          )}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
               </FormControl>
             </Box>
 
@@ -417,6 +405,32 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
 
             <Divider sx={{ my: 2 }} />
 
+            {/* Draft Email Editor */}
+            <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 2 }}>{t("item.draftEmail", "Draft Email")}</Typography>
+              <TextField
+                fullWidth
+                multiline
+                minRows={1}
+                label={t("item.subject", "Subject")}
+                value={draftSubject}
+                onChange={(e) => setDraftSubject(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+
+              <TextField
+                fullWidth
+                multiline
+                minRows={6}
+                label={t("item.emailContent", "Email Content")}
+                value={draftEmailContent}
+                onChange={(e) => setDraftEmailContent(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+            </Paper>
+
+            <Divider sx={{ my: 2 }} />
+
             {/* Notification Information */}
             <Box
               sx={{ p: 2, backgroundColor: "warning.light", borderRadius: 1 }}
@@ -452,7 +466,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
           {t("common.cancel", "Cancel")}
         </Button>
         <Button
-          onClick={handleConfirm}
+          onClick={handleConfirmRequest}
           variant="contained"
           color="primary"
           disabled={loading}
