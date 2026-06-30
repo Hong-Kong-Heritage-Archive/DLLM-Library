@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import { ItemService } from "../itemService";
+import { SystemService } from "../systemService";
 
 import {
   Item,
@@ -13,13 +14,14 @@ import {
 } from "../generated/graphql";
 
 import { CONTENT_RATING_CENSOR_THRESHOLD } from "../contentRatingDefaults";
+let systemService = new SystemService();
 
 describe("ItemService.tokenizeName", () => {
-  let service : ItemService;
+  let service: ItemService;
   const mockCategoryService = {} as any;
 
   beforeEach(() => {
-    service = new ItemService(mockCategoryService);
+    service = new ItemService(mockCategoryService, systemService);
   });
 
   it("returns empty array for empty or whitespace-only input", () => {
@@ -42,9 +44,7 @@ describe("ItemService.tokenizeName", () => {
   });
 
   it("groups ASCII letters/digits together and separates punctuation/symbols", () => {
-    expect((service as any).tokenizeName("123abc!@#")).toEqual([
-      "123abc",
-    ]);
+    expect((service as any).tokenizeName("123abc!@#")).toEqual(["123abc"]);
   });
 
   it("treats latin characters as individual tokens", () => {
@@ -72,13 +72,10 @@ describe("ItemService.tokenizeName", () => {
     ]);
   });
 
-
   it("Skip articles and short common words", () => {
-    expect((service as any).tokenizeName("The Lion, the Witch and the Wardrobe")).toEqual([
-      "lion",
-      "witch",
-      "wardrobe",
-    ]);
+    expect(
+      (service as any).tokenizeName("The Lion, the Witch and the Wardrobe"),
+    ).toEqual(["lion", "witch", "wardrobe"]);
   });
 
   it("Removes duplicate tokens", () => {
@@ -88,35 +85,33 @@ describe("ItemService.tokenizeName", () => {
   });
 });
 
-
 describe("ItemService.shouldCensorItem", () => {
-  let service : ItemService;
+  let service: ItemService;
   const mockCategoryService = {} as any;
 
   // Test Defaults - visible by default.
   // Owner, holder, user all different.
-    let item = null as any;
-    let user = null as any;
+  let item = null as any;
+  let user = null as any;
 
-  function censorItems(){
+  function censorItems() {
     item.contentRating = 3;
     user.visibleContentRating = 2;
   }
 
   // Reset values
   beforeEach(() => {
-    service = new ItemService(mockCategoryService);
+    service = new ItemService(mockCategoryService, systemService);
 
     item = {
-      ownerId : "1",
-      holderId : "2",
+      ownerId: "1",
+      holderId: "2",
       contentRating: 2,
     } as any;
     user = {
-      id : "3",
-      visibleContentRating : 3,
+      id: "3",
+      visibleContentRating: 3,
     } as any;
-
   });
 
   it("Show users items below or at visible content rating", () => {
@@ -132,12 +127,12 @@ describe("ItemService.shouldCensorItem", () => {
     expect((service as any).shouldCensorItem(item, user)).toEqual(true);
   });
 
-  it ("Apply default content rating threshold for unauthenticated users", () => {
-      item.contentRating = CONTENT_RATING_CENSOR_THRESHOLD - 1;
-      expect((service as any).shouldCensorItem(item, null)).toEqual(false);
+  it("Apply default content rating threshold for unauthenticated users", () => {
+    item.contentRating = CONTENT_RATING_CENSOR_THRESHOLD - 1;
+    expect((service as any).shouldCensorItem(item, null)).toEqual(false);
 
-      item.contentRating = CONTENT_RATING_CENSOR_THRESHOLD;
-      expect((service as any).shouldCensorItem(item, null)).toEqual(true);
+    item.contentRating = CONTENT_RATING_CENSOR_THRESHOLD;
+    expect((service as any).shouldCensorItem(item, null)).toEqual(true);
   });
 
   it("Show users their own items regardless of content rating", () => {
@@ -186,7 +181,7 @@ describe("ItemService.shouldCensorItem", () => {
 
     item.shadowBanned = true;
     expect((service as any).shouldCensorItem(item, user)).toEqual(false);
-  });  
+  });
 
   it("Shadow ban test - item visible to holder", () => {
     item.holderId = "2";
@@ -201,6 +196,5 @@ describe("ItemService.shouldCensorItem", () => {
 
     item.shadowBanned = true;
     expect((service as any).shouldCensorItem(item, user)).toEqual(false);
-  });  
-
+  });
 });

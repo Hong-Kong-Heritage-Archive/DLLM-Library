@@ -37,9 +37,12 @@ const HostConfigQuery = gql`
       splashScreenImageUrl
       splashScreenText
       itemShareMessageTemplates
+      itemIndexJsonUrl
     }
   }
 `;
+
+const TitleCacheKey = "itemIndexJsonUrl";
 
 interface AppProps {
   user: fireUser | null;
@@ -61,7 +64,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   const previousUserIdRef = useRef<string | null>(null);
   const [showSplash, setShowSplash] = useState(false); // Changed to false by default
   const [splashCompleted, setSplashCompleted] = useState(false);
-
+  const [isTitleCacheLoaded, setIsTitleCacheLoaded] = useState<boolean>(false);
   // Check if splash screen should be shown based on cookie
   useEffect(() => {
     const splashCookie = getCookie("book_guide_splash_shown");
@@ -174,6 +177,43 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
       >
         <CircularProgress size={60} sx={{ color: "white" }} />
       </Box>
+    );
+  }
+
+  if (
+    hostConfigOutput.data?.hostConfig?.itemIndexJsonUrl &&
+    !isTitleCacheLoaded
+  ) {
+    // 1. Get local version
+    const localDataJson = localStorage.getItem(TitleCacheKey);
+    let lastBuildTime = Date.UTC(1970, 0, 1); // Default to epoch start
+
+    if (localDataJson) {
+      const parsed = JSON.parse(localDataJson);
+      lastBuildTime = parsed.lastBuildTime;
+      console.log("Loaded local item index JSON:", parsed);
+    }
+
+    // 2. Fetch remote file
+    fetch(hostConfigOutput.data.hostConfig.itemIndexJsonUrl).then(
+      async (response) => {
+        if (!response.ok) {
+          console.error(
+            `Failed to fetch remote item index JSON. Status: ${response.status}`,
+          );
+          setIsTitleCacheLoaded(true);
+          return;
+        }
+        const remoteData = await response.json();
+        console.log("Fetched remote item index JSON:", remoteData);
+        // 3. Compare versions
+        if (Date.parse(remoteData.lastBuildTime) > lastBuildTime) {
+          console.log("Updating cache...");
+          // Save to browser storage
+          localStorage.setItem(TitleCacheKey, JSON.stringify(remoteData));
+        }
+        setIsTitleCacheLoaded(true);
+      },
     );
   }
 

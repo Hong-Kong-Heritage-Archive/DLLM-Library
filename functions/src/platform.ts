@@ -120,6 +120,21 @@ async function UploadBufferToGCS(
   return `gs://${serviceAccount.bucket_name}/${uploadPath}`;
 }
 
+async function UploadJsonToGCS(
+  uploadPath: string,
+  jsonData: any,
+): Promise<string> {
+  const bucket = admin.storage().bucket(serviceAccount.bucket_name);
+  const uploadFile = bucket.file(uploadPath);
+  await uploadFile.save(JSON.stringify(jsonData), {
+    metadata: {
+      contentType: "application/json",
+    },
+  });
+  await uploadFile.makePublic();
+  return `gs://${serviceAccount.bucket_name}/${uploadPath}`;
+}
+
 interface EmailOptions {
   to: string[];
   cc?: string[];
@@ -296,4 +311,5 @@ export {
   GenerateSignedUrlForUpload,
   GetPublicUrlForGSFile,
   UploadBufferToGCS,
+  UploadJsonToGCS,
 };

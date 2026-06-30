@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
   Button,
@@ -8,13 +8,14 @@ import {
   ListItem,
   CircularProgress,
   Alert,
-  Fab,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
+  Fab,
+  Tooltip,
+  TextField,
 } from "@mui/material";
 import { Chat as ChatIcon } from "@mui/icons-material";
 import {
@@ -32,6 +33,8 @@ import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
 import ItemForm from "../components/ItemForm";
 import RecentNewsBanner from "../components/RecentNewsBanner";
+
+const TitleCacheKey = "itemIndexJsonUrl";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
@@ -75,6 +78,12 @@ interface OutletContext {
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const [showItemForm, setShowItemForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Record<string, string[]>>(
+    {},
+  );
+  const [showSearchHints, setShowSearchHints] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const { user, emailVerified, email, hostConfig, onSignOut } =
     useOutletContext<OutletContext>();
   const navigate = useNavigate();
@@ -167,12 +176,77 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Handle search input changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    let filtered: string[] = [];
+    let itemsMap: Record<string, string[]> = {};
+    if (value.length > 2) {
+      // Get items from localStorage
+      const cachedItems = localStorage.getItem(TitleCacheKey);
+      if (cachedItems) {
+        try {
+          itemsMap = JSON.parse(cachedItems).index;
+          const keys = Object.keys(itemsMap);
+          // Filter items by title
+          if (keys.length > 0) {
+            filtered = keys.filter((key) => {
+              return (
+                key.toLowerCase().includes(value.toLowerCase()) ||
+                key.includes(value)
+              );
+            });
+          }
+        } catch (error) {
+          console.error("Error parsing items from localStorage:", error);
+          setSearchResults({});
+        }
+      }
+    }
+    if (filtered.length > 0) {
+      let results: Record<string, string[]> = {};
+      for (const result of filtered) {
+        results[result] = itemsMap[result] || [];
+      }
+      setSearchResults(results); // Limit to top 5 results
+      setShowSearchHints(true);
+    } else {
+      setSearchResults({});
+      setShowSearchHints(false);
+    }
+  };
+
+  // Handle search result selection
+  const handleSelectSearchResult = (title: string, itemsId: string[]) => {
+    setSearchQuery(title);
+    setShowSearchHints(false);
+    // Navigate to item details or search results page
+    navigate(`/item/${itemsId[0]}`);
+  };
+
+  // Close hints when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchHints(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
       <List
         sx={{
           px: 2,
-          pb: hostConfig?.chatLink ? 8 : 2, // Add extra bottom padding only if chat button is visible
+          pb: hostConfig?.chatLink ? 8 : 2,
         }}
       >
         {/* Welcome Section */}
@@ -224,6 +298,57 @@ const HomePage: React.FC = () => {
                   </Box>
                 </Box>
               )
+            )}
+          </Box>
+        </ListItem>
+
+        {/* Search Section */}
+        <ListItem>
+          <Box ref={searchRef} sx={{ width: "100%", position: "relative" }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder={t(
+                "home.searchPlaceholder",
+                "Search items by title...",
+              )}
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              sx={{ mb: 1 }}
+            />
+            {showSearchHints && Object.keys(searchResults).length > 0 && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  width: "100%",
+                  bgcolor: "background.paper",
+                  border: "1px solid #ccc",
+                  borderRadius: 1,
+                  zIndex: 1000,
+                  mt: 0.5,
+                }}
+              >
+                {Object.keys(searchResults).map(
+                  (key, index) => (
+                    console.log("Rendering search result:", key),
+                    (
+                      <Box
+                        key={index}
+                        sx={{
+                          p: 1,
+                          cursor: "pointer",
+                          "&:hover": { bgcolor: "action.hover" },
+                        }}
+                        onClick={() =>
+                          handleSelectSearchResult(key, searchResults[key])
+                        }
+                      >
+                        {key}
+                      </Box>
+                    )
+                  ),
+                )}
+              </Box>
             )}
           </Box>
         </ListItem>

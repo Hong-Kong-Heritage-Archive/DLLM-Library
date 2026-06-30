@@ -83,6 +83,7 @@ type HostConfig {
   splashScreenImageUrl: String
   splashScreenText: String
   itemShareMessageTemplates: [String!]!
+  itemIndexJsonUrl: String
 }
 
 enum RecommendationType {
@@ -558,6 +559,8 @@ type Mutation {
 
   generateItemIndexIncremental: Boolean!
 
+  buildItemIndex(forceRebuild: Boolean! = false): Boolean!
+
   #  addBindToBinder(
   #    parentId: ID!
   #    newBinderName: String # if newBinderName is provided, a new Binder bind to Binder
@@ -607,4 +610,5 @@ input HostConfigInput {
   splashScreenImageUrl: String
   splashScreenText: String!
   itemShareMessageTemplates: [String!]!
+  itemIndexJsonUrl: String!
 }

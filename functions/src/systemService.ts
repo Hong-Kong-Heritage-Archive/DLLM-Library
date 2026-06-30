@@ -29,6 +29,7 @@ export class SystemService {
         splashScreenText: "",
         splashScreenImageUrl: null,
         itemShareMessageTemplates: [],
+        itemIndexJsonUrl: "",
       };
       hostConfig = await this.updateHostConfig(defaultHostConfig);
     } else {
@@ -45,7 +46,7 @@ export class SystemService {
     return hostConfig;
   }
   async updateHostConfig(
-    hostConfigInput: HostConfigInput
+    hostConfigInput: HostConfigInput,
   ): Promise<HostConfig> {
     const hostConfigRef = SYSTEM_DB.doc("hostConfig");
     console.log("Updating host config:", hostConfigInput);
@@ -55,11 +56,24 @@ export class SystemService {
     } else if (updatedFields.splashScreenImageUrl?.startsWith("gs://")) {
       try {
         const publicUrl = await GetPublicUrlForGSFile(
-          updatedFields.splashScreenImageUrl
+          updatedFields.splashScreenImageUrl,
         );
         updatedFields.splashScreenImageGsLink =
           updatedFields.splashScreenImageUrl;
         updatedFields.splashScreenImageUrl = publicUrl;
+      } catch (error) {
+        console.error("Error getting public URL for GS file:", error);
+      }
+    }
+    if (updatedFields.itemIndexJsonUrl === undefined) {
+      updatedFields.itemIndexJsonUrl = null;
+    } else if (updatedFields.itemIndexJsonUrl?.startsWith("gs://")) {
+      try {
+        const publicUrl = await GetPublicUrlForGSFile(
+          updatedFields.itemIndexJsonUrl,
+        );
+        updatedFields.itemIndexJsonGsLink = updatedFields.itemIndexJsonUrl;
+        updatedFields.itemIndexJsonUrl = publicUrl;
       } catch (error) {
         console.error("Error getting public URL for GS file:", error);
       }
@@ -69,7 +83,7 @@ export class SystemService {
   }
   async upsertCategoryMap(
     en: string,
-    categoryMaps: CategoryMapInput[]
+    categoryMaps: CategoryMapInput[],
   ): Promise<CategoryMap[]> {
     en = en.trim().toLowerCase();
     const categoryMapsRef = await SYSTEM_DB.doc("category")
@@ -93,7 +107,7 @@ export class SystemService {
   }
   async addCategoryTree(
     parentPath: string | null,
-    leafCategory: string
+    leafCategory: string,
   ): Promise<string> {
     let newCategoryPath = "";
     if (parentPath && parentPath.trim() !== "") {
