@@ -47,6 +47,7 @@
   "home": {
     "welcome": "Welcome, {{nickname}}",
     "displayNearbyItems": "Display nearby items",
+    "searchPlaceholder": "Search items by title",
     "itemsWithinRadius": "Items within 10km",
     "createUserPrompt": "Please create your user profile",
     "profile": "User Profile",

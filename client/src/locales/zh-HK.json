@@ -35,6 +35,7 @@
     "welcome": "歡迎，{{nickname}}",
     "displayNearbyItems": "顯示附近物品",
     "itemsWithinRadius": "10公里內的物品",
+    "searchPlaceholder": "按標題搜尋物品",
     "profile": "用戶檔案",
     "createUserPrompt": "請填寫你的個人檔案",
     "onLoanItems": "借出的物品",

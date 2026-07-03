@@ -38,6 +38,7 @@ import { calculateDistance } from "../utils/geoProcessor";
 import { useNavigate } from "react-router";
 import PaginationControls from "../components/PaginationControls";
 import { translateCategory } from "../utils/categoryTranslation";
+import SearchBar from "../components/SearchBar";
 
 const ITEMS_QUERY = gql`
   query ItemsByLocation(
@@ -205,23 +206,23 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched && activeFilterType !== "none"
         ? {
-          ...location,
-          radiusKm: searchRadiusKm,
-          classifications:
-            activeFilterType === "classification" && selectedClassification
-              ? [selectedClassification]
-              : null,
-          category:
-            activeFilterType === "category" && selectedCategory
-              ? [selectedCategory]
-              : null,
-          keyword:
-            activeFilterType === "keyword" && searchKeyword
-              ? searchKeyword
-              : null,
-          limit: ITEMS_PER_PAGE,
-          offset: (page - 1) * ITEMS_PER_PAGE,
-        }
+            ...location,
+            radiusKm: searchRadiusKm,
+            classifications:
+              activeFilterType === "classification" && selectedClassification
+                ? [selectedClassification]
+                : null,
+            category:
+              activeFilterType === "category" && selectedCategory
+                ? [selectedCategory]
+                : null,
+            keyword:
+              activeFilterType === "keyword" && searchKeyword
+                ? searchKeyword
+                : null,
+            limit: ITEMS_PER_PAGE,
+            offset: (page - 1) * ITEMS_PER_PAGE,
+          }
         : undefined,
     skip: !location || !hasSearched || activeFilterType === "none",
   });
@@ -232,21 +233,21 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched && activeFilterType !== "none"
         ? {
-          ...location,
-          radiusKm: searchRadiusKm,
-          classifications:
-            activeFilterType === "classification" && selectedClassification
-              ? [selectedClassification]
-              : null,
-          category:
-            activeFilterType === "category" && selectedCategory
-              ? [selectedCategory]
-              : null,
-          keyword:
-            activeFilterType === "keyword" && searchKeyword
-              ? searchKeyword
-              : null,
-        }
+            ...location,
+            radiusKm: searchRadiusKm,
+            classifications:
+              activeFilterType === "classification" && selectedClassification
+                ? [selectedClassification]
+                : null,
+            category:
+              activeFilterType === "category" && selectedCategory
+                ? [selectedCategory]
+                : null,
+            keyword:
+              activeFilterType === "keyword" && searchKeyword
+                ? searchKeyword
+                : null,
+          }
         : undefined,
     skip: !location || !hasSearched || activeFilterType === "none",
   });
@@ -449,11 +450,11 @@ const ItemAllPage: React.FC = () => {
       distance:
         item.location && location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            location.latitude,
-            location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              location.latitude,
+              location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -498,6 +499,8 @@ const ItemAllPage: React.FC = () => {
       </Box>
 
       <Container maxWidth="lg">
+        <SearchBar />
+
         {/* Location Status */}
         <Box sx={{ mb: 3 }}>
           {!location && (
@@ -769,7 +772,7 @@ const ItemAllPage: React.FC = () => {
                               return null;
                             }),
                         )
-                          /*classificationOptions.map((option) => (
+                        /*classificationOptions.map((option) => (
                             <MenuItem key={option} value={option}>
                               {option
                                 .split("/")
@@ -893,15 +896,15 @@ const ItemAllPage: React.FC = () => {
                   ? t("common.loading", "Loading...")
                   : totalItemsData?.totalItemsCountByLocation
                     ? t(
-                      "itemsAll.resultsFoundTotal",
-                      "Found {{count}} item(s)",
-                      {
-                        count: totalItemsData.totalItemsCountByLocation,
-                      },
-                    )
+                        "itemsAll.resultsFoundTotal",
+                        "Found {{count}} item(s)",
+                        {
+                          count: totalItemsData.totalItemsCountByLocation,
+                        },
+                      )
                     : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
-                      count: itemsWithDistance.length,
-                    })}
+                        count: itemsWithDistance.length,
+                      })}
               </Typography>
             </Box>
 
