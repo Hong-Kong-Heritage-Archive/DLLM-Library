@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
   Button,
@@ -8,13 +8,14 @@ import {
   ListItem,
   CircularProgress,
   Alert,
-  Fab,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
+  Fab,
+  Tooltip,
+  TextField,
 } from "@mui/material";
 import { Chat as ChatIcon } from "@mui/icons-material";
 import {
@@ -32,6 +33,7 @@ import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
 import ItemForm from "../components/ItemForm";
 import RecentNewsBanner from "../components/RecentNewsBanner";
+import SearchBar from "../components/SearchBar";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
@@ -75,6 +77,7 @@ interface OutletContext {
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const [showItemForm, setShowItemForm] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const { user, emailVerified, email, hostConfig, onSignOut } =
     useOutletContext<OutletContext>();
   const navigate = useNavigate();
@@ -172,7 +175,7 @@ const HomePage: React.FC = () => {
       <List
         sx={{
           px: 2,
-          pb: hostConfig?.chatLink ? 8 : 2, // Add extra bottom padding only if chat button is visible
+          pb: hostConfig?.chatLink ? 8 : 2,
         }}
       >
         {/* Welcome Section */}
@@ -226,6 +229,11 @@ const HomePage: React.FC = () => {
               )
             )}
           </Box>
+        </ListItem>
+
+        {/* Search Section */}
+        <ListItem>
+          <SearchBar />
         </ListItem>
 
         {/* View All Items Button */}

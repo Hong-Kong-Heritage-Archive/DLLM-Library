@@ -9,9 +9,11 @@ import { ItemService } from "./itemService";
 import { UserService } from "./userService";
 import { TransactionService } from "./transactionService";
 import { NewsService } from "./newsService";
+import { SystemService } from "./systemService";
 
 const categoryService = new CategoryService();
-const itemService = new ItemService(categoryService);
+const systemService = new SystemService();
+const itemService = new ItemService(categoryService, systemService);
 const userService = new UserService(itemService, categoryService);
 const transactionService = new TransactionService(itemService, userService);
 const newsService = new NewsService(itemService, userService);
@@ -596,9 +598,7 @@ ${redirectScript}
 
         // Get news data
         const newsTitle = news.title;
-        const newsDescription =
-
-          news.content || "No description available";
+        const newsDescription = news.content || "No description available";
         const ownerName =
           news?.user?.nickname || news?.user?.email || "Unknown Owner";
 

@@ -97,6 +97,8 @@ export type HostConfig = {
   __typename?: 'HostConfig';
   aboutUsText: Scalars['String']['output'];
   chatLink: Scalars['String']['output'];
+  itemIndexJsonUrl?: Maybe<Scalars['String']['output']>;
+  itemIndexLastBuildTime?: Maybe<Scalars['Date']['output']>;
   itemShareMessageTemplates: Array<Scalars['String']['output']>;
   splashScreenImageUrl?: Maybe<Scalars['String']['output']>;
   splashScreenText?: Maybe<Scalars['String']['output']>;
@@ -105,6 +107,8 @@ export type HostConfig = {
 export type HostConfigInput = {
   aboutUsText: Scalars['String']['input'];
   chatLink: Scalars['String']['input'];
+  itemIndexJsonUrl: Scalars['String']['input'];
+  itemIndexLastBuildTime: Scalars['Date']['input'];
   itemShareMessageTemplates: Array<Scalars['String']['input']>;
   splashScreenImageUrl?: InputMaybe<Scalars['String']['input']>;
   splashScreenText: Scalars['String']['input'];
@@ -223,6 +227,7 @@ export type Mutation = {
   addCategoryTree: Scalars['String']['output'];
   addItemComment: Scalars['ID']['output'];
   addItemToNewsPost: NewsPost;
+  buildItemIndex: Scalars['Boolean']['output'];
   cancelTransaction: Scalars['Boolean']['output'];
   contactHolder: Scalars['Boolean']['output'];
   createItem: Item;
@@ -267,6 +272,11 @@ export type MutationAddItemToNewsPostArgs = {
   comment?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   itemId: Scalars['ID']['input'];
+};
+
+
+export type MutationBuildItemIndexArgs = {
+  forceRebuild?: Scalars['Boolean']['input'];
 };
 
 
@@ -825,7 +835,7 @@ export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', addres
 export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string> } };
+export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string>, itemIndexJsonUrl?: string | null } };
 
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -962,6 +972,15 @@ export type UpdateBooklistMutationVariables = Exact<{
 
 export type UpdateBooklistMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null } };
 
+export type AddItemToNewsPostMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  itemId: Scalars['ID']['input'];
+  comment?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type AddItemToNewsPostMutation = { __typename?: 'Mutation', addItemToNewsPost: { __typename?: 'NewsPost', id: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null } };
+
 export type BooklistRecentPostsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -1013,6 +1032,13 @@ export type GetUserOpenTransactionsForCountQueryVariables = Exact<{
 
 
 export type GetUserOpenTransactionsForCountQuery = { __typename?: 'Query', openTransactionsByUser: Array<{ __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, item: { __typename?: 'Item', id: string, name: string } }> };
+
+export type BuildItemIndexMutationVariables = Exact<{
+  forceRebuild: Scalars['Boolean']['input'];
+}>;
+
+
+export type BuildItemIndexMutation = { __typename?: 'Mutation', buildItemIndex: boolean };
 
 export type NewsPostQueryVariables = Exact<{
   newsPostId: Scalars['ID']['input'];
@@ -1110,7 +1136,7 @@ export type ItemsByUserQueryVariables = Exact<{
 }>;
 
 
-export type ItemsByUserQuery = { __typename?: 'Query', itemsByUser: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, publishedYear?: number | null, language: Language, createdAt: any, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
+export type ItemsByUserQuery = { __typename?: 'Query', itemsByUser: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, thumbnails?: Array<string> | null, category: Array<string>, clssfctns?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any, location?: { __typename?: 'Location', latitude: number, longitude: number } | null }> };
 
 export type TotalItemsByUserQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1375,6 +1401,7 @@ export const HostConfigDocument = gql`
     splashScreenImageUrl
     splashScreenText
     itemShareMessageTemplates
+    itemIndexJsonUrl
   }
 }
     `;
@@ -2129,6 +2156,44 @@ export function useUpdateBooklistMutation(baseOptions?: Apollo.MutationHookOptio
 export type UpdateBooklistMutationHookResult = ReturnType<typeof useUpdateBooklistMutation>;
 export type UpdateBooklistMutationResult = Apollo.MutationResult<UpdateBooklistMutation>;
 export type UpdateBooklistMutationOptions = Apollo.BaseMutationOptions<UpdateBooklistMutation, UpdateBooklistMutationVariables>;
+export const AddItemToNewsPostDocument = gql`
+    mutation AddItemToNewsPost($id: ID!, $itemId: ID!, $comment: String) {
+  addItemToNewsPost(id: $id, itemId: $itemId, comment: $comment) {
+    id
+    relatedItems {
+      id
+    }
+  }
+}
+    `;
+export type AddItemToNewsPostMutationFn = Apollo.MutationFunction<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>;
+
+/**
+ * __useAddItemToNewsPostMutation__
+ *
+ * To run a mutation, you first call `useAddItemToNewsPostMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddItemToNewsPostMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addItemToNewsPostMutation, { data, loading, error }] = useAddItemToNewsPostMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      itemId: // value for 'itemId'
+ *      comment: // value for 'comment'
+ *   },
+ * });
+ */
+export function useAddItemToNewsPostMutation(baseOptions?: Apollo.MutationHookOptions<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>(AddItemToNewsPostDocument, options);
+      }
+export type AddItemToNewsPostMutationHookResult = ReturnType<typeof useAddItemToNewsPostMutation>;
+export type AddItemToNewsPostMutationResult = Apollo.MutationResult<AddItemToNewsPostMutation>;
+export type AddItemToNewsPostMutationOptions = Apollo.BaseMutationOptions<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>;
 export const BooklistRecentPostsDocument = gql`
     query BooklistRecentPosts($limit: Int, $offset: Int, $newsStatus: NewsStatus) {
   newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
@@ -2364,6 +2429,37 @@ export type GetUserOpenTransactionsForCountQueryHookResult = ReturnType<typeof u
 export type GetUserOpenTransactionsForCountLazyQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountLazyQuery>;
 export type GetUserOpenTransactionsForCountSuspenseQueryHookResult = ReturnType<typeof useGetUserOpenTransactionsForCountSuspenseQuery>;
 export type GetUserOpenTransactionsForCountQueryResult = Apollo.QueryResult<GetUserOpenTransactionsForCountQuery, GetUserOpenTransactionsForCountQueryVariables>;
+export const BuildItemIndexDocument = gql`
+    mutation BuildItemIndex($forceRebuild: Boolean!) {
+  buildItemIndex(forceRebuild: $forceRebuild)
+}
+    `;
+export type BuildItemIndexMutationFn = Apollo.MutationFunction<BuildItemIndexMutation, BuildItemIndexMutationVariables>;
+
+/**
+ * __useBuildItemIndexMutation__
+ *
+ * To run a mutation, you first call `useBuildItemIndexMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBuildItemIndexMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [buildItemIndexMutation, { data, loading, error }] = useBuildItemIndexMutation({
+ *   variables: {
+ *      forceRebuild: // value for 'forceRebuild'
+ *   },
+ * });
+ */
+export function useBuildItemIndexMutation(baseOptions?: Apollo.MutationHookOptions<BuildItemIndexMutation, BuildItemIndexMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<BuildItemIndexMutation, BuildItemIndexMutationVariables>(BuildItemIndexDocument, options);
+      }
+export type BuildItemIndexMutationHookResult = ReturnType<typeof useBuildItemIndexMutation>;
+export type BuildItemIndexMutationResult = Apollo.MutationResult<BuildItemIndexMutation>;
+export type BuildItemIndexMutationOptions = Apollo.BaseMutationOptions<BuildItemIndexMutation, BuildItemIndexMutationVariables>;
 export const NewsPostDocument = gql`
     query NewsPost($newsPostId: ID!) {
   newsPost(id: $newsPostId) {
@@ -2922,6 +3018,7 @@ export const ItemsByUserDocument = gql`
     images
     thumbnails
     category
+    clssfctns
     publishedYear
     language
     location {

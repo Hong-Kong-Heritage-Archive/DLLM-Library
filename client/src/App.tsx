@@ -7,6 +7,7 @@ import { RouterProvider } from "react-router";
 import SplashScreen from "./components/SplashScreen";
 import { CircularProgress, Box } from "@mui/material";
 import { getCookie, setCookie } from "./utils/cookies";
+import JSZip from "jszip";
 
 const ME_QUERY = gql`
   query Me {
@@ -37,9 +38,12 @@ const HostConfigQuery = gql`
       splashScreenImageUrl
       splashScreenText
       itemShareMessageTemplates
+      itemIndexJsonUrl
     }
   }
 `;
+
+const TitleCacheKey = "itemIndexJsonUrl";
 
 interface AppProps {
   user: fireUser | null;
@@ -61,7 +65,7 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
   const previousUserIdRef = useRef<string | null>(null);
   const [showSplash, setShowSplash] = useState(false); // Changed to false by default
   const [splashCompleted, setSplashCompleted] = useState(false);
-
+  const [isTitleCacheLoaded, setIsTitleCacheLoaded] = useState<boolean>(false);
   // Check if splash screen should be shown based on cookie
   useEffect(() => {
     const splashCookie = getCookie("book_guide_splash_shown");
@@ -174,6 +178,62 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
       >
         <CircularProgress size={60} sx={{ color: "white" }} />
       </Box>
+    );
+  }
+
+  if (
+    hostConfigOutput.data?.hostConfig?.itemIndexJsonUrl &&
+    !isTitleCacheLoaded
+  ) {
+    // 1. Get local version
+    const localDataJson = localStorage.getItem(TitleCacheKey);
+    let lastBuildTime = Date.UTC(1970, 0, 1); // Default to epoch start
+
+    if (localDataJson) {
+      const parsed = JSON.parse(localDataJson);
+      lastBuildTime = parsed.lastBuildTime;
+      console.log("Loaded local item index JSON:", parsed);
+    }
+
+    // 2. Fetch remote file
+    fetch(hostConfigOutput.data.hostConfig.itemIndexJsonUrl).then(
+      async (response) => {
+        if (!response.ok) {
+          console.error(
+            `Failed to fetch remote item index JSON. Status: ${response.status}`,
+          );
+          setIsTitleCacheLoaded(true);
+          return;
+        }
+
+        // For browser environments, use JSZip
+        const zipBlob = await response.blob();
+        const zip = new JSZip();
+        const zipContent = await zip.loadAsync(zipBlob);
+
+        // Assuming the JSON file is named 'data.json' inside the zip
+        const jsonFile = zipContent.file("data.json");
+        if (!jsonFile) {
+          console.error("Expected 'data.json' not found in zip archive.");
+          setIsTitleCacheLoaded(true);
+          return;
+        }
+
+        const remoteDataJson = await jsonFile.async("text");
+        const remoteData = JSON.parse(remoteDataJson);
+
+        console.log(
+          "Fetched and extracted remote item index JSON:",
+          remoteData,
+        );
+
+        // Compare versions and update cache as before
+        if (Date.parse(remoteData.lastBuildTime) > lastBuildTime) {
+          console.log("Updating cache...");
+          localStorage.setItem(TitleCacheKey, JSON.stringify(remoteData));
+        }
+        setIsTitleCacheLoaded(true);
+      },
     );
   }
 

@@ -29,6 +29,8 @@ export class SystemService {
         splashScreenText: "",
         splashScreenImageUrl: null,
         itemShareMessageTemplates: [],
+        itemIndexJsonUrl: "",
+        itemIndexLastBuildTime: new Date(),
       };
       hostConfig = await this.updateHostConfig(defaultHostConfig);
     } else {
@@ -41,11 +43,13 @@ export class SystemService {
       )
         ? data.itemShareMessageTemplates
         : [];
+      hostConfig.itemIndexJsonUrl = data?.itemIndexJsonUrl || null;
+      hostConfig.itemIndexLastBuildTime = data?.itemIndexLastBuildTime || null;
     }
     return hostConfig;
   }
   async updateHostConfig(
-    hostConfigInput: HostConfigInput
+    hostConfigInput: HostConfigInput,
   ): Promise<HostConfig> {
     const hostConfigRef = SYSTEM_DB.doc("hostConfig");
     console.log("Updating host config:", hostConfigInput);
@@ -55,7 +59,7 @@ export class SystemService {
     } else if (updatedFields.splashScreenImageUrl?.startsWith("gs://")) {
       try {
         const publicUrl = await GetPublicUrlForGSFile(
-          updatedFields.splashScreenImageUrl
+          updatedFields.splashScreenImageUrl,
         );
         updatedFields.splashScreenImageGsLink =
           updatedFields.splashScreenImageUrl;
@@ -64,12 +68,34 @@ export class SystemService {
         console.error("Error getting public URL for GS file:", error);
       }
     }
+    if (updatedFields.itemIndexJsonUrl === undefined) {
+      updatedFields.itemIndexJsonUrl = null;
+    } else if (updatedFields.itemIndexJsonUrl?.startsWith("gs://")) {
+      try {
+        const publicUrl = await GetPublicUrlForGSFile(
+          updatedFields.itemIndexJsonUrl,
+        );
+        updatedFields.itemIndexJsonGsLink = updatedFields.itemIndexJsonUrl;
+        updatedFields.itemIndexJsonUrl = publicUrl;
+      } catch (error) {
+        console.error("Error getting public URL for GS file:", error);
+      }
+    }
+    if (updatedFields.itemIndexLastBuildTime) {
+      if (typeof updatedFields.itemIndexLastBuildTime === "string") {
+        updatedFields.itemIndexLastBuildTime = new Date(
+          updatedFields.itemIndexLastBuildTime,
+        );
+      } else if (!(updatedFields.itemIndexLastBuildTime instanceof Date)) {
+        updatedFields.itemIndexLastBuildTime = new Date();
+      }
+    }
     await hostConfigRef.set(updatedFields, { merge: true });
     return this.getHostConfig();
   }
   async upsertCategoryMap(
     en: string,
-    categoryMaps: CategoryMapInput[]
+    categoryMaps: CategoryMapInput[],
   ): Promise<CategoryMap[]> {
     en = en.trim().toLowerCase();
     const categoryMapsRef = await SYSTEM_DB.doc("category")
@@ -93,7 +119,7 @@ export class SystemService {
   }
   async addCategoryTree(
     parentPath: string | null,
-    leafCategory: string
+    leafCategory: string,
   ): Promise<string> {
     let newCategoryPath = "";
     if (parentPath && parentPath.trim() !== "") {
