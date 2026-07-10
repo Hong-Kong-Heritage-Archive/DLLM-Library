@@ -44,7 +44,9 @@ export class SystemService {
         ? data.itemShareMessageTemplates
         : [];
       hostConfig.itemIndexJsonUrl = data?.itemIndexJsonUrl || null;
-      hostConfig.itemIndexLastBuildTime = data?.itemIndexLastBuildTime || null;
+      hostConfig.itemIndexLastBuildTime = data?.itemIndexLastBuildTime
+        ? data.itemIndexLastBuildTime * 1000
+        : null;
     }
     return hostConfig;
   }
