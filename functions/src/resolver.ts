@@ -37,7 +37,7 @@ interface Context {
 
 const systemService = new SystemService();
 const categoryService = new CategoryService();
-const itemService = new ItemService(categoryService);
+const itemService = new ItemService(categoryService, systemService);
 const userService = new UserService(itemService, categoryService);
 const newsService = new NewsService(itemService, userService);
 const transactionService = new TransactionService(itemService, userService);
@@ -831,6 +831,14 @@ export const resolvers: Resolvers = {
     ): Promise<boolean> => {
       // TODO: Make this admin only.
       return itemService.generateItemIndexIncremental();
+    },
+    buildItemIndex: async (
+      _parent: any,
+      { forceRebuild }: { forceRebuild: boolean },
+      _context: any,
+    ): Promise<boolean> => {
+      // TODO: Make this admin only.
+      return itemService.buildItemIndex(forceRebuild);
     },
     updateHostConfig: async (
       _: any,

@@ -28,7 +28,7 @@ import {
 } from "@mui/icons-material";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, useMutation, gql } from "@apollo/client";
 import { User, Role, HostConfig } from "../generated/graphql";
 import { AuthDialog } from "./Auth";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -66,6 +66,12 @@ const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
         name
       }
     }
+  }
+`;
+
+const BUILD_ITEM_INDEX = gql`
+  mutation BuildItemIndex($forceRebuild: Boolean!) {
+    buildItemIndex(forceRebuild: $forceRebuild)
   }
 `;
 
@@ -109,6 +115,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       pollInterval: 30000, // Poll every 30 seconds
     },
   );
+
+  const [buildItemIndexMutation] = useMutation(BUILD_ITEM_INDEX);
 
   const notificationCount =
     transactionsData?.openTransactionsByUser?.length || 0;
@@ -392,6 +400,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         "contentRating.approvalDialog",
                         "Content Rating Approval",
                       )}
+                    </ListItemText>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={async () => {
+                      await buildItemIndexMutation({
+                        variables: { forceRebuild: true },
+                      });
+                      handleMenuClose();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <ClassificationIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      {t("item.rebuildIndex", "Rebuild Item Index")}
                     </ListItemText>
                   </MenuItem>
                 </Menu>

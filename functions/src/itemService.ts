@@ -8,12 +8,15 @@ import {
   Language,
   User,
   Role,
+  HostConfigInput,
+  HostConfig,
 } from "./generated/graphql";
 import * as geofire from "geofire-common";
 import { MapService, createMapService } from "./mapService";
 import { CategoryService } from "./categoryService";
+import { SystemService } from "./systemService";
 import firebase from "firebase-admin";
-import { UploadBufferToGCS } from "./platform";
+import { UploadBufferToGCS, UploadJsonToGCS } from "./platform";
 import { Timestamp } from "firebase-admin/firestore";
 import { generateThumbnail, ThumbnailConfig } from "./utils/imageUtils";
 import sharp from "sharp";
@@ -39,11 +42,13 @@ export class ItemService {
 
   private mapService: MapService;
   private categoryService: CategoryService;
+  private systemService: SystemService;
   private userService?: any; // Will be set after initialization
 
-  constructor(categoryService: CategoryService) {
+  constructor(categoryService: CategoryService, systemService: SystemService) {
     this.mapService = createMapService();
     this.categoryService = categoryService;
+    this.systemService = systemService;
   }
 
   setUserService(userService: any) {
@@ -1825,6 +1830,48 @@ export class ItemService {
     }
 
     return results;
+  }
+
+  async buildItemIndex(forceRebuild: boolean = false): Promise<boolean> {
+    // If forceRebuild is true, we will rebuild the index for all items, regardless of their current nameIndexVer.
+    // the output json will be last build time and a map of title to itemIds (in case there are multiple items with the same title).
+
+    if (forceRebuild) {
+      const lastBuildTime = new Date().toISOString();
+      console.log("Force rebuilding item index file for all items");
+      const batchSize = 500;
+      let lastDoc: firebase.firestore.QueryDocumentSnapshot | null = null;
+      let processed = 0;
+      var itemIndexMap: { [title: string]: string[] } = {};
+      const data = await db.collection("items").get();
+      data.forEach((doc) => {
+        const itemData = doc.data() as ItemModel;
+        const title = itemData.name || "";
+        if (!itemIndexMap[title]) {
+          itemIndexMap[title] = [];
+        }
+        itemIndexMap[title].push(doc.id);
+        // console.debug(`Adding item ${doc.id} with title "${title}" to index`);
+      });
+      console.log(
+        `Processed ${data.size} items and built index for ${
+          Object.keys(itemIndexMap).length
+        } unique titles`,
+      );
+      const gsUrl = await UploadJsonToGCS("item_index.zip", {
+        lastBuildTime: lastBuildTime,
+        index: itemIndexMap,
+      });
+      let updateHostConfig: HostConfig =
+        await this.systemService.getHostConfig();
+      updateHostConfig.itemIndexJsonUrl = gsUrl;
+      updateHostConfig.itemIndexLastBuildTime = lastBuildTime;
+      this.systemService.updateHostConfig(updateHostConfig as HostConfigInput);
+      console.log("Item index file uploaded to GCS successfully");
+    } else {
+      console.log("Skipping item index rebuild as forceRebuild is false");
+    }
+    return true;
   }
 
   async _getBookInfoByISBN(isbn: string): Promise<{

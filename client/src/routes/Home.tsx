@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
   Button,
@@ -35,6 +35,7 @@ import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
 import ItemForm from "../components/ItemForm";
 import RecentNewsBanner from "../components/RecentNewsBanner";
+import SearchBar from "../components/SearchBar";
 
 const RecentCategoriesQuery = gql`
   query RecentCategories($limit: Int!) {
@@ -179,7 +180,7 @@ const HomePage: React.FC = () => {
       <List
         sx={{
           px: 2,
-          pb: hostConfig?.chatLink ? 8 : 2, // Add extra bottom padding only if chat button is visible
+          pb: hostConfig?.chatLink ? 8 : 2,
         }}
       >
         {/* Welcome Section */}
