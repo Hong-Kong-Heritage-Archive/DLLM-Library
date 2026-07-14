@@ -948,70 +948,82 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         {data?.item ? (
           <Typography variant="h4" sx={{ flexGrow: 1 }}>
             {data.item.name}
-            {isOwner ? (
-              <>
-                <Chip
-                  label={t("item.owner", "Owner")}
-                  color="primary"
-                  size="small"
-                  sx={{ ml: 2 }}
-                />
-                {/* Pin/Unpin Toggle Button */}
-                <IconButton
-                  onClick={handlePinToggle}
-                  disabled={pinLoading || unpinLoading}
-                  sx={{
-                    ml: 1,
-                    color: isItemPinned() ? "primary.main" : "action.disabled",
-                    "&:hover": {
-                      backgroundColor: isItemPinned()
-                        ? "primary.light"
-                        : "action.hover",
-                    },
-                  }}
-                  title={
-                    isItemPinned()
-                      ? t("item.unpinItem", "Unpin item")
-                      : t("item.pinItem", "Pin item")
-                  }
-                >
-                  {pinLoading || unpinLoading ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <PinIcon
-                      sx={{
-                        transform: isItemPinned()
-                          ? "rotate(45deg)"
-                          : "rotate(0deg)",
-                        transition: "transform 0.2s ease-in-out",
-                      }}
-                    />
-                  )}
-                </IconButton>
-                {/* Pin Status Indicator */}
-                {ownerData?.user?.pinItems && (
+            <>
+              {isOwner ? (
+                <>
                   <Chip
-                    label={t("item.pinnedItemsStatus", "Pinned: {{count}}/5", {
-                      count: ownerData.user.pinItems.length,
-                    })}
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                )}
-              </>
-            ) : (
-              <>
-                {/* Show owner name if user is not the owner */}
-                {ownerData?.user && (
-                  <Chip
-                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                      } `}
+                    label={t("item.owner", "Owner")}
                     color="primary"
                     size="small"
-                    sx={{ ml: 2, cursor: "pointer" }}
-                    onClick={() => handleUserClick(ownerData.user.id)}
+                    sx={{ ml: 2 }}
                   />
-                )}
+                  {/* Pin/Unpin Toggle Button */}
+                  <IconButton
+                    onClick={handlePinToggle}
+                    disabled={pinLoading || unpinLoading}
+                    sx={{
+                      ml: 1,
+                      color: isItemPinned()
+                        ? "primary.main"
+                        : "action.disabled",
+                      "&:hover": {
+                        backgroundColor: isItemPinned()
+                          ? "primary.light"
+                          : "action.hover",
+                      },
+                    }}
+                    title={
+                      isItemPinned()
+                        ? t("item.unpinItem", "Unpin item")
+                        : t("item.pinItem", "Pin item")
+                    }
+                  >
+                    {pinLoading || unpinLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <PinIcon
+                        sx={{
+                          transform: isItemPinned()
+                            ? "rotate(45deg)"
+                            : "rotate(0deg)",
+                          transition: "transform 0.2s ease-in-out",
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                  {/* Pin Status Indicator */}
+                  {ownerData?.user?.pinItems && (
+                    <Chip
+                      label={t(
+                        "item.pinnedItemsStatus",
+                        "Pinned: {{count}}/5",
+                        {
+                          count: ownerData.user.pinItems.length,
+                        },
+                      )}
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Show owner name if user is not the owner */}
+                  {ownerData?.user && (
+                    <Chip
+                      label={`${t("item.owner", "Owner")}: ${
+                        ownerData.user.nickname || ownerData.user.email
+                      } `}
+                      color="primary"
+                      size="small"
+                      sx={{ ml: 2, cursor: "pointer" }}
+                      onClick={() => handleUserClick(ownerData.user.id)}
+                    />
+                  )}
+                </>
+              )}
+
+              <>
                 {/* Show holder name if user is not the holder and holder is different from owner */}
                 {isHolder && (
                   <Chip
@@ -1025,8 +1037,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   holderData?.user &&
                   data.item.holderId !== data.item.ownerId && (
                     <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        } `}
+                      label={`${t("item.holder", "Holder")}: ${
+                        holderData.user.nickname || holderData.user.email
+                      } `}
                       color="secondary"
                       size="small"
                       sx={{ ml: 2, cursor: "pointer" }}
@@ -1034,14 +1047,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     />
                   )}
                 <Chip
-                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
-                    } `}
+                  label={`${t("item.deposit", "deposit")}: ${
+                    data.item.deposit
+                  } `}
                   color="secondary"
                   size="small"
                   sx={{ ml: 2, cursor: "pointer" }}
                 />
               </>
-            )}
+            </>
           </Typography>
         ) : (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
@@ -1080,7 +1094,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         <Paper
           elevation={1}
           sx={{ p: 4 }}
-        //  sx={{ p: 4, backgroundColor: "grey.50", border: "1px solid", borderColor: "grey.200", borderRadius: 3 }}
+          //  sx={{ p: 4, backgroundColor: "grey.50", border: "1px solid", borderColor: "grey.200", borderRadius: 3 }}
         >
           <Box sx={{ mb: 4 }}>
             <Typography
@@ -1130,7 +1144,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               >
                 {convertLinksToClickable(
                   data.item.description?.replace(/#Uncategorized\b/gi, "") ||
-                  "",
+                    "",
                 )}
               </Typography>
             </Box>
@@ -1139,38 +1153,38 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={{ mb: 4 }}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "transform 0.2s",
-                          "&:hover": { transform: "scale(1.05)" },
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={2}>
+                {(data.item.thumbnails && data.item.thumbnails.length > 0
+                  ? data.item.thumbnails
+                  : data.item.images || []
+                ).map((image, index) => (
+                  <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "transform 0.2s",
+                        "&:hover": { transform: "scale(1.05)" },
+                      }}
+                      onClick={() => handleThumbnailClick(index)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${data.item.name} - Thumbnail ${index + 1} `}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
                         }}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1} `}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           {/* ITEM INFO GRID */}
           <Card

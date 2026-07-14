@@ -103,7 +103,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
           transform: "translateY(-4px)",
           boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
         },
-        borderRadius: "16px",
+        borderRadius: "8px",
         overflow: "hidden",
         border: "none",
         backgroundColor: "#ffffff",
