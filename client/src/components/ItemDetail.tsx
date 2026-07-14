@@ -42,6 +42,7 @@ import {
   User,
   Role,
   NewsStatus,
+  TransactionStatus,
   TransactionLocation,
   CategoryMap,
   HostConfig,
@@ -229,6 +230,27 @@ const BOOKLIST_RECENT_POSTS_QUERY = gql`
   }
 `;
 
+const ITEM_TRANSACTIONS_QUERY = gql`
+  query ItemTransactions($itemId: ID!) {
+    transactionsByItem(itemId: $itemId) {
+      id
+      status
+      createdAt
+      updatedAt
+      requestor {
+        id
+        nickname
+        email
+      }
+      receiver {
+        id
+        nickname
+        email
+      }
+    }
+  }
+`;
+
 interface BooklistRecentPostsQueryData {
   newsRecentPosts: Array<{
     id: string;
@@ -245,6 +267,293 @@ interface ItemDetailProps {
   onBack?: () => void;
   hostConfig?: HostConfig | null;
 }
+
+const pageContainerSx = {
+  py: { xs: 1.5, sm: 4 },
+  px: { xs: 1, sm: 2 },
+  bgcolor: "var(--color-bg-canvas)",
+};
+const headerRowSx = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  mb: 2,
+};
+const backIconButtonSx = {
+  bgcolor: "var(--color-bg-subtle)",
+  color: "var(--color-text-primary)",
+  border: "1px solid var(--color-border-subtle)",
+  width: 40,
+  height: 40,
+};
+const loadingBlockSx = { display: "flex", justifyContent: "center", p: 6 };
+const shareIconButtonSx = {
+  bgcolor: "var(--color-bg-subtle)",
+  color: "var(--color-text-primary)",
+  border: "1px solid var(--color-border-subtle)",
+  width: 40,
+  height: 40,
+};
+const paperSectionSx = {
+  p: { xs: 2, sm: 4 },
+  borderRadius: 3,
+  backgroundColor: "var(--color-bg-surface)",
+  border: "1px solid var(--color-border-subtle)",
+};
+const headerTitleGrowSx = { flexGrow: 1 };
+const alertMb2Sx = { mb: 2 };
+const sectionMb4Sx = { mb: 4 };
+const flexWrapRowSx = { display: "flex", gap: 1, flexWrap: "wrap" };
+const heroRowSx = {
+  display: "grid",
+  gridTemplateColumns: { xs: "96px 1fr", sm: "140px 1fr" },
+  gap: 2,
+  mb: 2,
+  alignItems: "start",
+};
+const heroImagePaperSx = {
+  overflow: "hidden",
+  borderRadius: 2,
+  border: "1px solid var(--color-border-subtle)",
+  cursor: "pointer",
+};
+const heroImageStyle: React.CSSProperties = {
+  width: "100%",
+  aspectRatio: "3/4",
+  objectFit: "cover",
+  display: "block",
+};
+const heroMetaRowSx = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gap: 1,
+  mb: 1,
+};
+const heroMetaItemSx = { minWidth: 0 };
+const heroMetaLabelSx = {
+  fontSize: "0.72rem",
+  color: "var(--color-text-muted)",
+  lineHeight: 1.2,
+};
+const heroFallbackImageSx = {
+  ...heroImageStyle,
+  backgroundColor: "var(--color-bg-subtle)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "var(--color-text-muted)",
+  fontSize: "0.85rem",
+};
+const heroTitleSx = {
+  fontSize: { xs: "1.85rem", sm: "2.2rem" },
+  fontWeight: 800,
+  lineHeight: 1.12,
+  color: "var(--color-text-primary)",
+  mb: 1,
+};
+const tinyMetaChipSx = {
+  height: 22,
+  backgroundColor: "var(--color-bg-subtle)",
+  border: "1px solid var(--color-border-subtle)",
+  color: "var(--color-text-secondary)",
+  "& .MuiChip-label": { px: 1, fontSize: "0.72rem" },
+};
+const tagsListSx = {
+  display: "flex",
+  gap: 0.75,
+  flexWrap: "wrap",
+  mb: 3,
+};
+const tagChipSx = {
+  height: 24,
+  borderRadius: 1,
+  backgroundColor: "var(--color-bg-subtle)",
+  border: "1px solid var(--color-border-subtle)",
+  color: "var(--color-text-secondary)",
+  "& .MuiChip-label": { px: 1.25, fontSize: "0.75rem" },
+};
+const descriptionBoxSx = {
+  whiteSpace: "pre-wrap",
+  backgroundColor: "transparent",
+  p: 0,
+  borderRadius: 2,
+  color: "var(--color-text-body)",
+  fontSize: "1.03rem",
+  lineHeight: 1.55,
+};
+const sectionTitleSx = {
+  fontWeight: 700,
+  color: "var(--color-text-primary)",
+  mb: 1,
+};
+const ownerPinButtonSx = { ml: 0.5 };
+const pinIconSx = (pinned: boolean) => ({
+  color: pinned ? "var(--color-brand-primary)" : "var(--color-text-muted)",
+  transform: pinned ? "rotate(45deg)" : "rotate(0deg)",
+  transition: "transform 0.2s ease-in-out",
+});
+const descriptionContentSx = (expanded: boolean) => ({
+  ...descriptionBoxSx,
+  display: expanded ? "block" : "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: expanded ? "unset" : 4,
+  overflow: "hidden",
+});
+const descriptionToggleButtonSx = {
+  mt: 0.5,
+  px: 0,
+  minWidth: 0,
+  textDecoration: "underline",
+  color: "var(--color-text-primary)",
+  fontWeight: 700,
+};
+const thumbnailPaperSx = {
+  overflow: "hidden",
+  cursor: "pointer",
+  transition: "transform 0.2s",
+  "&:hover": { transform: "scale(1.05)" },
+};
+const thumbnailImageStyle: React.CSSProperties = {
+  width: "100%",
+  height: "120px",
+  objectFit: "cover",
+};
+const infoCardSx = {
+  mb: 3,
+  backgroundColor: "white",
+  border: "1px solid",
+  borderColor: "var(--color-border-subtle)",
+  borderRadius: 2,
+};
+const primaryActionButtonSx = {
+  py: 1.35,
+  fontSize: "1.05rem",
+  fontWeight: 700,
+  borderRadius: 2.2,
+};
+const addBookshelfButtonSx = {
+  py: 1.5,
+  fontSize: "1.05rem",
+  fontWeight: 700,
+  borderRadius: 2.2,
+};
+const inheritProgressSx = { mr: 1, color: "inherit" };
+const secondaryActionsRowSx = {
+  display: "flex",
+  justifyContent: "flex-start",
+  gap: 1,
+  flexWrap: "wrap",
+  mt: 1.5,
+};
+const primaryActionsRowSx = {
+  mt: 3,
+  display: "grid",
+  gridTemplateColumns: { xs: "1fr 1fr", sm: "1fr 1fr" },
+  gap: 1.5,
+};
+const relatedNewsListSx = {
+  whiteSpace: "pre-wrap",
+  backgroundColor: "var(--color-bg-subtle)",
+  p: 3,
+  borderRadius: 2,
+  border: "1px solid",
+  borderColor: "var(--color-border-subtle)",
+};
+const historySectionSx = { mb: 4 };
+const historyLineWrapSx = {
+  position: "relative",
+  pl: 2.5,
+};
+const historyLineSx = {
+  position: "absolute",
+  left: 6,
+  top: 2,
+  bottom: 2,
+  width: "1px",
+  backgroundColor: "var(--color-border-default)",
+};
+const historyRowSx = { position: "relative", mb: 1.5 };
+const historyDotSx = {
+  position: "absolute",
+  left: -13,
+  top: 5,
+  width: 9,
+  height: 9,
+  borderRadius: "50%",
+  backgroundColor: "var(--color-bg-surface)",
+  border: "1px solid var(--color-text-muted)",
+};
+const historyDotActiveSx = {
+  ...historyDotSx,
+  backgroundColor: "#000000",
+  borderColor: "#000000",
+};
+const historyTitleSx = {
+  fontSize: "1.65rem",
+  fontWeight: 800,
+  lineHeight: 1.2,
+  color: "var(--color-text-primary)",
+  mb: 1,
+};
+const historyItemTextSx = {
+  color: "var(--color-text-primary)",
+  fontSize: "1.1rem",
+  fontWeight: 600,
+  lineHeight: 1.2,
+};
+const historyDateTextSx = {
+  color: "var(--color-text-secondary)",
+  fontSize: "0.92rem",
+};
+const statusBoxContainerSx = {
+  my: 3,
+  p: 2,
+  display: "flex",
+  gap: 1.5,
+  alignItems: "flex-start",
+  backgroundColor: "var(--color-text-secondary)",
+  borderRadius: 2,
+};
+const statusBoxIconSx = {
+  width: 18,
+  height: 18,
+  borderRadius: "50%",
+  backgroundColor: "var(--color-text-primary)",
+  color: "var(--color-text-inverse)",
+  fontSize: "0.75rem",
+  fontWeight: 700,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  mt: 0.35,
+  flexShrink: 0,
+};
+const statusBoxIconTextSx = { fontSize: "0.75rem", lineHeight: 1, fontWeight: 700 };
+const statusBoxTitleSx = { color: "var(--color-bg-surface)" };
+const statusBoxBodySx = { color: "var(--color-bg-surface)", opacity: 0.95 };
+const mb4Sx = { mb: 4 };
+const locationPromptModalSx = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  bgcolor: "background.paper",
+  borderRadius: 2,
+  boxShadow: 24,
+  p: 4,
+  maxWidth: 400,
+  width: "90%",
+};
+const locationPromptActionsSx = {
+  display: "flex",
+  gap: 2,
+  justifyContent: "flex-end",
+};
+const dialogTopPaddingSx = { pt: 1 };
+const mt2Sx = { mt: 2 };
+const progressMr1Sx = { mr: 1 };
+const fullWidthSx = { width: "100%" };
+const commentsWrapSx = { mt: 4 };
 
 const ItemDetail: React.FC<ItemDetailProps> = ({
   itemId,
@@ -287,6 +596,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   const itemShareUrl = useMemo(() => {
     if (!itemId || typeof window === "undefined") return "";
@@ -311,6 +621,21 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       },
     },
   );
+
+  const itemTransactions = useQuery<{
+    transactionsByItem: Array<{
+      id: string;
+      status: TransactionStatus;
+      createdAt: string;
+      updatedAt: string;
+      requestor: { id: string; nickname?: string | null; email: string };
+      receiver?: { id: string; nickname?: string | null; email: string } | null;
+    }>;
+  }>(ITEM_TRANSACTIONS_QUERY, {
+    variables: { itemId: itemId! },
+    skip: !itemId,
+    fetchPolicy: "cache-and-network",
+  });
 
   // Query for item config (for classification translation)
   const { data: configData } = useQuery<{
@@ -701,26 +1026,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const StatusBox = ({ status }: { status: string }) => {
     const STATUS_BOX_VARIANTS = {
       AVAILABLE: {
-        icon: "🎉",
-        badgeColor: "success.main",
-        backgroundColor: "success.light",
-        borderColor: "success.main",
+        icon: "i",
         titleKey: "item.availableMessage",
         descriptionKey: "item.availableDescription",
       },
       EXCHANGEABLE: {
-        icon: "🔄",
-        badgeColor: "info.main",
-        backgroundColor: "info.light",
-        borderColor: "info.main",
+        icon: "i",
         titleKey: "item.exchangeableMessage",
         descriptionKey: "item.exchangeableDescription",
       },
       GIFT: {
-        icon: "🎁",
-        badgeColor: "warning.main",
-        backgroundColor: "warning.light",
-        borderColor: "warning.main",
+        icon: "i",
         titleKey: "item.gift",
         descriptionKey: "item.giftDescription",
       },
@@ -732,48 +1048,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     if (!variant) return null;
 
     return (
-      <Box
-        // sx={{
-        //   mb: 2,
-        //   display: "flex",
-        //   alignItems: "center",
-        //   gap: 2,
-        //   p: 2.5,
-        //   backgroundColor: "white",
-        //   borderRadius: 2,
-        //   border: "1px solid",
-        //   borderColor: "grey.200",
-        // }}
-        sx={{
-          my: 4,
-          p: 3,
-          backgroundColor: variant.backgroundColor,
-          borderRadius: 2,
-          border: "2px solid",
-          borderColor: variant.borderColor,
-        }}
-      >
-        <Box
-        // sx={{
-        //   width: 40,
-        //   height: 40,
-        //   borderRadius: "50%",
-        //   backgroundColor: variant.badgeColor,
-        //   display: "flex",
-        //   alignItems: "center",
-        //   justifyContent: "center",
-        //   flexShrink: 0,
-        // }}
-        >
-          <Typography sx={{ fontSize: "1.2rem", lineHeight: 1 }}>
+      <Box sx={statusBoxContainerSx}>
+        <Box sx={statusBoxIconSx}>
+          <Typography sx={statusBoxIconTextSx}>
             {variant.icon}
           </Typography>
         </Box>
         <Box>
-          <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+          <Typography variant="subtitle2" fontWeight={700} sx={statusBoxTitleSx}>
             {t(variant.titleKey)}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={statusBoxBodySx}>
             {t(variant.descriptionKey)}
           </Typography>
         </Box>
@@ -781,14 +1066,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     );
   };
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
+  const formatHistoryDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -836,9 +1118,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   // Handle case when itemId is null
   if (!itemId) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+      <Container maxWidth="md" sx={pageContainerSx}>
+        <Box sx={headerRowSx}>
+          <IconButton onClick={handleBack} sx={backIconButtonSx}>
             <ArrowBack />
           </IconButton>
           <Typography variant="h4">{t("item.details")}</Typography>
@@ -889,20 +1171,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                       i18n.language,
                     )}
                     size="small"
-                    variant={
-                      segIndex === segments.length - 1 ? "filled" : "outlined"
-                    }
-                    color="info"
+                    variant="filled"
                     sx={{
-                      fontWeight:
-                        segIndex === segments.length - 1 ? "bold" : "normal",
-                      backgroundColor:
-                        segIndex === segments.length - 1
-                          ? "info.main"
-                          : "info.light",
-                      "& .MuiChip-label": {
-                        color: "white",
-                      },
+                      ...tagChipSx,
+                      fontWeight: segIndex === segments.length - 1 ? 600 : 400,
                     }}
                   />
                   {segIndex < segments.length - 1 && (
@@ -938,123 +1210,82 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     }
   }, [loading, error, data, user, navigate]);
 
+  const heroPreviewImage =
+    data?.item?.thumbnails?.[0] || data?.item?.images?.[0] || "";
+  const normalizedDescription =
+    data?.item?.description?.replace(/#Uncategorized\b/gi, "") || "";
+  const shouldShowReadMore = normalizedDescription.length > 180;
+
+  const handoverEvents = useMemo(() => {
+    if (!data?.item) {
+      return [] as Array<{ id: string; text: string; date: string; active?: boolean }>;
+    }
+
+    const ownerName = ownerData?.user?.nickname || ownerData?.user?.email || t("item.unknownOwner", "Owner");
+    const baseEvents: Array<{ id: string; text: string; date: string; active?: boolean }> = [
+      {
+        id: `owner-${data.item.id}`,
+        text: t("item.historyOwnedBy", "Owned by {{name}}", { name: ownerName }),
+        date: data.item.createdAt,
+      },
+    ];
+
+    const transactionEvents = (itemTransactions.data?.transactionsByItem || [])
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
+      )
+      .map((tx) => {
+        const receiverName = tx.receiver?.nickname || tx.receiver?.email;
+        const requestorName = tx.requestor?.nickname || tx.requestor?.email;
+
+        if (
+          (tx.status === TransactionStatus.Completed ||
+            tx.status === TransactionStatus.Transfered) &&
+          receiverName
+        ) {
+          return {
+            id: tx.id,
+            text: t("item.historyHandedTo", "Handed to {{name}}", {
+              name: receiverName,
+            }),
+            date: tx.updatedAt,
+            active: true,
+          };
+        }
+
+        if (requestorName) {
+          return {
+            id: tx.id,
+            text: t("item.historyRequestedBy", "Requested by {{name}}", {
+              name: requestorName,
+            }),
+            date: tx.createdAt,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean) as Array<{ id: string; text: string; date: string; active?: boolean }>;
+
+    return [...baseEvents, ...transactionEvents];
+  }, [data?.item, itemTransactions.data?.transactionsByItem, ownerData?.user, t]);
+
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={pageContainerSx}>
       {/* Header with Back Button */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+      <Box sx={headerRowSx}>
+        <IconButton onClick={handleBack} sx={backIconButtonSx}>
           <ArrowBack />
         </IconButton>
-        {data?.item ? (
-          <Typography variant="h4" sx={{ flexGrow: 1 }}>
-            {data.item.name}
-            {isOwner ? (
-              <>
-                <Chip
-                  label={t("item.owner", "Owner")}
-                  color="primary"
-                  size="small"
-                  sx={{ ml: 2 }}
-                />
-                {/* Pin/Unpin Toggle Button */}
-                <IconButton
-                  onClick={handlePinToggle}
-                  disabled={pinLoading || unpinLoading}
-                  sx={{
-                    ml: 1,
-                    color: isItemPinned() ? "primary.main" : "action.disabled",
-                    "&:hover": {
-                      backgroundColor: isItemPinned()
-                        ? "primary.light"
-                        : "action.hover",
-                    },
-                  }}
-                  title={
-                    isItemPinned()
-                      ? t("item.unpinItem", "Unpin item")
-                      : t("item.pinItem", "Pin item")
-                  }
-                >
-                  {pinLoading || unpinLoading ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <PinIcon
-                      sx={{
-                        transform: isItemPinned()
-                          ? "rotate(45deg)"
-                          : "rotate(0deg)",
-                        transition: "transform 0.2s ease-in-out",
-                      }}
-                    />
-                  )}
-                </IconButton>
-                {/* Pin Status Indicator */}
-                {ownerData?.user?.pinItems && (
-                  <Chip
-                    label={t("item.pinnedItemsStatus", "Pinned: {{count}}/5", {
-                      count: ownerData.user.pinItems.length,
-                    })}
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                )}
-              </>
-            ) : (
-              <>
-                {/* Show owner name if user is not the owner */}
-                {ownerData?.user && (
-                  <Chip
-                    label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                      } `}
-                    color="primary"
-                    size="small"
-                    sx={{ ml: 2, cursor: "pointer" }}
-                    onClick={() => handleUserClick(ownerData.user.id)}
-                  />
-                )}
-                {/* Show holder name if user is not the holder and holder is different from owner */}
-                {isHolder && (
-                  <Chip
-                    label={t("item.holder", "Holder")}
-                    color="secondary"
-                    size="small"
-                    sx={{ ml: 2 }}
-                  />
-                )}
-                {!isHolder &&
-                  holderData?.user &&
-                  data.item.holderId !== data.item.ownerId && (
-                    <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        } `}
-                      color="secondary"
-                      size="small"
-                      sx={{ ml: 2, cursor: "pointer" }}
-                      onClick={() => handleUserClick(holderData.user.id)}
-                    />
-                  )}
-                <Chip
-                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
-                    } `}
-                  color="secondary"
-                  size="small"
-                  sx={{ ml: 2, cursor: "pointer" }}
-                />
-              </>
-            )}
-          </Typography>
-        ) : (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-            <CircularProgress size={24} />
-            <Typography>{t("item.loadItems")}</Typography>
-          </Box>
-        )}
+        <Box sx={headerTitleGrowSx} />
         {data?.item && (
           <IconButton
             color="primary"
             onClick={() => setShareDialogOpen(true)}
             aria-label={t("item.shareItem", "Share item")}
-            sx={{ ml: 1 }}
+            sx={shareIconButtonSx}
           >
             <ShareIcon />
           </IconButton>
@@ -1063,14 +1294,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
       {/* Loading State */}
       {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
+        <Box sx={loadingBlockSx}>
           <CircularProgress size={60} />
         </Box>
       )}
 
       {/* Error State */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={alertMb2Sx}>
           {t("item.errorLoading")}: {error.message}
         </Alert>
       )}
@@ -1079,18 +1310,126 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       {data?.item && (
         <Paper
           elevation={1}
-          sx={{ p: 4 }}
-        //  sx={{ p: 4, backgroundColor: "grey.50", border: "1px solid", borderColor: "grey.200", borderRadius: 3 }}
+          sx={paperSectionSx}
         >
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mb: 0.5, display: "block" }}
+          <Box sx={heroRowSx}>
+            <Paper
+              elevation={0}
+              sx={heroImagePaperSx}
+              onClick={() => {
+                if (heroPreviewImage) {
+                  handleThumbnailClick(0);
+                }
+              }}
             >
-              {t("item.categories", "Categories")}:
+              {heroPreviewImage ? (
+                <img
+                  src={heroPreviewImage}
+                  alt={data.item.name}
+                  style={heroImageStyle}
+                />
+              ) : (
+                <Box sx={heroFallbackImageSx}>
+                  {t("item.noImage", "Image")}
+                </Box>
+              )}
+            </Paper>
+
+            <Box>
+              <Box sx={heroMetaRowSx}>
+                <Box sx={heroMetaItemSx}>
+                  <Typography sx={heroMetaLabelSx}>
+                    {t("item.status", "Status")}
+                  </Typography>
+                  <Chip
+                    label={t(`shortStatus.${data.item.status}`, data.item.status)}
+                    size="small"
+                    sx={tinyMetaChipSx}
+                  />
+                </Box>
+                <Box sx={heroMetaItemSx}>
+                  <Typography sx={heroMetaLabelSx}>
+                    {t("item.condition", "Condition")}
+                  </Typography>
+                  <Chip
+                    label={t(`item.conditions.${data.item.condition}`, data.item.condition)}
+                    size="small"
+                    sx={tinyMetaChipSx}
+                  />
+                </Box>
+                <Box sx={heroMetaItemSx}>
+                  <Typography sx={heroMetaLabelSx}>
+                    {t("item.deposit", "Deposit")}
+                  </Typography>
+                  <Chip
+                    label={`${data.item.deposit ?? 0}AUD`}
+                    size="small"
+                    sx={tinyMetaChipSx}
+                  />
+                </Box>
+              </Box>
+
+              <Typography sx={heroTitleSx}>{data.item.name}</Typography>
+
+              <Box sx={flexWrapRowSx}>
+                {isOwner ? (
+                  <>
+                    <Chip
+                      label={t("item.owner", "Owner")}
+                      size="small"
+                      sx={tagChipSx}
+                    />
+                    <IconButton
+                      onClick={handlePinToggle}
+                      disabled={pinLoading || unpinLoading}
+                      sx={ownerPinButtonSx}
+                      title={
+                        isItemPinned()
+                          ? t("item.unpinItem", "Unpin item")
+                          : t("item.pinItem", "Pin item")
+                      }
+                    >
+                      {pinLoading || unpinLoading ? (
+                        <CircularProgress size={18} />
+                      ) : (
+                        <PinIcon sx={pinIconSx(isItemPinned())} />
+                      )}
+                    </IconButton>
+                  </>
+                ) : (
+                  <>
+                    {ownerData?.user && (
+                      <Chip
+                        label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email}`}
+                        size="small"
+                        sx={tagChipSx}
+                        onClick={() => handleUserClick(ownerData.user.id)}
+                      />
+                    )}
+                    {!isHolder &&
+                      holderData?.user &&
+                      data.item.holderId !== data.item.ownerId && (
+                        <Chip
+                          label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email}`}
+                          size="small"
+                          sx={tagChipSx}
+                          onClick={() => handleUserClick(holderData.user.id)}
+                        />
+                      )}
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Box>
+
+          <Box sx={sectionMb4Sx}>
+            <Typography
+              variant="subtitle1"
+              sx={sectionTitleSx}
+            >
+              {t("item.tags", "Tags")}
             </Typography>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Box sx={tagsListSx}>
               {renderClassificationPath(data.item.clssfctns)}
               {data.item.category && data.item.category.length > 0 && (
                 <>
@@ -1098,15 +1437,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     <Chip
                       key={index}
                       label={category}
-                      variant="outlined"
-                      sx={{
-                        backgroundColor:
-                          category === "Comic" ? "primary.light" : "default",
-                        color:
-                          category === "Comic"
-                            ? "primary.contrastText"
-                            : "default",
-                      }}
+                      variant="filled"
+                      sx={tagChipSx}
                     />
                   ))}
                 </>
@@ -1115,73 +1447,84 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           </Box>
 
           {/* Description */}
-          {data.item.description && (
-            <Box sx={{ mb: 4 }}>
+          {normalizedDescription && (
+            <Box sx={sectionMb4Sx}>
               <Typography
-                variant="body1"
-                sx={{
-                  whiteSpace: "pre-wrap",
-                  backgroundColor: "white",
-                  p: 3,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "grey.200",
-                }}
+                variant="h5"
+                sx={sectionTitleSx}
               >
+                {t("item.description", "Book Description")}
+              </Typography>
+              <Typography variant="body1" sx={descriptionContentSx(showFullDescription)}>
                 {convertLinksToClickable(
-                  data.item.description?.replace(/#Uncategorized\b/gi, "") ||
-                  "",
+                  normalizedDescription,
                 )}
               </Typography>
+              {shouldShowReadMore && (
+                <Button
+                  variant="text"
+                  sx={descriptionToggleButtonSx}
+                  onClick={() => setShowFullDescription((prev) => !prev)}
+                >
+                  {showFullDescription
+                    ? t("common.showLess", "Show less")
+                    : t("common.readMore", "Read more")}
+                </Button>
+              )}
             </Box>
           )}
+
+          <Box sx={historySectionSx}>
+            <Typography sx={historyTitleSx}>
+              {t("item.handoverHistory", "Handover History")}
+            </Typography>
+            <Box sx={historyLineWrapSx}>
+              <Box sx={historyLineSx} />
+              {handoverEvents.map((event) => (
+                <Box key={event.id} sx={historyRowSx}>
+                  <Box sx={event.active ? historyDotActiveSx : historyDotSx} />
+                  <Typography sx={historyItemTextSx}>{event.text}</Typography>
+                  <Typography sx={historyDateTextSx}>
+                    {formatHistoryDate(event.date)}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
 
           {/* IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={{ mb: 4 }}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "transform 0.2s",
-                          "&:hover": { transform: "scale(1.05)" },
-                        }}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1} `}
-                          style={{
-                            width: "100%",
-                            height: "120px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
+              <Box sx={mb4Sx}>
+                <Box sx={sectionMb4Sx}>
+                  <Grid container spacing={2}>
+                    {(data.item.thumbnails && data.item.thumbnails.length > 0
+                      ? data.item.thumbnails
+                      : data.item.images || []
+                    ).map((image, index) => (
+                      <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                        <Paper
+                          elevation={2}
+                          sx={thumbnailPaperSx}
+                          onClick={() => handleThumbnailClick(index)}
+                        >
+                          <img
+                            src={image}
+                            alt={`${data.item.name} - Thumbnail ${index + 1} `}
+                            style={thumbnailImageStyle}
+                          />
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
               </Box>
             )}
 
           {/* ITEM INFO GRID */}
           <Card
             elevation={0}
-            sx={{
-              mb: 4,
-              backgroundColor: "white",
-              border: "1px solid",
-              borderColor: "grey.200",
-              borderRadius: 2,
-            }}
+            sx={infoCardSx}
           >
             <CardContent>
               <Grid container spacing={3}>
@@ -1291,38 +1634,47 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* STATUS + PRIMARY ACTION — "can I get this?" */}
           <StatusBox status={data.item.status} />
 
-          {(canBorrowBook || canReturnBook || !user) && (
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              fullWidth
-              onClick={handleRequestClick}
-              sx={{
-                mb: 4,
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: 700,
-                borderRadius: 2,
-              }}
-              disabled={contactHolderLoading}
-            >
-              {contactHolderLoading ? (
-                <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
-              ) : null}
-              {canReturnBook ? t("item.return") : t("item.request")}
-            </Button>
-          )}
+          <Box sx={primaryActionsRowSx}>
+            {user && availableBooklists.length > 0 ? (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="large"
+                onClick={handleAddToBooklistClick}
+                disabled={newsRecent.loading || updateBooklistLoading}
+                startIcon={<ArticleIcon />}
+                sx={addBookshelfButtonSx}
+              >
+                {t("item.addbooklist", "Add to Bookshelf")}
+              </Button>
+            ) : (
+              <Box />
+            )}
+
+            {(canBorrowBook || canReturnBook || !user) ? (
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                fullWidth
+                onClick={handleRequestClick}
+                sx={primaryActionButtonSx}
+                disabled={contactHolderLoading}
+              >
+                {contactHolderLoading ? (
+                  <CircularProgress size={20} sx={inheritProgressSx} />
+                ) : null}
+                {canReturnBook
+                  ? t("item.return")
+                  : t("item.requestToBorrow", "Request To Borrow")}
+              </Button>
+            ) : (
+              <Box />
+            )}
+          </Box>
 
           {/* 7. SECONDARY ACTIONS */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 1,
-              flexWrap: "wrap",
-            }}
-          >
+          <Box sx={secondaryActionsRowSx}>
             {(isOwner || isHolder) && (
               <Button
                 variant="outlined"
@@ -1347,19 +1699,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </Button>
             )}
 
-            {user && availableBooklists.length > 0 && (
-              <Button
-                variant="contained"
-                color="secondary"
-                size="large"
-                onClick={handleAddToBooklistClick}
-                disabled={newsRecent.loading || updateBooklistLoading}
-                startIcon={<ArticleIcon />}
-              >
-                {t("item.addbooklist", "Add to Booklist")}
-              </Button>
-            )}
-
             {(isOwner || isAdmin) && (
               <Button
                 variant="outlined"
@@ -1371,18 +1710,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </Button>
             )}
           </Box>
+
           {/* related news */}
           {itemNewsPosts?.data?.newsRecentPosts &&
             itemNewsPosts?.data?.newsRecentPosts.length > 0 && (
               <List
-                sx={{
-                  whiteSpace: "pre-wrap",
-                  backgroundColor: "grey.50",
-                  p: 3,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "grey.200",
-                }}
+                sx={relatedNewsListSx}
               >
                 {itemNewsPosts.data.newsRecentPosts.map((news: SimpleNews) => (
                   <NewsSummary
@@ -1415,20 +1748,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         slotProps={{ backdrop: { timeout: 500 } }}
       >
         <Fade in={locationPromptOpen}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              boxShadow: 24,
-              p: 4,
-              maxWidth: 400,
-              width: "90%",
-            }}
-          >
+          <Box sx={locationPromptModalSx}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               {t("item.locationRequired", "Location Required")}
             </Typography>
@@ -1438,7 +1758,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 "Please set your location in your profile before requesting an item. This helps us match you with nearby items.",
               )}
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+            <Box sx={locationPromptActionsSx}>
               <Button onClick={() => setLocationPromptOpen(false)}>
                 {t("common.cancel", "Cancel")}
               </Button>
@@ -1499,7 +1819,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       >
         <DialogTitle>{t("item.addbooklist", "Add to Booklist")}</DialogTitle>
         <DialogContent>
-          <Box sx={{ pt: 1 }}>
+          <Box sx={dialogTopPaddingSx}>
             <FormControl fullWidth>
               <InputLabel id="booklist-select-label">
                 {t("item.booklist", "Booklist")}
@@ -1525,7 +1845,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 fullWidth
                 multiline
                 rows={3}
-                sx={{ mt: 2 }}
+                sx={mt2Sx}
               />
             </FormControl>
           </Box>
@@ -1547,7 +1867,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             }
           >
             {addItemToNewsPostLoading ? (
-              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <CircularProgress size={20} sx={progressMr1Sx} />
             ) : null}
             {t("common.add", "Add")}
           </Button>
@@ -1564,7 +1884,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         <Alert
           onClose={handleCloseSuccessSnackbar}
           severity="success"
-          sx={{ width: "100%" }}
+          sx={fullWidthSx}
         >
           {successMessage || t("item.requestSuccess")}
         </Alert>
@@ -1580,7 +1900,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         <Alert
           onClose={handleCloseErrorSnackbar}
           severity="error"
-          sx={{ width: "100%" }}
+          sx={fullWidthSx}
         >
           {t("item.requestError")}: {errorMessage}
         </Alert>
@@ -1597,7 +1917,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         itemName={data?.item?.name}
       />
       {data?.item && (
-        <Box sx={{ mt: 4 }}>
+        <Box sx={commentsWrapSx}>
           <ItemComments itemId={itemId!} currentUser={user} />
         </Box>
       )}

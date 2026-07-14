@@ -38,6 +38,7 @@ import { gql, useQuery } from "@apollo/client";
 import { User, Item, Category, Binder } from "../generated/graphql";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { alpha } from "@mui/material/styles";
 import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import BookSpinePreview from "./BookSpinePreview";
 import PaginationControls from "./PaginationControls";
@@ -46,6 +47,7 @@ import UpdateUser from "./UserProfile";
 import { USER_DETAIL_QUERY } from "../hook/user";
 import ContactMethods from "./ContactMethods";
 import UserProfileShareDialog from "./UserProfileShareDialog";
+import { semanticTokens } from "../styles/semanticTokens";
 
 // GraphQL query to fetch user's items with pagination and category filter
 const USER_ITEMS_QUERY = gql`
@@ -111,6 +113,22 @@ interface TagCloudData {
 
 const ITEMS_PER_PAGE = 12; // Match Item.all.tsx
 
+const pageContainerMdSx = { py: 4 };
+const pageContainerLgSx = { py: 4 };
+const headerRowSx = { display: "flex", alignItems: "center", mb: 3 };
+const backIconButtonSx = { mr: 2 };
+const sectionTitleWithIconSx = { mb: 2, display: "flex", alignItems: "center" };
+const iconInlineSx = { mr: 1, verticalAlign: "middle" };
+const loadingCenterPaddedSx = { display: "flex", justifyContent: "center", py: 8 };
+const resultHeaderRowSx = {
+  mb: 2,
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};
+const itemsGridSx = { mb: 3 };
+const paginationWrapSx = { mt: 4 };
+
 const UserDetail: React.FC<UserDetailProps> = ({
   userId,
   currentUser,
@@ -148,8 +166,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Count for selected category (or total) comes free from itemCategory metadata
   const selectedCategoryCount = selectedCategory
     ? (userData?.user?.itemCategory?.find(
-        (c) => c.category === selectedCategory,
-      )?.count ?? ITEMS_PER_PAGE)
+      (c) => c.category === selectedCategory,
+    )?.count ?? ITEMS_PER_PAGE)
     : null;
   const totalUserItemCount =
     userData?.user?.itemCategory?.reduce((sum, c) => sum + c.count, 0) ?? 0;
@@ -314,9 +332,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Prepare data for TagCloud component
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-        value: categoryItem.category,
-        count: categoryItem.count,
-      }))
+      value: categoryItem.category,
+      count: categoryItem.count,
+    }))
     : [];
 
   // Custom renderer for TagCloud
@@ -329,23 +347,25 @@ const UserDetail: React.FC<UserDetailProps> = ({
         component="span"
         sx={{
           fontSize: `${size}px`,
-          color: isSelected ? "#1976d2" : color,
+          color: isSelected ? semanticTokens.color.brandPrimary : color,
           fontWeight: isSelected ? "bold" : "normal",
           cursor: "pointer",
           margin: "4px",
           padding: "4px 8px",
           borderRadius: "4px",
           backgroundColor: isSelected
-            ? "rgba(25, 118, 210, 0.1)"
+            ? alpha(semanticTokens.color.brandPrimary, 0.1)
             : "transparent",
-          border: isSelected ? "2px solid #1976d2" : "1px solid transparent",
+          border: isSelected
+            ? `2px solid ${semanticTokens.color.brandPrimary}`
+            : "1px solid transparent",
           display: "inline-block",
           transition: "all 0.2s ease-in-out",
           "&:hover": {
             transform: "scale(1.05)",
             backgroundColor: isSelected
-              ? "rgba(25, 118, 210, 0.2)"
-              : "rgba(0, 0, 0, 0.05)",
+              ? alpha(semanticTokens.color.brandPrimary, 0.2)
+              : alpha(semanticTokens.color.textPrimary, 0.05),
           },
         }}
         title={`${tag.value} (${tag.count} items)`}
@@ -362,11 +382,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-              item.location.latitude,
-              item.location.longitude,
-              currentUser.location.latitude,
-              currentUser.location.longitude,
-            )
+            item.location.latitude,
+            item.location.longitude,
+            currentUser.location.latitude,
+            currentUser.location.longitude,
+          )
           : 0,
     })) || [];
 
@@ -377,20 +397,20 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-              item.location.latitude,
-              item.location.longitude,
-              currentUser.location.latitude,
-              currentUser.location.longitude,
-            )
+            item.location.latitude,
+            item.location.longitude,
+            currentUser.location.latitude,
+            currentUser.location.longitude,
+          )
           : 0,
     })) || [];
 
   // Handle case when userId is null
   if (!userId) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+      <Container maxWidth="md" sx={pageContainerMdSx}>
+        <Box sx={headerRowSx}>
+          <IconButton onClick={handleBack} sx={backIconButtonSx}>
             <ArrowBack />
           </IconButton>
           <Typography variant="h4">
@@ -407,7 +427,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
   const sortedCategories = userData?.user?.itemCategory;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={pageContainerLgSx}>
       {/* Header with Back Button */}
       <Box
         sx={{
@@ -419,7 +439,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
         }}
       >
         {onBack && (
-          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+          <IconButton onClick={handleBack} sx={backIconButtonSx}>
             <ArrowBack />
           </IconButton>
         )}
@@ -515,9 +535,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Grid size={{ xs: 12 }}>
                 <Typography
                   variant="h6"
-                  sx={{ mb: 2, display: "flex", alignItems: "center" }}
+                  sx={sectionTitleWithIconSx}
                 >
-                  <PersonIcon sx={{ mr: 1 }} />
+                  <PersonIcon sx={iconInlineSx} />
                   {t("user.basicInfo", "Basic Information")}
                 </Typography>
               </Grid>
@@ -558,7 +578,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 {userData.user.address && (
                   <Grid size={{ xs: 12 }}>
                     <Typography variant="body1" color="text.secondary">
-                      <HomeIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                      <HomeIcon sx={iconInlineSx} />
                       <strong>{t("user.address", "Address")}:</strong>{" "}
                       {userData.user.address}
                     </Typography>
@@ -569,7 +589,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 {currentUser && getDistanceToUser() && (
                   <Grid size={{ xs: 12 }}>
                     <Typography variant="body1" color="text.secondary">
-                      <LocationOnIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                      <LocationOnIcon sx={iconInlineSx} />
                       <strong>
                         {t("user.distance", "Distance from you")}:
                       </strong>{" "}
@@ -585,7 +605,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
               </Grid>
               {/* Contact Methods in read-only mode */}
               {userData?.user?.contactMethods &&
-              userData.user?.contactMethods.length > 0 ? (
+                userData.user?.contactMethods.length > 0 ? (
                 <Box
                   sx={{
                     mb: 2,
@@ -619,9 +639,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
           <Paper elevation={1} sx={{ p: 4, mt: 3, mb: 3 }}>
             <Typography
               variant="h6"
-              sx={{ mb: 2, display: "flex", alignItems: "center" }}
+              sx={sectionTitleWithIconSx}
             >
-              <LabelIcon sx={{ mr: 1 }} />
+              <LabelIcon sx={iconInlineSx} />
               {t("user.pinnedItems", "Pinned Items")}
             </Typography>
 
@@ -630,9 +650,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 <Grid
                   container
                   spacing={{ xs: 1, sm: 2 }}
-                  sx={{
-                    mb: 2,
-                  }}
+                  sx={{ mb: 2 }}
                 >
                   {pinnedItemsWithDistance.map((item) => (
                     <Grid key={item.id} size={{ xs: 2, sm: 1.5, md: 1 }}>
@@ -659,13 +677,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Alert severity="info">
                 {isCurrentUser
                   ? t(
-                      "user.noPinnedItemsYou",
-                      "You haven't pinned any items yet.",
-                    )
+                    "user.noPinnedItemsYou",
+                    "You haven't pinned any items yet.",
+                  )
                   : t(
-                      "user.noPinnedItemsUser",
-                      "This user hasn't pinned any items.",
-                    )}
+                    "user.noPinnedItemsUser",
+                    "This user hasn't pinned any items.",
+                  )}
               </Alert>
             )}
           </Paper>
@@ -676,9 +694,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Paper elevation={1} sx={{ p: 4, mb: 4 }}>
                 <Typography
                   variant="h6"
-                  sx={{ mb: 2, display: "flex", alignItems: "center" }}
+                  sx={sectionTitleWithIconSx}
                 >
-                  <LabelIcon sx={{ mr: 1 }} />
+                  <LabelIcon sx={iconInlineSx} />
                   {t("user.itemCategories", "Item Categories")}
                 </Typography>
 
@@ -763,31 +781,26 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 {selectedCategory ? (
                   <>
                     <Box
-                      sx={{
-                        mb: 2,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
+                      sx={resultHeaderRowSx}
                     >
                       <Typography variant="h6">
                         {isCurrentUser
                           ? t(
-                              "user.yourItemsInCategory",
-                              "Your {{category}} Items",
-                              {
-                                category: selectedCategory,
-                              },
-                            )
+                            "user.yourItemsInCategory",
+                            "Your {{category}} Items",
+                            {
+                              category: selectedCategory,
+                            },
+                          )
                           : t(
-                              "user.userItemsInCategory",
-                              "{{name}}'s {{category}} Items",
-                              {
-                                name:
-                                  userData.user.nickname || userData.user.email,
-                                category: selectedCategory,
-                              },
-                            )}
+                            "user.userItemsInCategory",
+                            "{{name}}'s {{category}} Items",
+                            {
+                              name:
+                                userData.user.nickname || userData.user.email,
+                              category: selectedCategory,
+                            },
+                          )}
                         {isExchangePointAdmin && includeExchangePointItems && (
                           <Chip
                             label={t(
@@ -806,24 +819,18 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         {itemsLoading
                           ? t("common.loading", "Loading...")
                           : t(
-                              "itemsAll.itemsFound",
-                              "Found {{count}} item(s)",
-                              {
-                                count: totalFilteredCount,
-                              },
-                            )}
+                            "itemsAll.itemsFound",
+                            "Found {{count}} item(s)",
+                            {
+                              count: totalFilteredCount,
+                            },
+                          )}
                       </Typography>
                     </Box>
 
                     {/* Loading State */}
                     {itemsLoading && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          py: 8,
-                        }}
-                      >
+                      <Box sx={loadingCenterPaddedSx}>
                         <CircularProgress />
                       </Box>
                     )}
@@ -834,9 +841,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         <Grid
                           container
                           spacing={{ xs: 1, sm: 2 }}
-                          sx={{
-                            mb: 3,
-                          }}
+                          sx={itemsGridSx}
                         >
                           {itemsWithDistance.map((item) => (
                             <Grid
@@ -853,7 +858,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         </Grid>
 
                         {/* Pagination Controls */}
-                        <Box sx={{ mt: 4 }}>
+                        <Box sx={paginationWrapSx}>
                           <PaginationControls
                             currentPage={itemsPage}
                             onPageChange={handleItemsPageChange}
@@ -873,19 +878,19 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         <Alert severity="info">
                           {isCurrentUser
                             ? t(
-                                "user.noItemsInCategoryYou",
-                                "You haven't added any {{category}} items yet.",
-                                {
-                                  category: selectedCategory,
-                                },
-                              )
+                              "user.noItemsInCategoryYou",
+                              "You haven't added any {{category}} items yet.",
+                              {
+                                category: selectedCategory,
+                              },
+                            )
                             : t(
-                                "user.noItemsInCategoryUser",
-                                "This user hasn't added any {{category}} items yet.",
-                                {
-                                  category: selectedCategory,
-                                },
-                              )}
+                              "user.noItemsInCategoryUser",
+                              "This user hasn't added any {{category}} items yet.",
+                              {
+                                category: selectedCategory,
+                              },
+                            )}
                         </Alert>
                       )
                     )}
@@ -893,12 +898,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 ) : (
                   <>
                     <Box
-                      sx={{
-                        mb: 2,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
+                      sx={resultHeaderRowSx}
                     >
                       <Typography variant="h6">
                         {isCurrentUser
@@ -909,23 +909,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         {itemsLoading
                           ? t("common.loading", "Loading...")
                           : t(
-                              "itemsAll.itemsFound",
-                              "Found {{count}} item(s)",
-                              {
-                                count: totalFilteredCount,
-                              },
-                            )}
+                            "itemsAll.itemsFound",
+                            "Found {{count}} item(s)",
+                            {
+                              count: totalFilteredCount,
+                            },
+                          )}
                       </Typography>
                     </Box>
 
                     {itemsLoading && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          py: 8,
-                        }}
-                      >
+                      <Box sx={loadingCenterPaddedSx}>
                         <CircularProgress />
                       </Box>
                     )}
@@ -935,7 +929,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         <Grid
                           container
                           spacing={{ xs: 1, sm: 2 }}
-                          sx={{ mb: 3 }}
+                          sx={itemsGridSx}
                         >
                           {itemsWithDistance.map((item) => (
                             <Grid
@@ -950,7 +944,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                             </Grid>
                           ))}
                         </Grid>
-                        <Box sx={{ mt: 4 }}>
+                        <Box sx={paginationWrapSx}>
                           <PaginationControls
                             currentPage={itemsPage}
                             onPageChange={handleItemsPageChange}
@@ -970,13 +964,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         <Alert severity="info">
                           {isCurrentUser
                             ? t(
-                                "item.noLentItems",
-                                "You currently have no items.",
-                              )
+                              "item.noLentItems",
+                              "You currently have no items.",
+                            )
                             : t(
-                                "user.noPinnedItemsUser",
-                                "This user hasn't added any items yet.",
-                              )}
+                              "user.noPinnedItemsUser",
+                              "This user hasn't added any items yet.",
+                            )}
                         </Alert>
                       )
                     )}

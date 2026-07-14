@@ -10,12 +10,51 @@ import {
   Fade,
   IconButton,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Close as CloseIcon } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import {
   getContentRatingOption,
   DEFAULT_CONTENT_RATING,
 } from "../utils/contentRating";
+import { semanticTokens } from "../styles/semanticTokens";
+
+const absoluteFillSx = { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" };
+const centeredContentSx = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+const coverInfoBoxSx = { p: 2, backgroundColor: "background.paper" };
+const coverTitleSx = { mb: 1, fontWeight: "bold" };
+const wrapChipsSx = { display: "flex", gap: 0.5, flexWrap: "wrap" };
+const publishedYearSx = { mt: 1, display: "block" };
+const contentOverlayGradient = `linear-gradient(to bottom, ${alpha(semanticTokens.color.textMuted, 0.3)}, ${alpha(semanticTokens.color.textMuted, 0.5)})`;
+const modalBackdropSx = { backgroundColor: alpha(semanticTokens.color.textMuted, 0.85) };
+const closeButtonSx = {
+  position: "absolute",
+  top: -40,
+  right: -40,
+  color: semanticTokens.color.textInverse,
+  backgroundColor: alpha(semanticTokens.color.textMuted, 0.5),
+  "&:hover": {
+    backgroundColor: alpha(semanticTokens.color.textMuted, 0.7),
+  },
+};
+const conditionBadgeSx = {
+  position: "absolute",
+  bottom: 8,
+  left: 8,
+  backgroundColor: alpha(semanticTokens.color.textMuted, 0.7),
+  color: semanticTokens.color.textInverse,
+};
+const distanceBadgeSx = {
+  position: "absolute",
+  bottom: 8,
+  right: 8,
+  backgroundColor: alpha(semanticTokens.color.brandPrimary, 0.9),
+  color: semanticTokens.color.textInverse,
+};
 
 interface BookSpinePreviewProps {
   item: {
@@ -122,9 +161,9 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
           transition: "all 0.2s ease-in-out",
           "&:hover": {
             transform: "translateY(-4px)",
-            boxShadow: "0 8px 16px rgba(0,0,0,0.3)",
+            boxShadow: semanticTokens.shadow.cardHover,
           },
-          boxShadow: "2px 4px 8px rgba(0,0,0,0.2)",
+          boxShadow: semanticTokens.shadow.cardSoft,
           borderRadius: 1,
           overflow: "hidden",
         }}
@@ -145,15 +184,14 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
               : backgroundColor,
             "&::before": hasImage
               ? {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background:
-                    "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5))",
-                }
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: contentOverlayGradient,
+              }
               : {},
           }}
         >
@@ -259,7 +297,7 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
         slotProps={{
           backdrop: {
             timeout: 300,
-            sx: { backgroundColor: "rgba(0, 0, 0, 0.85)" },
+            sx: modalBackdropSx,
           },
         }}
       >
@@ -278,16 +316,7 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
             {/* Close button */}
             <IconButton
               onClick={handleModalClose}
-              sx={{
-                position: "absolute",
-                top: -40,
-                right: -40,
-                color: "white",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                "&:hover": {
-                  backgroundColor: "rgba(0, 0, 0, 0.7)",
-                },
-              }}
+              sx={closeButtonSx}
             >
               <CloseIcon />
             </IconButton>
@@ -325,176 +354,131 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
                     backgroundColor: hasImage ? "transparent" : backgroundColor,
                     overflow: "hidden",
                   }}
+                // sx={{ ...absoluteFillSx, objectFit: "cover" }}
                 >
-                  {hasImage ? (
-                    <Box
-                      component="img"
-                      src={item.images![0]}
-                      alt={item.name}
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        p: 2,
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: "bold",
-                          textAlign: "center",
-                          color: "text.primary",
-                        }}
-                      >
-                        {item.name}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* Status Badge */}
-                  <Chip
-                    label={t(`shortStatus.${item.status}`, item.status)}
-                    size="small"
+                  <Typography
+                    variant="h6"
                     sx={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      backgroundColor: getStatusColor(item.status),
-                      color: "white",
                       fontWeight: "bold",
+                      textAlign: "center",
+                      color: "text.primary",
                     }}
-                  />
-
-                  {/* Condition Badge */}
-                  <Chip
-                    label={t(
-                      `item.conditions.${item.condition}`,
-                      item.condition,
-                    )}
-                    size="small"
-                    variant="filled"
-                    sx={{
-                      position: "absolute",
-                      bottom: 8,
-                      left: 8,
-                      backgroundColor: "rgba(0, 0, 0, 0.7)",
-                      color: "white",
-                    }}
-                  />
-
-                  {/* Distance Badge */}
-                  {distance !== undefined && (
-                    <Chip
-                      label={`${distance.toFixed(1)} km`}
-                      size="small"
-                      variant="filled"
-                      sx={{
-                        position: "absolute",
-                        bottom: 8,
-                        right: 8,
-                        backgroundColor: "rgba(25, 118, 210, 0.9)",
-                        color: "white",
-                      }}
-                    />
-                  )}
-
-                  {/* Content Rating Badge */}
-                  {item.contentRating != null &&
-                    item.contentRating >= DEFAULT_CONTENT_RATING &&
-                    (() => {
-                      const opt = getContentRatingOption(item.contentRating!);
-                      return opt ? (
-                        <Chip
-                          label={t(opt.labelKey, opt.labelKey)}
-                          size="small"
-                          color={opt.color as any}
-                          sx={{
-                            position: "absolute",
-                            top: 8,
-                            left: 8,
-                          }}
-                        />
-                      ) : null;
-                    })()}
-                </Box>
-
-                {/* Category and Classification Info */}
-                <Box sx={{ p: 2, backgroundColor: "background.paper" }}>
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
+                  >
                     {item.name}
                   </Typography>
+                </Box>
 
-                  {/* Categories */}
-                  {item.category && item.category.length > 0 && (
-                    <Box
-                      sx={{
-                        mb: 1,
-                        display: "flex",
-                        gap: 0.5,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {item.category.map((cat, idx) => (
+
+                {/* Status Badge */}
+                <Chip
+                  label={t(`shortStatus.${item.status}`, item.status)}
+                  size="small"
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    backgroundColor: getStatusColor(item.status),
+                    color: "white",
+                    fontWeight: "bold",
+                  }}
+                />
+
+                {/* Condition Badge */}
+                <Chip
+                  label={t(
+                    `item.conditions.${item.condition}`,
+                    item.condition,
+                  )}
+                  size="small"
+                  variant="filled"
+                  sx={conditionBadgeSx}
+                />
+
+                {/* Distance Badge */}
+                {distance !== undefined && (
+                  <Chip
+                    label={`${distance.toFixed(1)} km`}
+                    size="small"
+                    variant="filled"
+                    sx={distanceBadgeSx}
+                  />
+                )}
+
+                {/* Content Rating Badge */}
+                {item.contentRating != null &&
+                  item.contentRating >= DEFAULT_CONTENT_RATING &&
+                  (() => {
+                    const opt = getContentRatingOption(item.contentRating!);
+                    return opt ? (
+                      <Chip
+                        label={t(opt.labelKey, opt.labelKey)}
+                        size="small"
+                        color={opt.color as any}
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          left: 8,
+                        }}
+                      />
+                    ) : null;
+                  })()}
+              </Box>
+
+              {/* Category and Classification Info */}
+              <Box sx={coverInfoBoxSx}>
+                <Typography variant="h6" sx={coverTitleSx}>
+                  {item.name}
+                </Typography>
+
+                {/* Categories */}
+                {item.category && item.category.length > 0 && (
+                  <Box
+                    sx={{ ...wrapChipsSx, mb: 1 }}
+                  >
+                    {item.category.map((cat, idx) => (
+                      <Chip
+                        key={idx}
+                        label={cat}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Box>
+                )}
+
+                {/* Classifications */}
+                {item.clssfctns && item.clssfctns.length > 0 && (
+                  <Box sx={wrapChipsSx}>
+                    {item.clssfctns.map((cls, idx) => {
+                      const segments = cls.split("/").filter((s) => s.trim());
+                      const label = segments[segments.length - 1];
+                      return (
                         <Chip
                           key={idx}
-                          label={cat}
+                          label={label}
                           size="small"
-                          variant="outlined"
+                          variant="filled"
+                          color="info"
                         />
-                      ))}
-                    </Box>
-                  )}
+                      );
+                    })}
+                  </Box>
+                )}
 
-                  {/* Classifications */}
-                  {item.clssfctns && item.clssfctns.length > 0 && (
-                    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                      {item.clssfctns.map((cls, idx) => {
-                        const segments = cls.split("/").filter((s) => s.trim());
-                        const label = segments[segments.length - 1];
-                        return (
-                          <Chip
-                            key={idx}
-                            label={label}
-                            size="small"
-                            variant="filled"
-                            color="info"
-                          />
-                        );
-                      })}
-                    </Box>
-                  )}
-
-                  {item.publishedYear && (
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mt: 1, display: "block" }}
-                    >
-                      {item.publishedYear}
-                    </Typography>
-                  )}
-                </Box>
+                {item.publishedYear && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={publishedYearSx}
+                  >
+                    {item.publishedYear}
+                  </Typography>
+                )}
               </Box>
             </Card>
-          </Box>
-        </Fade>
-      </Modal>
+          </Box >
+        </Fade >
+      </Modal >
     </>
   );
 };

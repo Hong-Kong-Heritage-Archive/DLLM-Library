@@ -26,6 +26,7 @@ import {
   Telegram as TelegramIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
+import { semanticTokens } from "../styles/semanticTokens";
 
 function ThreadsIcon(props: SvgIconProps) {
   return (
@@ -242,7 +243,7 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
             <Typography
               variant="body2"
               sx={{
-                fontFamily: "monospace",
+                fontFamily: semanticTokens.font.mono,
                 wordBreak: "break-all",
                 bgcolor: "grey.100",
                 p: 1.5,
@@ -277,7 +278,7 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
               <Button
                 variant="outlined"
                 fullWidth
-                startIcon={<FacebookIcon sx={{ color: "#1877F2" }} />}
+                startIcon={<FacebookIcon sx={{ color: semanticTokens.color.brandPrimary }} />}
                 onClick={shareViaFacebook}
               >
                 Facebook
@@ -287,7 +288,7 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
               <Button
                 variant="outlined"
                 fullWidth
-                startIcon={<ThreadsIcon sx={{ color: "#000" }} />}
+                startIcon={<ThreadsIcon sx={{ color: semanticTokens.color.textPrimary }} />}
                 onClick={shareViaThreads}
               >
                 Threads
@@ -297,7 +298,7 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
               <Button
                 variant="outlined"
                 fullWidth
-                startIcon={<WhatsAppIcon sx={{ color: "#25D366" }} />}
+                startIcon={<WhatsAppIcon sx={{ color: semanticTokens.color.success }} />}
                 onClick={shareViaWhatsApp}
               >
                 WhatsApp
@@ -307,7 +308,7 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
               <Button
                 variant="outlined"
                 fullWidth
-                startIcon={<TelegramIcon sx={{ color: "#0088cc" }} />}
+                startIcon={<TelegramIcon sx={{ color: semanticTokens.color.textSecondary }} />}
                 onClick={shareViaTelegram}
               >
                 Telegram
@@ -350,9 +351,9 @@ const ItemShareDialog: React.FC<ItemShareDialogProps> = ({
         >
           {copiedWithMessage
             ? t(
-                "item.shareCopiedMessageAndLink",
-                "Message and link copied to clipboard!",
-              )
+              "item.shareCopiedMessageAndLink",
+              "Message and link copied to clipboard!",
+            )
             : t("item.shareLinkCopied", "Link copied")}
         </Alert>
       </Snackbar>

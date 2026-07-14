@@ -8,8 +8,10 @@ import {
   Box,
   Chip,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { ImageNotSupported } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
+import { semanticTokens } from "../styles/semanticTokens";
 
 interface NewsPostProps {
   news: {
@@ -50,6 +52,27 @@ const NewsPost: React.FC<NewsPostProps> = ({
   };
 
   const hasImage = showImage && news.images && news.images.length > 0;
+
+  const chipSx = {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: alpha(semanticTokens.color.textPrimary, 0.7),
+    color: semanticTokens.color.textInverse,
+    fontSize: "0.7rem",
+    height: 20,
+  };
+
+  const tagChipSx = {
+    fontSize: isPortrait ? "0.6rem" : "0.7rem",
+    height: isPortrait ? 16 : 20,
+  };
+
+  const viewMoreSx = {
+    fontWeight: "medium",
+    fontSize: isPortrait ? "0.7rem" : "0.8rem",
+    alignSelf: "flex-start",
+  };
 
   // Calculate image height based on portrait mode
   const imageHeight = isPortrait
@@ -99,37 +122,13 @@ const NewsPost: React.FC<NewsPostProps> = ({
               sx={{ objectFit: "cover" }}
             />
             {/* Date Badge */}
-            <Chip
-              label={formatDate(news.createdAt)}
-              size="small"
-              sx={{
-                position: "absolute",
-                top: 4,
-                right: 4,
-                backgroundColor: "rgba(0, 0, 0, 0.7)",
-                color: "white",
-                fontSize: "0.7rem",
-                height: 20,
-              }}
-            />
+            <Chip label={formatDate(news.createdAt)} size="small" sx={chipSx} />
           </Box>
         )}
 
         {/* Placeholder for no image */}
         {showImage && !news.images?.length && (
-          <Chip
-            label={formatDate(news.createdAt)}
-            size="small"
-            sx={{
-              position: "absolute",
-              top: 4,
-              right: 4,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              color: "white",
-              fontSize: "0.7rem",
-              height: 20,
-            }}
-          />
+          <Chip label={formatDate(news.createdAt)} size="small" sx={chipSx} />
         )}
 
         {/* News Content */}
@@ -187,10 +186,7 @@ const NewsPost: React.FC<NewsPostProps> = ({
                     label={tag}
                     size="small"
                     variant="outlined"
-                    sx={{
-                      fontSize: isPortrait ? "0.6rem" : "0.7rem",
-                      height: isPortrait ? 16 : 20,
-                    }}
+                    sx={tagChipSx}
                   />
                 ))}
                 {news.tags.length > (isPortrait ? 1 : 2) && (
@@ -198,10 +194,7 @@ const NewsPost: React.FC<NewsPostProps> = ({
                     label={`+${news.tags.length - (isPortrait ? 1 : 2)}`}
                     size="small"
                     variant="outlined"
-                    sx={{
-                      fontSize: isPortrait ? "0.6rem" : "0.7rem",
-                      height: isPortrait ? 16 : 20,
-                    }}
+                    sx={tagChipSx}
                   />
                 )}
               </Box>
@@ -209,15 +202,7 @@ const NewsPost: React.FC<NewsPostProps> = ({
           </Box>
 
           {/* View More Link */}
-          <Typography
-            variant="caption"
-            color="primary"
-            sx={{
-              fontWeight: "medium",
-              fontSize: isPortrait ? "0.7rem" : "0.8rem",
-              alignSelf: "flex-start",
-            }}
-          >
+          <Typography variant="caption" color="primary" sx={viewMoreSx}>
             {t("news.readMore")} →
           </Typography>
         </CardContent>

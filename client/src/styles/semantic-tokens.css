@@ -1,0 +1,43 @@
+/* AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY. */
+/* Source: src/design-tokens.json */
+:root {
+  --color-brand-primary: #DB036B;
+  --color-brand-primary-hover: #B3005A;
+  --color-brand-accent: #8A0047;
+  --color-text-primary: #190609;
+  --color-text-body: #502B30;
+  --color-text-secondary: #70484D;
+  --color-text-tertiary: #B19599;
+  --color-text-muted: #956A70;
+  --color-text-tagline: #956A70;
+  --color-text-inverse: #FFFFFF;
+  --color-text-link: #8A0047;
+  --color-text-accent: #8A0047;
+  --color-bg-canvas: #F9F5F6;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-subtle: #F1E9EA;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-curator: #F1E9EA;
+  --color-border-default: #CEBBBD;
+  --color-border-subtle: #E4D8DA;
+  --color-border-soft: #F1E9EA;
+  --color-border-strong: #B19599;
+  --color-chip-bg: #F1E9EA;
+  --color-tag-surface: #F5EEDC;
+  --color-nav-selected-bg: #190609;
+  --color-nav-selected-color: #FFFFFF;
+  --color-success: #1A5C30;
+  --color-success-bg: #E6F4EC;
+  --color-warning: #7A5000;
+  --color-warning-bg: #FEF3D8;
+  --color-error: #8A1A1A;
+  --color-error-bg: #FDECea;
+  --color-info: #1A4A7A;
+  --color-info-bg: #E0ECF7;
+  --color-special: #0F6B56;
+  --color-special-bg: #E0F4F0;
+
+  --font-family-body: "IBM Plex Sans", "Noto Serif TC", "PingFang HK", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-family-display: "Noto Serif TC", "Playfair Display", serif;
+  --font-family-mono: "Roboto Mono", Menlo, Monaco, Consolas, monospace;
+}

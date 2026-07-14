@@ -37,6 +37,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import ItemPreview from "./ItemPreview";
 import BookSpinePreview from "./BookSpinePreview";
 import NewsForm from "./NewsForm";
+import { markdownContentSx } from "../styles/markdownSx";
 
 interface OutletContext {
   user?: User;
@@ -236,123 +237,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
                 mb: 3,
                 p: 3,
                 bgcolor: "background.default",
-                "& h1": {
-                  fontSize: "2rem",
-                  fontWeight: "bold",
-                  mt: 3,
-                  mb: 2,
-                },
-                "& h2": {
-                  fontSize: "1.5rem",
-                  fontWeight: "bold",
-                  mt: 2.5,
-                  mb: 1.5,
-                },
-                "& h3": {
-                  fontSize: "1.25rem",
-                  fontWeight: "bold",
-                  mt: 2,
-                  mb: 1,
-                },
-                "& h4": {
-                  fontSize: "1.1rem",
-                  fontWeight: "bold",
-                  mt: 1.5,
-                  mb: 1,
-                },
-                "& h5": {
-                  fontSize: "1rem",
-                  fontWeight: "bold",
-                  mt: 1.5,
-                  mb: 1,
-                },
-                "& h6": {
-                  fontSize: "0.95rem",
-                  fontWeight: "bold",
-                  mt: 1.5,
-                  mb: 1,
-                },
-                "& p": { mb: 1.5, lineHeight: 1.7 },
-                "& ul, & ol": { pl: 3, mb: 1.5 },
-                "& li": { mb: 0.5 },
-                "& pre": {
-                  bgcolor: "grey.100",
-                  p: 2,
-                  BorderRadius: 1,
-                  overflow: "auto",
-                  mb: 2,
-                  border: 1,
-                  BorderColor: "divider",
-                },
-                "& code": {
-                  bgcolor: "grey.100",
-                  px: 0.75,
-                  py: 0.25,
-                  BorderRadius: 0.5,
-                  FontSize: "0.875em",
-                  FontFamily: "monospace",
-                },
-                "& pre code": {
-                  bgcolor: "transparent",
-                  px: 0,
-                  py: 0,
-                },
-                "& blockquote": {
-                  borderLeft: 4,
-                  BorderColor: " primary.main",
-                  pl: 2,
-                  ml: 0,
-                  my: 2,
-                  color: "text.secondary",
-                  FontStyle: "italic",
-                  bgcolor: "action.hover",
-                  py: 1,
-                  BorderRadius: 0.5,
-                },
-                "& a": {
-                  color: " primary.main",
-                  textDecoration: "none",
-                  FontWeight: 500,
-                  "&:hover": {
-                    textDecoration: "underline",
-                  },
-                },
-                "& img": {
-                  maxWidth: "100%",
-                  height: "auto",
-                  BorderRadius: 1,
-                  my: 2,
-                  display: "block",
-                },
-                "& table": {
-                  borderCollapse: " collapse",
-                  width: "100%",
-                  mb: 2,
-                  overflow: "auto",
-                  display: "block",
-                },
-                "& th, & td": {
-                  border: 1,
-                  BorderColor: "divider",
-                  p: 1.5,
-                  TextAlign: " left",
-                },
-                "& th": {
-                  bgcolor: "grey.100",
-                  FontWeight: "bold",
-                },
-                "& Hr": {
-                  my: 3,
-                  border: "none",
-                  borderTop: 1,
-                  BorderColor: "divider",
-                },
-                "& strong": {
-                  FontWeight: 700,
-                },
-                "& em": {
-                  FontStyle: "italic",
-                },
+                ...markdownContentSx,
               }}
             >
               {/* Use remark-directive to handle custom directives in markdown, and render them with ItemPreview component */}
@@ -476,7 +361,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
             </Paper>
           ) : (
             <Typography variant="body1" sx={{ mb: 3, whiteSpace: "pre-wrap" }}>
-              "{convertLinksToClickable(data.newsPost.content)}
+              {convertLinksToClickable(data.newsPost.content)}
             </Typography>
           )}
           {data.newsPost.images && data.newsPost.images.length > 0 && (
@@ -491,7 +376,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
                       elevation={2}
                       sx={{
                         overflow: "hidden",
-                        cursor: " pointer",
+                        cursor: "pointer",
                         transition: "transform 0.2s",
                         "&:hover": {
                           transform: "scale(1.05)",
@@ -499,7 +384,6 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
                       }}
                       onClick={() => handleImageClick(index)}
                     >
-                      "
                       <SafeImage
                         src={image}
                         alt={`News image ${index + 1}`}
@@ -528,7 +412,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
                     sx={{
                       p: 2,
                       border: "1px solid #ddd",
-                      BorderRadius: 1,
+                      borderRadius: 1,
                       mb: 1,
                     }}
                   >
@@ -555,14 +439,14 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
                     key={index}
                     variant="body2"
                     sx={{
-                      bgcolor: " primary.main",
+                      bgcolor: "primary.main",
                       color: "white",
                       px: 2,
                       py: 1,
-                      BorderRadius: 2,
+                      borderRadius: 2,
                     }}
                   >
-                    "{tag}
+                    {tag}
                   </Typography>
                 ))}
               </Box>

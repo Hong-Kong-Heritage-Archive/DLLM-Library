@@ -38,6 +38,23 @@ import ContentRatingApprovalDialog from "./ContentRatingApprovalDialog";
 import OnboardingTour from "./OnboardingTour";
 import { resolveBranding } from "../utils/branding";
 
+const headerActionButtonSx = {
+  bgcolor: "var(--color-bg-subtle)",
+  color: "var(--color-text-primary)",
+  width: "40px",
+  height: "40px",
+  "&:hover": { bgcolor: "var(--color-bg-subtle)" },
+};
+
+const navPillSx = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "56px",
+  height: "32px",
+  borderRadius: "16px",
+};
+
 const GET_USER_OPEN_TRANSACTIONS_FOR_COUNT = gql`
   query GetUserOpenTransactionsForCount($userId: ID!) {
     openTransactionsByUser(userId: $userId) {
@@ -193,19 +210,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     }
   };
 
+  const renderNavIcon = (icon: React.ReactNode, isActive: boolean) => (
+    <Box
+      sx={{
+        ...navPillSx,
+        backgroundColor: isActive ? "var(--color-nav-selected-bg)" : "transparent",
+        color: isActive ? "var(--color-brand-primary)" : "inherit",
+      }}
+    >
+      {icon}
+    </Box>
+  );
+
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
-        bgcolor: "#fbf9f4",
+        bgcolor: "var(--color-bg-canvas)",
       }}
     >
       {/* Top AppBar */}
       <AppBar
         position="sticky"
-        sx={{ bgcolor: "#fbf9f4", borderBottom: "none", pt: 0.5, px: 0.5 }}
+        sx={{ bgcolor: "var(--color-bg-canvas)", borderBottom: "none", pt: 0.5, px: 0.5 }}
       >
         <Toolbar
           sx={{
@@ -227,9 +256,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             <Typography
               component="div"
               sx={{
-                fontFamily: '"Playfair Display", "Georgia", serif',
+                fontFamily: "var(--font-family-display)",
                 fontWeight: 900,
-                color: "#1e1e1e",
+                color: "var(--color-text-primary)",
                 cursor: "pointer",
                 letterSpacing: "-0.5px",
                 lineHeight: "1.1",
@@ -240,7 +269,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               <Box
                 component="span"
                 sx={{
-                  color: "#b80c53",
+                  color: "var(--color-brand-primary)",
                   fontSize: { xs: "13px", sm: "16px", md: "20px" },
                   fontWeight: 700,
                   ml: 0.5,
@@ -252,8 +281,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             <Typography
               variant="caption"
               sx={{
-                fontFamily: '"Roboto Mono", monospace, sans-serif',
-                color: "#666666",
+                fontFamily: "var(--font-family-mono)",
+                color: "var(--color-text-tertiary)",
                 fontSize: { xs: "9px", sm: "11px" },
                 mt: 0.2,
                 whiteSpace: "nowrap",
@@ -273,19 +302,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               flexShrink: 0,
             }}
           >
-            <LanguageSwitcher color="#1e1e1e" />
+            <LanguageSwitcher color="var(--color-text-primary)" />
 
             {/* Notification Bell - only show for authenticated users */}
             {user ? (
               <IconButton
                 onClick={handleNotificationsClick}
-                sx={{
-                  bgcolor: "#e5dec9",
-                  color: "#1e1e1e",
-                  width: "40px",
-                  height: "40px",
-                  "&:hover": { bgcolor: "#d8ceb4" },
-                }}
+                sx={headerActionButtonSx}
                 title={t("transactions.viewTransactions", "View Transactions")}
               >
                 <Badge
@@ -293,7 +316,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   overlap="circular"
                   sx={{
                     "& .MuiBadge-badge": {
-                      backgroundColor: "#b80c53",
+                      backgroundColor: "var(--color-brand-primary)",
                       width: "8px",
                       height: "8px",
                       borderRadius: "50%",
@@ -309,13 +332,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             ) : (
               <IconButton
                 onClick={() => setAuthDialogOpen(true)}
-                sx={{
-                  bgcolor: "#e5dec9",
-                  color: "#1e1e1e",
-                  width: "40px",
-                  height: "40px",
-                  "&:hover": { bgcolor: "#d8ceb4" },
-                }}
+                sx={headerActionButtonSx}
                 title={t("auth.signIn", "Sign In")}
               >
                 <PersonIcon sx={{ fontSize: "20px" }} />
@@ -329,7 +346,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   color="inherit"
                   onClick={handleMenuClick}
                   title={t("common.menu", "Menu")}
-                  sx={{ color: "#1e1e1e" }}
+                  sx={{ color: "var(--color-text-primary)" }}
                 >
                   <MenuIcon />
                 </IconButton>
@@ -406,8 +423,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           left: 0,
           right: 0,
           zIndex: 1100,
-          boxShadow: "0 -2px 10px rgba(0,0,0,0.05)",
-          borderTop: "1px solid rgba(0,0,0,0.04)",
+          boxShadow: "0 -2px 10px var(--color-border-strong)",
+          borderTop: "1px solid var(--color-border-soft)",
         }}
         elevation={0}
       >
@@ -417,30 +434,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           showLabels
           sx={{
             height: "72px",
-            backgroundColor: "#ffffff",
+            backgroundColor: "var(--color-bg-surface)",
             "& .MuiBottomNavigationAction-root": {
               minWidth: "auto",
               padding: "8px 0",
-              color: "#666666",
+              color: "var(--color-text-tertiary)",
               transition: "all 0.2s ease-in-out",
               "& .MuiSvgIcon-root": {
                 fontSize: "24px",
                 transition: "all 0.2s ease-in-out",
               },
               "& .MuiBottomNavigationAction-label": {
-                fontFamily: '"Noto Serif TC", sans-serif',
+                fontFamily: "var(--font-family-body)",
                 fontSize: "12px",
                 fontWeight: "bold",
                 mt: "4px",
                 "&.Mui-selected": {
                   fontSize: "12px",
-                  color: "#b80c53",
+                  color: "var(--color-brand-primary)",
                 },
               },
               "&.Mui-selected": {
-                color: "#b80c53",
+                color: "var(--color-brand-primary)",
                 "& .MuiSvgIcon-root": {
-                  color: "#b80c53",
+                  color: "var(--color-brand-primary)",
                 },
               },
             },
@@ -448,120 +465,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         >
           <BottomNavigationAction
             label="首頁"
-            icon={
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "56px",
-                  height: "32px",
-                  borderRadius: "16px",
-                  backgroundColor:
-                    bottomNavValue === 0
-                      ? "rgba(224, 18, 107, 0.12)"
-                      : "transparent",
-                  color: bottomNavValue === 0 ? "#b80c53" : "inherit",
-                }}
-              >
-                <HomeIcon />
-              </Box>
-            }
+            icon={renderNavIcon(<HomeIcon />, bottomNavValue === 0)}
           />
           <BottomNavigationAction
             label="尋書"
-            icon={
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "56px",
-                  height: "32px",
-                  borderRadius: "16px",
-                  backgroundColor:
-                    bottomNavValue === 1
-                      ? "rgba(224, 18, 107, 0.12)"
-                      : "transparent",
-                  color: bottomNavValue === 1 ? "#b80c53" : "inherit",
-                }}
-              >
-                <SearchIcon />
-              </Box>
-            }
+            icon={renderNavIcon(<SearchIcon />, bottomNavValue === 1)}
             data-tour="item-nav"
           />
           <BottomNavigationAction
             label="新聞"
-            icon={
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "56px",
-                  height: "32px",
-                  borderRadius: "16px",
-                  backgroundColor:
-                    bottomNavValue === 2
-                      ? "rgba(224, 18, 107, 0.12)"
-                      : "transparent",
-                  color: bottomNavValue === 2 ? "#b80c53" : "inherit",
-                }}
-              >
-                <NewsIcon />
-              </Box>
-            }
+            icon={renderNavIcon(<NewsIcon />, bottomNavValue === 2)}
             data-tour="news-nav"
           />
           {user?.isVerified && (
             <BottomNavigationAction
               label="書況"
-              icon={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "56px",
-                    height: "32px",
-                    borderRadius: "16px",
-                    backgroundColor:
-                      bottomNavValue === 3
-                        ? "rgba(224, 18, 107, 0.12)"
-                        : "transparent",
-                    color: bottomNavValue === 3 ? "#b80c53" : "inherit",
-                  }}
-                >
-                  <LoanIcon />
-                </Box>
-              }
+              icon={renderNavIcon(<LoanIcon />, bottomNavValue === 3)}
             />
           )}
           <BottomNavigationAction
             label="個人"
-            icon={
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "56px",
-                  height: "32px",
-                  borderRadius: "16px",
-                  backgroundColor:
-                    bottomNavValue === (user?.isVerified ? 4 : 3)
-                      ? "rgba(224, 18, 107, 0.12)"
-                      : "transparent",
-                  color:
-                    bottomNavValue === (user?.isVerified ? 4 : 3)
-                      ? "#b80c53"
-                      : "inherit",
-                }}
-              >
-                <PersonIcon />
-              </Box>
-            }
+            icon={renderNavIcon(
+              <PersonIcon />,
+              bottomNavValue === (user?.isVerified ? 4 : 3),
+            )}
             data-tour="profile-nav"
           />
         </BottomNavigation>
