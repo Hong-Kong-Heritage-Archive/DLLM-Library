@@ -2,6 +2,47 @@
   "app": {
     "title": "無大台香港典藏館"
   },
+  "designSystem": {
+    "eyebrow": "設計系統 · 組件庫 · v2.0",
+    "tagline": "香港書籍。流動不息。",
+    "version": "組件庫 v2.0",
+    "foundations": "基礎",
+    "nav": {
+      "foundations": "基礎",
+      "governing": "色彩原則",
+      "colours": "色階",
+      "tokens": "語意代幣",
+      "typography": "字體",
+      "typeTokens": "字體代幣"
+    },
+    "governing": {
+      "title": "色彩原則",
+      "description": "所有徽章系統都遵循一條規則：顏色告訴用戶能否行動。每個狀態徽章都從這六個語意角色建立。",
+      "note": "徽章應搭配角色專屬的操作提示。徽章顯示狀態；操作提示告訴用戶下一步。"
+    },
+    "colours": {
+      "title": "色階",
+      "description": "品牌洋紅、玫瑰墨色中性色，以及暖紙色傳統中性色。標星色板為語意代幣使用的標準值。",
+      "status": "狀態色"
+    },
+    "tokens": {
+      "title": "語意代幣",
+      "description": "工程師在代碼中引用的命名槽位。顏色改變時只需更新代幣，所有組件保持一致。",
+      "token": "代幣",
+      "value": "數值",
+      "use": "用途"
+    },
+    "typography": {
+      "title": "字體",
+      "description": "兩款字體。Noto Serif TC 帶文化份量——品牌名、書名、標題。IBM Plex Sans 負責介面清晰與內文。IBM Plex Mono 用於標籤、代幣與元數據。",
+      "bilingual": "雙語規則",
+      "weights": "字重對照"
+    },
+    "typeTokens": {
+      "title": "字體代幣",
+      "description": "字體、圓角與間距的工程代幣。引用這些數值，避免硬編碼。"
+    }
+  },
   "auth": {
     "signIn": "登入",
     "signUp": "註冊",
@@ -96,6 +137,7 @@
     "back": "返回",
     "goHome": "返回首頁",
     "or": "或",
+    "none": "無",
     "discard": "放棄",
     "saving": "儲存中...",
     "close": "關閉",
@@ -380,6 +422,7 @@
     "owner": "物主",
     "holder": "持有者",
     "detailsloading": "資料加載中",
+    "requestToBorrow": "申請借閱",
     "errorLoading": "載入物品資料時出現錯誤",
     "category": "#標籤",
     "language": "語言",
@@ -462,6 +505,10 @@
     "sharePreset1": "推薦閱讀：{{itemName}}！",
     "sharePreset2": "在圖書館找到這本：{{itemName}}",
     "sharePreset3": "{{itemName}} — 值得一看。",
+    "unknownOwner": "物主?",
+    "historyOwnedBy": "由 {{name}} 擁有",
+    "historyHandedTo": "交給 {{name}}",
+    "historyRequestedBy": "由 {{name}} 申請",
     "addbooklist": "加入書單",
     "return": "歸還"
   },
@@ -643,7 +690,10 @@
     },
     "details": "詳情",
     "transactionDetails": {
-      "deposit": "押金"
+      "deposit": "押金",
+      "location": "地點",
+      "notes": "備註",
+      "reason": "原因"
     },
     "showRaw": "顯示原始 JSON",
     "showFormatted": "顯示格式化",

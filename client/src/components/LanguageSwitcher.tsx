@@ -18,7 +18,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const { i18n, t } = useTranslation();
 
   const handleLanguageChange = (event: SelectChangeEvent<string>) => {
-    i18n.changeLanguage(event.target.value);
+    i18n.changeLanguage(event.target.value || "zh-HK");
   };
   const langList = ["zh-HK", "en", "zh-TW"];
 

@@ -63,6 +63,7 @@ import { AuthDialog } from "./Auth";
 import ShareTransactionDialog from "./ShareTransactionDialog";
 import { QRCodeSVG } from "qrcode.react";
 import { semanticTokens } from "../styles/semanticTokens";
+import DetailSectionCard from "../styles/DetailSectionCard";
 
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
@@ -1375,13 +1376,17 @@ const TransactionDetailPage: React.FC = () => {
                     {transaction.item?.name}
                   </Typography>
                   {transaction.item?.description && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={itemDescriptionSx}
+                    <DetailSectionCard
+                      title={t("item.description", "Description")}
                     >
-                      {transaction.item.description}
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={itemDescriptionSx}
+                      >
+                        {transaction.item.description}
+                      </Typography>
+                    </DetailSectionCard>
                   )}
                   {transaction.item?.category && (
                     <Box sx={itemCategoriesWrapSx}>

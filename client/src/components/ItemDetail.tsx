@@ -63,6 +63,7 @@ import ItemShareDialog from "./ItemShareDialog";
 import { getContentRatingOption } from "../utils/contentRating";
 import NewsSummary from "./NewsSummary";
 import { SimpleNews } from "./NewsSummary";
+import DetailSectionCard from "../styles/DetailSectionCard";
 
 const ITEM_RELATED_NEWS_QUERY = gql`
   query ItemNewsRelatedPosts(
@@ -301,7 +302,6 @@ const paperSectionSx = {
   border: "1px solid var(--color-border-subtle)",
 };
 const headerTitleGrowSx = { flexGrow: 1 };
-const alertMb2Sx = { mb: 2 };
 const sectionMb4Sx = { mb: 4 };
 const flexWrapRowSx = { display: "flex", gap: 1, flexWrap: "wrap" };
 const heroRowSx = {
@@ -437,6 +437,7 @@ const addBookshelfButtonSx = {
   fontWeight: 700,
   borderRadius: 2.2,
 };
+const twoColumnGridTemplateColumns = { xs: "1fr 1fr", sm: "1fr 1fr" };
 const inheritProgressSx = { mr: 1, color: "inherit" };
 const secondaryActionsRowSx = {
   display: "flex",
@@ -448,7 +449,7 @@ const secondaryActionsRowSx = {
 const primaryActionsRowSx = {
   mt: 3,
   display: "grid",
-  gridTemplateColumns: { xs: "1fr 1fr", sm: "1fr 1fr" },
+  gridTemplateColumns: twoColumnGridTemplateColumns,
   gap: 1.5,
 };
 const relatedNewsListSx = {
@@ -459,7 +460,7 @@ const relatedNewsListSx = {
   border: "1px solid",
   borderColor: "var(--color-border-subtle)",
 };
-const historySectionSx = { mb: 4 };
+const historySectionSx = { my: 4 };
 const historyLineWrapSx = {
   position: "relative",
   pl: 2.5,
@@ -504,6 +505,42 @@ const historyItemTextSx = {
 const historyDateTextSx = {
   color: "var(--color-text-secondary)",
   fontSize: "0.92rem",
+};
+const infoStatusChipBaseSx = { ml: 1, borderWidth: 1, borderStyle: "solid", fontSize: "10px", fontWeight: 500, borderRadius: "4px" };
+const infoStatusChipSx = (status: string) => {
+  if (status === "AVAILABLE") {
+    return {
+      ...infoStatusChipBaseSx,
+      backgroundColor: "var(--color-success-bg)",
+      color: "var(--color-success)",
+      borderColor: "var(--color-success)",
+    };
+  }
+
+  if (status === "EXCHANGEABLE") {
+    return {
+      ...infoStatusChipBaseSx,
+      backgroundColor: "var(--color-info-bg)",
+      color: "var(--color-info)",
+      borderColor: "var(--color-info)",
+    };
+  }
+
+  if (status === "GIFT") {
+    return {
+      ...infoStatusChipBaseSx,
+      backgroundColor: "var(--color-warning-bg)",
+      color: "var(--color-warning)",
+      borderColor: "var(--color-warning)",
+    };
+  }
+
+  return {
+    ...infoStatusChipBaseSx,
+    backgroundColor: "var(--color-bg-subtle)",
+    color: "var(--color-text-secondary)",
+    borderColor: "var(--color-border-subtle)",
+  };
 };
 const statusBoxContainerSx = {
   my: 3,
@@ -777,6 +814,21 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const canBorrowBook = user && !isHolder;
   const canReturnBook = user && !isOwner && isHolder;
 
+  const hasAddToBooklistButton = Boolean(user && availableBooklists.length > 0);
+  const hasRequestButton = Boolean(canBorrowBook || canReturnBook || !user);
+  const primaryActionButtonCount =
+    Number(hasAddToBooklistButton) + Number(hasRequestButton);
+  const primaryActionsRowSxDynamic = {
+    ...primaryActionsRowSx,
+    gridTemplateColumns:
+      primaryActionButtonCount === 2
+        ? twoColumnGridTemplateColumns
+        : "1fr",
+  };
+  const primaryActionButtonGridItemSx = {
+    gridColumn: primaryActionButtonCount === 1 ? "1 / -1" : undefined,
+  };
+
   // Calculate distance between user and item owner
   const getDistanceToOwner = (): string | null => {
     const holder = holderData || ownerData;
@@ -1026,17 +1078,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const StatusBox = ({ status }: { status: string }) => {
     const STATUS_BOX_VARIANTS = {
       AVAILABLE: {
-        icon: "i",
+        icon: "🎉",
         titleKey: "item.availableMessage",
         descriptionKey: "item.availableDescription",
       },
       EXCHANGEABLE: {
-        icon: "i",
+        icon: "🔄",
         titleKey: "item.exchangeableMessage",
         descriptionKey: "item.exchangeableDescription",
       },
       GIFT: {
-        icon: "i",
+        icon: "🎁",
         titleKey: "item.gift",
         descriptionKey: "item.giftDescription",
       },
@@ -1222,54 +1274,52 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     }
 
     const ownerName = ownerData?.user?.nickname || ownerData?.user?.email || t("item.unknownOwner", "Owner");
-    const baseEvents: Array<{ id: string; text: string; date: string; active?: boolean }> = [
-      {
-        id: `owner-${data.item.id}`,
-        text: t("item.historyOwnedBy", "Owned by {{name}}", { name: ownerName }),
-        date: data.item.createdAt,
-      },
-    ];
+    const ownerEvent = {
+      id: `owner-${data.item.id}`,
+      text: t("item.historyOwnedBy", "Owned by {{name}}", { name: ownerName }),
+      date: data.item.createdAt,
+    };
 
-    const transactionEvents = (itemTransactions.data?.transactionsByItem || [])
+    const transactions = (itemTransactions.data?.transactionsByItem || [])
       .slice()
-      .sort(
-        (a, b) =>
-          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
-      )
-      .map((tx) => {
-        const receiverName = tx.receiver?.nickname || tx.receiver?.email;
-        const requestorName = tx.requestor?.nickname || tx.requestor?.email;
+      .sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
 
-        if (
-          (tx.status === TransactionStatus.Completed ||
-            tx.status === TransactionStatus.Transfered) &&
-          receiverName
-        ) {
-          return {
-            id: tx.id,
-            text: t("item.historyHandedTo", "Handed to {{name}}", {
-              name: receiverName,
-            }),
-            date: tx.updatedAt,
-            active: true,
-          };
-        }
+    const latestHandedTo = transactions
+      .slice()
+      .reverse()
+      .find((tx) =>
+        (tx.status === TransactionStatus.Completed ||
+          tx.status === TransactionStatus.Transfered) &&
+        (tx.receiver?.nickname || tx.receiver?.email),
+      );
 
-        if (requestorName) {
-          return {
-            id: tx.id,
-            text: t("item.historyRequestedBy", "Requested by {{name}}", {
-              name: requestorName,
-            }),
-            date: tx.createdAt,
-          };
-        }
+    const latestRequestedBy = transactions
+      .slice()
+      .reverse()
+      .find((tx) => tx.requestor?.nickname || tx.requestor?.email);
 
-        return null;
-      })
-      .filter(Boolean) as Array<{ id: string; text: string; date: string; active?: boolean }>;
+    const events: Array<{ id: string; text: string; date: string; active?: boolean }> = [ownerEvent];
 
-    return [...baseEvents, ...transactionEvents];
+    if (latestHandedTo) {
+      events.push({
+        id: latestHandedTo.id,
+        text: t("item.historyHandedTo", "Handed to {{name}}", {
+          name: latestHandedTo.receiver?.nickname || latestHandedTo.receiver?.email,
+        }),
+        date: latestHandedTo.updatedAt,
+        active: true,
+      });
+    } else if (latestRequestedBy) {
+      events.push({
+        id: latestRequestedBy.id,
+        text: t("item.historyRequestedBy", "Requested by {{name}}", {
+          name: latestRequestedBy.requestor?.nickname || latestRequestedBy.requestor?.email,
+        }),
+        date: latestRequestedBy.createdAt,
+      });
+    }
+
+    return events;
   }, [data?.item, itemTransactions.data?.transactionsByItem, ownerData?.user, t]);
 
   return (
@@ -1301,7 +1351,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
       {/* Error State */}
       {error && (
-        <Alert severity="error" sx={alertMb2Sx}>
+        <Alert severity="error" sx={sectionMb4Sx}>
           {t("item.errorLoading")}: {error.message}
         </Alert>
       )}
@@ -1338,13 +1388,13 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             <Box>
               <Box sx={heroMetaRowSx}>
                 <Box sx={heroMetaItemSx}>
-                  <Typography sx={heroMetaLabelSx}>
+                  <Typography variant="body1" color="text.secondary" sx={heroMetaLabelSx}>
                     {t("item.status", "Status")}
                   </Typography>
                   <Chip
-                    label={t(`shortStatus.${data.item.status}`, data.item.status)}
+                    label={t(`shortStatus.${data.item.status} `, data.item.status)}
                     size="small"
-                    sx={tinyMetaChipSx}
+                    sx={infoStatusChipSx(data.item.status)}
                   />
                 </Box>
                 <Box sx={heroMetaItemSx}>
@@ -1353,8 +1403,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   </Typography>
                   <Chip
                     label={t(`item.conditions.${data.item.condition}`, data.item.condition)}
+                    color="default"
                     size="small"
-                    sx={tinyMetaChipSx}
+                    sx={{ ml: 1 }}
                   />
                 </Box>
                 <Box sx={heroMetaItemSx}>
@@ -1362,7 +1413,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     {t("item.deposit", "Deposit")}
                   </Typography>
                   <Chip
-                    label={`${data.item.deposit ?? 0}AUD`}
+                    label={data?.item.deposit ? `${data.item.deposit} AUD` : t("common.none", "None")}
                     size="small"
                     sx={tinyMetaChipSx}
                   />
@@ -1448,13 +1499,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
           {/* Description */}
           {normalizedDescription && (
-            <Box sx={sectionMb4Sx}>
-              <Typography
-                variant="h5"
-                sx={sectionTitleSx}
-              >
-                {t("item.description", "Book Description")}
-              </Typography>
+            <DetailSectionCard
+              title={t("item.description", "Book Description")}
+            >
               <Typography variant="body1" sx={descriptionContentSx(showFullDescription)}>
                 {convertLinksToClickable(
                   normalizedDescription,
@@ -1471,7 +1518,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     : t("common.readMore", "Read more")}
                 </Button>
               )}
-            </Box>
+            </DetailSectionCard>
           )}
 
           <Box sx={historySectionSx}>
@@ -1532,21 +1579,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   <Typography variant="body1" color="text.secondary">
                     <strong>{t("item.status", "Status")}:</strong>{" "}
                     <Chip
-                      label={t(
-                        `shortStatus.${data.item.status} `,
-                        data.item.status,
-                      )}
-                      color={
-                        data.item.status === "AVAILABLE"
-                          ? "success"
-                          : data.item.status === "EXCHANGEABLE"
-                            ? "info"
-                            : data.item.status === "GIFT"
-                              ? "warning"
-                              : "default"
-                      }
+                      label={t(`shortStatus.${data.item.status} `, data.item.status)}
                       size="small"
-                      sx={{ ml: 1 }}
+                      sx={infoStatusChipSx(data.item.status)}
                     />
                   </Typography>
                 </Grid>
@@ -1634,8 +1669,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* STATUS + PRIMARY ACTION — "can I get this?" */}
           <StatusBox status={data.item.status} />
 
-          <Box sx={primaryActionsRowSx}>
-            {user && availableBooklists.length > 0 ? (
+          <Box sx={primaryActionsRowSxDynamic}>
+            {hasAddToBooklistButton ? (
               <Button
                 variant="outlined"
                 color="secondary"
@@ -1643,22 +1678,20 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 onClick={handleAddToBooklistClick}
                 disabled={newsRecent.loading || updateBooklistLoading}
                 startIcon={<ArticleIcon />}
-                sx={addBookshelfButtonSx}
+                sx={{ ...addBookshelfButtonSx, ...primaryActionButtonGridItemSx }}
               >
                 {t("item.addbooklist", "Add to Bookshelf")}
               </Button>
-            ) : (
-              <Box />
-            )}
+            ) : null}
 
-            {(canBorrowBook || canReturnBook || !user) ? (
+            {hasRequestButton ? (
               <Button
                 variant="contained"
                 color="primary"
                 size="large"
-                fullWidth
+                fullWidth={primaryActionButtonCount === 1}
                 onClick={handleRequestClick}
-                sx={primaryActionButtonSx}
+                sx={{ ...primaryActionButtonSx, ...primaryActionButtonGridItemSx }}
                 disabled={contactHolderLoading}
               >
                 {contactHolderLoading ? (
@@ -1668,9 +1701,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   ? t("item.return")
                   : t("item.requestToBorrow", "Request To Borrow")}
               </Button>
-            ) : (
-              <Box />
-            )}
+            ) : null}
           </Box>
 
           {/* 7. SECONDARY ACTIONS */}
@@ -1727,18 +1758,21 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </List>
             )}
         </Paper>
-      )}
+      )
+      }
       {/* Edit Item Dialog */}
-      {user && (
-        <ItemForm
-          open={editDialogOpen}
-          user={user}
-          onClose={() => setEditDialogOpen(false)}
-          item={data?.item || null}
-          onItemUpdated={handleEditSuccess}
-          onError={handleEditError}
-        />
-      )}
+      {
+        user && (
+          <ItemForm
+            open={editDialogOpen}
+            user={user}
+            onClose={() => setEditDialogOpen(false)}
+            item={data?.item || null}
+            onItemUpdated={handleEditSuccess}
+            onError={handleEditError}
+          />
+        )
+      }
       {/* Location Prompt Dialog */}
       <Modal
         open={locationPromptOpen}
@@ -1916,33 +1950,39 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         onNext={handleNextImage}
         itemName={data?.item?.name}
       />
-      {data?.item && (
-        <Box sx={commentsWrapSx}>
-          <ItemComments itemId={itemId!} currentUser={user} />
-        </Box>
-      )}
+      {
+        data?.item && (
+          <Box sx={commentsWrapSx}>
+            <ItemComments itemId={itemId!} currentUser={user} />
+          </Box>
+        )
+      }
 
-      {data?.item && (
-        <ItemShareDialog
-          open={shareDialogOpen}
-          onClose={() => setShareDialogOpen(false)}
-          itemName={data.item.name}
-          itemUrl={itemShareUrl}
-          adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
-        />
-      )}
+      {
+        data?.item && (
+          <ItemShareDialog
+            open={shareDialogOpen}
+            onClose={() => setShareDialogOpen(false)}
+            itemName={data.item.name}
+            itemUrl={itemShareUrl}
+            adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
+          />
+        )
+      }
 
       {/* News Form Dialog - For admins to create news related to the item */}
-      {user && isAdmin && (
-        <NewsForm
-          open={newsFormOpen}
-          onClose={() => setNewsFormOpen(false)}
-          relatedItem={data?.item || null}
-          onSuccess={handleEditSuccess}
-          onError={handleEditError}
-        />
-      )}
-    </Container>
+      {
+        user && isAdmin && (
+          <NewsForm
+            open={newsFormOpen}
+            onClose={() => setNewsFormOpen(false)}
+            relatedItem={data?.item || null}
+            onSuccess={handleEditSuccess}
+            onError={handleEditError}
+          />
+        )
+      }
+    </Container >
   );
 };
 
