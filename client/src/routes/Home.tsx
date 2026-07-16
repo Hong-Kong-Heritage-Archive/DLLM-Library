@@ -192,9 +192,9 @@ const HomePage: React.FC = () => {
                   <Grid size={{ xs: 8, md: 8 }}>
                     <Typography
                       sx={{
-                        fontFamily: '"Playfair Display", "Georgia", serif',
+                        fontFamily: "var(--font-family-display)",
                         fontWeight: 900,
-                        color: "#1e1e1e",
+                        color: "var(--color-text-primary)",
                         cursor: "pointer",
                         letterSpacing: "-0.5px",
                         lineHeight: "1.1",
@@ -205,8 +205,8 @@ const HomePage: React.FC = () => {
                     </Typography>
                     <Typography
                       sx={{
-                        color: "#666666",
-                        fontFamily: '"Noto Serif TC", sans-serif',
+                        color: "var(--color-text-tertiary)",
+                        fontFamily: "var(--font-family-body)",
                         fontSize: "13px",
                       }}
                     >

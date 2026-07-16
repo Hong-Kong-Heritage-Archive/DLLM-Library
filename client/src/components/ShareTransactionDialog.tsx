@@ -21,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
+import { semanticTokens } from "../styles/semanticTokens";
 
 interface ShareTransactionDialogProps {
   open: boolean;
@@ -212,7 +213,7 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
                 <Typography
                   variant="body2"
                   sx={{
-                    fontFamily: "monospace",
+                    fontFamily: semanticTokens.font.mono,
                     wordBreak: "break-all",
                   }}
                 >
@@ -259,7 +260,7 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
                 <Button
                   variant="outlined"
                   fullWidth
-                  startIcon={<WhatsAppIcon sx={{ color: "#25D366" }} />}
+                  startIcon={<WhatsAppIcon sx={{ color: semanticTokens.color.success }} />}
                   onClick={shareViaWhatsApp}
                 >
                   WhatsApp
@@ -269,7 +270,7 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
                 <Button
                   variant="outlined"
                   fullWidth
-                  startIcon={<TelegramIcon sx={{ color: "#0088cc" }} />}
+                  startIcon={<TelegramIcon sx={{ color: semanticTokens.color.textSecondary }} />}
                   onClick={shareViaTelegram}
                 >
                   Telegram
@@ -279,7 +280,7 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
                 <Button
                   variant="outlined"
                   fullWidth
-                  startIcon={<FacebookIcon sx={{ color: "#1877F2" }} />}
+                  startIcon={<FacebookIcon sx={{ color: semanticTokens.color.brandPrimary }} />}
                   onClick={shareViaFacebook}
                 >
                   Facebook
@@ -289,7 +290,7 @@ export const ShareTransactionDialog: React.FC<ShareTransactionDialogProps> = ({
                 <Button
                   variant="outlined"
                   fullWidth
-                  startIcon={<TwitterIcon sx={{ color: "#1DA1F2" }} />}
+                  startIcon={<TwitterIcon sx={{ color: semanticTokens.color.warning }} />}
                   onClick={shareViaTwitter}
                 >
                   Twitter

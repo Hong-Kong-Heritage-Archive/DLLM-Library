@@ -1,0 +1,121 @@
+import { SxProps, Theme } from "@mui/material";
+
+export const markdownContentSx: SxProps<Theme> = {
+  "& h1": {
+    fontSize: "2rem",
+    fontWeight: "bold",
+    mt: 3,
+    mb: 2,
+  },
+  "& h2": {
+    fontSize: "1.5rem",
+    fontWeight: "bold",
+    mt: 2.5,
+    mb: 1.5,
+  },
+  "& h3": {
+    fontSize: "1.25rem",
+    fontWeight: "bold",
+    mt: 2,
+    mb: 1,
+  },
+  "& h4": {
+    fontSize: "1.1rem",
+    fontWeight: "bold",
+    mt: 1.5,
+    mb: 1,
+  },
+  "& h5": {
+    fontSize: "1rem",
+    fontWeight: "bold",
+    mt: 1.5,
+    mb: 1,
+  },
+  "& h6": {
+    fontSize: "0.95rem",
+    fontWeight: "bold",
+    mt: 1.5,
+    mb: 1,
+  },
+  "& p": { mb: 1.5, lineHeight: 1.7 },
+  "& ul, & ol": { pl: 3, mb: 1.5 },
+  "& li": { mb: 0.5 },
+  "& pre": {
+    bgcolor: "grey.100",
+    p: 2,
+    borderRadius: 1,
+    overflow: "auto",
+    mb: 2,
+    border: 1,
+    borderColor: "divider",
+  },
+  "& code": {
+    bgcolor: "grey.100",
+    px: 0.75,
+    py: 0.25,
+    borderRadius: 0.5,
+    fontSize: "0.875em",
+    fontFamily: "monospace",
+  },
+  "& pre code": {
+    bgcolor: "transparent",
+    px: 0,
+    py: 0,
+  },
+  "& blockquote": {
+    borderLeft: 4,
+    borderColor: "primary.main",
+    pl: 2,
+    ml: 0,
+    my: 2,
+    color: "text.secondary",
+    fontStyle: "italic",
+    bgcolor: "action.hover",
+    py: 1,
+    borderRadius: 0.5,
+  },
+  "& a": {
+    color: "primary.main",
+    textDecoration: "none",
+    fontWeight: 500,
+    "&:hover": {
+      textDecoration: "underline",
+    },
+  },
+  "& img": {
+    maxWidth: "100%",
+    height: "auto",
+    borderRadius: 1,
+    my: 2,
+    display: "block",
+  },
+  "& table": {
+    borderCollapse: "collapse",
+    width: "100%",
+    mb: 2,
+    overflow: "auto",
+    display: "block",
+  },
+  "& th, & td": {
+    border: 1,
+    borderColor: "divider",
+    p: 1.5,
+    textAlign: "left",
+  },
+  "& th": {
+    bgcolor: "grey.100",
+    fontWeight: "bold",
+  },
+  "& hr": {
+    my: 3,
+    border: "none",
+    borderTop: 1,
+    borderColor: "divider",
+  },
+  "& strong": {
+    fontWeight: 700,
+  },
+  "& em": {
+    fontStyle: "italic",
+  },
+};

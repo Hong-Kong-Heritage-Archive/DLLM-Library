@@ -1,14 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import {
   Box,
   Typography,
-  useTheme,
   CircularProgress,
   Grid,
   Button,
 } from "@mui/material";
-import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
-import { Link, useOutletContext } from "react-router";
+import { useOutletContext } from "react-router";
 import { gql, useQuery } from "@apollo/client";
 import {
   User,
@@ -63,6 +61,55 @@ interface RecentItemBannerProps {
   descriptionOverride?: string;
 }
 
+const loadingBoxSx = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  py: 4,
+};
+
+const headerRowSx = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-end",
+  mb: 2.5,
+  borderBottom: "1px solid var(--color-border-soft)",
+  pb: 1.5,
+};
+
+const bannerTitleSx = {
+  fontWeight: "900",
+  color: "var(--color-text-primary)",
+  fontFamily: "var(--font-family-display)",
+  letterSpacing: "-0.5px",
+  mb: 0.5,
+};
+
+const bannerDescriptionSx = {
+  color: "var(--color-text-tertiary)",
+  fontFamily: "var(--font-family-body)",
+  fontSize: "13px",
+};
+
+const viewAllButtonSx = {
+  flexShrink: 0,
+  color: "var(--color-brand-primary)",
+  fontWeight: "bold",
+  fontFamily: "var(--font-family-body)",
+  fontSize: "14px",
+  textTransform: "none",
+  padding: 0,
+  minWidth: 0,
+  "&:hover": {
+    background: "none",
+    textDecoration: "underline",
+  },
+};
+
+const itemsGridSx = {
+  width: "100%",
+};
+
 const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   category,
   recommendationType,
@@ -71,7 +118,6 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   descriptionOverride,
 }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useOutletContext<{ user?: User }>();
   const isRecent = recommendationType === RecommendationType.NewArrivals; // If no recommendation type, treat as recent items
@@ -140,8 +186,8 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
     if (category && category !== "") {
       return isRecent
         ? t("item.recent.recentInCategory", "Recent in {{category}}", {
-            category,
-          })
+          category,
+        })
         : t("item.recent.hotInCategory", "Hot in {{category}}", { category });
     }
     if (recommendationType === RecommendationType.UserPicked) {
@@ -176,14 +222,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          py: 4,
-        }}
-      >
+      <Box sx={loadingBoxSx}>
         <CircularProgress />
       </Box>
     );
@@ -206,37 +245,12 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
   return (
     <Box sx={{ width: "100%", mb: 5 }}>
       {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          mb: 2.5,
-          borderBottom: "1px solid rgba(0, 0, 0, 0.05)",
-          pb: 1.5,
-        }}
-      >
+      <Box sx={headerRowSx}>
         <Box>
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: "900",
-              color: "#1e1e1e",
-              fontFamily: '"Noto Serif TC", "Playfair Display", serif',
-              letterSpacing: "-0.5px",
-              mb: 0.5,
-            }}
-          >
+          <Typography variant="h5" sx={bannerTitleSx}>
             {getTitle()}
           </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: "#666666",
-              fontFamily: '"Noto Serif TC", sans-serif',
-              fontSize: "13px",
-            }}
-          >
+          <Typography variant="body2" sx={bannerDescriptionSx}>
             {getDescription()}
           </Typography>
         </Box>
@@ -245,20 +259,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
             variant="text"
             size="small"
             onClick={handleViewAll}
-            sx={{
-              flexShrink: 0,
-              color: "#b80c53",
-              fontWeight: "bold",
-              fontFamily: '"Noto Serif TC", sans-serif',
-              fontSize: "14px",
-              textTransform: "none",
-              padding: 0,
-              minWidth: 0,
-              "&:hover": {
-                background: "none",
-                textDecoration: "underline",
-              },
-            }}
+            sx={viewAllButtonSx}
           >
             全部查看
           </Button>
@@ -269,9 +270,7 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
       <Grid
         container
         spacing={{ xs: 1.5, sm: 2 }}
-        sx={{
-          width: "100%",
-        }}
+        sx={itemsGridSx}
       >
         {items.map((item) => (
           <Grid

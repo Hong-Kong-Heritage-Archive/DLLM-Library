@@ -18,7 +18,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const { i18n, t } = useTranslation();
 
   const handleLanguageChange = (event: SelectChangeEvent<string>) => {
-    i18n.changeLanguage(event.target.value);
+    i18n.changeLanguage(event.target.value || "zh-HK");
   };
   const langList = ["zh-HK", "en", "zh-TW"];
 
@@ -42,24 +42,24 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           onChange={handleLanguageChange}
           variant="outlined"
           sx={{
-            color: "#1e1e1e",
+            color: "var(--color-text-primary)",
             fontSize: "14px",
-            fontFamily: '"Noto Serif TC", sans-serif',
-            backgroundColor: "#fbf9f4",
+            fontFamily: "var(--font-family-body)",
+            backgroundColor: "var(--color-bg-canvas)",
             borderRadius: "6px",
             height: "36px",
             "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#cccccc",
+              borderColor: "var(--color-border-soft)",
               borderWidth: "1px",
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#999999",
+              borderColor: "var(--color-border-strong)",
             },
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#b80c53",
+              borderColor: "var(--color-brand-primary)",
             },
             "& .MuiSvgIcon-root": {
-              color: "#333333",
+              color: "var(--color-text-muted)",
             },
             "& .MuiSelect-select": {
               paddingLeft: "12px",

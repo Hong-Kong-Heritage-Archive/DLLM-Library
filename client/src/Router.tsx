@@ -20,6 +20,7 @@ import ProfilePage from "./routes/Profile";
 // import BinderDetail from "./components/BinderDetail";
 import GoodReadsImportPage from "./routes/GoodReadsImport";
 import NotFound from "./routes/NotFound";
+import DesignSystemPage from "./components/DesignSystemPage";
 
 export const createRouter = (
   email?: string | null,
@@ -114,6 +115,10 @@ export const createRouter = (
         {
           path: "import/goodreads",
           element: <GoodReadsImportPage />,
+        },
+        {
+          path: "design-system",
+          element: <DesignSystemPage />,
         },
         {
           path: "not-found",

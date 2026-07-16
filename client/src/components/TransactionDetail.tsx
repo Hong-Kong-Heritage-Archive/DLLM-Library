@@ -62,6 +62,8 @@ import ReceiptImageUploadDialog from "./ReceiptImageUploadDialog";
 import { AuthDialog } from "./Auth";
 import ShareTransactionDialog from "./ShareTransactionDialog";
 import { QRCodeSVG } from "qrcode.react";
+import { semanticTokens } from "../styles/semanticTokens";
+import DetailSectionCard from "../styles/DetailSectionCard";
 
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
@@ -352,13 +354,13 @@ const getRoleInstructions = (
           role: t("transactions.roleRequestor", "Requestor"),
           instruction: isQuickExchange
             ? t(
-                "transactions.requestorInstructionTransferredQuick",
-                "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
-              )
+              "transactions.requestorInstructionTransferredQuick",
+              "The item has been marked as transferred to you. Please inspect the item and take photos if needed, then click 'Confirm Received' to complete the transaction.",
+            )
             : t(
-                "transactions.requestorInstructionTransferred",
-                "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
-              ),
+              "transactions.requestorInstructionTransferred",
+              "The item has been marked as transferred. Waiting for the designated receiver to confirm receipt.",
+            ),
           severity: isQuickExchange ? "warning" : "info",
         };
       case TransactionStatus.Completed:
@@ -445,6 +447,104 @@ const getActionButtonDescription = (
     default:
       return "";
   }
+};
+
+const pageContainerSx = { py: 4 };
+const headerRowSx = { display: "flex", alignItems: "center", mb: 3 };
+const backIconButtonSx = { mr: 2 };
+const headerTitleSx = { flexGrow: 1 };
+const headerShareButtonSx = { mr: 2 };
+const qrWrapperSx = {
+  display: "flex",
+  justifyContent: "center",
+  mb: 3,
+  p: 3,
+  bgcolor: semanticTokens.color.bgSurface,
+  borderRadius: 2,
+  border: 1,
+  borderColor: "divider",
+};
+const sectionPaperSx = { p: 3, mb: 3 };
+const sectionTitleSx = { mb: 2 };
+const currentStatusBoxSx = { mt: 3, p: 2, bgcolor: "action.hover", borderRadius: 1 };
+const boldSubtitleSx = { mb: 1, fontWeight: "bold" };
+const inlineIconRowSx = { display: "flex", alignItems: "center", gap: 1 };
+const actionsColumnSx = { display: "flex", flexDirection: "column", gap: 2, mt: 3 };
+const actionHintSx = { display: "block", mt: 0.5, px: 1 };
+const compactDividerSx = { my: 1 };
+const headingWithIconSx = { mb: 2, display: "flex", alignItems: "center" };
+const iconStartSx = { mr: 1 };
+const listItemNoPaddingSx = { px: 0 };
+const loadingCenterSx = { display: "flex", justifyContent: "center", py: 4 };
+const mt1Sx = { mt: 1 };
+const participantCardBaseSx = {
+  border: 1,
+  height: "100%",
+  cursor: "pointer",
+  "&:hover": {
+    backgroundColor: "action.hover",
+  },
+};
+const participantTitlePrimarySx = {
+  mb: 1,
+  color: "primary.main",
+  fontWeight: "bold",
+};
+const participantTitleSecondarySx = {
+  mb: 1,
+  color: "secondary.main",
+  fontWeight: "bold",
+};
+const participantTitleInfoSx = {
+  mb: 1,
+  color: "info.main",
+  fontWeight: "bold",
+};
+const itemCardSx = { border: 1, borderColor: "divider" };
+const itemMediaSx = { objectFit: "cover" };
+const itemDescriptionSx = { mt: 1 };
+const itemCategoriesWrapSx = { mt: 2 };
+const categoryChipSx = { mr: 1, mb: 1 };
+const mapContainerBoxSx = {
+  height: 300,
+  border: 1,
+  borderColor: "divider",
+  borderRadius: 1,
+};
+const flowFrameSx = {
+  width: "100%",
+  maxWidth: "900px",
+  mx: "auto",
+  border: 1,
+  borderColor: "divider",
+  borderRadius: 2,
+  p: 2,
+  bgcolor: "background.default",
+};
+const flowImageStyle: React.CSSProperties = { width: "100%", height: "auto" };
+const receiptImageListSx = { width: "100%", maxHeight: 500 };
+const receiptImageStyle: React.CSSProperties = {
+  objectFit: "cover",
+  width: "100%",
+  height: "100%",
+  cursor: "pointer",
+};
+const locationPromptModalSx = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  bgcolor: "background.paper",
+  borderRadius: 2,
+  boxShadow: 24,
+  p: 4,
+  maxWidth: 400,
+  width: "90%",
+};
+const locationPromptActionsSx = {
+  display: "flex",
+  gap: 2,
+  justifyContent: "flex-end",
 };
 
 const TransactionDetailPage: React.FC = () => {
@@ -564,8 +664,8 @@ const TransactionDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+      <Container maxWidth="md" sx={pageContainerSx}>
+        <Box sx={loadingCenterSx}>
           <CircularProgress size={60} />
         </Box>
       </Container>
@@ -574,9 +674,9 @@ const TransactionDetailPage: React.FC = () => {
 
   if (error || !data?.transaction) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+      <Container maxWidth="md" sx={pageContainerSx}>
+        <Box sx={headerRowSx}>
+          <IconButton onClick={handleBack} sx={backIconButtonSx}>
             <ArrowBack />
           </IconButton>
           <Typography variant="h4">
@@ -586,9 +686,9 @@ const TransactionDetailPage: React.FC = () => {
         <Alert severity="error">
           {error
             ? `${t(
-                "transactions.errorLoading",
-                "Error loading transaction",
-              )}: ${error.message}`
+              "transactions.errorLoading",
+              "Error loading transaction",
+            )}: ${error.message}`
             : t("transactions.notFound", "Transaction not found")}
         </Alert>
       </Container>
@@ -712,13 +812,13 @@ const TransactionDetailPage: React.FC = () => {
   const transactionType = getTransactionType();
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={pageContainerSx}>
       {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton onClick={handleBack} sx={{ mr: 2 }}>
+      <Box sx={headerRowSx}>
+        <IconButton onClick={handleBack} sx={backIconButtonSx}>
           <ArrowBack />
         </IconButton>
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
+        <Typography variant="h4" sx={headerTitleSx}>
           {t("transactions.details", "Transaction Detail")}
         </Typography>
 
@@ -727,7 +827,7 @@ const TransactionDetailPage: React.FC = () => {
           variant="outlined"
           startIcon={<ShareIcon />}
           onClick={() => setShareDialogOpen(true)}
-          sx={{ mr: 2 }}
+          sx={headerShareButtonSx}
         >
           {t("transactions.share", "Share")}
         </Button>
@@ -743,18 +843,7 @@ const TransactionDetailPage: React.FC = () => {
         />
       </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          mb: 3,
-          p: 3,
-          bgcolor: "white",
-          borderRadius: 2,
-          border: 1,
-          borderColor: "divider",
-        }}
-      >
+      <Box sx={qrWrapperSx}>
         <QRCodeSVG
           value={transactionUrl}
           size={200}
@@ -768,9 +857,9 @@ const TransactionDetailPage: React.FC = () => {
         <Alert
           severity={roleInstructions.severity}
           icon={<PersonIcon />}
-          sx={{ mb: 3 }}
+          sx={sectionTitleSx}
         >
-          <Typography variant="subtitle2" sx={{ fontWeight: "bold", mb: 0.5 }}>
+          <Typography variant="subtitle2" sx={boldSubtitleSx}>
             {roleInstructions.role}
           </Typography>
           <Typography variant="body2">
@@ -780,19 +869,19 @@ const TransactionDetailPage: React.FC = () => {
       )}
 
       {/* Action Buttons - Enhanced with descriptions */}
-      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
+      <Paper elevation={1} sx={sectionPaperSx}>
+        <Typography variant="h6" sx={sectionTitleSx}>
           {t("transactions.actions", "Actions")}
         </Typography>
 
         {/* Current Status Indicator */}
-        <Box sx={{ mt: 3, p: 2, bgcolor: "action.hover", borderRadius: 1 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+        <Box sx={currentStatusBoxSx}>
+          <Typography variant="subtitle2" sx={boldSubtitleSx}>
             {t("transactions.currentStatus", "Current Status")}:
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={inlineIconRowSx}>
             {getStatusIcon(transaction.status)}
-            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="body1" sx={boldSubtitleSx}>
               {t(
                 `transactions.status.${transaction.status.toLowerCase()}`,
                 transaction.status,
@@ -800,13 +889,13 @@ const TransactionDetailPage: React.FC = () => {
             </Typography>
           </Box>
           {roleInstructions && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={mt1Sx}>
               {roleInstructions.instruction}
             </Typography>
           )}
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 3 }}>
+        <Box sx={actionsColumnSx}>
           {/* Owner Actions - Pending */}
           {(isOwner || isRequestor) &&
             transaction.status === TransactionStatus.Pending && (
@@ -830,7 +919,7 @@ const TransactionDetailPage: React.FC = () => {
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ display: "block", mt: 0.5, px: 1 }}
+                  sx={actionHintSx}
                 >
                   {getActionButtonDescription(t, "cancel", transaction.status)}
                 </Typography>
@@ -861,7 +950,7 @@ const TransactionDetailPage: React.FC = () => {
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    sx={{ display: "block", mt: 0.5, px: 1 }}
+                    sx={actionHintSx}
                   >
                     {getActionButtonDescription(
                       t,
@@ -899,7 +988,7 @@ const TransactionDetailPage: React.FC = () => {
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    sx={{ display: "block", mt: 0.5, px: 1 }}
+                    sx={actionHintSx}
                   >
                     {getActionButtonDescription(
                       t,
@@ -934,16 +1023,16 @@ const TransactionDetailPage: React.FC = () => {
             ((isReceiver || isQuickExchange || isHolder) &&
               transaction.status === TransactionStatus.Transfered)
           ) && (
-            <Alert severity="info">
-              {t(
-                "transactions.noActionsAvailable",
-                "No actions available for this transaction.",
-              )}
-            </Alert>
-          )}
+              <Alert severity="info">
+                {t(
+                  "transactions.noActionsAvailable",
+                  "No actions available for this transaction.",
+                )}
+              </Alert>
+            )}
 
           {/* Share Button - Always available */}
-          <Divider sx={{ my: 1 }} />
+          <Divider sx={compactDividerSx} />
           <Box>
             <Button
               variant="outlined"
@@ -956,7 +1045,7 @@ const TransactionDetailPage: React.FC = () => {
             <Typography
               variant="caption"
               color="text.secondary"
-              sx={{ display: "block", mt: 0.5, px: 1 }}
+              sx={actionHintSx}
             >
               {t(
                 "transactions.shareDescription",
@@ -968,18 +1057,18 @@ const TransactionDetailPage: React.FC = () => {
       </Paper>
 
       {/* Transaction Info */}
-      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+      <Paper elevation={1} sx={sectionPaperSx}>
         <Typography
           variant="h6"
-          sx={{ mb: 2, display: "flex", alignItems: "center" }}
+          sx={headingWithIconSx}
         >
-          <SwapHorizIcon sx={{ mr: 1 }} />
+          <SwapHorizIcon sx={iconStartSx} />
           {t("transactions.transactionInfo", "Transaction Information")}
         </Typography>
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 4 }}>
-            <ListItem sx={{ px: 0 }}>
+            <ListItem sx={listItemNoPaddingSx}>
               <ListItemIcon>
                 <CalendarTodayIcon />
               </ListItemIcon>
@@ -990,7 +1079,7 @@ const TransactionDetailPage: React.FC = () => {
             </ListItem>
           </Grid>
           <Grid size={{ xs: 12, sm: 4 }}>
-            <ListItem sx={{ px: 0 }}>
+            <ListItem sx={listItemNoPaddingSx}>
               <ListItemIcon>
                 <CalendarTodayIcon />
               </ListItemIcon>
@@ -1004,7 +1093,7 @@ const TransactionDetailPage: React.FC = () => {
           <Grid size={{ xs: 12, sm: 4 }}>
             {transactionDetails &&
               Object.entries(transactionDetails).map(([key, value]) => (
-                <ListItem key={key} sx={{ px: 0 }}>
+                <ListItem key={key} sx={listItemNoPaddingSx}>
                   <ListItemText
                     primary={t(`transactions.transactionDetails.${key}`, key)}
                     secondary={String(value)}
@@ -1016,12 +1105,12 @@ const TransactionDetailPage: React.FC = () => {
       </Paper>
 
       {/* Participants Info */}
-      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+      <Paper elevation={1} sx={sectionPaperSx}>
         <Typography
           variant="h6"
-          sx={{ mb: 2, display: "flex", alignItems: "center" }}
+          sx={headingWithIconSx}
         >
-          <PersonIcon sx={{ mr: 1 }} />
+          <PersonIcon sx={iconStartSx} />
           {t("transactions.participants", "Participants")}
         </Typography>
 
@@ -1030,15 +1119,7 @@ const TransactionDetailPage: React.FC = () => {
           <Grid size={{ xs: 12, md: transaction.receiver ? 4 : 6 }}>
             <Card
               elevation={0}
-              sx={{
-                border: 1,
-                borderColor: "primary.light",
-                height: "100%",
-                cursor: "pointer",
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                },
-              }}
+              sx={{ ...participantCardBaseSx, borderColor: "primary.light" }}
               onClick={() =>
                 handleNavigate(`/user/${transaction.requestor?.id}`)
               }
@@ -1047,7 +1128,7 @@ const TransactionDetailPage: React.FC = () => {
               <CardContent>
                 <Typography
                   variant="subtitle1"
-                  sx={{ mb: 1, color: "primary.main", fontWeight: "bold" }}
+                  sx={participantTitlePrimarySx}
                 >
                   {t("transactions.requestorInfo", "Requestor")}
                 </Typography>
@@ -1093,15 +1174,7 @@ const TransactionDetailPage: React.FC = () => {
               <Grid size={{ xs: 12, md: 4 }}>
                 <Card
                   elevation={0}
-                  sx={{
-                    border: 1,
-                    borderColor: "secondary.light",
-                    height: "100%",
-                    cursor: "pointer",
-                    "&:hover": {
-                      backgroundColor: "action.hover",
-                    },
-                  }}
+                  sx={{ ...participantCardBaseSx, borderColor: "secondary.light" }}
                   onClick={() =>
                     handleNavigate(`/user/${transaction.receiver?.id}`)
                   }
@@ -1110,11 +1183,7 @@ const TransactionDetailPage: React.FC = () => {
                   <CardContent>
                     <Typography
                       variant="subtitle1"
-                      sx={{
-                        mb: 1,
-                        color: "secondary.main",
-                        fontWeight: "bold",
-                      }}
+                      sx={participantTitleSecondarySx}
                     >
                       {t("transactions.receiverInfo", "Receiver")}
                     </Typography>
@@ -1159,15 +1228,7 @@ const TransactionDetailPage: React.FC = () => {
           <Grid size={{ xs: 12, md: transaction.receiver ? 4 : 6 }}>
             <Card
               elevation={0}
-              sx={{
-                border: 1,
-                borderColor: "info.light",
-                height: "100%",
-                cursor: "pointer",
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                },
-              }}
+              sx={{ ...participantCardBaseSx, borderColor: "info.light" }}
               onClick={() =>
                 handleNavigate(`/user/${transaction.item.ownerId}`)
               }
@@ -1176,7 +1237,7 @@ const TransactionDetailPage: React.FC = () => {
               <CardContent>
                 <Typography
                   variant="subtitle1"
-                  sx={{ mb: 1, color: "info.main", fontWeight: "bold" }}
+                  sx={participantTitleInfoSx}
                 >
                   {t("transactions.holderInfo", "Current Holder")}
                 </Typography>
@@ -1193,13 +1254,13 @@ const TransactionDetailPage: React.FC = () => {
                     secondary={
                       holder
                         ? t(
-                            "transactions.holderIsRequestor",
-                            "Requestor has the item",
-                          )
+                          "transactions.holderIsRequestor",
+                          "Requestor has the item",
+                        )
                         : t(
-                            "transactions.ownerHasItem",
-                            "Owner is holding the item",
-                          )
+                          "transactions.ownerHasItem",
+                          "Owner is holding the item",
+                        )
                     }
                   />
                 </ListItem>
@@ -1282,12 +1343,12 @@ const TransactionDetailPage: React.FC = () => {
       )} */}
 
       {/* Item Info */}
-      <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
+      <Paper elevation={1} sx={sectionPaperSx}>
+        <Typography variant="h6" sx={sectionTitleSx}>
           {t("transactions.itemInfo", "Item Information")}
         </Typography>
 
-        <Card elevation={0} sx={{ border: 1, borderColor: "divider" }}>
+        <Card elevation={0} sx={itemCardSx}>
           <CardActionArea
             onClick={() => handleNavigate(`/item/${transaction.item.id}`)}
             title={t("item.viewDetail", "View item detail")}
@@ -1303,7 +1364,7 @@ const TransactionDetailPage: React.FC = () => {
                       transaction.item.images[0]
                     }
                     alt={transaction.item.name}
-                    sx={{ objectFit: "cover" }}
+                    sx={itemMediaSx}
                   />
                 </Grid>
               )}
@@ -1315,28 +1376,32 @@ const TransactionDetailPage: React.FC = () => {
                     {transaction.item?.name}
                   </Typography>
                   {transaction.item?.description && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 1 }}
+                    <DetailSectionCard
+                      title={t("item.description", "Description")}
                     >
-                      {transaction.item.description}
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={itemDescriptionSx}
+                      >
+                        {transaction.item.description}
+                      </Typography>
+                    </DetailSectionCard>
                   )}
                   {transaction.item?.category && (
-                    <Box sx={{ mt: 2 }}>
+                    <Box sx={itemCategoriesWrapSx}>
                       {transaction.item.category.map((cat) => (
                         <Chip
                           key={cat}
                           label={cat}
                           size="small"
-                          sx={{ mr: 1, mb: 1 }}
+                          sx={categoryChipSx}
                         />
                       ))}
                     </Box>
                   )}
                   {transaction.item?.condition && (
-                    <Typography variant="body2" sx={{ mt: 1 }}>
+                    <Typography variant="body2" sx={itemDescriptionSx}>
                       <strong>{t("item.condition", "Condition")}:</strong>{" "}
                       {transaction.item.condition}
                     </Typography>
@@ -1350,26 +1415,19 @@ const TransactionDetailPage: React.FC = () => {
 
       {/* Exchange Location Map */}
       {location && (
-        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={1} sx={sectionPaperSx}>
           <Typography
             variant="h6"
-            sx={{ mb: 2, display: "flex", alignItems: "center" }}
+            sx={headingWithIconSx}
           >
-            <LocationOnIcon sx={{ mr: 1 }} />
+            <LocationOnIcon sx={iconStartSx} />
             {t(
               "transactions.proposedExchangeLocation",
               "Proposed Exchange Location",
             )}
           </Typography>
 
-          <Box
-            sx={{
-              height: 300,
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 1,
-            }}
-          >
+          <Box sx={mapContainerBoxSx}>
             <MapContainer
               center={[location.latitude, location.longitude]}
               zoom={15}
@@ -1395,12 +1453,12 @@ const TransactionDetailPage: React.FC = () => {
 
       {/* Transaction Flow Diagram - NEW SECTION */}
       {transactionType && (
-        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={1} sx={sectionPaperSx}>
           <Typography
             variant="h6"
-            sx={{ mb: 2, display: "flex", alignItems: "center" }}
+            sx={headingWithIconSx}
           >
-            <InfoIcon sx={{ mr: 1 }} />
+            <InfoIcon sx={iconStartSx} />
             {t("transactions.transactionFlow", "Transaction Flow")}
           </Typography>
 
@@ -1424,18 +1482,7 @@ const TransactionDetailPage: React.FC = () => {
             </Typography>
           </Alert>
 
-          <Box
-            sx={{
-              width: "100%",
-              maxWidth: "900px",
-              mx: "auto",
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 2,
-              p: 2,
-              bgcolor: "background.default",
-            }}
-          >
+          <Box sx={flowFrameSx}>
             {transactionType === "faceToFace" && (
               <img
                 src={"/images/Face-to-Face.jpg"}
@@ -1443,7 +1490,7 @@ const TransactionDetailPage: React.FC = () => {
                   "transactions.faceToFaceDiagramAlt",
                   "Face-to-Face Transaction Diagram",
                 )}
-                style={{ width: "100%", height: "auto" }}
+                style={flowImageStyle}
               />
             )}
             {transactionType === "directExchange" && (
@@ -1453,7 +1500,7 @@ const TransactionDetailPage: React.FC = () => {
                   "transactions.directExchangeDiagramAlt",
                   "Direct Exchange Diagram",
                 )}
-                style={{ width: "100%", height: "auto" }}
+                style={flowImageStyle}
               />
             )}
             {transactionType === "exchangePoint" && (
@@ -1463,7 +1510,7 @@ const TransactionDetailPage: React.FC = () => {
                   "transactions.exchangePointDiagramAlt",
                   "Exchange Point Diagram",
                 )}
-                style={{ width: "100%", height: "auto" }}
+                style={flowImageStyle}
               />
             )}
           </Box>
@@ -1477,9 +1524,9 @@ const TransactionDetailPage: React.FC = () => {
           <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
             <Typography
               variant="h6"
-              sx={{ mb: 2, display: "flex", alignItems: "center" }}
+              sx={headingWithIconSx}
             >
-              <ImageIcon sx={{ mr: 1 }} />
+              <ImageIcon sx={iconStartSx} />
               {t("transactions.receiptImages", "Item Condition at Receipt")}
             </Typography>
 
@@ -1491,7 +1538,7 @@ const TransactionDetailPage: React.FC = () => {
             </Typography>
 
             <ImageList
-              sx={{ width: "100%", maxHeight: 500 }}
+              sx={receiptImageListSx}
               cols={3}
               rowHeight={200}
             >
@@ -1501,12 +1548,7 @@ const TransactionDetailPage: React.FC = () => {
                     src={image}
                     alt={`Receipt ${index + 1}`}
                     loading="lazy"
-                    style={{
-                      objectFit: "cover",
-                      width: "100%",
-                      height: "100%",
-                      cursor: "pointer",
-                    }}
+                    style={receiptImageStyle}
                     onClick={() => window.open(image, "_blank")}
                   />
                   <ImageListItemBar
@@ -1558,20 +1600,7 @@ const TransactionDetailPage: React.FC = () => {
         slotProps={{ backdrop: { timeout: 500 } }}
       >
         <Fade in={locationPromptOpen}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              boxShadow: 24,
-              p: 4,
-              maxWidth: 400,
-              width: "90%",
-            }}
-          >
+          <Box sx={locationPromptModalSx}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               {t("item.locationRequired", "Location Required")}
             </Typography>
@@ -1581,7 +1610,7 @@ const TransactionDetailPage: React.FC = () => {
                 "Please set your location in your profile before receiving an item. This helps us match you with nearby items.",
               )}
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+            <Box sx={locationPromptActionsSx}>
               <Button onClick={() => setLocationPromptOpen(false)}>
                 {t("common.cancel", "Cancel")}
               </Button>

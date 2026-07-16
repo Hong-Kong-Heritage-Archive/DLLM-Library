@@ -38,7 +38,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "npx tsc && npx vite build",
+    "tokens:build": "node scripts/generate-semantic-tokens.mjs",
+    "build": "npm run tokens:build && npx tsc && npx vite build",
     "preview": "vite preview",
     "test": "vitest",
     "codegen": "npx graphql-codegen --config codegen.yml"

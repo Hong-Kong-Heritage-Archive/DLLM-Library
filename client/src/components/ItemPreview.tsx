@@ -7,7 +7,9 @@ import {
   Box,
   styled,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
+import { semanticTokens } from "../styles/semanticTokens";
 
 interface ItemPreviewProps {
   item: {
@@ -28,11 +30,7 @@ interface ItemPreviewProps {
 
 // Consistent Dynamic Pastel Color Pool for cards (all with clean dark pastel tones)
 const DYNAMIC_COLORS = [
-  "#3c3029", // Dark Warm Cocoa / Charcoal
-  "#213329", // Deep Forest Slate
-  "#202538", // Dark Twilight Navy
-  "#3b2b35", // Plum Berry Velvet
-  "#2a3b40", // Dark Sage Sea
+  ...semanticTokens.dynamicCardPalette,
 ];
 
 // Simple deterministic hash to select color based on item ID
@@ -48,11 +46,70 @@ const getDeterministicColor = (id: string) => {
 const CustomBadge = styled(Box)({
   borderRadius: "4px",
   padding: "2px 6px",
-  fontSize: "11px",
+  fontSize: "12px",
   fontWeight: "bold",
-  fontFamily: '"Noto Serif TC", sans-serif',
+  fontFamily: "var(--font-family-body)",
   display: "inline-block",
 });
+
+const cardRootSx = {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  cursor: "pointer",
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow: semanticTokens.shadow.cardHover,
+  },
+  borderRadius: "16px",
+  overflow: "hidden",
+  border: "none",
+  backgroundColor: "var(--color-bg-surface)",
+  boxShadow: semanticTokens.shadow.cardSoft,
+};
+
+const cardActionAreaSx = {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  justifyContent: "flex-start",
+};
+
+const topRowSx = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  width: "100%",
+};
+
+const titleStackSx = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  width: "100%",
+  paddingTop: "120%",
+};
+
+const cardContentSx = {
+  p: 1.5,
+  flexGrow: 1,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  backgroundColor: "var(--color-bg-surface)",
+};
+
+const categoryTagSx = {
+  backgroundColor: "var(--color-bg-subtle)",
+  color: "var(--color-text-primary)",
+  borderRadius: "4px",
+  px: "6px",
+  py: "2px",
+  fontSize: "12px",
+  fontFamily: "var(--font-family-body)",
+};
 
 const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
   const { t } = useTranslation();
@@ -91,127 +148,90 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
 
   const hasImage = item.images && item.images.length > 0;
 
+  const heroSx = {
+    width: "100%",
+    height: "140%",
+    position: "relative",
+    backgroundColor: cardColor,
+    backgroundImage: hasImage
+      ? `linear-gradient(${alpha(semanticTokens.color.textPrimary, 0.15)}, ${alpha(semanticTokens.color.textPrimary, 0.45)}), url(${item.images![0]})`
+      : "none",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    p: 1.5,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  };
+
+  const yearSx = {
+    color: alpha(semanticTokens.color.textInverse, 0.65),
+    fontSize: "13px",
+    fontFamily: "var(--font-family-mono)",
+    textShadow: `0 1px 3px ${alpha(semanticTokens.color.textPrimary, 0.5)}`,
+    visibility: hasImage ? "hidden" : "visible",
+  };
+
+  const statusBadgeSx = {
+    backgroundColor: hasImage
+      ? alpha(semanticTokens.color.textPrimary, 0.5)
+      : alpha(semanticTokens.color.textInverse, 0.15),
+    color: "var(--color-text-inverse)",
+    border: hasImage
+      ? `1px solid ${alpha(semanticTokens.color.textInverse, 0.2)}`
+      : `1px solid ${alpha(semanticTokens.color.textInverse, 0.4)}`,
+    backdropFilter: "blur(2px)",
+  };
+
+  const overlayTitleSx = {
+    fontWeight: "900",
+    fontSize: "12px",
+    lineHeight: "1.3",
+    color: "var(--color-text-inverse)",
+    overflow: "hidden",
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    fontFamily: "var(--font-family-display)",
+    letterSpacing: "-0.2px",
+    textShadow: `0 1px 4px ${alpha(semanticTokens.color.textPrimary, 0.8)}`,
+  };
+
+  const conditionBadgeSx = {
+    backgroundColor: alpha(semanticTokens.color.textPrimary, 0.45),
+    color: alpha(semanticTokens.color.textInverse, 0.9),
+    fontSize: "12px",
+  };
+
   return (
     <Card
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        cursor: "pointer",
-        transition: "all 0.2s ease-in-out",
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
-        },
-        borderRadius: "8px",
-        overflow: "hidden",
-        border: "none",
-        backgroundColor: "#ffffff",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-      }}
+      sx={cardRootSx}
     >
       <CardActionArea
         onClick={() => onClick(item.id)}
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "stretch",
-          justifyContent: "flex-start",
-        }}
+        sx={cardActionAreaSx}
       >
         {/* UPPER HALF (Dark dyn color background or thumbnail imagery) */}
-        <Box
-          sx={{
-            width: "100%",
-            height: "140%", // Increased height to cover around ~70% of standard card height (70% of ~320px)
-            position: "relative",
-            backgroundColor: cardColor,
-            backgroundImage: hasImage
-              ? `linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.45)), url(${item.images![0]})`
-              : "none",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            p: 1.5,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
+        <Box sx={heroSx}>
           {/* Top Row: Year (Left - visible only if no image), Status Badge (Right) */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <Typography
-              sx={{
-                color: "rgba(255, 255, 255, 0.65)",
-                fontSize: "13px",
-                fontFamily: '"Roboto Mono", monospace',
-                textShadow: "0 1px 3px rgba(0,0,0,0.5)",
-                visibility: hasImage ? "hidden" : "visible", // Hide year on top layer if thumbnail is present to avoid duplication
-              }}
-            >
+          <Box sx={topRowSx}>
+            <Typography sx={yearSx}>
               {item.publishedYear || new Date(item.createdAt).getFullYear()}
             </Typography>
-            <CustomBadge
-              sx={{
-                backgroundColor: hasImage
-                  ? "rgba(0,0,0,0.5)"
-                  : "rgba(255, 255, 255, 0.15)",
-                color: "#ffffff",
-                border: hasImage
-                  ? "1px solid rgba(255, 255, 255, 0.2)"
-                  : "1px solid rgba(255, 255, 255, 0.4)",
-                backdropFilter: "blur(2px)",
-              }}
-            >
+            <CustomBadge sx={statusBadgeSx}>
               {getStatusLabel(item.status)}
             </CustomBadge>
           </Box>
 
           {/* Bottom Row: Title (Hidden if image is present to prevent duplication) & Condition Overlay */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 0.5,
-              width: "100%",
-              paddingTop: "120%",
-            }}
-          >
+          <Box sx={titleStackSx}>
             {!hasImage && (
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: "900",
-                  fontSize: "12px",
-                  lineHeight: "1.3",
-                  color: "#ffffff",
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  fontFamily: '"Noto Serif TC", "Playfair Display", serif',
-                  letterSpacing: "-0.2px",
-                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                }}
-              >
+              <Typography variant="h6" sx={overlayTitleSx}>
                 {item.name}
               </Typography>
             )}
             <Box>
-              <CustomBadge
-                sx={{
-                  backgroundColor: "rgba(0,0,0,0.45)",
-                  color: "rgba(255,255,255,0.9)",
-                  fontSize: "7px",
-                }}
-              >
+              <CustomBadge sx={conditionBadgeSx}>
                 {getConditionLabel(item.condition)}
               </CustomBadge>
             </Box>
@@ -219,28 +239,19 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
         </Box>
 
         {/* BOTTOM HALF (White background with detailed information and tags) */}
-        <CardContent
-          sx={{
-            p: 1.5,
-            flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <CardContent sx={cardContentSx}>
           {/* Book Title & year summary */}
           <Box sx={{ mb: 1 }}>
             {hasImage && (
               <Typography
                 sx={{
                   fontWeight: "bold",
-                  fontSize: "9px",
+                  fontSize: "12px",
                   lineHeight: "1.3",
-                  color: "#1e1e1e",
+                  color: "var(--color-text-primary)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  fontFamily: '"Noto Serif TC", "Playfair Display", serif',
+                  fontFamily: "var(--font-family-display)",
                   display: "inline-block",
                 }}
               >
@@ -249,10 +260,10 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
             )}
             <Typography
               sx={{
-                fontSize: "8px",
-                color: "#666666",
+                fontSize: "12px",
+                color: "var(--color-text-tertiary)",
                 mt: 0.5,
-                fontFamily: '"Roboto Mono", monospace',
+                fontFamily: "var(--font-family-mono)",
               }}
             >
               {item.publishedYear || new Date(item.createdAt).getFullYear()}
@@ -270,15 +281,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
               }}
             >
               <Box
-                sx={{
-                  backgroundColor: "#f5eedc",
-                  color: "#1e1e1e",
-                  borderRadius: "4px",
-                  px: "6px",
-                  py: "2px",
-                  fontSize: "8px",
-                  fontFamily: '"Noto Serif TC", sans-serif',
-                }}
+                sx={categoryTagSx}
               >
                 {item.category[0].includes(" ")
                   ? item.category[0].split(" ")[0] + "..."
@@ -286,15 +289,7 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
               </Box>
               {item.category.length > 1 && (
                 <Box
-                  sx={{
-                    backgroundColor: "#f5eedc",
-                    color: "#1e1e1e",
-                    borderRadius: "4px",
-                    px: "6px",
-                    py: "2px",
-                    fontSize: "6px",
-                    fontFamily: '"Noto Serif TC", sans-serif',
-                  }}
+                  sx={categoryTagSx}
                 >
                   +{item.category.length - 1}
                 </Box>
