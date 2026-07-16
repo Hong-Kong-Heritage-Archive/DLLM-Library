@@ -19,7 +19,13 @@ import {
 } from "../utils/contentRating";
 import { semanticTokens } from "../styles/semanticTokens";
 
-const absoluteFillSx = { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" };
+const absoluteFillSx = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+};
 const centeredContentSx = {
   display: "flex",
   alignItems: "center",
@@ -30,7 +36,9 @@ const coverTitleSx = { mb: 1, fontWeight: "bold" };
 const wrapChipsSx = { display: "flex", gap: 0.5, flexWrap: "wrap" };
 const publishedYearSx = { mt: 1, display: "block" };
 const contentOverlayGradient = `linear-gradient(to bottom, ${alpha(semanticTokens.color.textMuted, 0.3)}, ${alpha(semanticTokens.color.textMuted, 0.5)})`;
-const modalBackdropSx = { backgroundColor: alpha(semanticTokens.color.textMuted, 0.85) };
+const modalBackdropSx = {
+  backgroundColor: alpha(semanticTokens.color.textMuted, 0.85),
+};
 const closeButtonSx = {
   position: "absolute",
   top: -40,
@@ -164,7 +172,7 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
             boxShadow: semanticTokens.shadow.cardHover,
           },
           boxShadow: semanticTokens.shadow.cardSoft,
-          borderRadius: 1,
+          borderRadius: 0.5,
           overflow: "hidden",
         }}
         onClick={handleSpineClick}
@@ -184,14 +192,14 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
               : backgroundColor,
             "&::before": hasImage
               ? {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: contentOverlayGradient,
-              }
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: contentOverlayGradient,
+                }
               : {},
           }}
         >
@@ -314,10 +322,7 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
             }}
           >
             {/* Close button */}
-            <IconButton
-              onClick={handleModalClose}
-              sx={closeButtonSx}
-            >
+            <IconButton onClick={handleModalClose} sx={closeButtonSx}>
               <CloseIcon />
             </IconButton>
 
@@ -354,20 +359,45 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
                     backgroundColor: hasImage ? "transparent" : backgroundColor,
                     overflow: "hidden",
                   }}
-                // sx={{ ...absoluteFillSx, objectFit: "cover" }}
                 >
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: "bold",
-                      textAlign: "center",
-                      color: "text.primary",
-                    }}
-                  >
-                    {item.name}
-                  </Typography>
+                  {hasImage ? (
+                    <Box
+                      component="img"
+                      src={item.images![0]}
+                      alt={item.name}
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        p: 2,
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        align="center"
+                      >
+                        {item.name}
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
-
 
                 {/* Status Badge */}
                 <Chip
@@ -385,10 +415,7 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
 
                 {/* Condition Badge */}
                 <Chip
-                  label={t(
-                    `item.conditions.${item.condition}`,
-                    item.condition,
-                  )}
+                  label={t(`item.conditions.${item.condition}`, item.condition)}
                   size="small"
                   variant="filled"
                   sx={conditionBadgeSx}
@@ -432,9 +459,7 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
 
                 {/* Categories */}
                 {item.category && item.category.length > 0 && (
-                  <Box
-                    sx={{ ...wrapChipsSx, mb: 1 }}
-                  >
+                  <Box sx={{ ...wrapChipsSx, mb: 1 }}>
                     {item.category.map((cat, idx) => (
                       <Chip
                         key={idx}
@@ -476,9 +501,9 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
                 )}
               </Box>
             </Card>
-          </Box >
-        </Fade >
-      </Modal >
+          </Box>
+        </Fade>
+      </Modal>
     </>
   );
 };
