@@ -35,6 +35,7 @@ import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
 import ItemForm from "../components/ItemForm";
 import RecentNewsBanner from "../components/RecentNewsBanner";
+import AddressReminderDialog from "../components/AddressReminderDialog";
 import SearchBar from "../components/SearchBar";
 
 const RecentCategoriesQuery = gql`
@@ -139,14 +140,6 @@ const HomePage: React.FC = () => {
     variables: { limit: 3 },
   });
 
-  const handleAddItem = () => {
-    if (!user?.address) {
-      setShowAddressReminder(true);
-      return;
-    }
-    setShowItemForm(true);
-  };
-
   const handleGoToProfile = () => {
     setShowAddressReminder(false);
     setShowCreateUser(true);
@@ -189,7 +182,7 @@ const HomePage: React.FC = () => {
             {user?.isVerified ? (
               <Box>
                 <Grid container alignItems="center">
-                  <Grid size={{ xs: 8, md: 8 }}>
+                  <Grid size={{ xs: 12, md: 12 }}>
                     <Typography
                       sx={{
                         fontFamily: "var(--font-family-display)",
@@ -210,28 +203,10 @@ const HomePage: React.FC = () => {
                         fontSize: "13px",
                       }}
                     >
-                      Grettings from the Library!
+                      Grettings from the Library! We are Librarians, and we are
+                      here to help you find the best items for your needs.
+                      Explore our collection and discover new favorites today!
                     </Typography>
-                  </Grid>
-                  <Grid
-                    size={{
-                      xs: 4,
-                      md: 4,
-                    }}
-                    sx={{
-                      display: "flex",
-                      justifyContent: { xs: "flex-start", md: "flex-end" },
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      onClick={handleAddItem}
-                      size="medium"
-                      sx={{ ml: 1, mt: 1 }}
-                      data-tour="add-item"
-                    >
-                      {t("item.create", "Add Item")}
-                    </Button>
                   </Grid>
                 </Grid>
                 {!user.isActive && (
@@ -406,30 +381,13 @@ const HomePage: React.FC = () => {
           />
         )}
 
-        <Dialog
-          open={showAddressReminder}
-          onClose={() => setShowAddressReminder(false)}
-        >
-          <DialogTitle>
-            {t("user.addressRequiredTitle", "Address Required")}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {t(
-                "user.addressRequiredMessage",
-                "Please set your exchange address in your profile before adding items. This helps other users know where to exchange.",
-              )}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowAddressReminder(false)}>
-              {t("common.cancel", "Cancel")}
-            </Button>
-            <Button variant="contained" onClick={handleGoToProfile}>
-              {t("user.goToProfile", "Go to Profile")}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {showAddressReminder && (
+          <AddressReminderDialog
+            open={showAddressReminder}
+            onClose={() => setShowAddressReminder(false)}
+            onGoToProfile={handleGoToProfile}
+          />
+        )}
 
         {showItemForm && user && (
           <ItemForm

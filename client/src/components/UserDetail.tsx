@@ -48,6 +48,8 @@ import { USER_DETAIL_QUERY } from "../hook/user";
 import ContactMethods from "./ContactMethods";
 import UserProfileShareDialog from "./UserProfileShareDialog";
 import { semanticTokens } from "../styles/semanticTokens";
+import AddressReminderDialog from "./AddressReminderDialog";
+import ItemForm from "./ItemForm";
 
 // GraphQL query to fetch user's items with pagination and category filter
 const USER_ITEMS_QUERY = gql`
@@ -119,7 +121,11 @@ const headerRowSx = { display: "flex", alignItems: "center", mb: 3 };
 const backIconButtonSx = { mr: 2 };
 const sectionTitleWithIconSx = { mb: 2, display: "flex", alignItems: "center" };
 const iconInlineSx = { mr: 1, verticalAlign: "middle" };
-const loadingCenterPaddedSx = { display: "flex", justifyContent: "center", py: 8 };
+const loadingCenterPaddedSx = {
+  display: "flex",
+  justifyContent: "center",
+  py: 8,
+};
 const resultHeaderRowSx = {
   mb: 2,
   display: "flex",
@@ -149,7 +155,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // State for controlling UpdateUser dialog
   const [showUpdateUser, setShowUpdateUser] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [expanded, setExpanded] = React.useState(false);
+  const [showAddressReminder, setShowAddressReminder] = useState(false);
+  const [showItemForm, setShowItemForm] = useState(false);
 
   const {
     data: userData,
@@ -166,8 +173,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Count for selected category (or total) comes free from itemCategory metadata
   const selectedCategoryCount = selectedCategory
     ? (userData?.user?.itemCategory?.find(
-      (c) => c.category === selectedCategory,
-    )?.count ?? ITEMS_PER_PAGE)
+        (c) => c.category === selectedCategory,
+      )?.count ?? ITEMS_PER_PAGE)
     : null;
   const totalUserItemCount =
     userData?.user?.itemCategory?.reduce((sum, c) => sum + c.count, 0) ?? 0;
@@ -242,18 +249,14 @@ const UserDetail: React.FC<UserDetailProps> = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleCategoryClick = (tag: TagCloudData) => {
-    const category = tag.value;
-    const next = selectedCategory === category ? null : category;
-    setSelectedCategory(next);
-    setItemsPage(1);
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev);
-      if (next) params.set("category", next);
-      else params.delete("category");
-      params.set("page", "1");
-      return params;
-    });
+  const handleItemCreated = () => {
+    setShowItemForm(false);
+    // recentCategoriesRefetch();
+    // hotCategoriesRefetch();
+    // userPickedRefetch();
+    if (window.location.pathname === "/") {
+      window.location.reload();
+    }
   };
 
   const clearCategory = () => {
@@ -316,8 +319,12 @@ const UserDetail: React.FC<UserDetailProps> = ({
     navigate(`/item/${itemId}`);
   };
 
-  const handleBinderClick = (binderId: string) => {
-    navigate(`/binder/${binderId}`);
+  const handleAddItem = () => {
+    if (!userData?.user?.address) {
+      setShowAddressReminder(true);
+      return;
+    }
+    setShowItemForm(true);
   };
 
   // Format date for display
@@ -332,9 +339,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Prepare data for TagCloud component
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-      value: categoryItem.category,
-      count: categoryItem.count,
-    }))
+        value: categoryItem.category,
+        count: categoryItem.count,
+      }))
     : [];
 
   // Custom renderer for TagCloud
@@ -382,11 +389,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -397,11 +404,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -508,6 +515,17 @@ const UserDetail: React.FC<UserDetailProps> = ({
             {t("user.shareProfile", "Share profile")}
           </Button>
         )}
+        {isCurrentUser && (
+          <Button
+            variant="outlined"
+            color="primary"
+            size="large"
+            onClick={handleAddItem}
+            data-tour="add-item"
+          >
+            {t("item.create", "Add Item")}
+          </Button>
+        )}
       </Box>
 
       {/* Loading State */}
@@ -533,10 +551,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
             {/* Basic Info */}
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Grid size={{ xs: 12 }}>
-                <Typography
-                  variant="h6"
-                  sx={sectionTitleWithIconSx}
-                >
+                <Typography variant="h6" sx={sectionTitleWithIconSx}>
                   <PersonIcon sx={iconInlineSx} />
                   {t("user.basicInfo", "Basic Information")}
                 </Typography>
@@ -605,7 +620,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
               </Grid>
               {/* Contact Methods in read-only mode */}
               {userData?.user?.contactMethods &&
-                userData.user?.contactMethods.length > 0 ? (
+              userData.user?.contactMethods.length > 0 ? (
                 <Box
                   sx={{
                     mb: 2,
@@ -637,21 +652,14 @@ const UserDetail: React.FC<UserDetailProps> = ({
 
           {/* Pinned Items Section - Grid Layout */}
           <Paper elevation={1} sx={{ p: 4, mt: 3, mb: 3 }}>
-            <Typography
-              variant="h6"
-              sx={sectionTitleWithIconSx}
-            >
+            <Typography variant="h6" sx={sectionTitleWithIconSx}>
               <LabelIcon sx={iconInlineSx} />
               {t("user.pinnedItems", "Pinned Items")}
             </Typography>
 
             {pinnedItemsWithDistance.length > 0 ? (
               <>
-                <Grid
-                  container
-                  spacing={{ xs: 1, sm: 2 }}
-                  sx={{ mb: 2 }}
-                >
+                <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: 2 }}>
                   {pinnedItemsWithDistance.map((item) => (
                     <Grid key={item.id} size={{ xs: 2, sm: 1.5, md: 1 }}>
                       <BookSpinePreview
@@ -677,13 +685,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
               <Alert severity="info">
                 {isCurrentUser
                   ? t(
-                    "user.noPinnedItemsYou",
-                    "You haven't pinned any items yet.",
-                  )
+                      "user.noPinnedItemsYou",
+                      "You haven't pinned any items yet.",
+                    )
                   : t(
-                    "user.noPinnedItemsUser",
-                    "This user hasn't pinned any items.",
-                  )}
+                      "user.noPinnedItemsUser",
+                      "This user hasn't pinned any items.",
+                    )}
               </Alert>
             )}
           </Paper>
@@ -692,10 +700,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
           {userData.user.itemCategory &&
             userData.user.itemCategory.length > 0 && (
               <Paper elevation={1} sx={{ p: 4, mb: 4 }}>
-                <Typography
-                  variant="h6"
-                  sx={sectionTitleWithIconSx}
-                >
+                <Typography variant="h6" sx={sectionTitleWithIconSx}>
                   <LabelIcon sx={iconInlineSx} />
                   {t("user.itemCategories", "Item Categories")}
                 </Typography>
@@ -780,27 +785,25 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 {/* User's Items - Only show when a category is selected - Grid Layout */}
                 {selectedCategory ? (
                   <>
-                    <Box
-                      sx={resultHeaderRowSx}
-                    >
+                    <Box sx={resultHeaderRowSx}>
                       <Typography variant="h6">
                         {isCurrentUser
                           ? t(
-                            "user.yourItemsInCategory",
-                            "Your {{category}} Items",
-                            {
-                              category: selectedCategory,
-                            },
-                          )
+                              "user.yourItemsInCategory",
+                              "Your {{category}} Items",
+                              {
+                                category: selectedCategory,
+                              },
+                            )
                           : t(
-                            "user.userItemsInCategory",
-                            "{{name}}'s {{category}} Items",
-                            {
-                              name:
-                                userData.user.nickname || userData.user.email,
-                              category: selectedCategory,
-                            },
-                          )}
+                              "user.userItemsInCategory",
+                              "{{name}}'s {{category}} Items",
+                              {
+                                name:
+                                  userData.user.nickname || userData.user.email,
+                                category: selectedCategory,
+                              },
+                            )}
                         {isExchangePointAdmin && includeExchangePointItems && (
                           <Chip
                             label={t(
@@ -819,12 +822,12 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         {itemsLoading
                           ? t("common.loading", "Loading...")
                           : t(
-                            "itemsAll.itemsFound",
-                            "Found {{count}} item(s)",
-                            {
-                              count: totalFilteredCount,
-                            },
-                          )}
+                              "itemsAll.itemsFound",
+                              "Found {{count}} item(s)",
+                              {
+                                count: totalFilteredCount,
+                              },
+                            )}
                       </Typography>
                     </Box>
 
@@ -878,28 +881,26 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         <Alert severity="info">
                           {isCurrentUser
                             ? t(
-                              "user.noItemsInCategoryYou",
-                              "You haven't added any {{category}} items yet.",
-                              {
-                                category: selectedCategory,
-                              },
-                            )
+                                "user.noItemsInCategoryYou",
+                                "You haven't added any {{category}} items yet.",
+                                {
+                                  category: selectedCategory,
+                                },
+                              )
                             : t(
-                              "user.noItemsInCategoryUser",
-                              "This user hasn't added any {{category}} items yet.",
-                              {
-                                category: selectedCategory,
-                              },
-                            )}
+                                "user.noItemsInCategoryUser",
+                                "This user hasn't added any {{category}} items yet.",
+                                {
+                                  category: selectedCategory,
+                                },
+                              )}
                         </Alert>
                       )
                     )}
                   </>
                 ) : (
                   <>
-                    <Box
-                      sx={resultHeaderRowSx}
-                    >
+                    <Box sx={resultHeaderRowSx}>
                       <Typography variant="h6">
                         {isCurrentUser
                           ? t("item.myLentItems", "All My Items")
@@ -909,12 +910,12 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         {itemsLoading
                           ? t("common.loading", "Loading...")
                           : t(
-                            "itemsAll.itemsFound",
-                            "Found {{count}} item(s)",
-                            {
-                              count: totalFilteredCount,
-                            },
-                          )}
+                              "itemsAll.itemsFound",
+                              "Found {{count}} item(s)",
+                              {
+                                count: totalFilteredCount,
+                              },
+                            )}
                       </Typography>
                     </Box>
 
@@ -964,13 +965,13 @@ const UserDetail: React.FC<UserDetailProps> = ({
                         <Alert severity="info">
                           {isCurrentUser
                             ? t(
-                              "item.noLentItems",
-                              "You currently have no items.",
-                            )
+                                "item.noLentItems",
+                                "You currently have no items.",
+                              )
                             : t(
-                              "user.noPinnedItemsUser",
-                              "This user hasn't added any items yet.",
-                            )}
+                                "user.noPinnedItemsUser",
+                                "This user hasn't added any items yet.",
+                              )}
                         </Alert>
                       )
                     )}
@@ -1007,6 +1008,22 @@ const UserDetail: React.FC<UserDetailProps> = ({
               </Paper>
             )}
         </>
+      )}
+      {showAddressReminder && (
+        <AddressReminderDialog
+          open={showAddressReminder}
+          onClose={() => setShowAddressReminder(false)}
+          onGoToProfile={null}
+        />
+      )}
+
+      {showItemForm && userData?.user && (
+        <ItemForm
+          open={showItemForm}
+          user={userData.user}
+          onClose={() => setShowItemForm(false)}
+          onItemCreated={handleItemCreated}
+        />
       )}
     </Container>
   );
