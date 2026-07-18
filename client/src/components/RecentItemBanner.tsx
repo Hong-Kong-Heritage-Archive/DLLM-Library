@@ -10,8 +10,8 @@ import { useOutletContext } from "react-router";
 import { gql, useQuery } from "@apollo/client";
 import {
   User,
-  RecentAddedItemsQuery,
-  RecentAddedItemsQueryVariables,
+  RecentItemsQuery,
+  RecentItemsQueryVariables,
   RecommendationType,
   Item,
 } from "../generated/graphql";
@@ -20,8 +20,8 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 const RECENT_ITEMS_QUERY = gql`
-  query RecentItems($category: [String!], $limit: Int) {
-    recentAddedItems(category: $category, limit: $limit) {
+  query RecentItems($category: [String!], $limit: Int, $random: Boolean) {
+    recentAddedItems(category: $category, limit: $limit, random: $random) {
       id
       name
       description
@@ -134,13 +134,13 @@ const RecentItemBanner: React.FC<RecentItemBannerProps> = ({
     data: categoryData,
     loading: categoryLoading,
     error: categoryError,
-  } = useQuery<RecentAddedItemsQuery, RecentAddedItemsQueryVariables>(
+  } = useQuery<RecentItemsQuery, RecentItemsQueryVariables>(
     RECENT_ITEMS_QUERY,
     {
       variables: {
         category: category && category !== "" ? [category] : [],
         limit: maxItems,
-        //isRecent: isRecent,
+        random: true,
       },
       skip: !shouldFetchCategory,
     },

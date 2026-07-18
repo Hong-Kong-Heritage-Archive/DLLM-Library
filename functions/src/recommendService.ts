@@ -4,6 +4,7 @@ import firebase from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { ItemService } from "./itemService";
 import { UserModel } from "./userService";
+import { sampleRandom } from "./utils/randomUtils";
 
 type RecommendModel = {
   updated: Timestamp;
@@ -11,6 +12,9 @@ type RecommendModel = {
   recommendationType: RecommendationType;
   itemId: string; // 可選的，存儲推薦的物品ID
 };
+
+/** Max docs to fetch before in-memory random sample (Firestore has no ORDER BY RANDOM). */
+const RANDOM_SAMPLE_CAP = 100;
 
 export class RecommendService {
   private itemService: ItemService;
@@ -52,12 +56,17 @@ export class RecommendService {
     userModel: UserModel | null,
     recommendationType: RecommendationType,
     category: string | null,
-    offset: number = 0,
+    _offset: number = 0,
     limit: number = 12,
   ): Promise<Item[]> {
     if (recommendationType === RecommendationType.NewArrivals) {
-      // 如果是新到貨推薦，直接從 ItemService 獲取最新的物品
-      return await this.itemService.latestItems(userModel, offset, limit);
+      // Sample from a recent window so bulk uploads do not dominate the banner.
+      const pool = await this.itemService.latestItems(
+        userModel,
+        0,
+        RANDOM_SAMPLE_CAP,
+      );
+      return sampleRandom(pool, limit);
     }
     let query = this.recommendCollection
       .where("recommendationType", "==", recommendationType)
@@ -66,19 +75,8 @@ export class RecommendService {
     if (category && category.trim() !== "") {
       query = query.where("categories", "array-contains", category);
     }
-    // Fetch up to a capped number of documents (e.g., 100)
-    const CAP = 100;
-    let snapshot = await query.limit(CAP).get();
-    let docs = snapshot.docs;
-    if (docs.length > limit) {
-      // Randomly sample 'limit' documents from the fetched set
-      const shuffled = docs.slice();
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      docs = shuffled.slice(0, limit);
-    }
+    let snapshot = await query.limit(RANDOM_SAMPLE_CAP).get();
+    let docs = sampleRandom(snapshot.docs, limit);
     const itemIds: string[] = [];
     docs.forEach((doc) => {
       const data = doc.data() as RecommendModel;
