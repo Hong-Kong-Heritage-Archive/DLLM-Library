@@ -273,7 +273,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 fontSize: { xs: "18px", sm: "24px", md: "28px" },
               }}
             >
-              BookGuide
+              {t("app.brand-title", "BookGuide")}
               <Box
                 component="span"
                 sx={{
@@ -283,7 +283,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   ml: 0.5,
                 }}
               >
-                Sydney
+                {t("app.location", "Sydney, Australia")}
               </Box>
             </Typography>
             <Typography
@@ -298,7 +298,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 textOverflow: "ellipsis",
               }}
             >
-              Hong Kong books. Keep them moving.
+              {t("app.icon-slogan", "Hong Kong books. Keep them moving.")}
             </Typography>
           </Box>
 
@@ -487,27 +487,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           }}
         >
           <BottomNavigationAction
-            label="首頁"
+            label={t("tabs.home", "Home")}
             icon={renderNavIcon(<HomeIcon />, bottomNavValue === 0)}
           />
           <BottomNavigationAction
-            label="尋書"
+            label={t("tabs.item-nav", "Search")}
             icon={renderNavIcon(<SearchIcon />, bottomNavValue === 1)}
             data-tour="item-nav"
           />
           <BottomNavigationAction
-            label="新聞"
+            label={t("tabs.news-nav", "News")}
             icon={renderNavIcon(<NewsIcon />, bottomNavValue === 2)}
             data-tour="news-nav"
           />
           {user?.isVerified && (
             <BottomNavigationAction
-              label="書況"
+              label={t("tabs.items-nav", "Holdings")}
               icon={renderNavIcon(<LoanIcon />, bottomNavValue === 3)}
             />
           )}
           <BottomNavigationAction
-            label="個人"
+            label={t("tabs.profile", "Profile")}
             icon={renderNavIcon(
               <PersonIcon />,
               bottomNavValue === (user?.isVerified ? 4 : 3),

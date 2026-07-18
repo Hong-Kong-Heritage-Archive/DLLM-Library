@@ -1335,111 +1335,15 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         {data?.item ? (
           <Typography variant="h4" sx={{ flexGrow: 1 }}>
             {data.item.name}
-            <>
-              {isOwner ? (
-                <>
-                  <Chip
-                    label={t("item.owner", "Owner")}
-                    color="primary"
-                    size="small"
-                    sx={{ ml: 2 }}
-                  />
-                  {/* Pin/Unpin Toggle Button */}
-                  <IconButton
-                    onClick={handlePinToggle}
-                    disabled={pinLoading || unpinLoading}
-                    sx={{
-                      ml: 1,
-                      color: isItemPinned()
-                        ? "primary.main"
-                        : "action.disabled",
-                      "&:hover": {
-                        backgroundColor: isItemPinned()
-                          ? "primary.light"
-                          : "action.hover",
-                      },
-                    }}
-                    title={
-                      isItemPinned()
-                        ? t("item.unpinItem", "Unpin item")
-                        : t("item.pinItem", "Pin item")
-                    }
-                  >
-                    {pinLoading || unpinLoading ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <PinIcon
-                        sx={{
-                          transform: isItemPinned()
-                            ? "rotate(45deg)"
-                            : "rotate(0deg)",
-                          transition: "transform 0.2s ease-in-out",
-                        }}
-                      />
-                    )}
-                  </IconButton>
-                  {/* Pin Status Indicator */}
-                  {ownerData?.user?.pinItems && (
-                    <Chip
-                      label={t(
-                        "item.pinnedItemsStatus",
-                        "Pinned: {{count}}/5",
-                        {
-                          count: ownerData.user.pinItems.length,
-                        },
-                      )}
-                      size="small"
-                      sx={{ ml: 1 }}
-                    />
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Show owner name if user is not the owner */}
-                  {ownerData?.user && (
-                    <Chip
-                      label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email
-                        } `}
-                      color="primary"
-                      size="small"
-                      sx={{ ml: 2, cursor: "pointer" }}
-                      onClick={() => handleUserClick(ownerData.user.id)}
-                    />
-                  )}
-                </>
-              )}
-
-              <>
-                {/* Show holder name if user is not the holder and holder is different from owner */}
-                {isHolder && (
-                  <Chip
-                    label={t("item.holder", "Holder")}
-                    color="secondary"
-                    size="small"
-                    sx={{ ml: 2 }}
-                  />
-                )}
-                {!isHolder &&
-                  holderData?.user &&
-                  data.item.holderId !== data.item.ownerId && (
-                    <Chip
-                      label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email
-                        } `}
-                      color="secondary"
-                      size="small"
-                      sx={{ ml: 2, cursor: "pointer" }}
-                      onClick={() => handleUserClick(holderData.user.id)}
-                    />
-                  )}
-                <Chip
-                  label={`${t("item.deposit", "deposit")}: ${data.item.deposit
-                    } `}
-                  color="secondary"
-                  size="small"
-                  sx={{ ml: 2, cursor: "pointer" }}
-                />
-              </>
-            </>
+            {/* Show holder name if user is not the holder and holder is different from owner */}
+            {isHolder && (
+              <Chip
+                label={t("item.holder", "Holder")}
+                color="secondary"
+                size="small"
+                sx={{ ml: 2 }}
+              />
+            )}
           </Typography>
         ) : (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
@@ -1509,7 +1413,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     {t("item.status", "Status")}
                   </Typography>
                   <Chip
-                    label={t(`shortStatus.${data.item.status} `, data.item.status)}
+                    label={t(`shortStatus.${data.item.status}`, data.item.status)}
                     size="small"
                     sx={infoStatusChipSx(data.item.status)}
                   />
@@ -1569,9 +1473,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     {ownerData?.user && (
                       <Chip
                         label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email}`}
+                        // label={t("item.owner", "Owner")}
+                        color="primary"
                         size="small"
-                        sx={tagChipSx}
-                        onClick={() => handleUserClick(ownerData.user.id)}
+                        sx={{ ml: 2 }}
+                        //   sx={tagChipSx}
+                        onClick={() => isOwner ? undefined : handleUserClick(ownerData.user.id)}
                       />
                     )}
                     {!isHolder &&
@@ -1692,16 +1599,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           >
             <CardContent>
               <Grid container spacing={3}>
-                <Grid size={6}>
-                  <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.status", "Status")}:</strong>{" "}
-                    <Chip
-                      label={t(`shortStatus.${data.item.status} `, data.item.status)}
-                      size="small"
-                      sx={infoStatusChipSx(data.item.status)}
-                    />
-                  </Typography>
-                </Grid>
+
                 {user && getDistanceToOwner() && (
                   <Grid size={6}>
                     <Typography variant="body1" color="text.secondary">
@@ -1716,10 +1614,16 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     </Typography>
                   </Grid>
                 )}
-                <Grid size={6}>
+                <Grid size={5}>
                   <Typography variant="body1" color="text.secondary">
                     <strong>{t("common.language")}:</strong>{" "}
                     {data.item.language}
+                  </Typography>
+                </Grid>
+                <Grid size={user && getDistanceToOwner() ? 6 : 6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.addedOn")}:</strong>{" "}
+                    {new Date(data.item.createdAt).toLocaleDateString()}
                   </Typography>
                 </Grid>
                 {data.item.publishedYear && (
@@ -1730,31 +1634,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     </Typography>
                   </Grid>
                 )}
-                {/* <Grid size={6}>
-                  <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.deposit", "Deposit")}:</strong> {data.item.deposit}
-                  </Typography>
-                </Grid> */}
-                <Grid size={6}>
-                  <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.condition", "Condition")}:</strong>{" "}
-                    <Chip
-                      label={data.item.condition}
-                      color="default"
-                      size="small"
-                      sx={{ ml: 1 }}
-                    />
-                  </Typography>
-                </Grid>
-                <Grid size={user && getDistanceToOwner() ? 6 : 6}>
-                  <Typography variant="body1" color="text.secondary">
-                    <strong>{t("item.addedOn")}:</strong>{" "}
-                    {new Date(data.item.createdAt).toLocaleDateString()}
-                  </Typography>
-                </Grid>
                 {(data.item as any).contentRating != null &&
                   (isOwner || !(data.item as any).contentRatingChecked) && (
-                    <Grid size={12}>
+                    <Grid size={7}>
                       <Typography
                         variant="body1"
                         color="text.secondary"
@@ -1784,7 +1666,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           </Card>
 
           {/* STATUS + PRIMARY ACTION — "can I get this?" */}
-          <StatusBox status={data.item.status} />
+          {/* <StatusBox status={data.item.status} /> */}
 
           <Box sx={primaryActionsRowSxDynamic}>
             {hasAddToBooklistButton ? (

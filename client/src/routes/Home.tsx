@@ -203,9 +203,7 @@ const HomePage: React.FC = () => {
                         fontSize: "13px",
                       }}
                     >
-                      Grettings from the Library! We are Librarians, and we are
-                      here to help you find the best items for your needs.
-                      Explore our collection and discover new favorites today!
+                      {t("app.description", "Greetings from the Library! We are Librarians, and we are here to help you discover your next great read. Whether you're searching for resources, reliable information, or something entirely unexpected, we're here to guide you every step of the way. Explore our collection today and find your new favorites!")}
                     </Typography>
                   </Grid>
                 </Grid>

@@ -192,14 +192,14 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
               : backgroundColor,
             "&::before": hasImage
               ? {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: contentOverlayGradient,
-                }
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: contentOverlayGradient,
+              }
               : {},
           }}
         >
@@ -247,21 +247,28 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
               sx={{
                 color: hasImage ? "white" : "text.primary",
                 fontWeight: "bold",
-                fontSize: "0.75rem",
-                lineHeight: 1.3,
+                fontSize: isCJK ? "0.75rem" : "0.68rem",
+                lineHeight: isCJK ? 1.3 : 1.05,
                 textAlign: "center",
                 textShadow: hasImage ? "0 1px 3px rgba(0,0,0,0.9)" : "none",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: isCJK ? "hidden" : "visible",
-                textOverflow: "ellipsis",
-                writingMode: isCJK ? "vertical-rl" : "horizontal-tb",
-                transform: isCJK ? "none" : "rotate(90deg)",
-                transformOrigin: "center",
-                maxWidth: isCJK ? "100%" : "200px",
-                maxHeight: isCJK ? "180px" : "180px",
+
+                width: "100%",
+                height: "100%",
+                maxWidth: "100%",
+                maxHeight: "100%",
                 px: 0.5,
+
+                writingMode: "vertical-rl",
+                textOrientation: isCJK ? "upright" : "mixed",
+                transform: "none",
+
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "normal",
+                wordBreak: isCJK ? "keep-all" : "break-word",
+                overflowWrap: isCJK ? "normal" : "anywhere",
+
+                display: "block",
               }}
             >
               {item.name}

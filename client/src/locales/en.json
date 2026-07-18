@@ -1,6 +1,10 @@
 {
   "app": {
-    "title": "Hong Kong Decentralized Archive"
+    "title": "Hong Kong Decentralized Archive",
+    "brand-title": "BookGuide",
+    "location": "Sydney",
+    "icon-slogan": "Hong Kong books. Keep them moving.",
+    "description": "Greetings from the Library! We are Librarians, and we are here to help you discover your next great read. Whether you're searching for resources, reliable information, or something entirely unexpected, we're here to guide you every step of the way. Explore our collection today and find your new favorites!"
   },
   "designSystem": {
     "eyebrow": "Design System · Component Library · v2.0",
@@ -42,6 +46,13 @@
       "title": "Type Tokens",
       "description": "Engineering tokens for typography, radius, and spacing. Reference these instead of hard-coding values."
     }
+  },
+  "tabs": {
+    "home": "Home",
+    "item-nav": "Search",
+    "news-nav": "News",
+    "items-nav": "Holdings",
+    "profile": "Profile"
   },
   "auth": {
     "signIn": "Sign In",
@@ -755,6 +766,7 @@
     "searchRadius": "Radius",
     "locationError": "Failed to get your location. Please enable location services and try again.",
     "locationReady": "Location ready. You can now search for items within {{radius}}km.",
+    "detailedSearchFilters": "Detailed Search Filters",
     "filterTypeKeyword": "Keyword",
     "searchKeyword": "Search by keyword (book info)",
     "keywordHelper": "Enter book title, author, or description...",

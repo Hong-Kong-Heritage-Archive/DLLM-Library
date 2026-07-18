@@ -174,8 +174,8 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
 
   const statusBadgeSx = {
     backgroundColor: hasImage
-      ? alpha(semanticTokens.color.textPrimary, 0.5)
-      : alpha(semanticTokens.color.textInverse, 0.15),
+      ? alpha(semanticTokens.color.bgElevated, 0.5)
+      : alpha(semanticTokens.color.bgElevated, 0.15),
     color: "var(--color-text-inverse)",
     border: hasImage
       ? `1px solid ${alpha(semanticTokens.color.textInverse, 0.2)}`

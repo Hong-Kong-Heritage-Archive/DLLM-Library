@@ -1,6 +1,10 @@
 {
   "app": {
-    "title": "無大台香港典藏館"
+    "title": "無大台香港典藏館",
+    "brand-title": "BookGuide",
+    "location": "悉尼",
+    "icon-slogan": "Hong Kong books. Keep them moving.",
+    "description": "來自圖書館的問候！我們係圖書管理員，負責守護知識、服務每一位讀者的使命。無論你想尋找一本好書、一份資料，或是最符合你需要的館藏，我們都竭誠為你服務。歡迎探索我們豐富的館藏，發掘下一本令你愛不釋手的佳作！"
   },
   "designSystem": {
     "eyebrow": "設計系統 · 組件庫 · v2.0",
@@ -42,6 +46,13 @@
       "title": "字體代幣",
       "description": "字體、圓角與間距的工程代幣。引用這些數值，避免硬編碼。"
     }
+  },
+  "tabs": {
+    "home": "首頁",
+    "item-nav": "尋書",
+    "news-nav": "新聞",
+    "items-nav": "書況",
+    "profile": "個人檔案"
   },
   "auth": {
     "signIn": "登入",
@@ -408,7 +419,7 @@
     "subject": "主題",
     "emailContent": "電子郵件內容",
     "defaultEmailSubject": "有人想借你件{{itemName}}",
-    "defaultEmailContent": "你好，\n\n我想借你有持住嘅'{{itemName}}'。另外，如果涉及一切手續費/押金（Deposit），建議事先同對方溝通好。\n\n謝謝。",
+    "defaultEmailContent": "你好，\n\n我想借你有持住的'{{itemName}}'。另外，如果涉及一切手續費/押金（Deposit），建議事先同對方溝通好。\n\n謝謝。",
     "approvedTransfer": "準備交收",
     "approvedForTransfer": "的交易請求已被批准",
     "approvedOn": "批准於",
@@ -893,6 +904,7 @@
     "searchRadius": "搜尋半徑",
     "locationError": "無法取得你的位置。請啟用定位服務後再試一次。",
     "locationReady": "位置已就緒。你現在可以搜尋半徑 {{radius}} 公里內的物品。",
+    "detailedSearchFilters": "詳細搜尋篩選",
     "filterTypeKeyword": "物品關鍵字",
     "searchKeyword": "依物品關鍵字搜尋",
     "keywordHelper": "輸入書名、作者或描述...",

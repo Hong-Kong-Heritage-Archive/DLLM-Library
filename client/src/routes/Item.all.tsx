@@ -24,6 +24,7 @@ import {
   FormLabel,
   Card,
   CardContent,
+  CardHeader,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -136,6 +137,20 @@ const DEFAULT_SEARCH_RADIUS_KM = 10;
 
 type FilterType = "none" | "keyword" | "category" | "classification";
 
+const detailedSearchFiltersSx = {
+  display: "flex",
+  flexDirection: { xs: "column", sm: "row" },
+  alignItems: { xs: "flex-start", sm: "center" },
+  justifyContent: "space-between",
+  // gap: 1.5,
+  // mb: 3,
+  p: { xs: 1, sm: 1.5 },
+  borderRadius: 3,
+  border: "1px solid var(--color-border-subtle)",
+  backgroundColor: "var(--color-bg-surface)",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+};
+
 const ItemAllPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user } = useOutletContext<OutletContext>();
@@ -206,23 +221,23 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched && activeFilterType !== "none"
         ? {
-            ...location,
-            radiusKm: searchRadiusKm,
-            classifications:
-              activeFilterType === "classification" && selectedClassification
-                ? [selectedClassification]
-                : null,
-            category:
-              activeFilterType === "category" && selectedCategory
-                ? [selectedCategory]
-                : null,
-            keyword:
-              activeFilterType === "keyword" && searchKeyword
-                ? searchKeyword
-                : null,
-            limit: ITEMS_PER_PAGE,
-            offset: (page - 1) * ITEMS_PER_PAGE,
-          }
+          ...location,
+          radiusKm: searchRadiusKm,
+          classifications:
+            activeFilterType === "classification" && selectedClassification
+              ? [selectedClassification]
+              : null,
+          category:
+            activeFilterType === "category" && selectedCategory
+              ? [selectedCategory]
+              : null,
+          keyword:
+            activeFilterType === "keyword" && searchKeyword
+              ? searchKeyword
+              : null,
+          limit: ITEMS_PER_PAGE,
+          offset: (page - 1) * ITEMS_PER_PAGE,
+        }
         : undefined,
     skip: !location || !hasSearched || activeFilterType === "none",
   });
@@ -233,21 +248,21 @@ const ItemAllPage: React.FC = () => {
     variables:
       location && hasSearched && activeFilterType !== "none"
         ? {
-            ...location,
-            radiusKm: searchRadiusKm,
-            classifications:
-              activeFilterType === "classification" && selectedClassification
-                ? [selectedClassification]
-                : null,
-            category:
-              activeFilterType === "category" && selectedCategory
-                ? [selectedCategory]
-                : null,
-            keyword:
-              activeFilterType === "keyword" && searchKeyword
-                ? searchKeyword
-                : null,
-          }
+          ...location,
+          radiusKm: searchRadiusKm,
+          classifications:
+            activeFilterType === "classification" && selectedClassification
+              ? [selectedClassification]
+              : null,
+          category:
+            activeFilterType === "category" && selectedCategory
+              ? [selectedCategory]
+              : null,
+          keyword:
+            activeFilterType === "keyword" && searchKeyword
+              ? searchKeyword
+              : null,
+        }
         : undefined,
     skip: !location || !hasSearched || activeFilterType === "none",
   });
@@ -450,11 +465,11 @@ const ItemAllPage: React.FC = () => {
       distance:
         item.location && location
           ? calculateDistance(
-              item.location.latitude,
-              item.location.longitude,
-              location.latitude,
-              location.longitude,
-            )
+            item.location.latitude,
+            item.location.longitude,
+            location.latitude,
+            location.longitude,
+          )
           : 0,
     })) || [];
 
@@ -554,266 +569,271 @@ const ItemAllPage: React.FC = () => {
 
         {/* Search Form */}
         {location && (
-          <Card elevation={2} sx={{ mb: 4 }}>
-            <CardContent>
-              {/* Filter Type Selection - Radio Buttons */}
-              <FormControl component="fieldset" sx={{ mb: 3 }}>
-                <FormLabel component="legend">
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    {t(
-                      "itemsAll.selectFilterType",
-                      "Select Search Filter Type",
-                    )}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {t(
-                      "itemsAll.filterTypeInfo",
-                      "Choose one filter type to search. Only one filter can be active at a time.",
-                    )}
-                  </Typography>
-                </FormLabel>
-                <RadioGroup
-                  row
-                  value={activeFilterType}
-                  onChange={handleFilterTypeChange}
-                  sx={{ mt: 1 }}
-                >
-                  <FormControlLabel
-                    value="keyword"
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant="body2">
-                          {t("itemsAll.filterTypeKeyword", "Keyword")}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {t(
-                            "itemsAll.keywordFilterDesc",
-                            "Search by title, author, description",
-                          )}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <FormControlLabel
-                    value="category"
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant="body2">
-                          {t("itemsAll.filterTypeCategory", "Category")}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {t(
-                            "itemsAll.categoryFilterDesc",
-                            "Browse by category",
-                          )}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <FormControlLabel
-                    value="classification"
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant="body2">
-                          {t(
-                            "itemsAll.filterTypeClassification",
-                            "Classification",
-                          )}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {t(
-                            "itemsAll.classificationFilterDesc",
-                            "Filter by taxonomy path",
-                          )}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                </RadioGroup>
-              </FormControl>
-
-              {/* Filter Input - Show only selected type */}
-              {activeFilterType !== "none" && (
-                <Box sx={{ mb: 2 }}>
-                  {/* Keyword Search */}
-                  {activeFilterType === "keyword" && (
-                    <TextField
-                      fullWidth
-                      label={t("itemsAll.searchKeyword", "Search by keyword")}
-                      placeholder={t(
-                        "itemsAll.keywordPlaceholder",
-                        "Enter book title, author, or description...",
+          <Box>
+            <Typography variant="h6" sx={detailedSearchFiltersSx}>
+              {t("itemsAll.detailedSearchFilters", "Detailed Search Filters")}
+            </Typography>
+            <Card elevation={2} sx={{ mb: 4 }}>
+              <CardContent>
+                {/* Filter Type Selection - Radio Buttons */}
+                <FormControl component="fieldset" sx={{ mb: 3 }}>
+                  <FormLabel component="legend">
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      {t(
+                        "itemsAll.selectFilterType",
+                        "Select Search Filter Type",
                       )}
-                      value={keyword}
-                      onChange={handleKeywordChange}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" && canSearch) {
-                          handleSearch();
-                        }
-                      }}
-                      disabled={itemsLoading || totalItemsLoading}
-                      helperText={t(
-                        "itemsAll.keywordHelper",
-                        "Search by item title, author, or description",
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {t(
+                        "itemsAll.filterTypeInfo",
+                        "Choose one filter type to search. Only one filter can be active at a time.",
                       )}
-                      InputProps={{
-                        endAdornment: keyword && (
-                          <IconButton
-                            size="small"
-                            onClick={() => setKeyword("")}
-                            edge="end"
-                          >
-                            <ClearIcon />
-                          </IconButton>
-                        ),
-                      }}
-                    />
-                  )}
-
-                  {/* Category Search */}
-                  {activeFilterType === "category" && (
-                    <Autocomplete
-                      freeSolo
-                      options={availableCategories}
-                      value={categoryInput}
-                      onChange={handleCategoryChange}
-                      onInputChange={handleCategoryInputChange}
-                      disabled={
-                        categoriesLoading || itemsLoading || totalItemsLoading
+                    </Typography>
+                  </FormLabel>
+                  <RadioGroup
+                    row
+                    value={activeFilterType}
+                    onChange={handleFilterTypeChange}
+                    sx={{ mt: 1 }}
+                  >
+                    <FormControlLabel
+                      value="keyword"
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant="body2">
+                            {t("itemsAll.filterTypeKeyword", "Keyword")}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {t(
+                              "itemsAll.keywordFilterDesc",
+                              "Search by title, author, description",
+                            )}
+                          </Typography>
+                        </Box>
                       }
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label={t("itemsAll.selectCategory", "Category")}
-                          placeholder={t(
-                            "itemsAll.categoryPlaceholder",
-                            "Type or select category...",
-                          )}
-                          helperText={t(
-                            "itemsAll.categoryHelper",
-                            "Search by a specific category",
-                          )}
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter" && canSearch) {
-                              handleSearch();
-                            }
-                          }}
-                          InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {categoriesLoading ? (
-                                  <CircularProgress size={20} />
-                                ) : null}
-                                {categoryInput && (
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => {
-                                      setCategoryInput("");
-                                      setSelectedCategory("");
-                                    }}
-                                    edge="end"
-                                  >
-                                    <ClearIcon />
-                                  </IconButton>
-                                )}
-                                {params.InputProps.endAdornment}
-                              </>
-                            ),
-                          }}
-                        />
-                      )}
                     />
-                  )}
+                    <FormControlLabel
+                      value="category"
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant="body2">
+                            {t("itemsAll.filterTypeCategory", "Category")}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {t(
+                              "itemsAll.categoryFilterDesc",
+                              "Browse by category",
+                            )}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                    <FormControlLabel
+                      value="classification"
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant="body2">
+                            {t(
+                              "itemsAll.filterTypeClassification",
+                              "Classification",
+                            )}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {t(
+                              "itemsAll.classificationFilterDesc",
+                              "Filter by taxonomy path",
+                            )}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </RadioGroup>
+                </FormControl>
 
-                  {/* Classification Search */}
-                  {activeFilterType === "classification" && (
-                    <FormControl fullWidth>
-                      <InputLabel>
-                        {t(
-                          "itemsAll.filterByClassification",
-                          "Filter by Classification",
+                {/* Filter Input - Show only selected type */}
+                {activeFilterType !== "none" && (
+                  <Box sx={{ mb: 2 }}>
+                    {/* Keyword Search */}
+                    {activeFilterType === "keyword" && (
+                      <TextField
+                        fullWidth
+                        label={t("itemsAll.searchKeyword", "Search by keyword")}
+                        placeholder={t(
+                          "itemsAll.keywordPlaceholder",
+                          "Enter book title, author, or description...",
                         )}
-                      </InputLabel>
-                      <Select
-                        value={selectedClassification}
-                        label={t(
-                          "itemsAll.filterByClassification",
-                          "Filter by Classification",
-                        )}
-                        onChange={(e: SelectChangeEvent) => {
-                          setSelectedClassification(e.target.value);
+                        value={keyword}
+                        onChange={handleKeywordChange}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && canSearch) {
+                            handleSearch();
+                          }
                         }}
-                        disabled={configLoading}
-                      >
-                        <MenuItem value="">
-                          <em>{t("common.selectOption", "Select...")}</em>
-                        </MenuItem>
-                        {configData?.itemConfig?.categoryMaps.map(
-                          (langOptions) =>
-                            langOptions.map((langOption) => {
-                              if (langOption.language === "en") {
-                                return (
-                                  <MenuItem
-                                    key={langOption.value}
-                                    value={langOption.value}
-                                  >
-                                    {translateCategory(
-                                      langOption.value,
-                                      configData?.itemConfig?.categoryMaps,
-                                      i18n.language,
-                                    )}
-                                  </MenuItem>
-                                );
-                              }
-                              return null;
-                            }),
-                        )
-                        /*classificationOptions.map((option) => (
-                            <MenuItem key={option} value={option}>
-                              {option
-                                .split("/")
-                                .map((part) =>
-                                  translateCategory(
-                                    part,
-                                    configData?.itemConfig?.categoryMaps,
-                                    i18n.language,
-                                  ),
-                                )
-                                .join(" → ")}
-                            </MenuItem>
-                          ))*/
-                        }
-                      </Select>
-                    </FormControl>
-                  )}
-                </Box>
-              )}
+                        disabled={itemsLoading || totalItemsLoading}
+                        helperText={t(
+                          "itemsAll.keywordHelper",
+                          "Search by item title, author, or description",
+                        )}
+                        InputProps={{
+                          endAdornment: keyword && (
+                            <IconButton
+                              size="small"
+                              onClick={() => setKeyword("")}
+                              edge="end"
+                            >
+                              <ClearIcon />
+                            </IconButton>
+                          ),
+                        }}
+                      />
+                    )}
 
-              {/* Search Button */}
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                onClick={handleSearch}
-                disabled={!canSearch || itemsLoading || totalItemsLoading}
-                startIcon={
-                  itemsLoading || totalItemsLoading ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <SearchIcon />
-                  )
-                }
-              >
-                {itemsLoading || totalItemsLoading
-                  ? t("common.searching", "Searching...")
-                  : t("common.search", "Search")}
-              </Button>
-            </CardContent>
-          </Card>
+                    {/* Category Search */}
+                    {activeFilterType === "category" && (
+                      <Autocomplete
+                        freeSolo
+                        options={availableCategories}
+                        value={categoryInput}
+                        onChange={handleCategoryChange}
+                        onInputChange={handleCategoryInputChange}
+                        disabled={
+                          categoriesLoading || itemsLoading || totalItemsLoading
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label={t("itemsAll.selectCategory", "Category")}
+                            placeholder={t(
+                              "itemsAll.categoryPlaceholder",
+                              "Type or select category...",
+                            )}
+                            helperText={t(
+                              "itemsAll.categoryHelper",
+                              "Search by a specific category",
+                            )}
+                            onKeyPress={(e) => {
+                              if (e.key === "Enter" && canSearch) {
+                                handleSearch();
+                              }
+                            }}
+                            InputProps={{
+                              ...params.InputProps,
+                              endAdornment: (
+                                <>
+                                  {categoriesLoading ? (
+                                    <CircularProgress size={20} />
+                                  ) : null}
+                                  {categoryInput && (
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => {
+                                        setCategoryInput("");
+                                        setSelectedCategory("");
+                                      }}
+                                      edge="end"
+                                    >
+                                      <ClearIcon />
+                                    </IconButton>
+                                  )}
+                                  {params.InputProps.endAdornment}
+                                </>
+                              ),
+                            }}
+                          />
+                        )}
+                      />
+                    )}
+
+                    {/* Classification Search */}
+                    {activeFilterType === "classification" && (
+                      <FormControl fullWidth>
+                        <InputLabel>
+                          {t(
+                            "itemsAll.filterByClassification",
+                            "Filter by Classification",
+                          )}
+                        </InputLabel>
+                        <Select
+                          value={selectedClassification}
+                          label={t(
+                            "itemsAll.filterByClassification",
+                            "Filter by Classification",
+                          )}
+                          onChange={(e: SelectChangeEvent) => {
+                            setSelectedClassification(e.target.value);
+                          }}
+                          disabled={configLoading}
+                        >
+                          <MenuItem value="">
+                            <em>{t("common.selectOption", "Select...")}</em>
+                          </MenuItem>
+                          {configData?.itemConfig?.categoryMaps.map(
+                            (langOptions) =>
+                              langOptions.map((langOption) => {
+                                if (langOption.language === "en") {
+                                  return (
+                                    <MenuItem
+                                      key={langOption.value}
+                                      value={langOption.value}
+                                    >
+                                      {translateCategory(
+                                        langOption.value,
+                                        configData?.itemConfig?.categoryMaps,
+                                        i18n.language,
+                                      )}
+                                    </MenuItem>
+                                  );
+                                }
+                                return null;
+                              }),
+                          )
+                            /*classificationOptions.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                  {option
+                                    .split("/")
+                                    .map((part) =>
+                                      translateCategory(
+                                        part,
+                                        configData?.itemConfig?.categoryMaps,
+                                        i18n.language,
+                                      ),
+                                    )
+                                    .join(" → ")}
+                                </MenuItem>
+                              ))*/
+                          }
+                        </Select>
+                      </FormControl>
+                    )}
+                  </Box>
+                )}
+
+                {/* Search Button */}
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  onClick={handleSearch}
+                  disabled={!canSearch || itemsLoading || totalItemsLoading}
+                  startIcon={
+                    itemsLoading || totalItemsLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <SearchIcon />
+                    )
+                  }
+                >
+                  {itemsLoading || totalItemsLoading
+                    ? t("common.searching", "Searching...")
+                    : t("common.search", "Search")}
+                </Button>
+              </CardContent>
+            </Card>
+          </Box>
         )}
 
         {/* Active Search Filters - Compact Display */}
@@ -896,15 +916,15 @@ const ItemAllPage: React.FC = () => {
                   ? t("common.loading", "Loading...")
                   : totalItemsData?.totalItemsCountByLocation
                     ? t(
-                        "itemsAll.resultsFoundTotal",
-                        "Found {{count}} item(s)",
-                        {
-                          count: totalItemsData.totalItemsCountByLocation,
-                        },
-                      )
+                      "itemsAll.resultsFoundTotal",
+                      "Found {{count}} item(s)",
+                      {
+                        count: totalItemsData.totalItemsCountByLocation,
+                      },
+                    )
                     : t("itemsAll.resultsFound", "Found {{count}} item(s)", {
-                        count: itemsWithDistance.length,
-                      })}
+                      count: itemsWithDistance.length,
+                    })}
               </Typography>
             </Box>
 
