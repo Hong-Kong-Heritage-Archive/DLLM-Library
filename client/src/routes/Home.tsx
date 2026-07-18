@@ -8,14 +8,16 @@ import {
   ListItem,
   CircularProgress,
   Alert,
+  Fab,
+  Tooltip,
+  Tab,
+  Tabs,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
-  Fab,
-  Tooltip,
-  TextField,
+  Grid,
 } from "@mui/material";
 import { Chat as ChatIcon } from "@mui/icons-material";
 import {
@@ -33,6 +35,7 @@ import { useNavigate } from "react-router";
 import { sendVerificationEmail } from "../firebase";
 import ItemForm from "../components/ItemForm";
 import RecentNewsBanner from "../components/RecentNewsBanner";
+import AddressReminderDialog from "../components/AddressReminderDialog";
 import SearchBar from "../components/SearchBar";
 
 const RecentCategoriesQuery = gql`
@@ -77,7 +80,10 @@ interface OutletContext {
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const [showItemForm, setShowItemForm] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const [recentBannerTab, setRecentBannerTab] = useState<"recent" | "new">(
+    "recent",
+  );
+  const [hotCategorieTab, setHotCategorieTab] = useState<number>(0);
   const { user, emailVerified, email, hostConfig, onSignOut } =
     useOutletContext<OutletContext>();
   const navigate = useNavigate();
@@ -134,14 +140,6 @@ const HomePage: React.FC = () => {
     variables: { limit: 3 },
   });
 
-  const handleAddItem = () => {
-    if (!user?.address) {
-      setShowAddressReminder(true);
-      return;
-    }
-    setShowItemForm(true);
-  };
-
   const handleGoToProfile = () => {
     setShowAddressReminder(false);
     setShowCreateUser(true);
@@ -183,9 +181,32 @@ const HomePage: React.FC = () => {
           <Box sx={{ width: "100%" }}>
             {user?.isVerified ? (
               <Box>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  {t("home.welcome", { nickname: user.nickname })}
-                </Typography>
+                <Grid container alignItems="center">
+                  <Grid size={{ xs: 12, md: 12 }}>
+                    <Typography
+                      sx={{
+                        fontFamily: "var(--font-family-display)",
+                        fontWeight: 900,
+                        color: "var(--color-text-primary)",
+                        cursor: "pointer",
+                        letterSpacing: "-0.5px",
+                        lineHeight: "1.1",
+                        fontSize: { xs: "18px", sm: "24px", md: "28px" },
+                      }}
+                    >
+                      {t("home.welcome", { nickname: user.nickname })}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: "var(--color-text-tertiary)",
+                        fontFamily: "var(--font-family-body)",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {t("app.description", "Greetings from the Library! We are Librarians, and we are here to help you discover your next great read. Whether you're searching for resources, reliable information, or something entirely unexpected, we're here to guide you every step of the way. Explore our collection today and find your new favorites!")}
+                    </Typography>
+                  </Grid>
+                </Grid>
                 {!user.isActive && (
                   <Alert severity="info" sx={{ mb: 2 }}>
                     {t(
@@ -231,129 +252,77 @@ const HomePage: React.FC = () => {
           </Box>
         </ListItem>
 
-        {/* Search Section */}
-        <ListItem>
-          <SearchBar />
-        </ListItem>
+        <RecentNewsBanner
+          newsStatus={NewsStatus.Published}
+          isFrontPage={true}
+        />
+        {userPickedLoading && (
+          <ListItem>
+            <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <Typography>
+                {t("home.loadingRecommendations", "Loading recommendations...")}
+              </Typography>
+            </Box>
+          </ListItem>
+        )}
 
-        {/* View All Items Button */}
+        {userPickedError && (
+          <ListItem>
+            <Alert severity="warning" sx={{ width: "100%" }}>
+              {t("home.recommendationsError", "Unable to load recommendations")}
+              <Typography variant="caption" display="block">
+                {userPickedError.message}
+              </Typography>
+            </Alert>
+          </ListItem>
+        )}
         <ListItem>
-          <Button
-            variant="contained"
-            onClick={handleViewAllItems}
-            size="large"
-            fullWidth
-            data-tour="view-all-items"
-          >
-            {t("navigation.viewAllItems")}
-          </Button>
-          {user?.isVerified && (
-            <Button
-              variant="contained"
-              onClick={handleAddItem}
-              size="large"
-              fullWidth
-              sx={{ ml: 2 }}
-              data-tour="add-item"
+          <Box sx={{ width: "100%" }}>
+            <Tabs
+              value={recentBannerTab}
+              onChange={(_, value: "recent" | "new") =>
+                setRecentBannerTab(value)
+              }
+              aria-label="recent and new arrivals tabs"
+              sx={{ mb: 1 }}
             >
-              {t("item.create", "Add Item")}
-            </Button>
-          )}
-        </ListItem>
-
-        {/* User Picked Recommendations Section - Only for active users */}
-        {user?.isActive && (
-          <>
-            <RecentNewsBanner
-              newsStatus={NewsStatus.Published}
-              isFrontPage={true}
-            />
-            {userPickedLoading && (
-              <ListItem>
-                <Box
-                  sx={{ display: "flex", alignItems: "center", width: "100%" }}
-                >
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                  <Typography>
-                    {t(
-                      "home.loadingRecommendations",
-                      "Loading recommendations...",
-                    )}
-                  </Typography>
-                </Box>
-              </ListItem>
-            )}
-
-            {userPickedError && (
-              <ListItem>
-                <Alert severity="warning" sx={{ width: "100%" }}>
-                  {t(
-                    "home.recommendationsError",
-                    "Unable to load recommendations",
-                  )}
-                  <Typography variant="caption" display="block">
-                    {userPickedError.message}
-                  </Typography>
-                </Alert>
-              </ListItem>
-            )}
-
-            {userPickedData?.recommendedItems &&
-              userPickedData.recommendedItems.length > 0 && (
-                <ListItem>
-                  <RecentItemBanner
-                    recommendationType={RecommendationType.UserPicked}
-                    recommendedItems={userPickedData.recommendedItems}
-                    titleOverride={t(
-                      "home.userPickedItems",
-                      "Recommended for You",
-                    )}
-                    descriptionOverride={t(
-                      "home.userPickedDescription",
-                      "Based on your interests and activity",
-                    )}
+              <Tab value="new" label={t("home.newArrivals", "New Arrivals")} />
+              <Tab
+                value="recent"
+                label={t("item.recent.updatedItems", "Recent Updates")}
+              />
+              {userPickedData?.recommendedItems &&
+                userPickedData.recommendedItems.length > 0 && (
+                  <Tab
+                    value="userPicked"
+                    label={t("home.userPickedItems", "Recommended for You")}
                   />
-                </ListItem>
-              )}
+                )}
+            </Tabs>
 
-            {!userPickedLoading &&
-              !userPickedData?.recommendedItems?.length &&
-              !userPickedError && (
-                <ListItem>
-                  <Alert severity="info" sx={{ width: "100%" }}>
-                    {t(
-                      "home.noRecommendations",
-                      "No recommendations available at the moment. Browse items to help us learn your preferences!",
-                    )}
-                  </Alert>
-                </ListItem>
-              )}
-          </>
-        )}
-
-        {/* Recent Categories Section */}
-        {/*
-        {recentCategoriesData?.recentUpdateCategories && (
-          <>
-            {recentCategoriesData.recentUpdateCategories.map(
-              (category, index) => (
-                <ListItem key={`recent-category-${index}`}>
-                  <RecentItemBanner category={category} isRecent={true} />
-                </ListItem>
-              ),
+            {recentBannerTab === "new" ? (
+              <RecentItemBanner
+                recommendationType={RecommendationType.NewArrivals}
+                category=""
+              />
+            ) : recentBannerTab === "recent" ? (
+              <RecentItemBanner category="" />
+            ) : (
+              userPickedData?.recommendedItems &&
+              userPickedData.recommendedItems.length > 0 && (
+                <RecentItemBanner
+                  recommendationType={RecommendationType.UserPicked}
+                  recommendedItems={userPickedData.recommendedItems}
+                  titleOverride={""}
+                  descriptionOverride={t(
+                    "home.userPickedDescription",
+                    "Based on your interests and activity",
+                  )}
+                />
+              )
             )}
-          </>
-        )}
-        */}
-        <ListItem key={`recent-category-all`}>
-          <RecentItemBanner category="" isRecent={true} />
-        </ListItem>
-
-        <ListItem>
-          <RecentItemBanner
-            recommendationType={RecommendationType.NewArrivals}
-            isRecent={false}
-          />
+          </Box>
         </ListItem>
 
         {recentCategoriesLoading && (
@@ -364,13 +333,29 @@ const HomePage: React.FC = () => {
 
         {/* Hot Categories Section */}
         {hotCategoriesData?.hotCategories && (
-          <>
-            {hotCategoriesData.hotCategories.map((category, index) => (
-              <ListItem key={`hot-category-${index}`}>
-                <RecentItemBanner category={category} isRecent={false} />
+          <ListItem>
+            <Box sx={{ width: "100%" }}>
+              <Tabs
+                value={hotCategorieTab}
+                onChange={(_, value: number) => setHotCategorieTab(value)}
+                aria-label="recent and new arrivals tabs"
+                sx={{ mb: 1 }}
+              >
+                {hotCategoriesData.hotCategories.map((category, index) => (
+                  <Tab
+                    value={index}
+                    label={category}
+                    key={`hot-category-tab-${index}`}
+                  />
+                ))}
+              </Tabs>
+              <ListItem key={`hot-category-${hotCategorieTab}`}>
+                <RecentItemBanner
+                  category={hotCategoriesData.hotCategories[hotCategorieTab]}
+                />
               </ListItem>
-            ))}
-          </>
+            </Box>
+          </ListItem>
         )}
 
         {hotCategoriesLoading && (
@@ -394,30 +379,13 @@ const HomePage: React.FC = () => {
           />
         )}
 
-        <Dialog
-          open={showAddressReminder}
-          onClose={() => setShowAddressReminder(false)}
-        >
-          <DialogTitle>
-            {t("user.addressRequiredTitle", "Address Required")}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {t(
-                "user.addressRequiredMessage",
-                "Please set your exchange address in your profile before adding items. This helps other users know where to exchange.",
-              )}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowAddressReminder(false)}>
-              {t("common.cancel", "Cancel")}
-            </Button>
-            <Button variant="contained" onClick={handleGoToProfile}>
-              {t("user.goToProfile", "Go to Profile")}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {showAddressReminder && (
+          <AddressReminderDialog
+            open={showAddressReminder}
+            onClose={() => setShowAddressReminder(false)}
+            onGoToProfile={handleGoToProfile}
+          />
+        )}
 
         {showItemForm && user && (
           <ItemForm

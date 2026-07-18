@@ -13,8 +13,10 @@ import {
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
 } from "@mui/icons-material";
+import { alpha } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import { getCookie, setCookie } from "../utils/cookies";
+import { semanticTokens } from "../styles/semanticTokens";
 
 // Cookie names for tracking onboarding completion
 const GUEST_ONBOARDING_COOKIE = "dllm_guest_onboarding_done";
@@ -236,7 +238,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
         open={showTour}
         sx={{
           zIndex: 9998,
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          backgroundColor: alpha(semanticTokens.color.textPrimary, 0.7),
         }}
         onClick={handleSkip}
       />
@@ -255,20 +257,20 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
             borderRadius: 2,
             zIndex: 9999,
             pointerEvents: "none",
-            boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.7)",
+            boxShadow: `0 0 0 9999px ${alpha(semanticTokens.color.textPrimary, 0.7)}`,
             animation: "pulse 2s infinite",
             "@keyframes pulse": {
               "0%": {
                 boxShadow:
-                  "0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 0 0 rgba(25, 118, 210, 0.7)",
+                  `0 0 0 9999px ${alpha(semanticTokens.color.textPrimary, 0.7)}, 0 0 0 0 ${alpha(semanticTokens.color.brandPrimary, 0.7)}`,
               },
               "70%": {
                 boxShadow:
-                  "0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 0 10px rgba(25, 118, 210, 0)",
+                  `0 0 0 9999px ${alpha(semanticTokens.color.textPrimary, 0.7)}, 0 0 0 10px ${alpha(semanticTokens.color.brandPrimary, 0)}`,
               },
               "100%": {
                 boxShadow:
-                  "0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 0 0 rgba(25, 118, 210, 0)",
+                  `0 0 0 9999px ${alpha(semanticTokens.color.textPrimary, 0.7)}, 0 0 0 0 ${alpha(semanticTokens.color.brandPrimary, 0)}`,
               },
             },
           }}

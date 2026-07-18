@@ -1,57 +1,108 @@
 import { createTheme } from "@mui/material/styles";
+import { semanticTokens } from "./styles/semanticTokens";
 
 const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#db036b", // Changed from blue to pink
-      contrastText: "#ffffff", // White text on pink background
+      main: semanticTokens.color.brandPrimary,
+      contrastText: semanticTokens.color.bgSurface,
     },
     secondary: {
-      main: "#25975d", // Dark grey for secondary elements
-      contrastText: "#ffffff", // White text
+      main: semanticTokens.color.textPrimary,
+      contrastText: semanticTokens.color.bgSurface,
     },
     background: {
-      default: "#e0e0e0", // Light grey background (instead of white)
-      paper: "#f5f5f5", // Slightly lighter grey for paper/cards
+      default: semanticTokens.color.bgCanvas,
+      paper: semanticTokens.color.bgSurface,
     },
     text: {
-      primary: "#000000", // Black text on light backgrounds
-      secondary: "#424242", // Dark grey for secondary text
+      primary: semanticTokens.color.textPrimary,
+      secondary: semanticTokens.color.textSecondary,
     },
     info: {
-      main: "#db036b",
-      contrastText: "#ffffff",
+      main: semanticTokens.color.info,
+      contrastText: semanticTokens.color.bgSurface,
     },
     success: {
-      main: "#2e7d32", // Keep success colors reasonable
-      contrastText: "#ffffff",
+      main: semanticTokens.color.success,
+      contrastText: semanticTokens.color.bgSurface,
     },
     warning: {
-      main: "#ed6c02",
+      main: semanticTokens.color.warning,
       contrastText: "#000000",
     },
     error: {
-      main: "#d32f2f",
-      contrastText: "#ffffff",
+      main: semanticTokens.color.error,
+      contrastText: semanticTokens.color.bgSurface,
+    },
+  },
+  shape: {
+    borderRadius: 16,
+  },
+  typography: {
+    fontFamily: [
+      '"IBM Plex Sans"',
+      '"Noto Serif TC"',
+      '"PingFang HK"',
+      '"PingFang TC"',
+      '"Microsoft JhengHei"',
+      "sans-serif",
+    ].join(","),
+    h1: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: semanticTokens.color.textPrimary,
+    },
+    h2: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: semanticTokens.color.textPrimary,
+    },
+    h3: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: semanticTokens.color.textPrimary,
+    },
+    h4: {
+      fontFamily: '"Noto Serif TC", serif',
+      fontWeight: 700,
+      color: semanticTokens.color.textPrimary,
+    },
+    body1: {
+      color: semanticTokens.color.textBody,
+      lineHeight: 1.6,
+    },
+    body2: {
+      color: semanticTokens.color.textBody,
+      lineHeight: 1.6,
+    },
+    button: {
+      fontWeight: 600,
+      textTransform: "none",
     },
   },
   components: {
     MuiButton: {
       styleOverrides: {
+        root: {
+          borderRadius: 999,
+          boxShadow: "none",
+          padding: "10px 18px",
+        },
         contained: {
-          backgroundColor: "#db036b",
-          color: "#ffffff",
+          backgroundColor: semanticTokens.color.brandPrimary,
+          color: semanticTokens.color.bgSurface,
           "&:hover": {
-            backgroundColor: "#25975d",
+            backgroundColor: semanticTokens.color.brandPrimaryHover,
           },
         },
         outlined: {
-          borderColor: "#000000",
-          color: "#000000",
+          borderColor: semanticTokens.color.textSecondary,
+          color: semanticTokens.color.textPrimary,
           "&:hover": {
-            backgroundColor: "#f5f5f5",
-            borderColor: "#333333",
+            backgroundColor: semanticTokens.color.bgCanvas,
+            borderColor: semanticTokens.color.textPrimary,
           },
         },
       },
@@ -59,38 +110,54 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#db036b",
-          color: "#ffffff",
+          backgroundColor: semanticTokens.color.bgSurface,
+          color: semanticTokens.color.textPrimary,
+          boxShadow: semanticTokens.shadow.appBar,
         },
       },
     },
     MuiChip: {
       styleOverrides: {
+        root: {
+          borderRadius: 999,
+          backgroundColor: semanticTokens.color.chipBg,
+          color: semanticTokens.color.textSecondary,
+        },
         colorPrimary: {
-          backgroundColor: "#25975d",
-          color: "#ffffff",
+          backgroundColor: semanticTokens.color.textPrimary,
+          color: semanticTokens.color.bgSurface,
         },
       },
     },
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: "#f5f5f5",
+          backgroundColor: semanticTokens.color.bgCanvas,
+          borderRight: `1px solid ${semanticTokens.color.borderSubtle}`,
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: "#e0f5e0",
+          backgroundColor: semanticTokens.color.bgSurface,
+          boxShadow: semanticTokens.shadow.card,
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: "#e0ffe0",
-          border: "1px solid #e0e0e0",
+          backgroundColor: semanticTokens.color.bgSurface,
+          border: `1px solid ${semanticTokens.color.borderSubtle}`,
+          boxShadow: semanticTokens.shadow.card,
+        },
+      },
+    },
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          color: semanticTokens.color.textLink,
         },
       },
     },

@@ -38,6 +38,43 @@ import {
 } from "../generated/graphql";
 import { set } from "date-fns";
 
+const itemInfoCardSx = {
+  mb: 3,
+  p: 2,
+  backgroundColor: "grey.50",
+  borderRadius: 2,
+};
+
+const inlineOptionLabelSx = {
+  display: "flex",
+  alignItems: "center",
+  gap: 1,
+};
+
+const sectionTitleSx = {
+  mb: 2,
+  display: "flex",
+  alignItems: "center",
+  gap: 1,
+};
+
+const personCardBaseSx = {
+  mb: 2,
+  p: 2,
+  border: "1px solid",
+  borderRadius: 1,
+};
+
+const boldSubtitleSx = {
+  fontWeight: "bold",
+};
+
+const notificationBoxSx = {
+  p: 2,
+  backgroundColor: "warning.light",
+  borderRadius: 1,
+};
+
 interface RequestConfirmationDialogProps {
   open: boolean;
   onClose: () => void;
@@ -145,14 +182,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
           <Box>
             {/* Item Information */}
             {item && (
-              <Box
-                sx={{
-                  mb: 3,
-                  p: 2,
-                  backgroundColor: "grey.50",
-                  borderRadius: 2,
-                }}
-              >
+              <Box sx={itemInfoCardSx}>
                 <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
                   {item.name}
                 </Typography>
@@ -207,9 +237,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                     value={TransactionLocation.HolderLocation}
                     control={<Radio />}
                     label={
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
+                      <Box sx={inlineOptionLabelSx}>
                         <HomeIcon fontSize="small" />
                         <Box>
                           <Typography variant="body2">
@@ -230,9 +258,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                     value={TransactionLocation.RequestorLocation}
                     control={<Radio />}
                     label={
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
+                      <Box sx={inlineOptionLabelSx}>
                         <HomeIcon fontSize="small" />
                         <Box>
                           <Typography variant="body2">
@@ -355,7 +381,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
             <Box sx={{ mb: 3 }}>
               <Typography
                 variant="h6"
-                sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+                sx={sectionTitleSx}
               >
                 <PersonIcon />
                 {t("item.peopleInvolved", "People Involved")}
@@ -363,18 +389,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
 
               {/* Owner Information */}
               {owner && (
-                <Box
-                  sx={{
-                    mb: 2,
-                    p: 2,
-                    border: "1px solid",
-                    borderColor: "primary.light",
-                    borderRadius: 1,
-                  }}
-                >
+                <Box sx={{ ...personCardBaseSx, borderColor: "primary.light" }}>
                   <Typography
                     variant="subtitle1"
-                    sx={{ fontWeight: "bold", color: "primary.main" }}
+                    sx={{ ...boldSubtitleSx, color: "primary.main" }}
                   >
                     {t("item.owner", "Owner")}: {owner.nickname || owner.email}
                   </Typography>
@@ -383,18 +401,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
 
               {/* Holder Information (if different from owner) */}
               {displayHolder && !isOwnerAndHolderSame && (
-                <Box
-                  sx={{
-                    mb: 2,
-                    p: 2,
-                    border: "1px solid",
-                    borderColor: "secondary.light",
-                    borderRadius: 1,
-                  }}
-                >
+                <Box sx={{ ...personCardBaseSx, borderColor: "secondary.light" }}>
                   <Typography
                     variant="subtitle1"
-                    sx={{ fontWeight: "bold", color: "secondary.main" }}
+                    sx={{ ...boldSubtitleSx, color: "secondary.main" }}
                   >
                     {t("item.currentHolder", "Current Holder")}:{" "}
                     {displayHolder.nickname || displayHolder.email}
@@ -407,7 +417,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
 
             {/* Draft Email Editor */}
             <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 2 }}>{t("item.draftEmail", "Draft Email")}</Typography>
+              <Typography variant="subtitle1" sx={{ ...boldSubtitleSx, mb: 2 }}>{t("item.draftEmail", "Draft Email")}</Typography>
               <TextField
                 fullWidth
                 multiline
@@ -432,12 +442,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
             <Divider sx={{ my: 2 }} />
 
             {/* Notification Information */}
-            <Box
-              sx={{ p: 2, backgroundColor: "warning.light", borderRadius: 1 }}
-            >
+            <Box sx={notificationBoxSx}>
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: "bold", mb: 1 }}
+                sx={{ ...boldSubtitleSx, mb: 1 }}
               >
                 {t("item.notificationInfo", "Notifications")}
               </Typography>

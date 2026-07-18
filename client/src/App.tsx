@@ -39,6 +39,7 @@ const HostConfigQuery = gql`
       splashScreenText
       itemShareMessageTemplates
       itemIndexJsonUrl
+      itemIndexLastBuildTime
     }
   }
 `;
@@ -191,50 +192,63 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
 
     if (localDataJson) {
       const parsed = JSON.parse(localDataJson);
-      lastBuildTime = parsed.lastBuildTime;
+      lastBuildTime = Date.parse(parsed.lastBuildTime);
       console.log("Loaded local item index JSON:", parsed);
     }
 
-    // 2. Fetch remote file
-    fetch(hostConfigOutput.data.hostConfig.itemIndexJsonUrl).then(
-      async (response) => {
-        if (!response.ok) {
-          console.error(
-            `Failed to fetch remote item index JSON. Status: ${response.status}`,
-          );
-          setIsTitleCacheLoaded(true);
-          return;
-        }
-
-        // For browser environments, use JSZip
-        const zipBlob = await response.blob();
-        const zip = new JSZip();
-        const zipContent = await zip.loadAsync(zipBlob);
-
-        // Assuming the JSON file is named 'data.json' inside the zip
-        const jsonFile = zipContent.file("data.json");
-        if (!jsonFile) {
-          console.error("Expected 'data.json' not found in zip archive.");
-          setIsTitleCacheLoaded(true);
-          return;
-        }
-
-        const remoteDataJson = await jsonFile.async("text");
-        const remoteData = JSON.parse(remoteDataJson);
-
-        console.log(
-          "Fetched and extracted remote item index JSON:",
-          remoteData,
-        );
-
-        // Compare versions and update cache as before
-        if (Date.parse(remoteData.lastBuildTime) > lastBuildTime) {
-          console.log("Updating cache...");
-          localStorage.setItem(TitleCacheKey, JSON.stringify(remoteData));
-        }
-        setIsTitleCacheLoaded(true);
-      },
+    console.log(
+      `Comparing lastBuildTime: local=${lastBuildTime}, remote=${Date.parse(
+        hostConfigOutput.data.hostConfig.itemIndexLastBuildTime,
+      )}`,
     );
+    if (
+      Date.parse(hostConfigOutput.data?.hostConfig?.itemIndexLastBuildTime) >
+      lastBuildTime
+    ) {
+      // 2. Fetch remote file
+      fetch(hostConfigOutput.data.hostConfig.itemIndexJsonUrl).then(
+        async (response) => {
+          if (!response.ok) {
+            console.error(
+              `Failed to fetch remote item index JSON. Status: ${response.status}`,
+            );
+            setIsTitleCacheLoaded(true);
+            return;
+          }
+
+          // For browser environments, use JSZip
+          const zipBlob = await response.blob();
+          const zip = new JSZip();
+          const zipContent = await zip.loadAsync(zipBlob);
+
+          // Assuming the JSON file is named 'data.json' inside the zip
+          const jsonFile = zipContent.file("data.json");
+          if (!jsonFile) {
+            console.error("Expected 'data.json' not found in zip archive.");
+            setIsTitleCacheLoaded(true);
+            return;
+          }
+
+          const remoteDataJson = await jsonFile.async("text");
+          const remoteData = JSON.parse(remoteDataJson);
+
+          console.log(
+            "Fetched and extracted remote item index JSON:",
+            remoteData,
+          );
+
+          // Compare versions and update cache as before
+          console.log(
+            `Comparing lastBuildTime: local=${lastBuildTime}, remote=${Date.parse(remoteData.lastBuildTime)}`,
+          );
+          if (Date.parse(remoteData.lastBuildTime) > lastBuildTime) {
+            console.log("Updating cache...");
+            localStorage.setItem(TitleCacheKey, JSON.stringify(remoteData));
+          }
+          setIsTitleCacheLoaded(true);
+        },
+      );
+    }
   }
 
   return <RouterProvider router={router} />;

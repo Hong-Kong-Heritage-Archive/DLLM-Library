@@ -6,7 +6,6 @@ import {
   SelectChangeEvent,
   Box,
 } from "@mui/material";
-import { Language } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 
 interface LanguageSwitcherProps {
@@ -19,37 +18,60 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const { i18n, t } = useTranslation();
 
   const handleLanguageChange = (event: SelectChangeEvent<string>) => {
-    i18n.changeLanguage(event.target.value);
+    i18n.changeLanguage(event.target.value || "zh-HK");
   };
   const langList = ["zh-HK", "en", "zh-TW"];
 
+  const getLanguageLabel = (langCode: string) => {
+    switch (langCode) {
+      case "zh-HK":
+        return "港文";
+      case "zh-TW":
+        return "正體";
+      case "en":
+        return "EN";
+    }
+    return "EN";
+  };
+
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1, color }}>
-      <Language />
-      <FormControl size="small" sx={{ minWidth: 120 }}>
+    <Box sx={{ display: "flex", alignItems: "center", color }}>
+      <FormControl size="small" sx={{ minWidth: 80 }}>
         <Select
           value={i18n.language}
           onChange={handleLanguageChange}
           variant="outlined"
           sx={{
-            color,
+            color: "var(--color-text-primary)",
+            fontSize: "14px",
+            fontFamily: "var(--font-family-body)",
+            backgroundColor: "var(--color-bg-canvas)",
+            borderRadius: "6px",
+            height: "36px",
             "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: color,
+              borderColor: "var(--color-border-soft)",
+              borderWidth: "1px",
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: color,
+              borderColor: "var(--color-border-strong)",
             },
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: color,
+              borderColor: "var(--color-brand-primary)",
             },
             "& .MuiSvgIcon-root": {
-              color,
+              color: "var(--color-text-muted)",
+            },
+            "& .MuiSelect-select": {
+              paddingLeft: "12px",
+              paddingRight: "24px !important",
+              paddingTop: "6px",
+              paddingBottom: "6px",
             },
           }}
         >
           {langList.map((lang) => (
-            <MenuItem key={lang} value={lang}>
-              {t(`languages.${lang}`)}
+            <MenuItem key={lang} value={lang} sx={{ fontSize: "14px" }}>
+              {getLanguageLabel(lang)}
             </MenuItem>
           ))}
         </Select>

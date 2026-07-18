@@ -1,6 +1,58 @@
 {
   "app": {
-    "title": "Hong Kong Decentralized Archive"
+    "title": "Hong Kong Decentralized Archive",
+    "brand-title": "BookGuide",
+    "location": "Sydney",
+    "icon-slogan": "Hong Kong books. Keep them moving.",
+    "description": "Greetings from the Library! We are Librarians, and we are here to help you discover your next great read. Whether you're searching for resources, reliable information, or something entirely unexpected, we're here to guide you every step of the way. Explore our collection today and find your new favorites!"
+  },
+  "designSystem": {
+    "eyebrow": "Design System · Component Library · v2.0",
+    "tagline": "Hong Kong books. Keep them moving.",
+    "version": "Component Library v2.0",
+    "foundations": "Foundations",
+    "nav": {
+      "foundations": "Foundations",
+      "governing": "Governing Principle",
+      "colours": "Colour Scales",
+      "tokens": "Semantic Tokens",
+      "typography": "Typography",
+      "typeTokens": "Type Tokens"
+    },
+    "governing": {
+      "title": "Governing Colour Principle",
+      "description": "One rule across all badge systems: colour tells users whether they can act. Build every status badge from these six semantic roles.",
+      "note": "Always pair a badge with a role-specific action prompt. The badge tells users the state; the action tells them what to do next."
+    },
+    "colours": {
+      "title": "Colour Scales",
+      "description": "Brand magenta, rosy ink neutrals, and warm paper legacy neutrals. Starred swatches are the canonical values used in semantic tokens.",
+      "status": "Status Colours"
+    },
+    "tokens": {
+      "title": "Semantic Tokens",
+      "description": "Named slots engineers reference in code. If a colour changes, only the token updates; every component stays consistent.",
+      "token": "Token",
+      "value": "Value",
+      "use": "Use"
+    },
+    "typography": {
+      "title": "Typography",
+      "description": "Two typefaces. Noto Serif TC for cultural weight — brand name, book titles, headings. IBM Plex Sans for UI clarity and body text. IBM Plex Mono for labels, tokens, and metadata.",
+      "bilingual": "Bilingual Rules",
+      "weights": "Weight Map"
+    },
+    "typeTokens": {
+      "title": "Type Tokens",
+      "description": "Engineering tokens for typography, radius, and spacing. Reference these instead of hard-coding values."
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "item-nav": "Search",
+    "news-nav": "News",
+    "items-nav": "Holdings",
+    "profile": "Profile"
   },
   "auth": {
     "signIn": "Sign In",
@@ -143,6 +195,7 @@
     "next": "Next",
     "showing": "showing {{start}}-{{end}} of {{total}}",
     "or": "or",
+    "none": "None",
     "discard": "Discard",
     "submit": "Submit",
     "submitting": "Submitting...",
@@ -383,6 +436,7 @@
     "actionSuccess": "Transfer succeeded!",
     "holder": "Holder",
     "detailsloading": "Loading item details...",
+    "requestToBorrow": "Request To Borrow",
     "category": "Category",
     "language": "Language",
     "addedOn": "Added on",
@@ -449,7 +503,12 @@
     "sharePreset1": "Check out {{itemName}}!",
     "sharePreset2": "I found this in the library: {{itemName}}",
     "sharePreset3": "{{itemName}} — worth a look.",
-    "addbooklist": "Add to Book List"
+    "unknownOwner": "Owner",
+    "historyOwnedBy": "Owned by {{name}}",
+    "historyHandedTo": "Handed to {{name}}",
+    "historyRequestedBy": "Requested by {{name}}",
+    "addbooklist": "Add to Book List",
+    "return": "Return"
   },
   "languages": {
     "en": "English",
@@ -620,7 +679,10 @@
     },
     "details": "Record Details",
     "transactionDetails": {
-      "deposit": "Deposit"
+      "deposit": "Deposit",
+      "location": "Location",
+      "notes": "Notes",
+      "reason": "Reason"
     },
     "showRaw": "Show Raw JSON",
     "showFormatted": "Show Formatted",
@@ -704,6 +766,7 @@
     "searchRadius": "Radius",
     "locationError": "Failed to get your location. Please enable location services and try again.",
     "locationReady": "Location ready. You can now search for items within {{radius}}km.",
+    "detailedSearchFilters": "Detailed Search Filters",
     "filterTypeKeyword": "Keyword",
     "searchKeyword": "Search by keyword (book info)",
     "keywordHelper": "Enter book title, author, or description...",

@@ -1,6 +1,59 @@
 import React from "react";
 import { Box, Typography, Paper, Grid } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { semanticTokens } from "../styles/semanticTokens";
+
+const DIAGRAM_COLORS = {
+  brandBlue: "#1976D2",
+  brandBlueDark: "#1565C0",
+  cyan: "#0288D1",
+  cyanLight: "#E1F5FE",
+  cyanDark: "#01579B",
+  blue: "#2196F3",
+  blueLight: "#E3F2FD",
+  blueIndigo: "#5C6BC0",
+  blueIndigoLight: "#E8EAF6",
+  blueIndigoDark: "#283593",
+  green: "#4CAF50",
+  greenDark: "#2E7D32",
+  greenLight: "#E8F5E9",
+  orange: "#FF9800",
+  orangeDark: "#F57C00",
+  orangeDarker: "#F57F17",
+  orangeLight: "#FFF3E0",
+  yellow: "#FBC02D",
+  yellowLight: "#FFF9C4",
+  purple: "#9C27B0",
+  purpleLight: "#F3E5F5",
+  red: "#F44336",
+  redDark: "#D32F2F",
+  redLight: "#FFEBEE",
+  grayMid: "#999999",
+  textMuted: semanticTokens.color.textMuted,
+  textTertiary: semanticTokens.color.textTertiary,
+  textInverse: semanticTokens.color.textInverse,
+} as const;
+
+const flowRootSx = { width: "100%" };
+const howItWorksTitleSx = { mb: 3, fontWeight: "bold" };
+const diagramPanelSx = { p: 3 };
+const diagramHeadingSx = { mb: 2, color: "primary.main" };
+const diagramDescriptionSx = { mb: 2 };
+const diagramFrameSx = { width: "100%", maxWidth: "800px", mx: "auto" };
+const diagramImageStyle: React.CSSProperties = { width: "100%", height: "auto" };
+const keyFeaturesBoxSx = { mt: 2, p: 2, bgcolor: "info.lighter", borderRadius: 1 };
+const keyFeaturesTitleSx = { mb: 1, fontWeight: "bold", color: "info.dark" };
+const keyFeaturesListSx = { pl: 2, mb: 0 };
+const legendPaperSx = { p: 2, mt: 3, bgcolor: "grey.50" };
+const legendTitleSx = { mb: 1, fontWeight: "bold" };
+const legendItemRowSx = { display: "flex", alignItems: "center", gap: 1 };
+
+const LEGEND_ITEMS = [
+  { key: "pending", label: "Pending / Request", color: DIAGRAM_COLORS.orange },
+  { key: "approved", label: "Approved", color: DIAGRAM_COLORS.green },
+  { key: "transfered", label: "Transferred", color: DIAGRAM_COLORS.blue },
+  { key: "completed", label: "Completed", color: DIAGRAM_COLORS.purple },
+] as const;
 
 // Face-to-Face Transaction SVG - with i18n support
 export const FaceToFaceDiagram: React.FC = () => {
@@ -19,7 +72,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         fontSize="20"
         fontWeight="bold"
         textAnchor="middle"
-        fill="#1976d2"
+        fill={DIAGRAM_COLORS.brandBlue}
       >
         {t("diagram.faceToFace.title", "Face-to-Face Quick Exchange")}
       </text>
@@ -28,7 +81,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="50"
         fontSize="12"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t(
@@ -38,13 +91,13 @@ export const FaceToFaceDiagram: React.FC = () => {
       </text>
 
       {/* Owner/Holder (Left - initiates) */}
-      <circle cx="120" cy="120" r="45" fill="#4caf50" />
+      <circle cx="120" cy="120" r="45" fill={DIAGRAM_COLORS.green} />
       <text
         x="120"
         y="120"
         fontSize="13"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.owner", "Owner/")}
@@ -54,12 +107,12 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="135"
         fontSize="13"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.holder", "Holder")}
       </text>
-      <text x="120" y="180" fontSize="11" textAnchor="middle" fill="#333">
+      <text x="120" y="180" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textMuted}>
         {t("diagram.faceToFace.ownerDesc", "Has item to lend")}
       </text>
       <text
@@ -67,25 +120,25 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="195"
         fontSize="10"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t("diagram.faceToFace.appUser", "(App User)")}
       </text>
 
       {/* Borrower (Right - may not be user) */}
-      <circle cx="680" cy="120" r="45" fill="#2196f3" />
+      <circle cx="680" cy="120" r="45" fill={DIAGRAM_COLORS.blue} />
       <text
         x="680"
         y="125"
         fontSize="13"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.borrower", "Borrower")}
       </text>
-      <text x="680" y="180" fontSize="11" textAnchor="middle" fill="#333">
+      <text x="680" y="180" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textMuted}>
         {t("diagram.faceToFace.borrowerDesc", "Wants to borrow")}
       </text>
       <text
@@ -93,7 +146,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="195"
         fontSize="10"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t("diagram.faceToFace.mayNotBeUser", "(May not be user)")}
@@ -105,8 +158,8 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="230"
         width="180"
         height="80"
-        fill="#e8f5e9"
-        stroke="#4caf50"
+        fill={DIAGRAM_COLORS.greenLight}
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         rx="8"
       />
@@ -115,15 +168,15 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="255"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.faceToFace.step1Title", "1. Create Transaction")}
       </text>
-      <text x="120" y="275" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="120" y="275" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.step1Line1", "Holder initiates as")}
       </text>
-      <text x="120" y="290" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="120" y="290" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.step1Line2", '"Face-to-Face" exchange')}
       </text>
       <text
@@ -131,7 +184,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="305"
         fontSize="10"
         textAnchor="middle"
-        fill="#999"
+        fill={DIAGRAM_COLORS.grayMid}
         fontStyle="italic"
       >
         {t("diagram.faceToFace.step1Line3", "(Self-request mode)")}
@@ -140,7 +193,7 @@ export const FaceToFaceDiagram: React.FC = () => {
       {/* Arrow down from holder */}
       <path
         d="M 120 165 L 120 230"
-        stroke="#4caf50"
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowGreen)"
@@ -152,8 +205,8 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="230"
         width="320"
         height="120"
-        fill="#fff3e0"
-        stroke="#ff9800"
+        fill={DIAGRAM_COLORS.orangeLight}
+        stroke={DIAGRAM_COLORS.orange}
         strokeWidth="3"
         rx="8"
       />
@@ -162,7 +215,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="255"
         fontSize="15"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.faceToFace.step2Title", "2. Share Transaction")}
@@ -174,46 +227,46 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="270"
         width="60"
         height="60"
-        fill="white"
-        stroke="#333"
+        fill={DIAGRAM_COLORS.textInverse}
+        stroke={DIAGRAM_COLORS.textMuted}
         strokeWidth="2"
       />
-      <rect x="285" y="275" width="10" height="10" fill="#333" />
-      <rect x="325" y="275" width="10" height="10" fill="#333" />
-      <rect x="285" y="315" width="10" height="10" fill="#333" />
-      <rect x="325" y="315" width="10" height="10" fill="#333" />
-      <rect x="295" y="285" width="20" height="20" fill="#333" />
-      <text x="310" y="350" fontSize="10" textAnchor="middle" fill="#666">
+      <rect x="285" y="275" width="10" height="10" fill={DIAGRAM_COLORS.textMuted} />
+      <rect x="325" y="275" width="10" height="10" fill={DIAGRAM_COLORS.textMuted} />
+      <rect x="285" y="315" width="10" height="10" fill={DIAGRAM_COLORS.textMuted} />
+      <rect x="325" y="315" width="10" height="10" fill={DIAGRAM_COLORS.textMuted} />
+      <rect x="295" y="285" width="20" height="20" fill={DIAGRAM_COLORS.textMuted} />
+      <text x="310" y="350" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.qrCode", "QR Code")}
       </text>
 
       {/* Link Icon */}
-      <circle cx="430" cy="300" r="30" fill="#2196f3" />
-      <text x="430" y="295" fontSize="20" textAnchor="middle" fill="white">
+      <circle cx="430" cy="300" r="30" fill={DIAGRAM_COLORS.blue} />
+      <text x="430" y="295" fontSize="20" textAnchor="middle" fill={DIAGRAM_COLORS.textInverse}>
         🔗
       </text>
-      <text x="430" y="350" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="430" y="350" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.shareLink", "Share Link")}
       </text>
 
       {/* Share methods text */}
-      <text x="520" y="285" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="520" y="285" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.shareVia", "Share via:")}
       </text>
-      <text x="520" y="300" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="520" y="300" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.whatsapp", "• WhatsApp")}
       </text>
-      <text x="520" y="315" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="520" y="315" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.telegram", "• Telegram")}
       </text>
-      <text x="520" y="330" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="520" y="330" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.wechat", "• WeChat, etc.")}
       </text>
 
       {/* Arrow from step 1 to step 2 */}
       <path
         d="M 210 270 L 240 270"
-        stroke="#ff9800"
+        stroke={DIAGRAM_COLORS.orange}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowOrange)"
@@ -225,8 +278,8 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="230"
         width="180"
         height="120"
-        fill="#e3f2fd"
-        stroke="#2196f3"
+        fill={DIAGRAM_COLORS.blueLight}
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
         rx="8"
       />
@@ -235,20 +288,20 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="255"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.faceToFace.step3Title", "3. Borrower Access")}
       </text>
-      <text x="680" y="275" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="680" y="275" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.step3Line1", "Scan QR or")}
       </text>
-      <text x="680" y="290" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="680" y="290" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.step3Line2", "Click link")}
       </text>
       <path
         d="M 680 165 L 680 230"
-        stroke="#2196f3"
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowBlue)"
@@ -260,8 +313,8 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="305"
         width="140"
         height="35"
-        fill="#fff9c4"
-        stroke="#fbc02d"
+        fill={DIAGRAM_COLORS.yellowLight}
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="2"
         rx="5"
       />
@@ -270,19 +323,19 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="320"
         fontSize="10"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.faceToFace.ifNotUser", "If not user:")}
       </text>
-      <text x="680" y="333" fontSize="9" textAnchor="middle" fill="#666">
+      <text x="680" y="333" fontSize="9" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.quickSignup", "Quick signup available")}
       </text>
 
       {/* Arrow from step 2 to step 3 */}
       <path
         d="M 560 290 L 590 290"
-        stroke="#2196f3"
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowBlue)"
@@ -294,8 +347,8 @@ export const FaceToFaceDiagram: React.FC = () => {
         cy="440"
         rx="180"
         ry="80"
-        fill="#f3e5f5"
-        stroke="#9c27b0"
+        fill={DIAGRAM_COLORS.purpleLight}
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="3"
       />
       <text
@@ -303,15 +356,15 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="415"
         fontSize="15"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.faceToFace.step4Title", "4. Confirm Receipt")}
       </text>
-      <text x="400" y="435" fontSize="12" textAnchor="middle" fill="#666">
+      <text x="400" y="435" fontSize="12" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.step4Line1", "Borrower inspects item")}
       </text>
-      <text x="400" y="452" fontSize="12" textAnchor="middle" fill="#666">
+      <text x="400" y="452" fontSize="12" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.faceToFace.step4Line2", "📸 Take photo as record")}
       </text>
       <text
@@ -319,7 +372,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="469"
         fontSize="12"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontWeight="bold"
       >
         {t("diagram.faceToFace.step4Line3", 'Click "Receive Item"')}
@@ -328,7 +381,7 @@ export const FaceToFaceDiagram: React.FC = () => {
       {/* Arrows to step 4 from both sides */}
       <path
         d="M 120 310 L 120 380 L 250 420"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple)"
@@ -336,7 +389,7 @@ export const FaceToFaceDiagram: React.FC = () => {
       />
       <path
         d="M 680 350 L 680 380 L 550 420"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple)"
@@ -347,7 +400,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="350"
         fontSize="10"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t("diagram.faceToFace.bothPresent", "Both present")}
@@ -357,7 +410,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="370"
         fontSize="10"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t("diagram.faceToFace.atExchange", "at exchange")}
@@ -369,8 +422,8 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="565"
         width="200"
         height="50"
-        fill="#4caf50"
-        stroke="#2e7d32"
+        fill={DIAGRAM_COLORS.green}
+        stroke={DIAGRAM_COLORS.greenDark}
         strokeWidth="3"
         rx="8"
       />
@@ -379,19 +432,19 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="585"
         fontSize="14"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.faceToFace.complete", "✓ Transaction Complete")}
       </text>
-      <text x="400" y="603" fontSize="11" textAnchor="middle" fill="white">
+      <text x="400" y="603" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textInverse}>
         {t("diagram.faceToFace.newHolder", "Borrower is new holder")}
       </text>
 
       {/* Arrow to complete */}
       <path
         d="M 400 520 L 400 565"
-        stroke="#4caf50"
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowGreen)"
@@ -408,7 +461,7 @@ export const FaceToFaceDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#ff9800" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.orange} />
         </marker>
         <marker
           id="arrowGreen"
@@ -419,7 +472,7 @@ export const FaceToFaceDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#4caf50" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.green} />
         </marker>
         <marker
           id="arrowBlue"
@@ -430,7 +483,7 @@ export const FaceToFaceDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#2196f3" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.blue} />
         </marker>
         <marker
           id="arrowPurple"
@@ -441,7 +494,7 @@ export const FaceToFaceDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#9c27b0" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.purple} />
         </marker>
       </defs>
 
@@ -451,7 +504,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="635"
         fontSize="11"
         textAnchor="middle"
-        fill="#d32f2f"
+        fill={DIAGRAM_COLORS.redDark}
         fontStyle="italic"
       >
         {t(
@@ -466,8 +519,8 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="30"
         width="240"
         height="30"
-        fill="#e3f2fd"
-        stroke="#2196f3"
+        fill={DIAGRAM_COLORS.blueLight}
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="1"
         rx="5"
       />
@@ -476,7 +529,7 @@ export const FaceToFaceDiagram: React.FC = () => {
         y="50"
         fontSize="10"
         textAnchor="middle"
-        fill="#1976d2"
+        fill={DIAGRAM_COLORS.brandBlue}
         fontStyle="italic"
       >
         {t(
@@ -505,7 +558,7 @@ export const DirectExchangeDiagram: React.FC = () => {
         fontSize="20"
         fontWeight="bold"
         textAnchor="middle"
-        fill="#1976d2"
+        fill={DIAGRAM_COLORS.brandBlue}
       >
         {t(
           "diagram.directExchange.title",
@@ -517,7 +570,7 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="50"
         fontSize="12"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t(
@@ -527,13 +580,13 @@ export const DirectExchangeDiagram: React.FC = () => {
       </text>
 
       {/* User/Requestor (Left) */}
-      <circle cx="150" cy="100" r="40" fill="#2196f3" />
+      <circle cx="150" cy="100" r="40" fill={DIAGRAM_COLORS.blue} />
       <text
         x="150"
         y="105"
         fontSize="14"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.user", "User/")}
@@ -543,33 +596,33 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="120"
         fontSize="14"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.requestor", "Requestor")}
       </text>
 
       {/* Owner (Center) */}
-      <circle cx="450" cy="100" r="40" fill="#4caf50" />
+      <circle cx="450" cy="100" r="40" fill={DIAGRAM_COLORS.green} />
       <text
         x="450"
         y="110"
         fontSize="14"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.owner", "Owner")}
       </text>
 
       {/* Holder (Right) */}
-      <circle cx="750" cy="100" r="40" fill="#ff9800" />
+      <circle cx="750" cy="100" r="40" fill={DIAGRAM_COLORS.orange} />
       <text
         x="750"
         y="110"
         fontSize="14"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.holder", "Holder")}
@@ -579,7 +632,7 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="155"
         fontSize="10"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t("diagram.roles.ifDifferent", "(if different from owner)")}
@@ -591,8 +644,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="190"
         width="200"
         height="100"
-        fill="#e3f2fd"
-        stroke="#2196f3"
+        fill={DIAGRAM_COLORS.blueLight}
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
         rx="8"
       />
@@ -601,28 +654,28 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="215"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.directExchange.step1Title", "1. Find & Request")}
       </text>
-      <text x="150" y="235" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="150" y="235" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step1Line1", "User finds item")}
       </text>
-      <text x="150" y="250" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="150" y="250" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step1Line2", "Submits request with")}
       </text>
-      <text x="150" y="265" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="150" y="265" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step1Line3", "proposed handover")}
       </text>
-      <text x="150" y="280" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="150" y="280" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step1Line4", "location")}
       </text>
 
       {/* Arrow from requestor to step 1 */}
       <path
         d="M 150 140 L 150 190"
-        stroke="#2196f3"
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowBlue2)"
@@ -634,8 +687,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="190"
         width="300"
         height="100"
-        fill="#fff9c4"
-        stroke="#fbc02d"
+        fill={DIAGRAM_COLORS.yellowLight}
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="3"
         rx="8"
       />
@@ -644,28 +697,28 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="215"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.directExchange.step2Title", "2. Email Notification")}
       </text>
-      <text x="450" y="235" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="450" y="235" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step2Line1", "📧 System sends email to:")}
       </text>
-      <text x="450" y="252" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="450" y="252" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step2Line2", "• Requestor (confirmation)")}
       </text>
-      <text x="450" y="267" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="450" y="267" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step2Line3", "• Owner (approval needed)")}
       </text>
-      <text x="450" y="282" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="450" y="282" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step2Line4", "• Holder (if different)")}
       </text>
 
       {/* Arrow from step 1 to step 2 */}
       <path
         d="M 250 240 L 300 240"
-        stroke="#fbc02d"
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowYellow)"
@@ -677,8 +730,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="190"
         width="200"
         height="100"
-        fill="#e8f5e9"
-        stroke="#4caf50"
+        fill={DIAGRAM_COLORS.greenLight}
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         rx="8"
       />
@@ -687,28 +740,28 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="215"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.directExchange.step3Title", "3. Owner Decision")}
       </text>
-      <text x="750" y="235" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="750" y="235" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step3Line1", "✓ Approve: Accept all")}
       </text>
-      <text x="750" y="250" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="750" y="250" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step3Line2", "✗ Negotiate: Discuss")}
       </text>
-      <text x="750" y="265" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="750" y="265" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step3Line3", "via email/chat for")}
       </text>
-      <text x="750" y="280" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="750" y="280" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step3Line4", "changes (location, etc.)")}
       </text>
 
       {/* Arrow from step 2 to step 3 */}
       <path
         d="M 600 240 L 650 240"
-        stroke="#4caf50"
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowGreen2)"
@@ -720,8 +773,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="310"
         width="300"
         height="60"
-        fill="#ffebee"
-        stroke="#f44336"
+        fill={DIAGRAM_COLORS.redLight}
+        stroke={DIAGRAM_COLORS.red}
         strokeWidth="2"
         rx="8"
         strokeDasharray="5,5"
@@ -731,12 +784,12 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="335"
         fontSize="12"
         textAnchor="middle"
-        fill="#d32f2f"
+        fill={DIAGRAM_COLORS.redDark}
         fontWeight="bold"
       >
         {t("diagram.directExchange.negotiation", "If Changes Needed:")}
       </text>
-      <text x="450" y="352" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="450" y="352" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t(
           "diagram.directExchange.negotiationDesc",
           "Requestor cancels → Submits new request → Owner approves"
@@ -746,7 +799,7 @@ export const DirectExchangeDiagram: React.FC = () => {
       {/* Arrow from owner to negotiation */}
       <path
         d="M 750 290 L 750 340 L 600 340"
-        stroke="#f44336"
+        stroke={DIAGRAM_COLORS.red}
         strokeWidth="2"
         fill="none"
         strokeDasharray="5,5"
@@ -758,8 +811,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="400"
         width="800"
         height="80"
-        fill="#f3e5f5"
-        stroke="#9c27b0"
+        fill={DIAGRAM_COLORS.purpleLight}
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="3"
         rx="8"
       />
@@ -768,18 +821,18 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="425"
         fontSize="15"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.directExchange.step4Title", "4. Coordinate Handover")}
       </text>
-      <text x="450" y="445" fontSize="12" textAnchor="middle" fill="#666">
+      <text x="450" y="445" fontSize="12" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t(
           "diagram.directExchange.step4Desc",
           "💬 Both parties discuss when and how to meet face-to-face"
         )}
       </text>
-      <text x="450" y="465" fontSize="11" textAnchor="middle" fill="#999">
+      <text x="450" y="465" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.grayMid}>
         {t(
           "diagram.directExchange.step4Note",
           "(via email, phone, or messaging app)"
@@ -789,14 +842,14 @@ export const DirectExchangeDiagram: React.FC = () => {
       {/* Arrows to step 4 */}
       <path
         d="M 150 290 L 150 400"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple2)"
       />
       <path
         d="M 750 290 L 750 400"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple2)"
@@ -808,8 +861,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         cy="540"
         rx="120"
         ry="50"
-        fill="#fff3e0"
-        stroke="#ff9800"
+        fill={DIAGRAM_COLORS.orangeLight}
+        stroke={DIAGRAM_COLORS.orange}
         strokeWidth="3"
       />
       <text
@@ -817,22 +870,22 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="530"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.directExchange.step5Title", "5. Handover")}
       </text>
-      <text x="250" y="548" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="250" y="548" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step5Line1", "Owner/Holder hands over")}
       </text>
-      <text x="250" y="563" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="250" y="563" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step5Line2", "Clicks 'Transferred'")}
       </text>
 
       {/* Arrow to transfer */}
       <path
         d="M 450 480 L 250 490"
-        stroke="#ff9800"
+        stroke={DIAGRAM_COLORS.orange}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowOrange2)"
@@ -844,8 +897,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         cy="540"
         rx="130"
         ry="50"
-        fill="#e3f2fd"
-        stroke="#2196f3"
+        fill={DIAGRAM_COLORS.blueLight}
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
       />
       <text
@@ -853,22 +906,22 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="525"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.directExchange.step6Title", "6. Receive & Record")}
       </text>
-      <text x="650" y="543" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="650" y="543" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step6Line1", "📸 Requestor takes photo")}
       </text>
-      <text x="650" y="558" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="650" y="558" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.directExchange.step6Line2", "Clicks 'Received'")}
       </text>
 
       {/* Arrow to receive */}
       <path
         d="M 450 480 L 650 490"
-        stroke="#2196f3"
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowBlue2)"
@@ -877,7 +930,7 @@ export const DirectExchangeDiagram: React.FC = () => {
       {/* Connection between steps */}
       <path
         d="M 370 540 L 520 540"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple2)"
@@ -887,7 +940,7 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="530"
         fontSize="10"
         textAnchor="middle"
-        fill="#9c27b0"
+        fill={DIAGRAM_COLORS.purple}
         fontWeight="bold"
       >
         {t("diagram.directExchange.faceToFace", "Face-to-face")}
@@ -899,8 +952,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="605"
         width="200"
         height="40"
-        fill="#4caf50"
-        stroke="#2e7d32"
+        fill={DIAGRAM_COLORS.green}
+        stroke={DIAGRAM_COLORS.greenDark}
         strokeWidth="3"
         rx="8"
       />
@@ -909,7 +962,7 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="630"
         fontSize="13"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.directExchange.complete", "✓ Requestor becomes new Holder")}
@@ -918,7 +971,7 @@ export const DirectExchangeDiagram: React.FC = () => {
       {/* Arrow to complete */}
       <path
         d="M 650 590 L 650 605"
-        stroke="#4caf50"
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowGreen2)"
@@ -930,8 +983,8 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="605"
         width="400"
         height="40"
-        fill="#e1f5fe"
-        stroke="#0288d1"
+        fill={DIAGRAM_COLORS.cyanLight}
+        stroke={DIAGRAM_COLORS.cyan}
         strokeWidth="2"
         rx="8"
       />
@@ -940,7 +993,7 @@ export const DirectExchangeDiagram: React.FC = () => {
         y="630"
         fontSize="11"
         textAnchor="middle"
-        fill="#01579b"
+        fill={DIAGRAM_COLORS.cyanDark}
         fontWeight="bold"
       >
         {t(
@@ -960,7 +1013,7 @@ export const DirectExchangeDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#ff9800" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.orange} />
         </marker>
         <marker
           id="arrowGreen2"
@@ -971,7 +1024,7 @@ export const DirectExchangeDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#4caf50" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.green} />
         </marker>
         <marker
           id="arrowBlue2"
@@ -982,7 +1035,7 @@ export const DirectExchangeDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#2196f3" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.blue} />
         </marker>
         <marker
           id="arrowPurple2"
@@ -993,7 +1046,7 @@ export const DirectExchangeDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#9c27b0" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.purple} />
         </marker>
         <marker
           id="arrowYellow"
@@ -1004,7 +1057,7 @@ export const DirectExchangeDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#fbc02d" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.yellow} />
         </marker>
       </defs>
     </svg>
@@ -1028,7 +1081,7 @@ export const ExchangePointDiagram: React.FC = () => {
         fontSize="20"
         fontWeight="bold"
         textAnchor="middle"
-        fill="#1976d2"
+        fill={DIAGRAM_COLORS.brandBlue}
       >
         {t("diagram.exchangePoint.title", "Exchange via Public Exchange Point")}
       </text>
@@ -1037,7 +1090,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="50"
         fontSize="12"
         textAnchor="middle"
-        fill="#666"
+        fill={DIAGRAM_COLORS.textTertiary}
         fontStyle="italic"
       >
         {t(
@@ -1052,8 +1105,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="70"
         width="800"
         height="40"
-        fill="#fff9c4"
-        stroke="#fbc02d"
+        fill={DIAGRAM_COLORS.yellowLight}
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="2"
         rx="5"
       />
@@ -1062,7 +1115,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="95"
         fontSize="11"
         textAnchor="middle"
-        fill="#f57f17"
+        fill={DIAGRAM_COLORS.orangeDarker}
         fontWeight="bold"
       >
         {t(
@@ -1072,13 +1125,13 @@ export const ExchangePointDiagram: React.FC = () => {
       </text>
 
       {/* Participants */}
-      <circle cx="300" cy="150" r="35" fill="#4caf50" />
+      <circle cx="300" cy="150" r="35" fill={DIAGRAM_COLORS.green} />
       <text
         x="300"
         y="148"
         fontSize="12"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.owner", "Owner/")}
@@ -1088,7 +1141,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="162"
         fontSize="12"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.holder", "Holder")}
@@ -1099,8 +1152,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="115"
         width="120"
         height="70"
-        fill="#ff9800"
-        stroke="#f57c00"
+        fill={DIAGRAM_COLORS.orange}
+        stroke={DIAGRAM_COLORS.orangeDark}
         strokeWidth="3"
         rx="5"
       />
@@ -1109,7 +1162,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="145"
         fontSize="13"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.exchangePoint", "Exchange")}
@@ -1119,22 +1172,22 @@ export const ExchangePointDiagram: React.FC = () => {
         y="162"
         fontSize="13"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.exchangePoint2", "Point")}
       </text>
-      <text x="450" y="178" fontSize="10" textAnchor="middle" fill="white">
+      <text x="450" y="178" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textInverse}>
         {t("diagram.exchangePoint.intermediary", "(Trusted)")}
       </text>
 
-      <circle cx="800" cy="150" r="35" fill="#2196f3" />
+      <circle cx="800" cy="150" r="35" fill={DIAGRAM_COLORS.blue} />
       <text
         x="800"
         y="155"
         fontSize="12"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.roles.requestor", "Requestor")}
@@ -1146,8 +1199,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="220"
         width="380"
         height="40"
-        fill="#e8f5e9"
-        stroke="#4caf50"
+        fill={DIAGRAM_COLORS.greenLight}
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         rx="8"
       />
@@ -1156,7 +1209,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="245"
         fontSize="16"
         textAnchor="middle"
-        fill="#2e7d32"
+        fill={DIAGRAM_COLORS.greenDark}
         fontWeight="bold"
       >
         {t(
@@ -1171,8 +1224,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="280"
         width="160"
         height="90"
-        fill="#e3f2fd"
-        stroke="#2196f3"
+        fill={DIAGRAM_COLORS.blueLight}
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="2"
         rx="8"
       />
@@ -1181,25 +1234,25 @@ export const ExchangePointDiagram: React.FC = () => {
         y="305"
         fontSize="13"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.phaseA1Title", "A1. Request Drop-off")}
       </text>
-      <text x="140" y="323" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="140" y="323" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA1Line1", "Owner/Holder requests")}
       </text>
-      <text x="140" y="338" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="140" y="338" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA1Line2", "exchange point to")}
       </text>
-      <text x="140" y="353" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="140" y="353" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA1Line3", "receive item")}
       </text>
 
       {/* Arrow from holder */}
       <path
         d="M 300 185 L 300 280"
-        stroke="#4caf50"
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowBlue4)"
@@ -1211,8 +1264,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="280"
         width="180"
         height="90"
-        fill="#fff9c4"
-        stroke="#fbc02d"
+        fill={DIAGRAM_COLORS.yellowLight}
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="2"
         rx="8"
       />
@@ -1221,25 +1274,25 @@ export const ExchangePointDiagram: React.FC = () => {
         y="305"
         fontSize="13"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.phaseA2Title", "A2. Email & Approve")}
       </text>
-      <text x="330" y="323" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="330" y="323" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA2Line1", "📧 Exchange Point")}
       </text>
-      <text x="330" y="338" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="330" y="338" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA2Line2", "confirms via email")}
       </text>
-      <text x="330" y="353" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="330" y="353" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA2Line3", "Approve drop-off time")}
       </text>
 
       {/* Arrow A1 to A2 */}
       <path
         d="M 220 325 L 240 325"
-        stroke="#fbc02d"
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowYellow2)"
@@ -1251,8 +1304,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="390"
         width="360"
         height="90"
-        fill="#f3e5f5"
-        stroke="#9c27b0"
+        fill={DIAGRAM_COLORS.purpleLight}
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="3"
         rx="8"
       />
@@ -1261,7 +1314,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="415"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t(
@@ -1269,13 +1322,13 @@ export const ExchangePointDiagram: React.FC = () => {
           "A3. Handover at Exchange Point"
         )}
       </text>
-      <text x="240" y="435" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="240" y="435" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA3Line1", "Owner/Holder delivers item")}
       </text>
-      <text x="240" y="452" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="240" y="452" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseA3Line2", "📸 Both take photos")}
       </text>
-      <text x="240" y="469" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="240" y="469" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t(
           "diagram.exchangePoint.phaseA3Line3",
           "Click 'Transferred' & 'Received'"
@@ -1285,14 +1338,14 @@ export const ExchangePointDiagram: React.FC = () => {
       {/* Arrows to A3 */}
       <path
         d="M 140 370 L 140 390"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple4)"
       />
       <path
         d="M 330 370 L 330 390"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple4)"
@@ -1304,8 +1357,8 @@ export const ExchangePointDiagram: React.FC = () => {
         cy="510"
         rx="100"
         ry="30"
-        fill="#4caf50"
-        stroke="#2e7d32"
+        fill={DIAGRAM_COLORS.green}
+        stroke={DIAGRAM_COLORS.greenDark}
         strokeWidth="2"
       />
       <text
@@ -1313,7 +1366,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="517"
         fontSize="12"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.phaseAComplete", "✓ Phase A Complete")}
@@ -1322,7 +1375,7 @@ export const ExchangePointDiagram: React.FC = () => {
       {/* Arrow to Phase A complete */}
       <path
         d="M 240 480 L 240 490"
-        stroke="#4caf50"
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowGreen4)"
@@ -1334,8 +1387,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="380"
         width="200"
         height="80"
-        fill="#e1f5fe"
-        stroke="#0288d1"
+        fill={DIAGRAM_COLORS.cyanLight}
+        stroke={DIAGRAM_COLORS.cyan}
         strokeWidth="2"
         rx="8"
         strokeDasharray="5,5"
@@ -1345,22 +1398,22 @@ export const ExchangePointDiagram: React.FC = () => {
         y="405"
         fontSize="12"
         textAnchor="middle"
-        fill="#01579b"
+        fill={DIAGRAM_COLORS.cyanDark}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.itemCached", "📦 Item Cached")}
       </text>
-      <text x="560" y="425" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="560" y="425" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.waitingPickup", "Waiting for")}
       </text>
-      <text x="560" y="440" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="560" y="440" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.waitingPickup2", "Phase B pickup")}
       </text>
 
       {/* Arrow from Exchange Point to transition */}
       <path
         d="M 420 435 L 460 435"
-        stroke="#0288d1"
+        stroke={DIAGRAM_COLORS.cyan}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowCyan)"
@@ -1373,8 +1426,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="220"
         width="380"
         height="40"
-        fill="#e3f2fd"
-        stroke="#2196f3"
+        fill={DIAGRAM_COLORS.blueLight}
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="3"
         rx="8"
       />
@@ -1383,7 +1436,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="245"
         fontSize="16"
         textAnchor="middle"
-        fill="#1565c0"
+        fill={DIAGRAM_COLORS.brandBlueDark}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.phaseBTitle", "PHASE B: Pick-up Transaction")}
@@ -1395,8 +1448,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="280"
         width="160"
         height="90"
-        fill="#e3f2fd"
-        stroke="#2196f3"
+        fill={DIAGRAM_COLORS.blueLight}
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="2"
         rx="8"
       />
@@ -1405,25 +1458,25 @@ export const ExchangePointDiagram: React.FC = () => {
         y="305"
         fontSize="13"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.phaseB1Title", "B1. Request Pick-up")}
       </text>
-      <text x="760" y="323" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="760" y="323" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB1Line1", "Requestor submits")}
       </text>
-      <text x="760" y="338" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="760" y="338" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB1Line2", "pick-up request to")}
       </text>
-      <text x="760" y="353" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="760" y="353" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB1Line3", "exchange point")}
       </text>
 
       {/* Arrow from requestor */}
       <path
         d="M 800 185 L 800 315 L 840 315"
-        stroke="#2196f3"
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowBlue4)"
@@ -1431,7 +1484,7 @@ export const ExchangePointDiagram: React.FC = () => {
 
       <path
         d="M 800 185 L 800 200 L 100 200 L 100 280"
-        stroke="#2196f3"
+        stroke={DIAGRAM_COLORS.blue}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowBlue4)"
@@ -1443,8 +1496,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="280"
         width="180"
         height="90"
-        fill="#fff9c4"
-        stroke="#fbc02d"
+        fill={DIAGRAM_COLORS.yellowLight}
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="2"
         rx="8"
       />
@@ -1453,25 +1506,25 @@ export const ExchangePointDiagram: React.FC = () => {
         y="305"
         fontSize="13"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t("diagram.exchangePoint.phaseB2Title", "B2. Email & Approve")}
       </text>
-      <text x="570" y="323" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="570" y="323" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB2Line1", "📧 Exchange Point")}
       </text>
-      <text x="570" y="338" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="570" y="338" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB2Line2", "confirms via email")}
       </text>
-      <text x="570" y="353" fontSize="10" textAnchor="middle" fill="#666">
+      <text x="570" y="353" fontSize="10" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB2Line3", "Approve pick-up time")}
       </text>
 
       {/* Arrow B1 to B2 */}
       <path
         d="M 680 325 L 660 325"
-        stroke="#fbc02d"
+        stroke={DIAGRAM_COLORS.yellow}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowYellow2)"
@@ -1483,8 +1536,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="500"
         width="360"
         height="90"
-        fill="#f3e5f5"
-        stroke="#9c27b0"
+        fill={DIAGRAM_COLORS.purpleLight}
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="3"
         rx="8"
       />
@@ -1493,7 +1546,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="525"
         fontSize="14"
         textAnchor="middle"
-        fill="#333"
+        fill={DIAGRAM_COLORS.textMuted}
         fontWeight="bold"
       >
         {t(
@@ -1501,13 +1554,13 @@ export const ExchangePointDiagram: React.FC = () => {
           "B3. Pick-up at Exchange Point"
         )}
       </text>
-      <text x="660" y="545" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="660" y="545" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB3Line1", "Requestor picks up item")}
       </text>
-      <text x="660" y="562" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="660" y="562" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t("diagram.exchangePoint.phaseB3Line2", "📸 Both take photos")}
       </text>
-      <text x="660" y="579" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="660" y="579" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t(
           "diagram.exchangePoint.phaseB3Line3",
           "Click 'Transferred' & 'Received'"
@@ -1517,14 +1570,14 @@ export const ExchangePointDiagram: React.FC = () => {
       {/* Arrows to B3 */}
       <path
         d="M 570 370 L 570 500"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple4)"
       />
       <path
         d="M 760 370 L 760 500"
-        stroke="#9c27b0"
+        stroke={DIAGRAM_COLORS.purple}
         strokeWidth="2"
         fill="none"
         markerEnd="url(#arrowPurple4)"
@@ -1536,8 +1589,8 @@ export const ExchangePointDiagram: React.FC = () => {
         cy="620"
         rx="130"
         ry="35"
-        fill="#4caf50"
-        stroke="#2e7d32"
+        fill={DIAGRAM_COLORS.green}
+        stroke={DIAGRAM_COLORS.greenDark}
         strokeWidth="3"
       />
       <text
@@ -1545,7 +1598,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="625"
         fontSize="13"
         textAnchor="middle"
-        fill="white"
+        fill={DIAGRAM_COLORS.textInverse}
         fontWeight="bold"
       >
         {t(
@@ -1557,7 +1610,7 @@ export const ExchangePointDiagram: React.FC = () => {
       {/* Arrow to Phase B complete */}
       <path
         d="M 660 590 L 660 600"
-        stroke="#4caf50"
+        stroke={DIAGRAM_COLORS.green}
         strokeWidth="3"
         fill="none"
         markerEnd="url(#arrowGreen4)"
@@ -1569,8 +1622,8 @@ export const ExchangePointDiagram: React.FC = () => {
         y="680"
         width="800"
         height="60"
-        fill="#e8eaf6"
-        stroke="#5c6bc0"
+        fill={DIAGRAM_COLORS.blueIndigoLight}
+        stroke={DIAGRAM_COLORS.blueIndigo}
         strokeWidth="2"
         rx="8"
       />
@@ -1579,7 +1632,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="705"
         fontSize="12"
         textAnchor="middle"
-        fill="#283593"
+        fill={DIAGRAM_COLORS.blueIndigoDark}
         fontWeight="bold"
       >
         {t(
@@ -1587,7 +1640,7 @@ export const ExchangePointDiagram: React.FC = () => {
           "📍 Exchange Point Preferences:"
         )}
       </text>
-      <text x="450" y="725" fontSize="11" textAnchor="middle" fill="#666">
+      <text x="450" y="725" fontSize="11" textAnchor="middle" fill={DIAGRAM_COLORS.textTertiary}>
         {t(
           "diagram.exchangePoint.preferenceDesc",
           "Users can select preferred exchange points. Others can search items by exchange point location."
@@ -1605,7 +1658,7 @@ export const ExchangePointDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#2196f3" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.blue} />
         </marker>
         <marker
           id="arrowGreen4"
@@ -1616,7 +1669,7 @@ export const ExchangePointDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#4caf50" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.green} />
         </marker>
         <marker
           id="arrowPurple4"
@@ -1627,7 +1680,7 @@ export const ExchangePointDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#9c27b0" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.purple} />
         </marker>
         <marker
           id="arrowYellow2"
@@ -1638,7 +1691,7 @@ export const ExchangePointDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#fbc02d" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.yellow} />
         </marker>
         <marker
           id="arrowCyan"
@@ -1649,7 +1702,7 @@ export const ExchangePointDiagram: React.FC = () => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L9,3 z" fill="#0288d1" />
+          <path d="M0,0 L0,6 L9,3 z" fill={DIAGRAM_COLORS.cyan} />
         </marker>
       </defs>
 
@@ -1659,7 +1712,7 @@ export const ExchangePointDiagram: React.FC = () => {
         y="665"
         fontSize="11"
         textAnchor="middle"
-        fill="#d32f2f"
+        fill={DIAGRAM_COLORS.redDark}
         fontStyle="italic"
       >
         {t(
@@ -1676,28 +1729,28 @@ export const TransactionFlowDiagrams: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Typography variant="h5" sx={{ mb: 3, fontWeight: "bold" }}>
+    <Box sx={flowRootSx}>
+      <Typography variant="h5" sx={howItWorksTitleSx}>
         {t("transactions.howItWorks", "How Transactions Work")}
       </Typography>
 
       <Grid container spacing={3}>
         {/* Face-to-Face */}
         <Grid size={{ xs: 12 }}>
-          <Paper elevation={2} sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+          <Paper elevation={2} sx={diagramPanelSx}>
+            <Typography variant="h6" sx={diagramHeadingSx}>
               {t(
                 "transactions.faceToFaceTitle",
                 "1. Face-to-Face Quick Exchange"
               )}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={diagramDescriptionSx}>
               {t(
                 "transactions.faceToFaceDesc",
                 "Perfect for events, meetups, or quick lending. The holder initiates the transaction and shares it via QR code or link. The borrower (even if not a registered user) can quickly sign up and complete the exchange with a photo record. Must be completed within 1 hour."
               )}
             </Typography>
-            <Box sx={{ width: "100%", maxWidth: "800px", mx: "auto" }}>
+            <Box sx={diagramFrameSx}>
               {/*<FaceToFaceDiagram />*/}
               <img
                 src={"/images/Face-to-Face.jpg"}
@@ -1705,19 +1758,19 @@ export const TransactionFlowDiagrams: React.FC = () => {
                   "transactions.faceToFaceDiagramAlt",
                   "Face-to-Face Transaction Diagram"
                 )}
-                style={{ width: "100%", height: "auto" }}
+                style={diagramImageStyle}
               />
             </Box>
 
             {/* Key Features */}
-            <Box sx={{ mt: 2, p: 2, bgcolor: "info.lighter", borderRadius: 1 }}>
+            <Box sx={keyFeaturesBoxSx}>
               <Typography
                 variant="subtitle2"
-                sx={{ mb: 1, fontWeight: "bold", color: "info.dark" }}
+                sx={keyFeaturesTitleSx}
               >
                 {t("transactions.keyFeatures", "Key Features")}:
               </Typography>
-              <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
+              <Typography variant="body2" component="ul" sx={keyFeaturesListSx}>
                 <li>
                   {t(
                     "transactions.feature1",
@@ -1752,20 +1805,20 @@ export const TransactionFlowDiagrams: React.FC = () => {
 
         {/* Direct Exchange */}
         <Grid size={{ xs: 12 }}>
-          <Paper elevation={2} sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+          <Paper elevation={2} sx={diagramPanelSx}>
+            <Typography variant="h6" sx={diagramHeadingSx}>
               {t(
                 "transactions.directExchangeTitle",
                 "2. Direct Exchange at Address"
               )}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={diagramDescriptionSx}>
               {t(
                 "transactions.directExchangeDesc",
                 "Meet at either the holder's or requestor's address. Both parties coordinate meeting time and location. Suitable for planned exchanges with 14-day completion window."
               )}
             </Typography>
-            <Box sx={{ width: "100%", maxWidth: "800px", mx: "auto" }}>
+            <Box sx={diagramFrameSx}>
               {/*<DirectExchangeDiagram />*/}
               <img
                 src={"/images/Direct-exchange.jpg"}
@@ -1773,7 +1826,7 @@ export const TransactionFlowDiagrams: React.FC = () => {
                   "transactions.directExchangeDiagramAlt",
                   "Direct Exchange Diagram"
                 )}
-                style={{ width: "100%", height: "auto" }}
+                style={diagramImageStyle}
               />
             </Box>
           </Paper>
@@ -1781,20 +1834,20 @@ export const TransactionFlowDiagrams: React.FC = () => {
 
         {/* Exchange Point */}
         <Grid size={{ xs: 12 }}>
-          <Paper elevation={2} sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+          <Paper elevation={2} sx={diagramPanelSx}>
+            <Typography variant="h6" sx={diagramHeadingSx}>
               {t(
                 "transactions.exchangePointTitle",
                 "3. Exchange via Public Exchange Point"
               )}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={diagramDescriptionSx}>
               {t(
                 "transactions.exchangePointDesc",
                 "Two-phase exchange using a trusted public location. Holder drops off item, then requestor picks it up at their convenience. Each phase has 14-day completion window."
               )}
             </Typography>
-            <Box sx={{ width: "100%", maxWidth: "800px", mx: "auto" }}>
+            <Box sx={diagramFrameSx}>
               {/*<ExchangePointDiagram />*/}
               <img
                 src={"/images/Public-Exchange.jpg"}
@@ -1802,7 +1855,7 @@ export const TransactionFlowDiagrams: React.FC = () => {
                   "transactions.exchangePointDiagramAlt",
                   "Exchange Point Diagram"
                 )}
-                style={{ width: "100%", height: "auto" }}
+                style={diagramImageStyle}
               />
             </Box>
           </Paper>
@@ -1810,71 +1863,28 @@ export const TransactionFlowDiagrams: React.FC = () => {
       </Grid>
 
       {/* Legend */}
-      <Paper elevation={1} sx={{ p: 2, mt: 3, bgcolor: "grey.50" }}>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+      <Paper elevation={1} sx={legendPaperSx}>
+        <Typography variant="subtitle2" sx={legendTitleSx}>
           {t("transactions.legend.title", "Legend")}:
         </Typography>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  bgcolor: "#ff9800",
-                  borderRadius: "50%",
-                }}
-              />
-              <Typography variant="body2">
-                {t("transactions.legend.pending", "Pending / Request")}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  bgcolor: "#4caf50",
-                  borderRadius: "50%",
-                }}
-              />
-              <Typography variant="body2">
-                {t("transactions.legend.approved", "Approved")}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  bgcolor: "#2196f3",
-                  borderRadius: "50%",
-                }}
-              />
-              <Typography variant="body2">
-                {t("transactions.legend.transfered", "Transferred")}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  bgcolor: "#9c27b0",
-                  borderRadius: "50%",
-                }}
-              />
-              <Typography variant="body2">
-                {t("transactions.legend.completed", "Completed")}
-              </Typography>
-            </Box>
-          </Grid>
+          {LEGEND_ITEMS.map((item) => (
+            <Grid key={item.key} size={{ xs: 12, sm: 6, md: 3 }}>
+              <Box sx={legendItemRowSx}>
+                <Box
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    bgcolor: item.color,
+                    borderRadius: "50%",
+                  }}
+                />
+                <Typography variant="body2">
+                  {t(`transactions.legend.${item.key}`, item.label)}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
         </Grid>
       </Paper>
     </Box>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Fade, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { alpha } from "@mui/material/styles";
+import { semanticTokens } from "../styles/semanticTokens";
 
 interface SplashScreenProps {
   text?: string | null;
@@ -49,7 +51,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "background.default",
-          background: "linear-gradient(135deg, #db036b 0%, #25975d 100%)",
+          background: `linear-gradient(135deg, ${semanticTokens.color.brandPrimary} 0%, ${semanticTokens.color.success} 100%)`,
         }}
       >
         {/* Dismiss Button */}
@@ -59,11 +61,11 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
             position: "absolute",
             top: 16,
             right: 16,
-            color: "white",
-            backgroundColor: "rgba(255, 255, 255, 0.1)",
+            color: semanticTokens.color.textInverse,
+            backgroundColor: alpha(semanticTokens.color.textInverse, 0.1),
             backdropFilter: "blur(10px)",
             "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
+              backgroundColor: alpha(semanticTokens.color.textInverse, 0.2),
             },
             zIndex: 10000,
           }}
@@ -91,7 +93,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
                 height: "auto",
                 objectFit: "contain",
                 borderRadius: 16,
-                boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                boxShadow: `0 8px 32px ${alpha(semanticTokens.color.textPrimary, 0.3)}`,
               }}
             />
           </Box>
@@ -102,10 +104,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
           <Typography
             variant="h6"
             sx={{
-              color: "white",
+              color: semanticTokens.color.textInverse,
               textAlign: "center",
               fontWeight: "bold",
-              textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+              textShadow: `2px 2px 4px ${alpha(semanticTokens.color.textPrimary, 0.3)}`,
               px: 4,
               maxWidth: 600,
               whiteSpace: "pre-wrap",
@@ -123,7 +125,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
             width: 60,
             height: 4,
             borderRadius: 2,
-            backgroundColor: "rgba(255,255,255,0.3)",
+            backgroundColor: alpha(semanticTokens.color.textInverse, 0.3),
             overflow: "hidden",
           }}
         >
@@ -131,7 +133,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
             sx={{
               width: "100%",
               height: "100%",
-              backgroundColor: "white",
+              backgroundColor: semanticTokens.color.textInverse,
               animation: "loading 1.5s ease-in-out infinite",
               "@keyframes loading": {
                 "0%": {
