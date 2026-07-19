@@ -19,6 +19,7 @@ import firebase from "firebase-admin";
 import { UploadBufferToGCS, UploadJsonToGCS } from "./platform";
 import { Timestamp } from "firebase-admin/firestore";
 import { generateThumbnail, ThumbnailConfig } from "./utils/imageUtils";
+import { sampleRandom } from "./utils/randomUtils";
 import sharp from "sharp";
 import axios from "axios";
 import {
@@ -1332,12 +1333,18 @@ export class ItemService {
     limit: number = 20,
     offset: number = 0,
     category?: string[],
+    random: boolean = false,
   ): Promise<Item[]> {
+    const RANDOM_SAMPLE_CAP = 100;
     let query = db.collection("items").orderBy("created", "desc");
     if (category && category.length > 0) {
       query = query.where("category", "array-contains-any", category);
     }
-    const snapshot = await query.limit(limit).offset(offset).get();
+    // Random mode samples from a recent window so bulk uploads do not dominate.
+    // Keep chronological pagination when random is false (e.g. /item/recent).
+    const snapshot = random
+      ? await query.limit(RANDOM_SAMPLE_CAP).get()
+      : await query.limit(limit).offset(offset).get();
     const items: Item[] = [];
     await Promise.all(
       snapshot.docs.map(async (doc) => {
@@ -1347,7 +1354,7 @@ export class ItemService {
         }
       }),
     );
-    return items;
+    return random ? sampleRandom(items, limit) : items;
   }
 
   async recentItemsContentRatingNotChecked(

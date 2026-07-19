@@ -670,6 +670,7 @@ export type QueryRecentAddedItemsArgs = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+  random?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1083,6 +1084,7 @@ export type UpdateNewsPostMutation = { __typename?: 'Mutation', updateNewsPost: 
 export type RecentItemsQueryVariables = Exact<{
   category?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  random?: InputMaybe<Scalars['Boolean']['input']>;
 }>;
 
 
@@ -2680,8 +2682,8 @@ export type UpdateNewsPostMutationHookResult = ReturnType<typeof useUpdateNewsPo
 export type UpdateNewsPostMutationResult = Apollo.MutationResult<UpdateNewsPostMutation>;
 export type UpdateNewsPostMutationOptions = Apollo.BaseMutationOptions<UpdateNewsPostMutation, UpdateNewsPostMutationVariables>;
 export const RecentItemsDocument = gql`
-    query RecentItems($category: [String!], $limit: Int) {
-  recentAddedItems(category: $category, limit: $limit) {
+    query RecentItems($category: [String!], $limit: Int, $random: Boolean) {
+  recentAddedItems(category: $category, limit: $limit, random: $random) {
     id
     name
     description
