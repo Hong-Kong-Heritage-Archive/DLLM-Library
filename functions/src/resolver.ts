@@ -619,6 +619,16 @@ export const resolvers: Resolvers = {
       if (!user) throw new Error("User not found");
       return userService.unpinItem(user, itemId);
     },
+    transferOwnership: async (
+      _: any,
+      { itemId }: any,
+      { loginUser }: Context,
+    ): Promise<Item> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const currentUser = await userService.me(loginUser);
+      if (!currentUser) throw new Error("User not found");
+      return itemService.transferOwnership(itemId, currentUser);
+    },
     createNewsPost: async (
       _: any,
       {

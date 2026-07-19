@@ -1301,6 +1301,45 @@ export class ItemService {
     }
   }
 
+  async transferOwnership(
+    itemId: string,
+    currentUser: User,
+  ): Promise<Item> {
+    const itemRef = db.collection("items").doc(itemId);
+    const itemDoc = await itemRef.get();
+    if (!itemDoc.exists) {
+      throw new Error(`Item with ID ${itemId} does not exist`);
+    }
+
+    const itemData = itemDoc.data() as ItemModel;
+
+    if (itemData.ownerId !== currentUser.id) {
+      throw new Error(
+        `User ${currentUser.id} is not the owner of item ${itemId}`,
+      );
+    }
+
+    if (!itemData.holderId) {
+      throw new Error(
+        `Item ${itemId} is not currently held by anyone`,
+      );
+    }
+
+    const updateData: Partial<ItemModel> = {
+      ownerId: itemData.holderId,
+      holderId: null,
+      updated: Timestamp.now(),
+    };
+
+    await itemRef.update(updateData);
+
+    const updatedItem = await this.itemById(currentUser, itemId);
+    if (!updatedItem) {
+      throw new Error(`Failed to fetch updated item with ID ${itemId}`);
+    }
+    return updatedItem;
+  }
+
   async updateItemHolder(itemId: string, newHolder: User): Promise<boolean> {
     if (!newHolder.location) {
       console.warn("Cannot update item holder: Missing location");
