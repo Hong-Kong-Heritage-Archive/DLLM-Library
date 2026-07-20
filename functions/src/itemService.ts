@@ -600,7 +600,8 @@ export class ItemService {
 
     if (
       loggedInUser != null &&
-      (this.getHolderId(item) === loggedInUser.id ||
+      (item.ownerId === loggedInUser.id ||
+        this.getHolderId(item) === loggedInUser.id ||
         loggedInUser.role === Role.Admin)
     ) {
       return false;

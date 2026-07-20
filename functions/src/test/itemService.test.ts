@@ -1,6 +1,5 @@
 /// <reference types="jest" />
 import { ItemService } from "../itemService";
-import { SystemService } from "../systemService";
 
 import {
   Item,
@@ -14,14 +13,14 @@ import {
 } from "../generated/graphql";
 
 import { CONTENT_RATING_CENSOR_THRESHOLD } from "../contentRatingDefaults";
-let systemService = new SystemService();
 
 describe("ItemService.tokenizeName", () => {
   let service: ItemService;
   const mockCategoryService = {} as any;
+  const mockSystemService = {} as any;
 
   beforeEach(() => {
-    service = new ItemService(mockCategoryService, systemService);
+    service = new ItemService(mockCategoryService, mockSystemService);
   });
 
   it("returns empty array for empty or whitespace-only input", () => {
@@ -88,6 +87,7 @@ describe("ItemService.tokenizeName", () => {
 describe("ItemService.shouldCensorItem", () => {
   let service: ItemService;
   const mockCategoryService = {} as any;
+  const mockSystemService = {} as any;
 
   // Test Defaults - visible by default.
   // Owner, holder, user all different.
@@ -101,7 +101,7 @@ describe("ItemService.shouldCensorItem", () => {
 
   // Reset values
   beforeEach(() => {
-    service = new ItemService(mockCategoryService, systemService);
+    service = new ItemService(mockCategoryService, mockSystemService);
 
     item = {
       ownerId: "1",
@@ -164,9 +164,10 @@ describe("ItemService.shouldCensorItem", () => {
   it("Show all items when bypass is true", () => {
     censorItems();
     item.ownerId = "1";
-    user.id = "2";
+    item.holderId = "2";
+    user.id = "3";
 
-    expect((service as any).shouldCensorItem(item, user)).toEqual(false);
+    expect((service as any).shouldCensorItem(item, user, true)).toEqual(false);
   });
 
   it("Shadow ban test - basic test", () => {
