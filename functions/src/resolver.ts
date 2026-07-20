@@ -283,7 +283,7 @@ export const resolvers: Resolvers = {
     },
     recentAddedItems: async (
       _: any,
-      { limit = 20, offset = 0, category }: any,
+      { limit = 20, offset = 0, category, random = false }: any,
       { loginUser }: Context,
     ): Promise<Item[]> => {
       const user = loginUser ? await userService.userById(loginUser.uid) : null;
@@ -292,7 +292,13 @@ export const resolvers: Resolvers = {
           (user ? user?.visibleContentRating : "no user") +
           "/n",
       );
-      return itemService.recentAddedItems(user, limit, offset, category);
+      return itemService.recentAddedItems(
+        user,
+        limit,
+        offset,
+        category,
+        random,
+      );
     },
     user: async (
       _: any,
@@ -430,7 +436,13 @@ export const resolvers: Resolvers = {
       const user = loginUser
         ? await userService.userModelById(loginUser.uid)
         : null;
-      return recommendService.recommendationItems(user, type, category, limit);
+      return recommendService.recommendationItems(
+        user,
+        type,
+        category,
+        0,
+        limit,
+      );
     },
     commentsByItemId: async (
       _: any,

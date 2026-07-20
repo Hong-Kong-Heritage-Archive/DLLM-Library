@@ -369,7 +369,12 @@ type Query {
     limit: Int
     offset: Int
   ): [Item!]! # 查詢用戶借入的藏品
-  recentAddedItems(limit: Int, offset: Int, category: [String!]): [Item!]! # 最近新增的藏品
+  recentAddedItems(
+    limit: Int
+    offset: Int
+    category: [String!]
+    random: Boolean # sample from recent window instead of strict created desc
+  ): [Item!]! # 最近新增的藏品
   # 交易相關
   transaction(id: ID!): Transaction
   transactionsByItem(itemId: ID!): [Transaction!]! # 按藏品ID查詢交易
