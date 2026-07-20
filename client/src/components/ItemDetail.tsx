@@ -509,7 +509,14 @@ const historyDateTextSx = {
   color: "var(--color-text-secondary)",
   fontSize: "0.92rem",
 };
-const infoStatusChipBaseSx = { ml: 1, borderWidth: 1, borderStyle: "solid", fontSize: "10px", fontWeight: 500, borderRadius: "4px" };
+const infoStatusChipBaseSx = {
+  ml: 1,
+  borderWidth: 1,
+  borderStyle: "solid",
+  fontSize: "10px",
+  fontWeight: 500,
+  borderRadius: "4px",
+};
 const infoStatusChipSx = (status: string) => {
   if (status === "AVAILABLE") {
     return {
@@ -568,7 +575,11 @@ const statusBoxIconSx = {
   mt: 0.35,
   flexShrink: 0,
 };
-const statusBoxIconTextSx = { fontSize: "0.75rem", lineHeight: 1, fontWeight: 700 };
+const statusBoxIconTextSx = {
+  fontSize: "0.75rem",
+  lineHeight: 1,
+  fontWeight: 700,
+};
 const statusBoxTitleSx = { color: "var(--color-bg-surface)" };
 const statusBoxBodySx = { color: "var(--color-bg-surface)", opacity: 0.95 };
 const mb4Sx = { mb: 4 };
@@ -824,9 +835,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const primaryActionsRowSxDynamic = {
     ...primaryActionsRowSx,
     gridTemplateColumns:
-      primaryActionButtonCount === 2
-        ? twoColumnGridTemplateColumns
-        : "1fr",
+      primaryActionButtonCount === 2 ? twoColumnGridTemplateColumns : "1fr",
   };
   const primaryActionButtonGridItemSx = {
     gridColumn: primaryActionButtonCount === 1 ? "1 / -1" : undefined,
@@ -1105,12 +1114,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     return (
       <Box sx={statusBoxContainerSx}>
         <Box sx={statusBoxIconSx}>
-          <Typography sx={statusBoxIconTextSx}>
-            {variant.icon}
-          </Typography>
+          <Typography sx={statusBoxIconTextSx}>{variant.icon}</Typography>
         </Box>
         <Box>
-          <Typography variant="subtitle2" fontWeight={700} sx={statusBoxTitleSx}>
+          <Typography
+            variant="subtitle2"
+            fontWeight={700}
+            sx={statusBoxTitleSx}
+          >
             {t(variant.titleKey)}
           </Typography>
           <Typography variant="body2" sx={statusBoxBodySx}>
@@ -1269,14 +1280,25 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     data?.item?.thumbnails?.[0] || data?.item?.images?.[0] || "";
   const normalizedDescription =
     data?.item?.description?.replace(/#Uncategorized\b/gi, "") || "";
-  const shouldShowReadMore = normalizedDescription.length > 180;
+  // check number of characters > 100 or 3 line breaks to determine if "Read More" should be shown
+  const shouldShowReadMore =
+    normalizedDescription.length > 100 ||
+    (normalizedDescription.match(/\n/g) || []).length >= 3;
 
   const handoverEvents = useMemo(() => {
     if (!data?.item) {
-      return [] as Array<{ id: string; text: string; date: string; active?: boolean }>;
+      return [] as Array<{
+        id: string;
+        text: string;
+        date: string;
+        active?: boolean;
+      }>;
     }
 
-    const ownerName = ownerData?.user?.nickname || ownerData?.user?.email || t("item.unknownOwner", "Owner");
+    const ownerName =
+      ownerData?.user?.nickname ||
+      ownerData?.user?.email ||
+      t("item.unknownOwner", "Owner");
     const ownerEvent = {
       id: `owner-${data.item.id}`,
       text: t("item.historyOwnedBy", "Owned by {{name}}", { name: ownerName }),
@@ -1285,15 +1307,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
     const transactions = (itemTransactions.data?.transactionsByItem || [])
       .slice()
-      .sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
+      );
 
     const latestHandedTo = transactions
       .slice()
       .reverse()
-      .find((tx) =>
-        (tx.status === TransactionStatus.Completed ||
-          tx.status === TransactionStatus.Transfered) &&
-        (tx.receiver?.nickname || tx.receiver?.email),
+      .find(
+        (tx) =>
+          (tx.status === TransactionStatus.Completed ||
+            tx.status === TransactionStatus.Transfered) &&
+          (tx.receiver?.nickname || tx.receiver?.email),
       );
 
     const latestRequestedBy = transactions
@@ -1301,13 +1327,19 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       .reverse()
       .find((tx) => tx.requestor?.nickname || tx.requestor?.email);
 
-    const events: Array<{ id: string; text: string; date: string; active?: boolean }> = [ownerEvent];
+    const events: Array<{
+      id: string;
+      text: string;
+      date: string;
+      active?: boolean;
+    }> = [ownerEvent];
 
     if (latestHandedTo) {
       events.push({
         id: latestHandedTo.id,
         text: t("item.historyHandedTo", "Handed to {{name}}", {
-          name: latestHandedTo.receiver?.nickname || latestHandedTo.receiver?.email,
+          name:
+            latestHandedTo.receiver?.nickname || latestHandedTo.receiver?.email,
         }),
         date: latestHandedTo.updatedAt,
         active: true,
@@ -1316,14 +1348,21 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       events.push({
         id: latestRequestedBy.id,
         text: t("item.historyRequestedBy", "Requested by {{name}}", {
-          name: latestRequestedBy.requestor?.nickname || latestRequestedBy.requestor?.email,
+          name:
+            latestRequestedBy.requestor?.nickname ||
+            latestRequestedBy.requestor?.email,
         }),
         date: latestRequestedBy.createdAt,
       });
     }
 
     return events;
-  }, [data?.item, itemTransactions.data?.transactionsByItem, ownerData?.user, t]);
+  }, [
+    data?.item,
+    itemTransactions.data?.transactionsByItem,
+    ownerData?.user,
+    t,
+  ]);
 
   return (
     <Container maxWidth="md" sx={pageContainerSx}>
@@ -1379,10 +1418,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
       {/* Item Content */}
       {data?.item && (
-        <Paper
-          elevation={1}
-          sx={paperSectionSx}
-        >
+        <Paper elevation={1} sx={paperSectionSx}>
           <Box sx={heroRowSx}>
             <Paper
               elevation={0}
@@ -1400,20 +1436,25 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   style={heroImageStyle}
                 />
               ) : (
-                <Box sx={heroFallbackImageSx}>
-                  {t("item.noImage", "Image")}
-                </Box>
+                <Box sx={heroFallbackImageSx}>{t("item.noImage", "Image")}</Box>
               )}
             </Paper>
 
             <Box>
               <Box sx={heroMetaRowSx}>
                 <Box sx={heroMetaItemSx}>
-                  <Typography variant="body1" color="text.secondary" sx={heroMetaLabelSx}>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={heroMetaLabelSx}
+                  >
                     {t("item.status", "Status")}
                   </Typography>
                   <Chip
-                    label={t(`shortStatus.${data.item.status}`, data.item.status)}
+                    label={t(
+                      `shortStatus.${data.item.status}`,
+                      data.item.status,
+                    )}
                     size="small"
                     sx={infoStatusChipSx(data.item.status)}
                   />
@@ -1423,7 +1464,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     {t("item.condition", "Condition")}
                   </Typography>
                   <Chip
-                    label={t(`item.conditions.${data.item.condition}`, data.item.condition)}
+                    label={t(
+                      `item.conditions.${data.item.condition}`,
+                      data.item.condition,
+                    )}
                     color="default"
                     size="small"
                     sx={{ ml: 1 }}
@@ -1434,7 +1478,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                     {t("item.deposit", "Deposit")}
                   </Typography>
                   <Chip
-                    label={data?.item.deposit ? `${data.item.deposit} AUD` : t("common.none", "None")}
+                    label={
+                      data?.item.deposit
+                        ? `${data.item.deposit} AUD`
+                        : t("common.none", "None")
+                    }
                     size="small"
                     sx={tinyMetaChipSx}
                   />
@@ -1478,7 +1526,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                         size="small"
                         sx={{ ml: 2 }}
                         //   sx={tagChipSx}
-                        onClick={() => isOwner ? undefined : handleUserClick(ownerData.user.id)}
+                        onClick={() =>
+                          isOwner
+                            ? undefined
+                            : handleUserClick(ownerData.user.id)
+                        }
                       />
                     )}
                     {!isHolder &&
@@ -1498,10 +1550,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           </Box>
 
           <Box sx={sectionMb4Sx}>
-            <Typography
-              variant="subtitle1"
-              sx={sectionTitleSx}
-            >
+            <Typography variant="subtitle1" sx={sectionTitleSx}>
               {t("item.tags", "Tags")}
             </Typography>
             <Box sx={tagsListSx}>
@@ -1526,10 +1575,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             <DetailSectionCard
               title={t("item.description", "Book Description")}
             >
-              <Typography variant="body1" sx={descriptionContentSx(showFullDescription)}>
-                {convertLinksToClickable(
-                  normalizedDescription,
-                )}
+              <Typography
+                variant="body1"
+                sx={descriptionContentSx(showFullDescription)}
+              >
+                {convertLinksToClickable(normalizedDescription)}
               </Typography>
               {shouldShowReadMore && (
                 <Button
@@ -1566,40 +1616,36 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-              <Box sx={mb4Sx}>
-                <Box sx={sectionMb4Sx}>
-                  <Grid container spacing={2}>
-                    {(data.item.thumbnails && data.item.thumbnails.length > 0
-                      ? data.item.thumbnails
-                      : data.item.images || []
-                    ).map((image, index) => (
-                      <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                        <Paper
-                          elevation={2}
-                          sx={thumbnailPaperSx}
-                          onClick={() => handleThumbnailClick(index)}
-                        >
-                          <img
-                            src={image}
-                            alt={`${data.item.name} - Thumbnail ${index + 1} `}
-                            style={thumbnailImageStyle}
-                          />
-                        </Paper>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
+            <Box sx={mb4Sx}>
+              <Box sx={sectionMb4Sx}>
+                <Grid container spacing={2}>
+                  {(data.item.thumbnails && data.item.thumbnails.length > 0
+                    ? data.item.thumbnails
+                    : data.item.images || []
+                  ).map((image, index) => (
+                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                      <Paper
+                        elevation={2}
+                        sx={thumbnailPaperSx}
+                        onClick={() => handleThumbnailClick(index)}
+                      >
+                        <img
+                          src={image}
+                          alt={`${data.item.name} - Thumbnail ${index + 1} `}
+                          style={thumbnailImageStyle}
+                        />
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
               </Box>
-            )}
+            </Box>
+          )}
 
           {/* ITEM INFO GRID */}
-          <Card
-            elevation={0}
-            sx={infoCardSx}
-          >
+          <Card elevation={0} sx={infoCardSx}>
             <CardContent>
               <Grid container spacing={3}>
-
                 {user && getDistanceToOwner() && (
                   <Grid size={6}>
                     <Typography variant="body1" color="text.secondary">
@@ -1677,7 +1723,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 onClick={handleAddToBooklistClick}
                 disabled={newsRecent.loading || updateBooklistLoading}
                 startIcon={<ArticleIcon />}
-                sx={{ ...addBookshelfButtonSx, ...primaryActionButtonGridItemSx }}
+                sx={{
+                  ...addBookshelfButtonSx,
+                  ...primaryActionButtonGridItemSx,
+                }}
               >
                 {t("item.addbooklist", "Add to Bookshelf")}
               </Button>
@@ -1690,7 +1739,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                 size="large"
                 fullWidth={primaryActionButtonCount === 1}
                 onClick={handleRequestClick}
-                sx={{ ...primaryActionButtonSx, ...primaryActionButtonGridItemSx }}
+                sx={{
+                  ...primaryActionButtonSx,
+                  ...primaryActionButtonGridItemSx,
+                }}
                 disabled={contactHolderLoading}
               >
                 {contactHolderLoading ? (
@@ -1744,9 +1796,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* related news */}
           {itemNewsPosts?.data?.newsRecentPosts &&
             itemNewsPosts?.data?.newsRecentPosts.length > 0 && (
-              <List
-                sx={relatedNewsListSx}
-              >
+              <List sx={relatedNewsListSx}>
                 {itemNewsPosts.data.newsRecentPosts.map((news: SimpleNews) => (
                   <NewsSummary
                     key={news.id}
@@ -1757,21 +1807,18 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               </List>
             )}
         </Paper>
-      )
-      }
+      )}
       {/* Edit Item Dialog */}
-      {
-        user && (
-          <ItemForm
-            open={editDialogOpen}
-            user={user}
-            onClose={() => setEditDialogOpen(false)}
-            item={data?.item || null}
-            onItemUpdated={handleEditSuccess}
-            onError={handleEditError}
-          />
-        )
-      }
+      {user && (
+        <ItemForm
+          open={editDialogOpen}
+          user={user}
+          onClose={() => setEditDialogOpen(false)}
+          item={data?.item || null}
+          onItemUpdated={handleEditSuccess}
+          onError={handleEditError}
+        />
+      )}
       {/* Location Prompt Dialog */}
       <Modal
         open={locationPromptOpen}
@@ -1949,39 +1996,33 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         onNext={handleNextImage}
         itemName={data?.item?.name}
       />
-      {
-        data?.item && (
-          <Box sx={commentsWrapSx}>
-            <ItemComments itemId={itemId!} currentUser={user} />
-          </Box>
-        )
-      }
+      {data?.item && (
+        <Box sx={commentsWrapSx}>
+          <ItemComments itemId={itemId!} currentUser={user} />
+        </Box>
+      )}
 
-      {
-        data?.item && (
-          <ItemShareDialog
-            open={shareDialogOpen}
-            onClose={() => setShareDialogOpen(false)}
-            itemName={data.item.name}
-            itemUrl={itemShareUrl}
-            adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
-          />
-        )
-      }
+      {data?.item && (
+        <ItemShareDialog
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          itemName={data.item.name}
+          itemUrl={itemShareUrl}
+          adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
+        />
+      )}
 
       {/* News Form Dialog - For admins to create news related to the item */}
-      {
-        user && isAdmin && (
-          <NewsForm
-            open={newsFormOpen}
-            onClose={() => setNewsFormOpen(false)}
-            relatedItem={data?.item || null}
-            onSuccess={handleEditSuccess}
-            onError={handleEditError}
-          />
-        )
-      }
-    </Container >
+      {user && isAdmin && (
+        <NewsForm
+          open={newsFormOpen}
+          onClose={() => setNewsFormOpen(false)}
+          relatedItem={data?.item || null}
+          onSuccess={handleEditSuccess}
+          onError={handleEditError}
+        />
+      )}
+    </Container>
   );
 };
 
