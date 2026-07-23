@@ -36,6 +36,7 @@ type ItemModel = Omit<Item, "id" | "createdAt" | "updatedAt"> & {
   gsThumbnailUrls?: string[];
   nameIndex?: string[];
   nameIndexVer?: number;
+  originalOwnerId?: string;
 };
 
 export class ItemService {
@@ -934,6 +935,7 @@ export class ItemService {
     // Build itemData object, only including fields with valid values
     const itemData: ItemModel = {
       ownerId: owner.id,
+      originalOwnerId: owner.id,
       name: name,
       condition: condition,
       category: category,
@@ -1325,13 +1327,33 @@ export class ItemService {
       );
     }
 
+    // Backward compatibility: populate originalOwnerId if missing
+    if (!itemData.originalOwnerId) {
+      itemData.originalOwnerId = itemData.ownerId;
+    }
+
     const updateData: Partial<ItemModel> = {
       ownerId: itemData.holderId,
       holderId: null,
       updated: Timestamp.now(),
+      originalOwnerId: itemData.originalOwnerId,
     };
 
     await itemRef.update(updateData);
+
+    // Record ownership transfer event for history
+    const newOwnerId = itemData.holderId;
+    await db.collection("transactions").add({
+      itemId: itemId,
+      requestorId: currentUser.id,
+      receiverId: newOwnerId,
+      participants: [currentUser.id, newOwnerId],
+      status: "GIFTED",
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+      locationType: "FACE_TO_FACE",
+      details: "GIFTED",
+    });
 
     const updatedItem = await this.itemById(currentUser, itemId);
     if (!updatedItem) {

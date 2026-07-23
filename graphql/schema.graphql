@@ -123,6 +123,7 @@ type ContactMethod {
 type Item {
   id: ID!
   ownerId: ID! # 藏品擁有者
+  originalOwnerId: ID # 原始擁有者（所有權轉移後保留）
   holderId: ID # 當前持有者（可為null，表示擁有者持有）
   name: String! # 書名或物品名稱
   description: String # 可選描述
@@ -229,6 +230,7 @@ enum TransactionStatus {
   COMPLETED # 已完成
   CANCELLED # 已取消
   EXPIRED # 已過期
+  GIFTED # 已贈送（所有權轉移）
 }
 
 enum TransactionLocation {
