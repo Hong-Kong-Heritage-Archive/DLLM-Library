@@ -496,6 +496,7 @@ type Mutation {
   deleteItem(id: ID!): Boolean!
   pinItem(itemId: ID!): Boolean!
   unpinItem(itemId: ID!): Boolean!
+  transferOwnership(itemId: ID!): Item!
 
   addItemComment(itemId: ID!, content: String!): ID!
   deleteItemComment(itemId: ID!, commentId: ID!): Boolean!
