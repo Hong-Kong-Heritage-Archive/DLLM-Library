@@ -14,7 +14,7 @@ interface DetailSectionCardProps {
 
 const cardSx = {
   p: { xs: 2, sm: 3 },
-  borderRadius: 3,
+  borderRadius: 1.5,
   backgroundColor: "var(--color-bg-surface)",
   border: "1px solid var(--color-border-subtle)",
 };
@@ -59,7 +59,11 @@ const DetailSectionCard: React.FC<DetailSectionCardProps> = ({
             {title ? (
               <Typography
                 variant="h6"
-                sx={{ fontWeight: 700, color: "var(--color-text-primary)", ...titleSx }}
+                sx={{
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  ...titleSx,
+                }}
               >
                 {title}
               </Typography>

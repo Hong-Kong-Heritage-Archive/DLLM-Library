@@ -18,6 +18,7 @@ import {
   DEFAULT_CONTENT_RATING,
 } from "../utils/contentRating";
 import { semanticTokens } from "../styles/semanticTokens";
+import { containsCJK } from "../helper/text";
 
 const absoluteFillSx = {
   position: "absolute",
@@ -81,11 +82,6 @@ interface BookSpinePreviewProps {
   distance?: number; // Optional distance parameter
   onClick: (itemId: string) => void;
 }
-
-// Helper function to detect if text contains CJK characters
-const containsCJK = (text: string): boolean => {
-  return /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(text);
-};
 
 // Helper function to generate pastel color from string using hash
 const stringToColor = (str: string): string => {
@@ -192,14 +188,14 @@ const BookSpinePreview: React.FC<BookSpinePreviewProps> = ({
               : backgroundColor,
             "&::before": hasImage
               ? {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: contentOverlayGradient,
-              }
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: contentOverlayGradient,
+                }
               : {},
           }}
         >

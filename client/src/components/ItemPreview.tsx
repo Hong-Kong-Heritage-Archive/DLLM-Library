@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
+import { containsCJK } from "../helper/text";
 import { semanticTokens } from "../styles/semanticTokens";
 
 interface ItemPreviewProps {
@@ -29,9 +30,7 @@ interface ItemPreviewProps {
 }
 
 // Consistent Dynamic Pastel Color Pool for cards (all with clean dark pastel tones)
-const DYNAMIC_COLORS = [
-  ...semanticTokens.dynamicCardPalette,
-];
+const DYNAMIC_COLORS = [...semanticTokens.dynamicCardPalette];
 
 // Simple deterministic hash to select color based on item ID
 const getDeterministicColor = (id: string) => {
@@ -84,12 +83,13 @@ const topRowSx = {
   width: "100%",
 };
 
-const titleStackSx = {
+const heroFooterSx = {
   display: "flex",
   flexDirection: "column",
-  gap: 0.5,
+  justifyContent: "flex-end",
+  gap: 1,
   width: "100%",
-  paddingTop: "120%",
+  minHeight: "84px",
 };
 
 const cardContentSx = {
@@ -147,10 +147,12 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
   };
 
   const hasImage = item.images && item.images.length > 0;
+  const isCJK = containsCJK(item.name);
+  const title = item.name;
 
   const heroSx = {
     width: "100%",
-    height: "140%",
+    minHeight: "240px",
     position: "relative",
     backgroundColor: cardColor,
     backgroundImage: hasImage
@@ -204,13 +206,8 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
   };
 
   return (
-    <Card
-      sx={cardRootSx}
-    >
-      <CardActionArea
-        onClick={() => onClick(item.id)}
-        sx={cardActionAreaSx}
-      >
+    <Card sx={cardRootSx}>
+      <CardActionArea onClick={() => onClick(item.id)} sx={cardActionAreaSx}>
         {/* UPPER HALF (Dark dyn color background or thumbnail imagery) */}
         <Box sx={heroSx}>
           {/* Top Row: Year (Left - visible only if no image), Status Badge (Right) */}
@@ -224,10 +221,28 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
           </Box>
 
           {/* Bottom Row: Title (Hidden if image is present to prevent duplication) & Condition Overlay */}
-          <Box sx={titleStackSx}>
+          <Box sx={heroFooterSx}>
             {!hasImage && (
-              <Typography variant="h6" sx={overlayTitleSx}>
-                {item.name}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: isCJK ? "0.95rem" : "1rem",
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                  textShadow: hasImage ? "0 1px 3px rgba(0,0,0,0.9)" : "none",
+                  px: 0.2,
+
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  wordBreak: isCJK ? "keep-all" : "break-word",
+                  overflowWrap: isCJK ? "normal" : "anywhere",
+                }}
+              >
+                {title}
               </Typography>
             )}
             <Box>
@@ -242,22 +257,22 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
         <CardContent sx={cardContentSx}>
           {/* Book Title & year summary */}
           <Box sx={{ mb: 1 }}>
-            {hasImage && (
-              <Typography
-                sx={{
-                  fontWeight: "bold",
-                  fontSize: "12px",
-                  lineHeight: "1.3",
-                  color: "var(--color-text-primary)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  fontFamily: "var(--font-family-display)",
-                  display: "inline-block",
-                }}
-              >
-                {item.name}
-              </Typography>
-            )}
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                fontSize: "12px",
+                lineHeight: "1.3",
+                color: "var(--color-text-primary)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                fontFamily: "var(--font-family-display)",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {title}
+            </Typography>
             <Typography
               sx={{
                 fontSize: "12px",
@@ -280,19 +295,13 @@ const ItemPreview: React.FC<ItemPreviewProps> = ({ item, onClick }) => {
                 alignItems: "center",
               }}
             >
-              <Box
-                sx={categoryTagSx}
-              >
+              <Box sx={categoryTagSx}>
                 {item.category[0].includes(" ")
                   ? item.category[0].split(" ")[0] + "..."
                   : item.category[0]}
               </Box>
               {item.category.length > 1 && (
-                <Box
-                  sx={categoryTagSx}
-                >
-                  +{item.category.length - 1}
-                </Box>
+                <Box sx={categoryTagSx}>+{item.category.length - 1}</Box>
               )}
             </Box>
           )}
