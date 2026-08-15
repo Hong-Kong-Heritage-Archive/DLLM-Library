@@ -827,4 +827,110 @@ Let me know if that works for you. No rush at all!`;
     }
     return rv;
   }
+
+  async confirmReturn(
+    owner: User,
+    itemId: string,
+    images: string[],
+  ): Promise<Transaction> {
+    // Logic to confirm return of an item by owner
+    const item = await this.itemService.itemById(null, itemId, true);
+    if (!item) {
+      throw new Error(`Item with id ${itemId} not found`);
+    }
+    if (item.ownerId !== owner.id) {
+      throw new Error(`User with id ${owner.id} is not the owner of item with id ${itemId}`);
+    }
+    if (!item.holderId || item.holderId === owner.id) {
+      throw new Error(`Item with id ${itemId} is not currently lent out`);
+    }
+
+    let gsImageUrls: string[] | null = null;
+    let publicImageUrls: string[] | null = null;
+
+    if (images && images.length > 0) {
+      for (const image of images) {
+        console.debug(`Processing image: ${image}`);
+        if (image.startsWith("gs://")) {
+          try {
+            const publicUrl = await GetPublicUrlForGSFile(image);
+            console.debug(`Public URL for image ${image}: ${publicUrl}`);
+            if (!gsImageUrls) gsImageUrls = [];
+            if (!publicImageUrls) publicImageUrls = [];
+            publicImageUrls.push(publicUrl);
+            gsImageUrls.push(image);
+          } catch (error) {
+            console.error(
+              `Failed to get public URL for image ${image}:`,
+              error,
+            );
+          }
+        } else {
+          if (!publicImageUrls) publicImageUrls = [];
+          publicImageUrls.push(image);
+        }
+      }
+    }
+
+    const oldHolderId = item.holderId;
+    const oldHolder = await this.userService.userById(oldHolderId);
+    if (!oldHolder) {
+      throw new Error(`Holder with id ${oldHolderId} not found`);
+    }
+
+    const updated = await this.itemService.updateItemHolder(item.id, owner);
+    if (!updated) {
+      throw new Error(`Failed to update item holder for item with id ${item.id}`);
+    }
+
+    const emailDetail: EmailDetail = {
+      subject: `Item Returned: ${item.name}`,
+      body: `The item ${item.name} has been marked as returned by owner ${owner.nickname}.`,
+    };
+
+    const transactionModel: TransactionModel = {
+      requestorId: oldHolderId,
+      receiverId: owner.id,
+      itemId: item.id,
+      participants: [owner.id, oldHolderId],
+      created: Timestamp.now(),
+      updated: Timestamp.now(),
+      status: TransactionStatus.Completed,
+      locationType: TransactionLocation.FaceToFace,
+      details: "RETURNED",
+    };
+    if (publicImageUrls && publicImageUrls.length > 0) {
+      (transactionModel as any).images = publicImageUrls;
+    }
+    if (gsImageUrls && gsImageUrls.length > 0) {
+      transactionModel.gsImageUrls = gsImageUrls;
+    }
+
+    const transactionRef = await db.collection("transactions").add(transactionModel);
+    if (!transactionRef.id) {
+      throw new Error("Failed to create return transaction");
+    }
+
+    // Notify participants
+    const toList = [owner.email, oldHolder.email];
+    await sendNotificationViaEmail(
+      toList,
+      [],
+      emailDetail.subject,
+      emailDetail.body,
+      "transaction/" + transactionRef.id,
+    );
+
+    const rv: Transaction = {
+      id: transactionRef.id,
+      item: item,
+      requestor: oldHolder,
+      receiver: owner,
+      status: TransactionStatus.Completed,
+      createdAt: transactionModel.created.seconds * 1000,
+      updatedAt: transactionModel.updated.seconds * 1000,
+      images: publicImageUrls || undefined,
+    };
+    return rv;
+  }
 }

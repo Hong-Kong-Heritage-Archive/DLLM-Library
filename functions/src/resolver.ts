@@ -784,6 +784,16 @@ export const resolvers: Resolvers = {
       if (!requestor) throw new Error("User not found");
       return transactionService.receiveTransaction(requestor, id, images);
     },
+    confirmReturn: async (
+      _: any,
+      { itemId, images }: any,
+      { loginUser }: Context,
+    ): Promise<Transaction> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const owner = await userService.me(loginUser);
+      if (!owner) throw new Error("User not found");
+      return transactionService.confirmReturn(owner, itemId, images || []);
+    },
     cancelTransaction: async (
       _: any,
       { id }: any,

@@ -527,6 +527,7 @@ type Mutation {
   #  approveTransaction(id: ID!): Transaction!
   #  transferTransaction(id: ID!): Transaction!
   receiveTransaction(id: ID!, images: [String!]): Transaction!
+  confirmReturn(itemId: ID!, images: [String!]): Transaction!
   cancelTransaction(id: ID!): Boolean!
 
   # 新聞管理 Only for Admin/Moderator
