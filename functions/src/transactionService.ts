@@ -728,6 +728,54 @@ Let me know if that works for you. No rush at all!`;
     return rv;
   }
 
+  private async processTransactionImages(images: string[]): Promise<{
+    gsImageUrls: string[] | null;
+    publicImageUrls: string[] | null;
+  }> {
+    let gsImageUrls: string[] | null = null;
+    let publicImageUrls: string[] | null = null;
+
+    for (const image of images ?? []) {
+      console.debug(`Processing image: ${image}`);
+      if (image.startsWith("gs://")) {
+        try {
+          const publicUrl = await GetPublicUrlForGSFile(image);
+          console.debug(`Public URL for image ${image}: ${publicUrl}`);
+          if (!gsImageUrls) gsImageUrls = [];
+          if (!publicImageUrls) publicImageUrls = [];
+          publicImageUrls.push(publicUrl);
+          gsImageUrls.push(image);
+        } catch (error) {
+          console.error(
+            `Failed to get public URL for image ${image}:`,
+            error,
+          );
+        }
+      } else {
+        if (!publicImageUrls) publicImageUrls = [];
+        publicImageUrls.push(image);
+      }
+    }
+
+    return { gsImageUrls, publicImageUrls };
+  }
+
+  private async updateItemHolderAndReload(
+    item: Item,
+    newHolder: User,
+  ): Promise<Item> {
+    const updated = await this.itemService.updateItemHolder(item.id, newHolder);
+    if (!updated) {
+      throw new Error(`Failed to update item holder for item with id ${item.id}`);
+    }
+
+    const updatedItem = await this.itemService.itemById(null, item.id, true);
+    if (!updatedItem) {
+      throw new Error(`Failed to fetch updated item with id ${item.id}`);
+    }
+    return updatedItem;
+  }
+
   async receiveTransaction(
     receiver: User,
     id: string,
@@ -759,32 +807,8 @@ Let me know if that works for you. No rush at all!`;
       throw new Error(`Item with id ${data.itemId} not found`);
     }
 
-    let gsImageUrls: string[] | null = null;
-    let publicImageUrls: string[] | null = null;
-
-    if (images && images.length > 0) {
-      for (const image of images) {
-        console.debug(`Processing image: ${image}`);
-        if (image.startsWith("gs://")) {
-          try {
-            const publicUrl = await GetPublicUrlForGSFile(image);
-            console.debug(`Public URL for image ${image}: ${publicUrl}`);
-            if (!gsImageUrls) gsImageUrls = [];
-            if (!publicImageUrls) publicImageUrls = [];
-            publicImageUrls.push(publicUrl);
-            gsImageUrls.push(image);
-          } catch (error) {
-            console.error(
-              `Failed to get public URL for image ${image}:`,
-              error,
-            );
-          }
-        } else {
-          if (!publicImageUrls) publicImageUrls = [];
-          publicImageUrls.push(image);
-        }
-      }
-    }
+    const { gsImageUrls, publicImageUrls } =
+      await this.processTransactionImages(images);
 
     let owner: User = receiver;
     if (item.ownerId !== receiver.id) {
@@ -795,12 +819,7 @@ Let me know if that works for you. No rush at all!`;
       owner = ownerRv;
     }
 
-    const updated = await this.itemService.updateItemHolder(item.id, receiver);
-    if (!updated) {
-      throw new Error(
-        `Failed to update item holder for item with id ${item.id}`,
-      );
-    }
+    const updatedItem = await this.updateItemHolderAndReload(item, receiver);
     const emailDetail: EmailDetail = {
       subject: `Transaction Received for Item: ${item.name}`,
       body: `Your transaction request for item ${item.name} has been received.`,
@@ -818,7 +837,7 @@ Let me know if that works for you. No rush at all!`;
       id,
       TransactionStatus.Completed,
       owner,
-      item,
+      updatedItem,
       data,
       emailDetail,
     );
@@ -846,32 +865,8 @@ Let me know if that works for you. No rush at all!`;
       throw new Error(`Item with id ${itemId} is not currently lent out`);
     }
 
-    let gsImageUrls: string[] | null = null;
-    let publicImageUrls: string[] | null = null;
-
-    if (images && images.length > 0) {
-      for (const image of images) {
-        console.debug(`Processing image: ${image}`);
-        if (image.startsWith("gs://")) {
-          try {
-            const publicUrl = await GetPublicUrlForGSFile(image);
-            console.debug(`Public URL for image ${image}: ${publicUrl}`);
-            if (!gsImageUrls) gsImageUrls = [];
-            if (!publicImageUrls) publicImageUrls = [];
-            publicImageUrls.push(publicUrl);
-            gsImageUrls.push(image);
-          } catch (error) {
-            console.error(
-              `Failed to get public URL for image ${image}:`,
-              error,
-            );
-          }
-        } else {
-          if (!publicImageUrls) publicImageUrls = [];
-          publicImageUrls.push(image);
-        }
-      }
-    }
+    const { gsImageUrls, publicImageUrls } =
+      await this.processTransactionImages(images);
 
     const oldHolderId = item.holderId;
     const oldHolder = await this.userService.userById(oldHolderId);
@@ -879,15 +874,7 @@ Let me know if that works for you. No rush at all!`;
       throw new Error(`Holder with id ${oldHolderId} not found`);
     }
 
-    const updated = await this.itemService.updateItemHolder(item.id, owner);
-    if (!updated) {
-      throw new Error(`Failed to update item holder for item with id ${item.id}`);
-    }
-
-    const returnedItem = await this.itemService.itemById(null, item.id, true);
-    if (!returnedItem) {
-      throw new Error(`Failed to fetch returned item with id ${item.id}`);
-    }
+    const returnedItem = await this.updateItemHolderAndReload(item, owner);
 
     const emailDetail: EmailDetail = {
       subject: `Item Returned: ${item.name}`,
