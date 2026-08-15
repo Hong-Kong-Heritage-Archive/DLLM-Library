@@ -832,6 +832,7 @@ Let me know if that works for you. No rush at all!`;
     owner: User,
     itemId: string,
     images: string[],
+    details?: string,
   ): Promise<Transaction> {
     // Logic to confirm return of an item by owner
     const item = await this.itemService.itemById(null, itemId, true);
@@ -883,21 +884,28 @@ Let me know if that works for you. No rush at all!`;
       throw new Error(`Failed to update item holder for item with id ${item.id}`);
     }
 
+    const returnedItem = await this.itemService.itemById(null, item.id, true);
+    if (!returnedItem) {
+      throw new Error(`Failed to fetch returned item with id ${item.id}`);
+    }
+
     const emailDetail: EmailDetail = {
       subject: `Item Returned: ${item.name}`,
       body: `The item ${item.name} has been marked as returned by owner ${owner.nickname}.`,
     };
 
+    const now = Timestamp.now();
+    const normalizedDetails = details ?? "RETURNED";
     const transactionModel: TransactionModel = {
       requestorId: oldHolderId,
       receiverId: owner.id,
       itemId: item.id,
       participants: [owner.id, oldHolderId],
-      created: Timestamp.now(),
-      updated: Timestamp.now(),
+      created: now,
+      updated: now,
       status: TransactionStatus.Completed,
       locationType: TransactionLocation.FaceToFace,
-      details: "RETURNED",
+      details: normalizedDetails,
     };
     if (publicImageUrls && publicImageUrls.length > 0) {
       (transactionModel as any).images = publicImageUrls;
@@ -923,10 +931,11 @@ Let me know if that works for you. No rush at all!`;
 
     const rv: Transaction = {
       id: transactionRef.id,
-      item: item,
+      item: returnedItem,
       requestor: oldHolder,
       receiver: owner,
       status: TransactionStatus.Completed,
+      details: normalizedDetails,
       createdAt: transactionModel.created.seconds * 1000,
       updatedAt: transactionModel.updated.seconds * 1000,
       images: publicImageUrls || undefined,
