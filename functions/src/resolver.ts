@@ -782,7 +782,7 @@ export const resolvers: Resolvers = {
       if (!loginUser) throw new Error("Not authenticated");
       const requestor = await userService.me(loginUser);
       if (!requestor) throw new Error("User not found");
-      return transactionService.receiveTransaction(requestor, id, images);
+      return transactionService.receiveTransaction(requestor, id, images ?? []);
     },
     confirmReturn: async (
       _: any,
@@ -792,7 +792,7 @@ export const resolvers: Resolvers = {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
       if (!owner) throw new Error("User not found");
-      return transactionService.confirmReturn(owner, itemId, images || [], details);
+      return transactionService.confirmReturn(owner, itemId, images ?? [], details);
     },
     cancelTransaction: async (
       _: any,
