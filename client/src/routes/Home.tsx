@@ -80,7 +80,7 @@ interface OutletContext {
 }
 
 const HomePage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showItemForm, setShowItemForm] = useState(false);
   const [recentBannerTab, setRecentBannerTab] = useState<"recent" | "new">(
     "recent",
@@ -601,7 +601,27 @@ const HomePage: React.FC = () => {
                 )}
               </Typography>
             </Box>
-
+            {/* Request to Borrow image */}
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                {i18n.language.toLowerCase().startsWith("en")
+                  ? t("home.newUserVillage.requestTitleEn", "Request to Borrow")
+                  : t("home.newUserVillage.requestTitleZHTW", "申請借閱")}
+              </Typography>
+              <img
+                src={`/images/request_${i18n.language.toLowerCase().startsWith("en") ? "en" : "zh"}.png`}
+                alt={
+                  i18n.language.toLowerCase().startsWith("en")
+                    ? "Request to Borrow icon"
+                    : "申請借閱圖示"
+                }
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: 250,
+                  borderRadius: 1,
+                }}
+              />
+            </Box>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                 {t("home.newUserVillage.step2Title", "Ba打 → A0仔：面交交書")}
@@ -613,7 +633,44 @@ const HomePage: React.FC = () => {
                 )}
               </Typography>
             </Box>
-
+            {/* QR Code images - based on current locale */}
+            <Box sx={{ mt: 3 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                  gap: 3,
+                }}
+              >
+                {/* QR Code image */}
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                    {i18n.language.toLowerCase().startsWith("en")
+                      ? t(
+                          "home.newUserVillage.qrTitleEn",
+                          "Scan to use full App",
+                        )
+                      : t(
+                          "home.newUserVillage.qrTitleZHTW",
+                          "掃描使用完整 App",
+                        )}
+                  </Typography>
+                  <img
+                    src={`/images/qr_${i18n.language.toLowerCase().startsWith("en") ? "en" : "zh"}.png`}
+                    alt={
+                      i18n.language.toLowerCase().startsWith("en")
+                        ? "Hong Kong Decentralized Archive QR Code"
+                        : "無大台香港典藏館 QR 碼"
+                    }
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: 250,
+                      borderRadius: 1,
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                 {t("home.newUserVillage.step3Title", "C姐：X，原來我都想睇")}
