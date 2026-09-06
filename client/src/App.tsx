@@ -9,6 +9,7 @@ import { Box } from "@mui/material";
 import { PageLoader } from "./components/LoadingState";
 import { getCookie, setCookie } from "./utils/cookies";
 import { semanticTokens } from "./styles/semanticTokens";
+import { EMAIL_VERIFICATION_COMPLETED_EVENT } from "./utils/emailVerification";
 import JSZip from "jszip";
 
 const ME_QUERY = gql`
@@ -104,6 +105,25 @@ const App: React.FC<AppProps> = ({ user, onSignOut }) => {
 
     previousUserIdRef.current = currentUserId;
   }, [user?.uid, meOutput, hostConfigOutput]);
+
+  useEffect(() => {
+    const handleVerificationCompleted = () => {
+      meOutput.refetch().catch((error) => {
+        console.error("Error refetching ME_QUERY after email verification:", error);
+      });
+    };
+
+    window.addEventListener(
+      EMAIL_VERIFICATION_COMPLETED_EVENT,
+      handleVerificationCompleted,
+    );
+
+    return () =>
+      window.removeEventListener(
+        EMAIL_VERIFICATION_COMPLETED_EVENT,
+        handleVerificationCompleted,
+      );
+  }, [meOutput]);
 
   // Handle sessionStorage redirects on component mount
   useEffect(() => {

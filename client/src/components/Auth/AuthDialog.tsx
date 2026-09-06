@@ -15,7 +15,6 @@ import {
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendEmailVerification,
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
@@ -74,24 +73,9 @@ const AuthDialog: React.FC<AuthDialogProps> = ({
     try {
       if (isSignUp) {
         // Sign Up
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password,
-        );
+        await createUserWithEmailAndPassword(auth, email, password);
         markSignupOnboardingPending();
         console.log("Account created successfully");
-
-        // Send verification email
-        await sendEmailVerification(userCredential.user);
-        console.log("Verification email sent");
-
-        alert(
-          `${t("auth.verificationEmailSent")} ${t(
-            "auth.verificationSupportHint",
-            "If you don't receive the verification email, please check your spam or junk mailbox. If you still need help, click the chat button in the bottom-right corner to contact the user group for support.",
-          )}`,
-        );
       } else {
         // Sign In
         await signInWithEmailAndPassword(auth, email, password);

@@ -5,6 +5,7 @@ import {
   ApolloLink,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
+import { onError } from "@apollo/client/link/error";
 import { getAuth } from "firebase/auth";
 import * as config from "./dllm-client-config.json";
 const firebaseConfig = config;
@@ -30,9 +31,21 @@ const authLink = setContext(async (_, { headers }) => {
   };
 });
 
+const verificationErrorLink = onError(({ graphQLErrors }) => {
+  const verificationRequired = graphQLErrors?.some((error) =>
+    error.message.includes("Email verification required"),
+  );
+
+  if (verificationRequired) {
+    window.dispatchEvent(
+      new CustomEvent("bookguide:email-verification-required"),
+    );
+  }
+});
+
 // Combine the authLink and httpLink
 const client = new ApolloClient({
-  link: ApolloLink.from([authLink, httpLink]),
+  link: ApolloLink.from([verificationErrorLink, authLink, httpLink]),
   cache: new InMemoryCache(),
 });
 

@@ -34,7 +34,7 @@ import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { sendVerificationEmail } from "../firebase";
+import { openSignupEmailVerificationStep } from "../components/SignupOnboardingDialog";
 import ItemForm from "../components/ItemForm";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import AddressReminderDialog from "../components/AddressReminderDialog";
@@ -391,36 +391,13 @@ const HomePage: React.FC = () => {
                   </Typography>
                   <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                     {!emailVerified && (
-                      <>
-                        <Button
-                          variant="outlined"
-                          onClick={async () => {
-                            await sendVerificationEmail();
-                            alert(
-                              `${t("auth.verificationEmailSent")} ${t(
-                                "auth.verificationSupportHint",
-                                "If you don't receive the verification email, please check your spam or junk mailbox. If you still need help, click the chat button in the bottom-right corner to contact the user group for support.",
-                              )}`,
-                            );
-                          }}
-                          size="large"
-                        >
-                          {t(
-                            "auth.resendVerification",
-                            "Resend Verification Email",
-                          )}
-                        </Button>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ display: "block", mt: 0.5, maxWidth: 440 }}
-                        >
-                          {t(
-                            "auth.verificationSupportHint",
-                            "If you don't receive the verification email, please check your spam or junk mailbox. If you still need help, click the chat button in the bottom-right corner to contact the user group for support.",
-                          )}
-                        </Typography>
-                      </>
+                      <Button
+                        variant="outlined"
+                        onClick={openSignupEmailVerificationStep}
+                        size="large"
+                      >
+                        {t("auth.resendVerification", "Verify Email")}
+                      </Button>
                     )}
                     <Button
                       variant="outlined"

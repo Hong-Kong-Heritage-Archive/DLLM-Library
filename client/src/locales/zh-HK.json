@@ -95,9 +95,9 @@
     "resetPassword": "重設密碼",
     "sendResetEmail": "發送重設郵件",
     "loginRequired": "請登入以進行此交易",
-    "verificationEmailSent": "驗證郵件已發送。",
+    "verificationEmailSent": "驗證碼已發送。",
     "verificationSupportHint": "如果你未能收到驗證郵件，請先檢查垃圾郵件或廣告郵件資料夾。如果仍然需要協助，請點擊右下角的聊天按鈕聯絡用戶群組以獲得支援。",
-    "resendVerification": "重新發送驗證郵件",
+    "resendVerification": "驗證電郵",
     "createProfile": "編輯個人檔案",
     "cancel": "取消",
     "submit": "提交",
@@ -200,6 +200,31 @@
         "description": "有東西想分享？點擊這裡將你的物品添加到社區圖書館，供他人借閱。"
       }
     }
+  },
+  "signupOtp": {
+    "stepLabel": "第 {{step}} 步，共 3 步",
+    "emailVerification": {
+      "title": "驗證電郵",
+      "body": "確認係你本人，令其他書友可以更放心同你交換。你可以而家用 6 位數驗證碼完成驗證，亦可以稍後再做。未驗證仍然可以瀏覽 BookGuide、查看個人檔案同持有項目，但開始或進行書籍交易前必須完成電郵驗證。"
+    },
+    "completeTitle": "設定完成！"
+  },
+  "emailVerification": {
+    "title": "驗證電郵",
+    "transactionDescription": "開始或完成書籍交易前，請先驗證你的電郵。",
+    "sendDescription": "我哋會將 6 位數驗證碼寄去 {{email}}。驗證碼會喺 10 分鐘後失效。",
+    "codeSent": "驗證碼已寄出，請檢查你的收件箱。",
+    "sendError": "未能寄出驗證碼",
+    "verifySuccess": "電郵驗證成功。",
+    "verifyError": "未能驗證電郵",
+    "sending": "寄送中...",
+    "sendCode": "寄出驗證碼",
+    "resendCode": "重新寄出驗證碼",
+    "codeLabel": "6 位數驗證碼",
+    "verifying": "驗證中...",
+    "verify": "驗證",
+    "later": "稍後再做",
+    "fallbackEmail": "你的電郵"
   },
   "common": {
     "name": "名稱",

@@ -94,9 +94,9 @@
     "forgotPassword": "Forgot Password?",
     "resetPassword": "Reset Password",
     "sendResetEmail": "Send Reset Email",
-    "verificationEmailSent": "Verification email sent.",
+    "verificationEmailSent": "Verification code sent.",
     "verificationSupportHint": "If you don't receive the verification email, please check your spam or junk mailbox. If you still need help, click the chat button in the bottom-right corner to contact the user group for support.",
-    "resendVerification": "Resend Verification Email",
+    "resendVerification": "Verify Email",
     "createProfile": "Create Profile",
     "cancel": "Cancel",
     "submit": "Submit",
@@ -213,6 +213,31 @@
         "description": "Have something to share? Click here to add your items to the community library for others to borrow."
       }
     }
+  },
+  "signupOtp": {
+    "stepLabel": "Step {{step}} of 3",
+    "emailVerification": {
+      "title": "Verify your email",
+      "body": "Confirm it's really you so other members can exchange books with more confidence. You can verify now with a 6-digit code or do it later. Without verification you can still browse BookGuide, open your profile, and view holdings, but you must verify before starting or progressing a book transaction."
+    },
+    "completeTitle": "You're all set."
+  },
+  "emailVerification": {
+    "title": "Verify your email",
+    "transactionDescription": "Verify your email before starting or completing a book transaction.",
+    "sendDescription": "We'll send a 6-digit verification code to {{email}}. The code expires in 10 minutes.",
+    "codeSent": "Verification code sent. Check your inbox.",
+    "sendError": "Unable to send verification code",
+    "verifySuccess": "Email verified successfully.",
+    "verifyError": "Unable to verify email",
+    "sending": "Sending...",
+    "sendCode": "Send verification code",
+    "resendCode": "Resend verification code",
+    "codeLabel": "6-digit verification code",
+    "verifying": "Verifying...",
+    "verify": "Verify",
+    "later": "Later",
+    "fallbackEmail": "your email"
   },
   "common": {
     "name": "Name",

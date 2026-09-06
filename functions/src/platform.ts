@@ -158,6 +158,8 @@ interface EmailOptions {
   actionText?: string;
 }
 
+const emailBrandName = "BookGuide";
+
 async function sendNotificationViaEmail(
   to: string[],
   cc: string[],
@@ -174,7 +176,7 @@ async function sendNotificationViaEmail(
       : null;
 
     const mailOptions = {
-      from: `BookGuide <${emailConfig.user}>`,
+      from: `${emailBrandName} <${emailConfig.user}>`,
       to: to.join(", "),
       cc: cc.length > 0 ? cc.join(", ") : undefined,
       subject: subject,
@@ -182,7 +184,7 @@ async function sendNotificationViaEmail(
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #1976d2; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="margin: 0; font-size: 24px;">Book Guide</h1>
+            <h1 style="margin: 0; font-size: 24px;">${emailBrandName}</h1>
           </div>
           <div style="background-color: #f5f5f5; padding: 30px; border-radius: 0 0 8px 8px;">
             <div style="background-color: white; padding: 20px; border-radius: 4px; line-height: 1.6;">
@@ -212,7 +214,7 @@ async function sendNotificationViaEmail(
             }
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-              This is an automated message from DLLM Library. Please do not reply to this email.
+              This is an automated message from ${emailBrandName}. Please do not reply to this email.
             </p>
           </div>
         </div>
@@ -237,7 +239,7 @@ async function sendEmailWithOptions(options: EmailOptions): Promise<void> {
     const transporter = createTransporter();
 
     const mailOptions = {
-      from: `DLLM Library <${emailConfig.user}>`,
+      from: `${emailBrandName} <${emailConfig.user}>`,
       to: options.to.join(", "),
       cc:
         options.cc && options.cc.length > 0 ? options.cc.join(", ") : undefined,
@@ -256,7 +258,7 @@ async function sendEmailWithOptions(options: EmailOptions): Promise<void> {
         (options.text
           ? `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #1976d2; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="margin: 0; font-size: 24px;">DLLM Library</h1>
+            <h1 style="margin: 0; font-size: 24px;">${emailBrandName}</h1>
           </div>
           <div style="background-color: #f5f5f5; padding: 30px; border-radius: 0 0 8px 8px;">
             <div style="background-color: white; padding: 20px; border-radius: 4px; line-height: 1.6;">
@@ -288,7 +290,7 @@ async function sendEmailWithOptions(options: EmailOptions): Promise<void> {
             }
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-              This is an automated message from DLLM Library. Please do not reply to this email.
+              This is an automated message from ${emailBrandName}. Please do not reply to this email.
             </p>
           </div>
         </div>`

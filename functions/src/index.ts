@@ -8,9 +8,10 @@ import { WebSocketServer } from "ws";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import http from "http";
 import cors from "cors";
-import { resolvers } from "./resolver";
+import { resolvers } from "./resolverWithVerification";
 import { readFileSync } from "fs";
 import { getLoginUserFromToken } from "./platform";
+import { EmailVerificationService } from "./emailVerificationService";
 import {
   handleHomePageSSR,
   handleItemDetailSSR,
@@ -25,6 +26,13 @@ const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 const PORT = 4000;
 
 const app = express();
+const emailVerificationService = new EmailVerificationService();
+
+const getRequestLoginUser = async (req: express.Request) => {
+  const token = req.headers.authorization?.split(" ")[1] || "";
+  if (!token) return null;
+  return getLoginUserFromToken(token);
+};
 
 async function startApolloServer() {
   const httpServer = http.createServer(app);
@@ -59,6 +67,43 @@ async function startApolloServer() {
   await server.start();
   // Apply CORS globally
   app.use(cors({ origin: true }));
+
+  app.post(
+    "/email-verification/request",
+    express.json(),
+    async (req, res) => {
+      try {
+        const loginUser = await getRequestLoginUser(req);
+        await emailVerificationService.requestCode(loginUser);
+        res.json({ success: true });
+      } catch (error: any) {
+        const status = error?.message === "Not authenticated" ? 401 : 400;
+        res.status(status).json({
+          success: false,
+          error: error?.message || "Unable to send verification code",
+        });
+      }
+    },
+  );
+
+  app.post(
+    "/email-verification/confirm",
+    express.json(),
+    async (req, res) => {
+      try {
+        const loginUser = await getRequestLoginUser(req);
+        const code = String(req.body?.code || "").trim();
+        await emailVerificationService.confirmCode(loginUser, code);
+        res.json({ success: true });
+      } catch (error: any) {
+        const status = error?.message === "Not authenticated" ? 401 : 400;
+        res.status(status).json({
+          success: false,
+          error: error?.message || "Unable to verify email",
+        });
+      }
+    },
+  );
 
   // Apply the Apollo middleware
   app.use(

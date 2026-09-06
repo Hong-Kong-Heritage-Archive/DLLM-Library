@@ -163,15 +163,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         navigate("/news");
         break;
       case 3:
-        // Loan Items - only accessible when logged in
-        if (user?.isVerified) {
+        if (user) {
           navigate("/loan-items?tab=borrowed");
         } else {
           setAuthDialogOpen(true);
         }
         break;
       case 4:
-        if (user?.isVerified) {
+        if (user) {
           navigate("/profile");
         } else {
           setAuthDialogOpen(true);
@@ -516,7 +515,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             icon={renderNavIcon(<NewsIcon />, bottomNavValue === 2)}
             data-tour="news-nav"
           />
-          {user?.isVerified && (
+          {user && (
             <BottomNavigationAction
               label={t("tabs.items-nav", "Holdings")}
               icon={renderNavIcon(<LoanIcon />, bottomNavValue === 3)}
@@ -526,7 +525,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             label={t("tabs.profile", "Profile")}
             icon={renderNavIcon(
               <PersonIcon />,
-              bottomNavValue === (user?.isVerified ? 4 : 3),
+              bottomNavValue === (user ? 4 : 3),
             )}
             data-tour="profile-nav"
           />
@@ -565,8 +564,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         onClose={() => setShowContentRatingApproval(false)}
       />
 
-      {/* Onboarding Tour */}
-      <OnboardingTour isLoggedIn={!!user} isVerified={user?.isVerified} />
+      {/* Logged-in users get the user onboarding even before email verification. */}
+      <OnboardingTour isLoggedIn={!!user} isVerified={!!user} />
     </Box>
   );
 };
