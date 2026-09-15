@@ -136,12 +136,12 @@
     "profileSetupAddress": "方便你同對方傾好喺邊度交收，搵個大家都合適嘅地點。",
     "newUserVillage": {
       "button": "新手村",
-      "step1Title": "A0仔：X，見到本書想睇，但在 Ba打 手上",
-      "step1Body": "A0仔 見到本書：「呢本正喎，但係而家有人借緊。」\n\n唔使嬲，直接撳 申請借閱。\n\n然後 Ba打 同 A0仔 都會收到 BookGuide Email：\n「喂，有人想接你本書喎。」\n之後兩邊自己傾點交收就得——約邊度、幾時拎，自己搞掂。",
-      "step2Title": "Ba打 → A0仔：面交交書",
-      "step2Body": "終於約到時間。\n\nBa打 見到 A0仔，交低本書。\n\nBa打 撳 面對面交收。\n\nA0仔：\n「掃 QR code。」\n掃完之後，再影一張相記錄 交收當刻本書嘅狀況。\n\n咁就完成交接，冇得之後拗：\n「你整花本書㗎喎 😡」\n「吓？我拎到嗰陣已經係咁啦喎。」\n有相為證，大家開心晒。",
+      "step1Title": "A0仔：X，看到這本書好想看，但現在在 Ba打 手上。",
+      "step1Body": "A0仔 看到這本書：「這本不錯喎，但現在有人借走左。」\n\n不用生氣，直接按 申請借閱。\n\n然後 Ba打 同 A0仔 都會收到 BookGuide 電郵通知：\n「喂，有人想借你這本書喎。」\n之後兩邊自己傾怎樣交收——約在哪裡、什麼時候拿，自行解決就可以。",
+      "step2Title": "Ba打 → A0仔：面交借書",
+      "step2Body": "終於約到時間。\n\nBa打 見到 A0仔，交低本書。\n\nBa打 按 面對面交收。\n\nA0仔：\n「掃 QR code。」\n掃完之後影一張相，記錄交接當下本書嘅狀況。\n\n這樣就完成交接，之後就不用再拗：\n「你整花本書㗎喎 😡」\n「吓？我拿到的時候已經是這樣啦。」\n有相為證，大家放心晒。",
       "step3Title": "C姐：X，原來我都想睇",
-      "step3Body": "C姐 之後見到：\n\n「喎X，呢本我都想睇。」\n可以再 申請借閱。\n\n等 A0仔 睇完之後，A0仔 可以直接聯絡 C姐：\n「我睇完喇，你要唔要？」\n兩個人再約時間交換。\n\n於是本書就繼續流轉：\n\nBa打 → A0仔 → C姐 → D露霧 → ……\n\n一本書唔使困死喺一個人手上，睇完就俾下一個巴絲。"
+      "step3Body": "C姐 之後見到：\n\n「喎X，這本我都想睇。」\n可以再 申請借閱。\n\n等 A0仔 睇完之後，A0仔 可以直接聯絡 C姐：\n「我睇完喇，你要唔要？」\n兩個人再約交換嘅時地。\n\n於是本書就繼續流轉：\n\nBa打 → A0仔 → C姐 → D露霧 → ……\n\n一本書不用困死在一個人手上，睇完就給下一個巴絲。"
     },
     "loadingRecommendations": "加載推薦中...",
     "recommendationsError": "無法加載某些推薦",
@@ -624,7 +624,12 @@
     "historyRequestedBy": "由 {{name}} 申請",
     "addbooklist": "加入書單",
     "rebuildIndex": "重建索引",
-    "return": "歸還"
+    "return": "歸還",
+    "confirmReturn": "確認歸還",
+    "confirmReturnDescription": "你確定要確認歸還 {{name}} 嗎？這會將物品標記為已歸還並通知持有者。",
+    "confirmReturnSuccess": "已確認歸還",
+    "details": "細節（選擇性）",
+    "confirmReturnDetails": "細節（選擇性）"
   },
   "userProfile": {
     "nickname": "暱稱",
