@@ -619,7 +619,12 @@
     "historyRequestedBy": "由 {{name}} 申請",
     "addbooklist": "加入書單",
     "rebuildIndex": "重建索引",
-    "return": "歸還"
+    "return": "歸還",
+    "confirmReturn": "確認歸還",
+    "confirmReturnDescription": "你確定要確認歸還 {{name}} 嗎？這會將物品標記為已歸還並通知持有者。",
+    "confirmReturnSuccess": "已確認歸還",
+    "details": "細節（選擇性）",
+    "confirmReturnDetails": "細節（選擇性）"
   },
   "userProfile": {
     "nickname": "暱稱",

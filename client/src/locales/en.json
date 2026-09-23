@@ -611,7 +611,12 @@
     "historyRequestedBy": "Requested by {{name}}",
     "addbooklist": "Add to Book List",
     "rebuildIndex": "Rebuild Item Index",
-    "return": "Return"
+    "return": "Return",
+    "confirmReturn": "Confirm Return",
+    "confirmReturnDescription": "Are you sure you want to confirm the return of {{name}}? This will mark the item as returned and notify the holder.",
+    "confirmReturnSuccess": "Item return confirmed",
+    "details": "Details (optional)",
+    "confirmReturnDetails": "Details (optional)"
   },
   "languages": {
     "en": "English",

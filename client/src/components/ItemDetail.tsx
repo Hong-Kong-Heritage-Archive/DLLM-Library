@@ -195,6 +195,17 @@ const TRANSFER_OWNERSHIP_MUTATION = gql`
   }
 `;
 
+const CONFIRM_RETURN_MUTATION = gql`
+  mutation ConfirmReturn($itemId: ID!, $details: String) {
+    confirmReturn(itemId: $itemId, details: $details) {
+      id
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 const GET_ITEM_CONFIG = gql`
   query GetItemConfig {
     itemConfig {
@@ -637,6 +648,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   // Add state for Face-to-Face dialog
   const [faceToFaceDialogOpen, setFaceToFaceDialogOpen] = useState(false);
   const [transferOwnershipDialogOpen, setTransferOwnershipDialogOpen] = useState(false);
+  const [confirmReturnDialogOpen, setConfirmReturnDialogOpen] = useState(false);
+  const [confirmReturnDetails, setConfirmReturnDetails] = useState("");
 
   // Add state for news form dialog
   const [newsFormOpen, setNewsFormOpen] = useState(false);
@@ -819,6 +832,23 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         setTransferOwnershipDialogOpen(false);
         setSuccessMessage(
           t("item.transferOwnershipSuccess", "Ownership transferred"),
+        );
+        setSuccessSnackbarOpen(true);
+        refetch();
+      },
+      onError: (mutationError) => {
+        setErrorMessage(mutationError.message);
+        setErrorSnackbarOpen(true);
+      },
+    });
+
+  const [confirmReturn, { loading: confirmReturnLoading }] =
+    useMutation(CONFIRM_RETURN_MUTATION, {
+      onCompleted: () => {
+        setConfirmReturnDialogOpen(false);
+        setConfirmReturnDetails("");
+        setSuccessMessage(
+          t("item.confirmReturnSuccess", "Item return confirmed"),
         );
         setSuccessSnackbarOpen(true);
         refetch();
@@ -1090,6 +1120,32 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const handleCloseTransferOwnershipDialog = () => {
     if (transferOwnershipLoading) return;
     setTransferOwnershipDialogOpen(false);
+  };
+
+  const handleConfirmReturnClick = () => {
+    setConfirmReturnDetails("");
+    setConfirmReturnDialogOpen(true);
+  };
+
+  const handleCloseConfirmReturnDialog = () => {
+    if (confirmReturnLoading) return;
+    setConfirmReturnDialogOpen(false);
+    setConfirmReturnDetails("");
+  };
+
+  const handleConfirmReturn = async () => {
+    if (!itemId) return;
+
+    try {
+      await confirmReturn({
+        variables: {
+          itemId,
+          details: confirmReturnDetails || undefined,
+        },
+      });
+    } catch (error) {
+      console.error("Error confirming return:", error);
+    }
   };
 
   const handleCloseSuccessSnackbar = () => {
@@ -1828,6 +1884,20 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   {t("item.transferOwnership.title", "Transfer Ownership")}
                 </Button>
               )}
+              {isOwner &&
+                data?.item?.holderId &&
+                data.item.holderId !== data.item.ownerId && (
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    size="small"
+                    onClick={handleConfirmReturnClick}
+                    disabled={confirmReturnLoading}
+                    startIcon={<TransferIcon />}
+                  >
+                    {t("item.confirmReturn", "Confirm Return")}
+                  </Button>
+                )}
               {isAdmin && (
                 <Button
                   variant="outlined"
@@ -1963,6 +2033,54 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         loading={transferOwnershipLoading}
         itemName={data?.item?.name || ""}
       />
+
+      {/* Confirm Return Dialog */}
+      <Dialog
+        open={confirmReturnDialogOpen}
+        onClose={handleCloseConfirmReturnDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>{t("item.confirmReturn", "Confirm Return")}</DialogTitle>
+        <DialogContent>
+          <Box sx={dialogTopPaddingSx}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              {t(
+                "item.confirmReturnDescription",
+                "Are you sure you want to confirm the return of {{name}}? This will mark the item as returned and notify the holder.",
+                { name: data?.item?.name || "" },
+              )}
+            </Typography>
+            <TextField
+              label={t("item.details", "Details (optional)")}
+              value={confirmReturnDetails}
+              onChange={(event) => setConfirmReturnDetails(event.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseConfirmReturnDialog}
+            disabled={confirmReturnLoading}
+          >
+            {t("common.cancel", "Cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmReturn}
+            variant="contained"
+            color="success"
+            disabled={confirmReturnLoading}
+          >
+            {confirmReturnLoading ? (
+              <CircularProgress size={20} sx={progressMr1Sx} />
+            ) : null}
+            {t("common.confirm", "Confirm")}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={booklistDialogOpen}
