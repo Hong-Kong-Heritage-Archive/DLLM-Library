@@ -610,12 +610,17 @@
     "historyHandedTo": "Handed to {{name}}",
     "historyRequestedBy": "Requested by {{name}}",
     "addbooklist": "Add to Book List",
+    "addToMyBooklist": "Add to My Book List",
+    "booklistTitle": "Book List Title",
+    "createBooklist": "Create",
+    "noPersonalBooklists": "You have not created a book list yet.",
+    "noCollaborativeBooklists": "No collaborative book lists are available.",
     "rebuildIndex": "Rebuild Item Index",
     "return": "Return",
     "confirmReturn": "Confirm Return",
     "confirmReturnDescription": "Are you sure you want to confirm the return of {{name}}? This will mark the item as returned and notify the holder.",
     "confirmReturnSuccess": "Item return confirmed",
-    "details": "Details (optional)",
+    "details1": "Details (optional)",
     "confirmReturnDetails": "Details (optional)"
   },
   "languages": {

@@ -623,12 +623,17 @@
     "historyHandedTo": "交給 {{name}}",
     "historyRequestedBy": "由 {{name}} 申請",
     "addbooklist": "加入書單",
+    "addToMyBooklist": "加入我的書單",
+    "booklistTitle": "書單名稱",
+    "createBooklist": "建立",
+    "noPersonalBooklists": "你尚未建立書單。",
+    "noCollaborativeBooklists": "目前沒有可供協作的書單。",
     "rebuildIndex": "重建索引",
     "return": "歸還",
     "confirmReturn": "確認歸還",
     "confirmReturnDescription": "你確定要確認歸還 {{name}} 嗎？這會將物品標記為已歸還並通知持有者。",
     "confirmReturnSuccess": "已確認歸還",
-    "details": "細節（選擇性）",
+    "details1": "細節（選擇性）",
     "confirmReturnDetails": "細節（選擇性）"
   },
   "userProfile": {

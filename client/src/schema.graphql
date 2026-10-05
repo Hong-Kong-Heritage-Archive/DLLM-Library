@@ -36,6 +36,7 @@ enum NewsType {
   EVENT # 活動
   UPDATE # 更新
   TOPIC # 主題
+  USER_BOOKLIST # 用戶書單
 }
 
 enum NewsStatus {
@@ -396,6 +397,7 @@ type Query {
     newsStatus: NewsStatus
     itemId: ID
   ): [NewsPost!]! # 按關鍵字和標籤搜尋新聞
+  userBooklist(userId: ID!, limit: Int, offset: Int): [NewsPost!]! # 按關鍵字和標籤搜尋新聞
   # 地理編碼相關
   geocodeAddress(address: String!): Location
 
@@ -527,6 +529,7 @@ type Mutation {
   #  approveTransaction(id: ID!): Transaction!
   #  transferTransaction(id: ID!): Transaction!
   receiveTransaction(id: ID!, images: [String!]): Transaction!
+  confirmReturn(itemId: ID!, images: [String!], details: String): Transaction!
   cancelTransaction(id: ID!): Boolean!
 
   # 新聞管理 Only for Admin/Moderator

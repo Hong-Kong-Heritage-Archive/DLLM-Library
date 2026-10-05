@@ -29,6 +29,7 @@ import { CategoryService } from "./categoryService";
 import { CommentService } from "./commentService";
 import { RecommendService } from "./recommendService";
 import { SystemService } from "./systemService";
+import { ID } from "graphql-ws/client";
 //import { BinderService } from "./binderService";
 
 interface Context {
@@ -384,6 +385,17 @@ export const resolvers: Resolvers = {
         newsStatus,
         itemId,
       );
+    },
+    userBooklist: async (
+      _: any,
+      { userId, limit = 10, offset = 0 }: any,
+      { loginUser }: Context,
+      __: any,
+    ): Promise<NewsPost[]> => {
+      const currentUser = loginUser
+        ? await userService.userById(loginUser.uid)
+        : null;
+      return newsService.userBooklist(currentUser, userId, limit, offset);
     },
     geocodeAddress: async (
       _parent: any,
@@ -741,6 +753,16 @@ export const resolvers: Resolvers = {
       if (!user) throw new Error("User not found");
       return newsService.unlockNewsPost(id, user);
     },
+    hideNewsPost: async (
+      _: any,
+      { id }: any,
+      { loginUser }: Context,
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return newsService.hideNewsPost(id, user);
+    },
     generateSignedUrl: async (
       _: any,
       { fileName, contentType, folder }: any,
@@ -827,7 +849,12 @@ export const resolvers: Resolvers = {
       if (!loginUser) throw new Error("Not authenticated");
       const owner = await userService.me(loginUser);
       if (!owner) throw new Error("User not found");
-      return transactionService.confirmReturn(owner, itemId, images ?? [], details);
+      return transactionService.confirmReturn(
+        owner,
+        itemId,
+        images ?? [],
+        details,
+      );
     },
     cancelTransaction: async (
       _: any,

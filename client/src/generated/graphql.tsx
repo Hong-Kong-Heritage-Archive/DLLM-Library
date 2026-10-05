@@ -230,6 +230,7 @@ export type Mutation = {
   addItemToNewsPost: NewsPost;
   buildItemIndex: Scalars['Boolean']['output'];
   cancelTransaction: Scalars['Boolean']['output'];
+  confirmReturn: Transaction;
   contactHolder: Scalars['Boolean']['output'];
   createItem: Item;
   createItemsFromJSON: Array<Item>;
@@ -284,6 +285,13 @@ export type MutationBuildItemIndexArgs = {
 
 export type MutationCancelTransactionArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationConfirmReturnArgs = {
+  details?: InputMaybe<Scalars['String']['input']>;
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  itemId: Scalars['ID']['input'];
 };
 
 
@@ -491,7 +499,8 @@ export enum NewsType {
   Event = 'EVENT',
   Greeting = 'GREETING',
   Topic = 'TOPIC',
-  Update = 'UPDATE'
+  Update = 'UPDATE',
+  UserBooklist = 'USER_BOOKLIST'
 }
 
 export type Query = {
@@ -980,6 +989,14 @@ export type TransferOwnershipMutationVariables = Exact<{
 
 
 export type TransferOwnershipMutation = { __typename?: 'Mutation', transferOwnership: { __typename?: 'Item', id: string, ownerId: string, holderId?: string | null, updatedAt: any } };
+
+export type ConfirmReturnMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+  details?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ConfirmReturnMutation = { __typename?: 'Mutation', confirmReturn: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any } };
 
 export type UpdateBooklistMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2181,6 +2198,43 @@ export function useTransferOwnershipMutation(baseOptions?: Apollo.MutationHookOp
 export type TransferOwnershipMutationHookResult = ReturnType<typeof useTransferOwnershipMutation>;
 export type TransferOwnershipMutationResult = Apollo.MutationResult<TransferOwnershipMutation>;
 export type TransferOwnershipMutationOptions = Apollo.BaseMutationOptions<TransferOwnershipMutation, TransferOwnershipMutationVariables>;
+export const ConfirmReturnDocument = gql`
+    mutation ConfirmReturn($itemId: ID!, $details: String) {
+  confirmReturn(itemId: $itemId, details: $details) {
+    id
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type ConfirmReturnMutationFn = Apollo.MutationFunction<ConfirmReturnMutation, ConfirmReturnMutationVariables>;
+
+/**
+ * __useConfirmReturnMutation__
+ *
+ * To run a mutation, you first call `useConfirmReturnMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConfirmReturnMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [confirmReturnMutation, { data, loading, error }] = useConfirmReturnMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *      details: // value for 'details'
+ *   },
+ * });
+ */
+export function useConfirmReturnMutation(baseOptions?: Apollo.MutationHookOptions<ConfirmReturnMutation, ConfirmReturnMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConfirmReturnMutation, ConfirmReturnMutationVariables>(ConfirmReturnDocument, options);
+      }
+export type ConfirmReturnMutationHookResult = ReturnType<typeof useConfirmReturnMutation>;
+export type ConfirmReturnMutationResult = Apollo.MutationResult<ConfirmReturnMutation>;
+export type ConfirmReturnMutationOptions = Apollo.BaseMutationOptions<ConfirmReturnMutation, ConfirmReturnMutationVariables>;
 export const UpdateBooklistDocument = gql`
     mutation UpdateBooklist($id: ID!, $relatedItemIds: [ID!]) {
   updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
