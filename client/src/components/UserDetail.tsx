@@ -54,6 +54,7 @@ import { semanticTokens } from "../styles/semanticTokens";
 import AddressReminderDialog from "./AddressReminderDialog";
 import ItemForm from "./ItemForm";
 import { PageLoader } from "./LoadingState";
+import UserBookListBanner from "./UserBookListBanner";
 
 // GraphQL query to fetch user's items with pagination and category filter
 const USER_ITEMS_QUERY = gql`
@@ -184,8 +185,8 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Count for selected category (or total) comes free from itemCategory metadata
   const selectedCategoryCount = selectedCategory
     ? (userData?.user?.itemCategory?.find(
-      (c) => c.category === selectedCategory,
-    )?.count ?? ITEMS_PER_PAGE)
+        (c) => c.category === selectedCategory,
+      )?.count ?? ITEMS_PER_PAGE)
     : null;
   const totalUserItemCount =
     userData?.user?.itemCategory?.reduce((sum, c) => sum + c.count, 0) ?? 0;
@@ -355,9 +356,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
   // Prepare data for TagCloud component
   const tagCloudData: TagCloudData[] = userData?.user?.itemCategory
     ? userData.user.itemCategory.map((categoryItem) => ({
-      value: categoryItem.category,
-      count: categoryItem.count,
-    }))
+        value: categoryItem.category,
+        count: categoryItem.count,
+      }))
     : [];
 
   // Custom renderer for TagCloud
@@ -405,11 +406,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -420,11 +421,11 @@ const UserDetail: React.FC<UserDetailProps> = ({
       distance:
         item.location && currentUser?.location
           ? calculateDistance(
-            item.location.latitude,
-            item.location.longitude,
-            currentUser.location.latitude,
-            currentUser.location.longitude,
-          )
+              item.location.latitude,
+              item.location.longitude,
+              currentUser.location.latitude,
+              currentUser.location.longitude,
+            )
           : 0,
     })) || [];
 
@@ -449,10 +450,10 @@ const UserDetail: React.FC<UserDetailProps> = ({
 
   const sortedCategories = userData?.user?.itemCategory;
   const bookshelfTitle = isCurrentUser
-    ? t("user.yourBookshelf", "Your Bookshelf")
+    ? t("user.yourBookshelf", "Bookshelf")
     : t("user.otherUsersBookshelf", "{{name}}'s Bookshelf", {
-      name: userData?.user?.nickname || userData?.user?.email || "User",
-    });
+        name: userData?.user?.nickname || userData?.user?.email || "User",
+      });
   const pageLoading = userLoading || itemsLoading;
 
   return (
@@ -498,7 +499,14 @@ const UserDetail: React.FC<UserDetailProps> = ({
             }}
           >
             <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  flexWrap: "wrap",
+                }}
+              >
                 <Typography
                   variant="h5"
                   sx={{
@@ -625,7 +633,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                 py: 1.2,
               }}
             >
-              {t("user.yourBookshelf", "Your Bookshelf")}
+              {t("user.yourBookshelf", "Bookshelf")}
             </Button>
           </Box>
 
@@ -680,7 +688,10 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   </Typography>
                 </Box>
                 <Box
-                  sx={{ borderTop: `1px solid ${semanticTokens.color.borderSubtle}`, my: 0.5 }}
+                  sx={{
+                    borderTop: `1px solid ${semanticTokens.color.borderSubtle}`,
+                    my: 0.5,
+                  }}
                 />
                 <Box
                   sx={{
@@ -783,7 +794,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     sx={{ fontWeight: 600, textAlign: "right" }}
                   >
                     {userData.user.contactMethods &&
-                      userData.user.contactMethods.length > 0
+                    userData.user.contactMethods.length > 0
                       ? t("user.seeDetails", "Available")
                       : t("user.notSet", "None added yet")}
                   </Typography>
@@ -858,9 +869,12 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     py: 0.75,
                   }}
                 >
-                  <Typography variant="body2" sx={{ fontWeight: 600, textAlign: "right" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 600, textAlign: "right" }}
+                  >
                     {userData.user.exchangePoints &&
-                      userData.user.exchangePoints.length > 0
+                    userData.user.exchangePoints.length > 0
                       ? userData.user.exchangePoints.join(", ")
                       : t("user.notSet", "None selected")}
                   </Typography>
@@ -928,6 +942,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
             </Box>
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <UserBookListBanner userId={userId} />
               <Box
                 sx={{
                   display: "flex",
@@ -1101,9 +1116,9 @@ const UserDetail: React.FC<UserDetailProps> = ({
                     {isCurrentUser
                       ? t("item.noLentItems", "You currently have no items.")
                       : t(
-                        "user.noPinnedItemsUser",
-                        "This user hasn't added any items yet.",
-                      )}
+                          "user.noPinnedItemsUser",
+                          "This user hasn't added any items yet.",
+                        )}
                   </Typography>
                 )}
               </Box>

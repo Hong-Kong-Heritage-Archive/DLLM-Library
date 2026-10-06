@@ -29,6 +29,7 @@ const NEWS_RECENT_QUERY = gql`
       title
       images
       createdAt
+      updatedAt
       tags
       relatedItems {
         id

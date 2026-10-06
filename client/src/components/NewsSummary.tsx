@@ -13,7 +13,7 @@ import { semanticTokens } from "../styles/semanticTokens";
 export interface SimpleNews {
   id: string;
   title: string;
-  createdAt: string;
+  updatedAt: string | number;
   images?: string[] | null;
   tags?: string[] | null;
 }
@@ -24,7 +24,6 @@ interface NewsSummaryProps {
 
 const NewsSummary: React.FC<NewsSummaryProps> = ({ news, onClick }) => {
   return (
-
     <ListItem disablePadding>
       <ListItemButton
         onClick={() => onClick(news.id)}
@@ -38,20 +37,6 @@ const NewsSummary: React.FC<NewsSummaryProps> = ({ news, onClick }) => {
           },
         }}
       >
-        {/* <ListItemIcon sx={{ minWidth: 28 }}>
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              bgcolor: semanticTokens.color.brandPrimary,
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              mb: 1,
-            }}
-          />
-        </ListItemIcon> */}
         <Typography
           variant="body2"
           color="text.secondary"
@@ -61,7 +46,7 @@ const NewsSummary: React.FC<NewsSummaryProps> = ({ news, onClick }) => {
             mr: 1,
           }}
         >
-          {new Date(news.createdAt).toLocaleDateString()}
+          {new Date(news.updatedAt).toLocaleDateString()}
         </Typography>
 
         <ListItemText
@@ -117,7 +102,7 @@ const NewsSummary: React.FC<NewsSummaryProps> = ({ news, onClick }) => {
           </Box>
         )}
       </ListItemButton>
-    </ListItem >
+    </ListItem>
   );
 };
 

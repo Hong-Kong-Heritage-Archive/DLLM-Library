@@ -164,6 +164,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
   const relatedItemsMap = new Map(
     (data?.newsPost?.relatedItems || []).map((item) => [item.id, item]),
   );
+  const markdownItemIds = new Set<string>();
+  const itemDirectivePattern = /:item(?:WithComment)?\{id="([^"]+)"/g;
+  let itemDirectiveMatch: RegExpExecArray | null;
+  while (
+    (itemDirectiveMatch = itemDirectivePattern.exec(
+      data?.newsPost?.content ?? "",
+    )) !== null
+  ) {
+    markdownItemIds.add(itemDirectiveMatch[1]);
+  }
+  const relatedItemsNotInMarkdown =
+    data?.newsPost?.relatedItems?.filter(
+      (item) => !markdownItemIds.has(item.id),
+    ) ?? [];
 
   const handleItemPreviewClick = (itemId: string) => {
     navigate(`/item/${itemId}`);
@@ -403,13 +417,12 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ newsId, onBack }) => {
             </Box>
           )}
 
-          {data.newsPost.relatedItems &&
-            data.newsPost.relatedItems.length > 0 && (
+          {relatedItemsNotInMarkdown.length > 0 && (
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   {t("news.relatedItems")}
                 </Typography>
-                {data.newsPost.relatedItems.map((item) => (
+                {relatedItemsNotInMarkdown.map((item) => (
                   <Box
                     key={item.id}
                     sx={{

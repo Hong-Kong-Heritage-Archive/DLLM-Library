@@ -65,6 +65,9 @@ export class NewsService {
     if (newsStatus) newsQuery = newsQuery.where("newsStatus", "==", newsStatus);
     if (itemId)
       newsQuery = newsQuery.where("relatedItemIds", "array-contains", itemId);
+    else if (!newsType)
+      newsQuery = newsQuery.where("newsType", "!=", NewsType.UserBooklist);
+
     const newsDocs = await newsQuery.get();
     const newsPosts: NewsPost[] = [];
     for (const doc of newsDocs.docs) {
