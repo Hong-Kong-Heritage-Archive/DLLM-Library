@@ -37,6 +37,7 @@ interface AddToBooklistDialogProps {
   mode: "collaborative" | "personal";
   itemId: string;
   userId: string;
+  nickname: string;
   onClose: () => void;
   onAdded: () => void;
   onError: (message: string) => void;
@@ -125,6 +126,7 @@ const AddToBooklistDialog: React.FC<AddToBooklistDialogProps> = ({
   mode,
   itemId,
   userId,
+  nickname,
   onClose,
   onAdded,
   onError,
@@ -162,6 +164,9 @@ const AddToBooklistDialog: React.FC<AddToBooklistDialogProps> = ({
         booklist,
       ]),
     );
+    if (queryBooklists && queryBooklists.length === 0) {
+      setNewBooklistTitle(`${nickname}'s WishList`);
+    }
     return Array.from(booklistsById.values());
   }, [createdBooklists, mode, queryBooklists]);
 
@@ -204,7 +209,21 @@ const AddToBooklistDialog: React.FC<AddToBooklistDialogProps> = ({
 
   const handleCreateBooklist = async () => {
     const title = newBooklistTitle.trim();
-    if (!title) return;
+    if (!title || queryLoading || queryError) return;
+
+    const normalizedTitle = title.toLowerCase();
+    const duplicateTitle = availableBooklists.some(
+      (booklist) => booklist.title.trim().toLowerCase() === normalizedTitle,
+    );
+    if (duplicateTitle) {
+      onError(
+        t(
+          "item.duplicateBooklistTitle",
+          "A booklist with this title already exists.",
+        ),
+      );
+      return;
+    }
 
     try {
       const result = await createUserBooklist({
@@ -335,7 +354,12 @@ const AddToBooklistDialog: React.FC<AddToBooklistDialogProps> = ({
               <Button
                 onClick={handleCreateBooklist}
                 variant="outlined"
-                disabled={!newBooklistTitle.trim() || mutationLoading}
+                disabled={
+                  !newBooklistTitle.trim() ||
+                  queryLoading ||
+                  Boolean(queryError) ||
+                  mutationLoading
+                }
               >
                 {createLoading ? (
                   <CircularProgress size={20} />

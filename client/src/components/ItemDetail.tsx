@@ -1932,6 +1932,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         mode={booklistDialogMode ?? "collaborative"}
         itemId={itemId ?? ""}
         userId={user?.id ?? ""}
+        nickname={user?.nickname ?? ""}
         onClose={() => setBooklistDialogMode(null)}
         onAdded={() => {
           setBooklistDialogMode(null);
