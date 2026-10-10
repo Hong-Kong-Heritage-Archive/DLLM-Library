@@ -230,6 +230,7 @@ export type Mutation = {
   addItemToNewsPost: NewsPost;
   buildItemIndex: Scalars['Boolean']['output'];
   cancelTransaction: Scalars['Boolean']['output'];
+  confirmReturn: Transaction;
   contactHolder: Scalars['Boolean']['output'];
   createItem: Item;
   createItemsFromJSON: Array<Item>;
@@ -284,6 +285,13 @@ export type MutationBuildItemIndexArgs = {
 
 export type MutationCancelTransactionArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationConfirmReturnArgs = {
+  details?: InputMaybe<Scalars['String']['input']>;
+  images?: InputMaybe<Array<Scalars['String']['input']>>;
+  itemId: Scalars['ID']['input'];
 };
 
 
@@ -491,7 +499,8 @@ export enum NewsType {
   Event = 'EVENT',
   Greeting = 'GREETING',
   Topic = 'TOPIC',
-  Update = 'UPDATE'
+  Update = 'UPDATE',
+  UserBooklist = 'USER_BOOKLIST'
 }
 
 export type Query = {
@@ -532,6 +541,7 @@ export type Query = {
   transactionsByItem: Array<Transaction>;
   transactionsByUser: Array<Transaction>;
   user?: Maybe<User>;
+  userBooklist: Array<NewsPost>;
   users: Array<User>;
 };
 
@@ -758,6 +768,13 @@ export type QueryUserArgs = {
 };
 
 
+export type QueryUserBooklistArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  userId: Scalars['ID']['input'];
+};
+
+
 export type QueryUsersArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -846,6 +863,51 @@ export type HostConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type HostConfigQuery = { __typename?: 'Query', hostConfig: { __typename?: 'HostConfig', aboutUsText: string, chatLink: string, splashScreenImageUrl?: string | null, splashScreenText?: string | null, itemShareMessageTemplates: Array<string>, itemIndexJsonUrl?: string | null, itemIndexLastBuildTime?: any | null } };
+
+export type CollaborativeBooklistsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  newsStatus?: InputMaybe<NewsStatus>;
+}>;
+
+
+export type CollaborativeBooklistsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null }> };
+
+export type UserBooklistsQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type UserBooklistsQuery = { __typename?: 'Query', userBooklist: Array<{ __typename?: 'NewsPost', id: string, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null }> };
+
+export type CreateUserBooklistMutationVariables = Exact<{
+  title: Scalars['String']['input'];
+  content: Scalars['String']['input'];
+  newsType?: InputMaybe<NewsType>;
+  newsStatus?: InputMaybe<NewsStatus>;
+}>;
+
+
+export type CreateUserBooklistMutation = { __typename?: 'Mutation', createNewsPost: { __typename?: 'NewsPost', id: string, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null } };
+
+export type AddItemToUserBooklistMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
+}>;
+
+
+export type AddItemToUserBooklistMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null } };
+
+export type AddItemToCollaborativeBooklistMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  itemId: Scalars['ID']['input'];
+  comment?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type AddItemToCollaborativeBooklistMutation = { __typename?: 'Mutation', addItemToNewsPost: { __typename?: 'NewsPost', id: string } };
 
 export type RecentItemsWithoutClassificationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -981,31 +1043,13 @@ export type TransferOwnershipMutationVariables = Exact<{
 
 export type TransferOwnershipMutation = { __typename?: 'Mutation', transferOwnership: { __typename?: 'Item', id: string, ownerId: string, holderId?: string | null, updatedAt: any } };
 
-export type UpdateBooklistMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  relatedItemIds?: InputMaybe<Array<Scalars['ID']['input']> | Scalars['ID']['input']>;
-}>;
-
-
-export type UpdateBooklistMutation = { __typename?: 'Mutation', updateNewsPost: { __typename?: 'NewsPost', id: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null } };
-
-export type AddItemToNewsPostMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+export type ConfirmReturnMutationVariables = Exact<{
   itemId: Scalars['ID']['input'];
-  comment?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type AddItemToNewsPostMutation = { __typename?: 'Mutation', addItemToNewsPost: { __typename?: 'NewsPost', id: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null } };
-
-export type BooklistRecentPostsQueryVariables = Exact<{
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  newsStatus?: InputMaybe<NewsStatus>;
-}>;
-
-
-export type BooklistRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, relatedItems?: Array<{ __typename?: 'Item', id: string }> | null }> };
+export type ConfirmReturnMutation = { __typename?: 'Mutation', confirmReturn: { __typename?: 'Transaction', id: string, status: TransactionStatus, createdAt: any, updatedAt: any } };
 
 export type ItemTransactionsQueryVariables = Exact<{
   itemId: Scalars['ID']['input'];
@@ -1128,7 +1172,7 @@ export type NewsRecentPostsQueryVariables = Exact<{
 }>;
 
 
-export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any }> | null }> };
+export type NewsRecentPostsQuery = { __typename?: 'Query', newsRecentPosts: Array<{ __typename?: 'NewsPost', id: string, title: string, images?: Array<string> | null, createdAt: any, updatedAt: any, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, category: Array<string>, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, language: Language, createdAt: any }> | null }> };
 
 export type GetTransactionQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1151,6 +1195,15 @@ export type CancelTransactionMutationVariables = Exact<{
 
 
 export type CancelTransactionMutation = { __typename?: 'Mutation', cancelTransaction: boolean };
+
+export type UserBookListBannerQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type UserBookListBannerQuery = { __typename?: 'Query', userBooklist: Array<{ __typename?: 'NewsPost', id: string, title: string, createdAt: any, updatedAt: any, images?: Array<string> | null, tags?: Array<string> | null, relatedItems?: Array<{ __typename?: 'Item', id: string, name: string, description?: string | null, condition: ItemCondition, status: ItemStatus, images?: Array<string> | null, publishedYear?: number | null, createdAt: any, category: Array<string>, contentRating: number }> | null }> };
 
 export type ItemsByUserQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
@@ -1463,6 +1516,215 @@ export type HostConfigQueryHookResult = ReturnType<typeof useHostConfigQuery>;
 export type HostConfigLazyQueryHookResult = ReturnType<typeof useHostConfigLazyQuery>;
 export type HostConfigSuspenseQueryHookResult = ReturnType<typeof useHostConfigSuspenseQuery>;
 export type HostConfigQueryResult = Apollo.QueryResult<HostConfigQuery, HostConfigQueryVariables>;
+export const CollaborativeBooklistsDocument = gql`
+    query CollaborativeBooklists($limit: Int, $offset: Int, $newsStatus: NewsStatus) {
+  newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
+    id
+    title
+    relatedItems {
+      id
+    }
+  }
+}
+    `;
+
+/**
+ * __useCollaborativeBooklistsQuery__
+ *
+ * To run a query within a React component, call `useCollaborativeBooklistsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCollaborativeBooklistsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCollaborativeBooklistsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *      newsStatus: // value for 'newsStatus'
+ *   },
+ * });
+ */
+export function useCollaborativeBooklistsQuery(baseOptions?: Apollo.QueryHookOptions<CollaborativeBooklistsQuery, CollaborativeBooklistsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CollaborativeBooklistsQuery, CollaborativeBooklistsQueryVariables>(CollaborativeBooklistsDocument, options);
+      }
+export function useCollaborativeBooklistsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CollaborativeBooklistsQuery, CollaborativeBooklistsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CollaborativeBooklistsQuery, CollaborativeBooklistsQueryVariables>(CollaborativeBooklistsDocument, options);
+        }
+export function useCollaborativeBooklistsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CollaborativeBooklistsQuery, CollaborativeBooklistsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CollaborativeBooklistsQuery, CollaborativeBooklistsQueryVariables>(CollaborativeBooklistsDocument, options);
+        }
+export type CollaborativeBooklistsQueryHookResult = ReturnType<typeof useCollaborativeBooklistsQuery>;
+export type CollaborativeBooklistsLazyQueryHookResult = ReturnType<typeof useCollaborativeBooklistsLazyQuery>;
+export type CollaborativeBooklistsSuspenseQueryHookResult = ReturnType<typeof useCollaborativeBooklistsSuspenseQuery>;
+export type CollaborativeBooklistsQueryResult = Apollo.QueryResult<CollaborativeBooklistsQuery, CollaborativeBooklistsQueryVariables>;
+export const UserBooklistsDocument = gql`
+    query UserBooklists($userId: ID!, $limit: Int, $offset: Int) {
+  userBooklist(userId: $userId, limit: $limit, offset: $offset) {
+    id
+    title
+    relatedItems {
+      id
+    }
+  }
+}
+    `;
+
+/**
+ * __useUserBooklistsQuery__
+ *
+ * To run a query within a React component, call `useUserBooklistsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserBooklistsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserBooklistsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useUserBooklistsQuery(baseOptions: Apollo.QueryHookOptions<UserBooklistsQuery, UserBooklistsQueryVariables> & ({ variables: UserBooklistsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserBooklistsQuery, UserBooklistsQueryVariables>(UserBooklistsDocument, options);
+      }
+export function useUserBooklistsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserBooklistsQuery, UserBooklistsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserBooklistsQuery, UserBooklistsQueryVariables>(UserBooklistsDocument, options);
+        }
+export function useUserBooklistsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserBooklistsQuery, UserBooklistsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UserBooklistsQuery, UserBooklistsQueryVariables>(UserBooklistsDocument, options);
+        }
+export type UserBooklistsQueryHookResult = ReturnType<typeof useUserBooklistsQuery>;
+export type UserBooklistsLazyQueryHookResult = ReturnType<typeof useUserBooklistsLazyQuery>;
+export type UserBooklistsSuspenseQueryHookResult = ReturnType<typeof useUserBooklistsSuspenseQuery>;
+export type UserBooklistsQueryResult = Apollo.QueryResult<UserBooklistsQuery, UserBooklistsQueryVariables>;
+export const CreateUserBooklistDocument = gql`
+    mutation CreateUserBooklist($title: String!, $content: String!, $newsType: NewsType, $newsStatus: NewsStatus) {
+  createNewsPost(
+    title: $title
+    content: $content
+    newsType: $newsType
+    newsStatus: $newsStatus
+  ) {
+    id
+    title
+    relatedItems {
+      id
+    }
+  }
+}
+    `;
+export type CreateUserBooklistMutationFn = Apollo.MutationFunction<CreateUserBooklistMutation, CreateUserBooklistMutationVariables>;
+
+/**
+ * __useCreateUserBooklistMutation__
+ *
+ * To run a mutation, you first call `useCreateUserBooklistMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateUserBooklistMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createUserBooklistMutation, { data, loading, error }] = useCreateUserBooklistMutation({
+ *   variables: {
+ *      title: // value for 'title'
+ *      content: // value for 'content'
+ *      newsType: // value for 'newsType'
+ *      newsStatus: // value for 'newsStatus'
+ *   },
+ * });
+ */
+export function useCreateUserBooklistMutation(baseOptions?: Apollo.MutationHookOptions<CreateUserBooklistMutation, CreateUserBooklistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateUserBooklistMutation, CreateUserBooklistMutationVariables>(CreateUserBooklistDocument, options);
+      }
+export type CreateUserBooklistMutationHookResult = ReturnType<typeof useCreateUserBooklistMutation>;
+export type CreateUserBooklistMutationResult = Apollo.MutationResult<CreateUserBooklistMutation>;
+export type CreateUserBooklistMutationOptions = Apollo.BaseMutationOptions<CreateUserBooklistMutation, CreateUserBooklistMutationVariables>;
+export const AddItemToUserBooklistDocument = gql`
+    mutation AddItemToUserBooklist($id: ID!, $relatedItemIds: [ID!]) {
+  updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
+    id
+    relatedItems {
+      id
+    }
+  }
+}
+    `;
+export type AddItemToUserBooklistMutationFn = Apollo.MutationFunction<AddItemToUserBooklistMutation, AddItemToUserBooklistMutationVariables>;
+
+/**
+ * __useAddItemToUserBooklistMutation__
+ *
+ * To run a mutation, you first call `useAddItemToUserBooklistMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddItemToUserBooklistMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addItemToUserBooklistMutation, { data, loading, error }] = useAddItemToUserBooklistMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      relatedItemIds: // value for 'relatedItemIds'
+ *   },
+ * });
+ */
+export function useAddItemToUserBooklistMutation(baseOptions?: Apollo.MutationHookOptions<AddItemToUserBooklistMutation, AddItemToUserBooklistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddItemToUserBooklistMutation, AddItemToUserBooklistMutationVariables>(AddItemToUserBooklistDocument, options);
+      }
+export type AddItemToUserBooklistMutationHookResult = ReturnType<typeof useAddItemToUserBooklistMutation>;
+export type AddItemToUserBooklistMutationResult = Apollo.MutationResult<AddItemToUserBooklistMutation>;
+export type AddItemToUserBooklistMutationOptions = Apollo.BaseMutationOptions<AddItemToUserBooklistMutation, AddItemToUserBooklistMutationVariables>;
+export const AddItemToCollaborativeBooklistDocument = gql`
+    mutation AddItemToCollaborativeBooklist($id: ID!, $itemId: ID!, $comment: String) {
+  addItemToNewsPost(id: $id, itemId: $itemId, comment: $comment) {
+    id
+  }
+}
+    `;
+export type AddItemToCollaborativeBooklistMutationFn = Apollo.MutationFunction<AddItemToCollaborativeBooklistMutation, AddItemToCollaborativeBooklistMutationVariables>;
+
+/**
+ * __useAddItemToCollaborativeBooklistMutation__
+ *
+ * To run a mutation, you first call `useAddItemToCollaborativeBooklistMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddItemToCollaborativeBooklistMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addItemToCollaborativeBooklistMutation, { data, loading, error }] = useAddItemToCollaborativeBooklistMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      itemId: // value for 'itemId'
+ *      comment: // value for 'comment'
+ *   },
+ * });
+ */
+export function useAddItemToCollaborativeBooklistMutation(baseOptions?: Apollo.MutationHookOptions<AddItemToCollaborativeBooklistMutation, AddItemToCollaborativeBooklistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddItemToCollaborativeBooklistMutation, AddItemToCollaborativeBooklistMutationVariables>(AddItemToCollaborativeBooklistDocument, options);
+      }
+export type AddItemToCollaborativeBooklistMutationHookResult = ReturnType<typeof useAddItemToCollaborativeBooklistMutation>;
+export type AddItemToCollaborativeBooklistMutationResult = Apollo.MutationResult<AddItemToCollaborativeBooklistMutation>;
+export type AddItemToCollaborativeBooklistMutationOptions = Apollo.BaseMutationOptions<AddItemToCollaborativeBooklistMutation, AddItemToCollaborativeBooklistMutationVariables>;
 export const RecentItemsWithoutClassificationsDocument = gql`
     query RecentItemsWithoutClassifications($limit: Int) {
   recentItemsWithoutClassifications(limit: $limit) {
@@ -2181,127 +2443,43 @@ export function useTransferOwnershipMutation(baseOptions?: Apollo.MutationHookOp
 export type TransferOwnershipMutationHookResult = ReturnType<typeof useTransferOwnershipMutation>;
 export type TransferOwnershipMutationResult = Apollo.MutationResult<TransferOwnershipMutation>;
 export type TransferOwnershipMutationOptions = Apollo.BaseMutationOptions<TransferOwnershipMutation, TransferOwnershipMutationVariables>;
-export const UpdateBooklistDocument = gql`
-    mutation UpdateBooklist($id: ID!, $relatedItemIds: [ID!]) {
-  updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
+export const ConfirmReturnDocument = gql`
+    mutation ConfirmReturn($itemId: ID!, $details: String) {
+  confirmReturn(itemId: $itemId, details: $details) {
     id
-    relatedItems {
-      id
-    }
+    status
+    createdAt
+    updatedAt
   }
 }
     `;
-export type UpdateBooklistMutationFn = Apollo.MutationFunction<UpdateBooklistMutation, UpdateBooklistMutationVariables>;
+export type ConfirmReturnMutationFn = Apollo.MutationFunction<ConfirmReturnMutation, ConfirmReturnMutationVariables>;
 
 /**
- * __useUpdateBooklistMutation__
+ * __useConfirmReturnMutation__
  *
- * To run a mutation, you first call `useUpdateBooklistMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateBooklistMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useConfirmReturnMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConfirmReturnMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [updateBooklistMutation, { data, loading, error }] = useUpdateBooklistMutation({
+ * const [confirmReturnMutation, { data, loading, error }] = useConfirmReturnMutation({
  *   variables: {
- *      id: // value for 'id'
- *      relatedItemIds: // value for 'relatedItemIds'
- *   },
- * });
- */
-export function useUpdateBooklistMutation(baseOptions?: Apollo.MutationHookOptions<UpdateBooklistMutation, UpdateBooklistMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateBooklistMutation, UpdateBooklistMutationVariables>(UpdateBooklistDocument, options);
-      }
-export type UpdateBooklistMutationHookResult = ReturnType<typeof useUpdateBooklistMutation>;
-export type UpdateBooklistMutationResult = Apollo.MutationResult<UpdateBooklistMutation>;
-export type UpdateBooklistMutationOptions = Apollo.BaseMutationOptions<UpdateBooklistMutation, UpdateBooklistMutationVariables>;
-export const AddItemToNewsPostDocument = gql`
-    mutation AddItemToNewsPost($id: ID!, $itemId: ID!, $comment: String) {
-  addItemToNewsPost(id: $id, itemId: $itemId, comment: $comment) {
-    id
-    relatedItems {
-      id
-    }
-  }
-}
-    `;
-export type AddItemToNewsPostMutationFn = Apollo.MutationFunction<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>;
-
-/**
- * __useAddItemToNewsPostMutation__
- *
- * To run a mutation, you first call `useAddItemToNewsPostMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddItemToNewsPostMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [addItemToNewsPostMutation, { data, loading, error }] = useAddItemToNewsPostMutation({
- *   variables: {
- *      id: // value for 'id'
  *      itemId: // value for 'itemId'
- *      comment: // value for 'comment'
+ *      details: // value for 'details'
  *   },
  * });
  */
-export function useAddItemToNewsPostMutation(baseOptions?: Apollo.MutationHookOptions<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>) {
+export function useConfirmReturnMutation(baseOptions?: Apollo.MutationHookOptions<ConfirmReturnMutation, ConfirmReturnMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>(AddItemToNewsPostDocument, options);
+        return Apollo.useMutation<ConfirmReturnMutation, ConfirmReturnMutationVariables>(ConfirmReturnDocument, options);
       }
-export type AddItemToNewsPostMutationHookResult = ReturnType<typeof useAddItemToNewsPostMutation>;
-export type AddItemToNewsPostMutationResult = Apollo.MutationResult<AddItemToNewsPostMutation>;
-export type AddItemToNewsPostMutationOptions = Apollo.BaseMutationOptions<AddItemToNewsPostMutation, AddItemToNewsPostMutationVariables>;
-export const BooklistRecentPostsDocument = gql`
-    query BooklistRecentPosts($limit: Int, $offset: Int, $newsStatus: NewsStatus) {
-  newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
-    id
-    title
-    relatedItems {
-      id
-    }
-  }
-}
-    `;
-
-/**
- * __useBooklistRecentPostsQuery__
- *
- * To run a query within a React component, call `useBooklistRecentPostsQuery` and pass it any options that fit your needs.
- * When your component renders, `useBooklistRecentPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useBooklistRecentPostsQuery({
- *   variables: {
- *      limit: // value for 'limit'
- *      offset: // value for 'offset'
- *      newsStatus: // value for 'newsStatus'
- *   },
- * });
- */
-export function useBooklistRecentPostsQuery(baseOptions?: Apollo.QueryHookOptions<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>(BooklistRecentPostsDocument, options);
-      }
-export function useBooklistRecentPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>(BooklistRecentPostsDocument, options);
-        }
-export function useBooklistRecentPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>(BooklistRecentPostsDocument, options);
-        }
-export type BooklistRecentPostsQueryHookResult = ReturnType<typeof useBooklistRecentPostsQuery>;
-export type BooklistRecentPostsLazyQueryHookResult = ReturnType<typeof useBooklistRecentPostsLazyQuery>;
-export type BooklistRecentPostsSuspenseQueryHookResult = ReturnType<typeof useBooklistRecentPostsSuspenseQuery>;
-export type BooklistRecentPostsQueryResult = Apollo.QueryResult<BooklistRecentPostsQuery, BooklistRecentPostsQueryVariables>;
+export type ConfirmReturnMutationHookResult = ReturnType<typeof useConfirmReturnMutation>;
+export type ConfirmReturnMutationResult = Apollo.MutationResult<ConfirmReturnMutation>;
+export type ConfirmReturnMutationOptions = Apollo.BaseMutationOptions<ConfirmReturnMutation, ConfirmReturnMutationVariables>;
 export const ItemTransactionsDocument = gql`
     query ItemTransactions($itemId: ID!) {
   transactionsByItem(itemId: $itemId) {
@@ -2902,6 +3080,7 @@ export const NewsRecentPostsDocument = gql`
     title
     images
     createdAt
+    updatedAt
     tags
     relatedItems {
       id
@@ -3117,6 +3296,65 @@ export function useCancelTransactionMutation(baseOptions?: Apollo.MutationHookOp
 export type CancelTransactionMutationHookResult = ReturnType<typeof useCancelTransactionMutation>;
 export type CancelTransactionMutationResult = Apollo.MutationResult<CancelTransactionMutation>;
 export type CancelTransactionMutationOptions = Apollo.BaseMutationOptions<CancelTransactionMutation, CancelTransactionMutationVariables>;
+export const UserBookListBannerDocument = gql`
+    query UserBookListBanner($userId: ID!, $limit: Int, $offset: Int) {
+  userBooklist(userId: $userId, limit: $limit, offset: $offset) {
+    id
+    title
+    createdAt
+    updatedAt
+    images
+    tags
+    relatedItems {
+      id
+      name
+      description
+      condition
+      status
+      images
+      publishedYear
+      createdAt
+      category
+      contentRating
+    }
+  }
+}
+    `;
+
+/**
+ * __useUserBookListBannerQuery__
+ *
+ * To run a query within a React component, call `useUserBookListBannerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserBookListBannerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserBookListBannerQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useUserBookListBannerQuery(baseOptions: Apollo.QueryHookOptions<UserBookListBannerQuery, UserBookListBannerQueryVariables> & ({ variables: UserBookListBannerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserBookListBannerQuery, UserBookListBannerQueryVariables>(UserBookListBannerDocument, options);
+      }
+export function useUserBookListBannerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserBookListBannerQuery, UserBookListBannerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserBookListBannerQuery, UserBookListBannerQueryVariables>(UserBookListBannerDocument, options);
+        }
+export function useUserBookListBannerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserBookListBannerQuery, UserBookListBannerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UserBookListBannerQuery, UserBookListBannerQueryVariables>(UserBookListBannerDocument, options);
+        }
+export type UserBookListBannerQueryHookResult = ReturnType<typeof useUserBookListBannerQuery>;
+export type UserBookListBannerLazyQueryHookResult = ReturnType<typeof useUserBookListBannerLazyQuery>;
+export type UserBookListBannerSuspenseQueryHookResult = ReturnType<typeof useUserBookListBannerSuspenseQuery>;
+export type UserBookListBannerQueryResult = Apollo.QueryResult<UserBookListBannerQuery, UserBookListBannerQueryVariables>;
 export const ItemsByUserDocument = gql`
     query ItemsByUser($userId: ID!, $limit: Int, $offset: Int, $category: [String!], $isExchangePointItem: Boolean) {
   itemsByUser(

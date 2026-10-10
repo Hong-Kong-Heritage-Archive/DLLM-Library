@@ -54,7 +54,8 @@ export class NewsService {
       .collection("news")
       .orderBy("updated", "desc")
       .limit(limit)
-      .offset(offset);
+      .offset(offset)
+      .where("isVisible", "==", true);
     if (tags && tags.length > 0)
       newsQuery = newsQuery.where("tags", "array-contains-any", tags);
     if (keyword)
@@ -65,6 +66,9 @@ export class NewsService {
     if (newsStatus) newsQuery = newsQuery.where("newsStatus", "==", newsStatus);
     if (itemId)
       newsQuery = newsQuery.where("relatedItemIds", "array-contains", itemId);
+    else if (!newsType)
+      newsQuery = newsQuery.where("newsType", "!=", NewsType.UserBooklist);
+
     const newsDocs = await newsQuery.get();
     const newsPosts: NewsPost[] = [];
     for (const doc of newsDocs.docs) {
@@ -92,6 +96,32 @@ export class NewsService {
         doc.id,
       );
       newsPosts.push(newsPost);
+    }
+    return newsPosts;
+  }
+
+  async userBooklist(
+    currentUser: User | null,
+    userId: string,
+    limit: number = 10,
+    offset: number = 0,
+  ): Promise<NewsPost[]> {
+    let newsQuery = db
+      .collection("news")
+      .where("userId", "==", userId)
+      .where("newsType", "==", NewsType.UserBooklist)
+      .orderBy("updated", "desc");
+    if (!currentUser || currentUser.id !== userId) {
+      newsQuery = newsQuery.where("isVisible", "==", true);
+    }
+    const newsDocs = await newsQuery.limit(limit).offset(offset).get();
+    const newsPosts: NewsPost[] = [];
+    for (const doc of newsDocs.docs) {
+      const data = doc.data() as NewsModel;
+      if (!data) continue;
+      newsPosts.push(
+        await this.converyNewsModelToNewsPost(currentUser, data, doc.id),
+      );
     }
     return newsPosts;
   }
@@ -191,14 +221,19 @@ export class NewsService {
     newsType: NewsType,
     newsStatus: NewsStatus,
   ): Promise<NewsPost> {
-    if (!owner || !owner.role || owner.role !== Role.Admin) {
-      throw new Error("Only admin can create news");
-    }
-    if (!newsStatus) {
-      newsStatus = NewsStatus.Draft;
-    }
     if (!newsType) {
       newsType = NewsType.Announcement;
+    }
+    if (!owner || !owner.role) {
+      throw new Error("User not found");
+    }
+    if (owner.role !== Role.Admin && newsType !== NewsType.UserBooklist) {
+      throw new Error("Only admins can create news");
+    }
+    if (owner.role !== Role.Admin && newsType === NewsType.UserBooklist) {
+      newsStatus = NewsStatus.CoEditing;
+    } else if (!newsStatus) {
+      newsStatus = NewsStatus.Draft;
     }
     const now = new Timestamp(Math.ceil(Date.now() / 1000), 0);
     let gsImageUrls: string[] | null = null;
@@ -257,6 +292,15 @@ export class NewsService {
     return rv;
   }
 
+  private ensureUserBooklistWriteAccess(newsModel: NewsModel, user: User) {
+    if (
+      newsModel.newsType === NewsType.UserBooklist &&
+      newsModel.userId !== user.id
+    ) {
+      throw new Error("Only the owner can update this user booklist");
+    }
+  }
+
   async updateNews(
     id: string,
     user: User,
@@ -276,6 +320,7 @@ export class NewsService {
     if (!newsModel) {
       throw new Error("News data is invalid");
     }
+    this.ensureUserBooklistWriteAccess(newsModel, user);
     // check the status of news, if it's not co-editing
     if (
       newsModel.newsStatus !== NewsStatus.CoEditing &&
@@ -296,6 +341,7 @@ export class NewsService {
       tags,
       newsStatus,
       newsType,
+      null,
     );
     return rv;
   }
@@ -314,6 +360,7 @@ export class NewsService {
     if (!newsModel) {
       throw new Error("News data is invalid");
     }
+    this.ensureUserBooklistWriteAccess(newsModel, user);
     // check the status of news, if it's not co-editing
     if (
       newsModel.newsStatus !== NewsStatus.CoEditing &&
@@ -392,6 +439,7 @@ export class NewsService {
       null,
       null,
       null,
+      null,
     );
     return rv;
   }
@@ -420,6 +468,37 @@ export class NewsService {
       null,
       NewsStatus.Published,
       null,
+      null,
+    );
+    return rv ? true : false;
+  }
+
+  async hideNewsPost(id: string, user: User): Promise<boolean> {
+    const docRef = await db.collection("news").doc(id).get();
+    if (!docRef.exists) {
+      throw new Error("News not found");
+    }
+    const newsModel = docRef.data() as NewsModel;
+    if (!newsModel) {
+      throw new Error("News data is invalid");
+    }
+    // only admin can hide news post
+    if (user.role !== Role.Admin) {
+      throw new Error("Only admin can hide news post");
+    }
+    const isVisible: boolean = newsModel.isVisible;
+    const rv = await this._updateNews(
+      id,
+      newsModel,
+      user,
+      null,
+      null,
+      null,
+      null,
+      null,
+      NewsStatus.Published,
+      null,
+      !isVisible,
     );
     return rv ? true : false;
   }
@@ -448,6 +527,7 @@ export class NewsService {
       null,
       NewsStatus.CoEditing,
       null,
+      null,
     );
     return rv ? true : false;
   }
@@ -463,6 +543,7 @@ export class NewsService {
     tags: string[] | null | undefined,
     newsStatus: NewsStatus | null | undefined,
     newsType: NewsType | null | undefined,
+    isVisible: boolean | null | undefined,
   ): Promise<NewsPost> {
     const now = new Timestamp(Math.ceil(Date.now() / 1000), 0);
 
@@ -486,6 +567,8 @@ export class NewsService {
     if (tags) newsData.tags = tags;
     if (newsStatus) newsData.newsStatus = newsStatus;
     if (newsType) newsData.newsType = newsType;
+    if (isVisible !== null && isVisible !== undefined)
+      newsData.isVisible = isVisible;
     const parsedContent = await this._parseNewsContentToSyncWithRelatedItems(
       newsData.content,
       newsData.relatedItemIds,

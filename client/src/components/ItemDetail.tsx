@@ -18,10 +18,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   List,
   Card,
   CardContent,
@@ -35,6 +31,7 @@ import {
   ChevronRight as ChevronRightIcon,
   Article as ArticleIcon,
   Share as ShareIcon,
+  FavoriteBorder as FavoriteBorderIcon,
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
@@ -64,9 +61,13 @@ import ItemShareDialog from "./ItemShareDialog";
 import { getContentRatingOption } from "../utils/contentRating";
 import NewsSummary from "./NewsSummary";
 import { SimpleNews } from "./NewsSummary";
+import AddToBooklistDialog from "./AddToBooklistDialog";
 import DetailSectionCard from "../styles/DetailSectionCard";
 import { semanticTokens } from "../styles/semanticTokens";
-import { getItemStatusChipIcon, getItemStatusChipProps } from "../utils/itemStatusChip";
+import {
+  getItemStatusChipIcon,
+  getItemStatusChipProps,
+} from "../utils/itemStatusChip";
 
 const ITEM_RELATED_NEWS_QUERY = gql`
   query ItemNewsRelatedPosts(
@@ -84,6 +85,7 @@ const ITEM_RELATED_NEWS_QUERY = gql`
       id
       title
       createdAt
+      updatedAt
       images
       tags
     }
@@ -218,44 +220,6 @@ const GET_ITEM_CONFIG = gql`
   }
 `;
 
-const UPDATE_BOOKLIST_MUTATION = gql`
-  mutation UpdateBooklist($id: ID!, $relatedItemIds: [ID!]) {
-    updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
-      id
-      relatedItems {
-        id
-      }
-    }
-  }
-`;
-
-const ADD_ITEM_TO_NEWS_POST_MUTATION = gql`
-  mutation AddItemToNewsPost($id: ID!, $itemId: ID!, $comment: String) {
-    addItemToNewsPost(id: $id, itemId: $itemId, comment: $comment) {
-      id
-      relatedItems {
-        id
-      }
-    }
-  }
-`;
-
-const BOOKLIST_RECENT_POSTS_QUERY = gql`
-  query BooklistRecentPosts(
-    $limit: Int
-    $offset: Int
-    $newsStatus: NewsStatus
-  ) {
-    newsRecentPosts(limit: $limit, offset: $offset, newsStatus: $newsStatus) {
-      id
-      title
-      relatedItems {
-        id
-      }
-    }
-  }
-`;
-
 const ITEM_TRANSACTIONS_QUERY = gql`
   query ItemTransactions($itemId: ID!) {
     transactionsByItem(itemId: $itemId) {
@@ -276,16 +240,6 @@ const ITEM_TRANSACTIONS_QUERY = gql`
     }
   }
 `;
-
-interface BooklistRecentPostsQueryData {
-  newsRecentPosts: Array<{
-    id: string;
-    title: string;
-    relatedItems?: Array<{
-      id: string;
-    }> | null;
-  }>;
-}
 
 interface ItemDetailProps {
   itemId: string | null;
@@ -647,16 +601,17 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   // Add state for Face-to-Face dialog
   const [faceToFaceDialogOpen, setFaceToFaceDialogOpen] = useState(false);
-  const [transferOwnershipDialogOpen, setTransferOwnershipDialogOpen] = useState(false);
+  const [transferOwnershipDialogOpen, setTransferOwnershipDialogOpen] =
+    useState(false);
   const [confirmReturnDialogOpen, setConfirmReturnDialogOpen] = useState(false);
   const [confirmReturnDetails, setConfirmReturnDetails] = useState("");
 
   // Add state for news form dialog
   const [newsFormOpen, setNewsFormOpen] = useState(false);
 
-  const [booklistDialogOpen, setBooklistDialogOpen] = useState(false);
-  const [selectedNewsPostId, setSelectedNewsPostId] = useState("");
-  const [comment, setComment] = useState("");
+  const [booklistDialogMode, setBooklistDialogMode] = useState<
+    "collaborative" | "personal" | null
+  >(null);
 
   // State for location prompt dialog
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
@@ -674,17 +629,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     {
       variables: { itemId: itemId! },
       skip: !itemId,
-    },
-  );
-
-  const newsRecent = useQuery<BooklistRecentPostsQueryData>(
-    BOOKLIST_RECENT_POSTS_QUERY,
-    {
-      variables: {
-        limit: 20,
-        offset: 0,
-        newsStatus: NewsStatus.CoEditing,
-      },
     },
   );
 
@@ -793,39 +737,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     },
   );
 
-  const [updateBooklist, { loading: updateBooklistLoading }] = useMutation(
-    UPDATE_BOOKLIST_MUTATION,
-    {
-      onCompleted: () => {
-        setBooklistDialogOpen(false);
-        setSelectedNewsPostId("");
-        setSuccessMessage(t("item.addBooklistSuccess", "Added to booklist"));
-        setSuccessSnackbarOpen(true);
-        newsRecent.refetch();
-      },
-      onError: (mutationError) => {
-        setErrorMessage(mutationError.message);
-        setErrorSnackbarOpen(true);
-      },
-    },
-  );
-
-  const [addItemToNewsPost, { loading: addItemToNewsPostLoading }] =
-    useMutation(ADD_ITEM_TO_NEWS_POST_MUTATION, {
-      onCompleted: () => {
-        setBooklistDialogOpen(false);
-        setSelectedNewsPostId("");
-        setComment("");
-        setSuccessMessage(t("item.addBooklistSuccess", "Added to booklist"));
-        setSuccessSnackbarOpen(true);
-        newsRecent.refetch();
-      },
-      onError: (mutationError) => {
-        setErrorMessage(mutationError.message);
-        setErrorSnackbarOpen(true);
-      },
-    });
-
   const [transferOwnership, { loading: transferOwnershipLoading }] =
     useMutation(TRANSFER_OWNERSHIP_MUTATION, {
       onCompleted: () => {
@@ -842,8 +753,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       },
     });
 
-  const [confirmReturn, { loading: confirmReturnLoading }] =
-    useMutation(CONFIRM_RETURN_MUTATION, {
+  const [confirmReturn, { loading: confirmReturnLoading }] = useMutation(
+    CONFIRM_RETURN_MUTATION,
+    {
       onCompleted: () => {
         setConfirmReturnDialogOpen(false);
         setConfirmReturnDetails("");
@@ -857,15 +769,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         setErrorMessage(mutationError.message);
         setErrorSnackbarOpen(true);
       },
-    });
-
-  const availableBooklists = useMemo(() => {
-    if (!itemId || !newsRecent.data?.newsRecentPosts) {
-      return [];
-    }
-
-    return newsRecent.data.newsRecentPosts;
-  }, [itemId, newsRecent.data?.newsRecentPosts]);
+    },
+  );
 
   const isOwner = user && data?.item?.ownerId === user.id;
   const isAdmin = user && user.role === Role.Admin;
@@ -876,12 +781,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const canBorrowBook = user && !isHolder;
   const canReturnBook = user && !isOwner && isHolder;
   const canTransferOwnership = Boolean(
-    isOwner &&
-    data?.item?.holderId &&
-    data.item.holderId !== data.item.ownerId,
+    isOwner && data?.item?.holderId && data.item.holderId !== data.item.ownerId,
   );
 
-  const hasAddToBooklistButton = Boolean(user && availableBooklists.length > 0);
+  const hasAddToBooklistButton = Boolean(user);
   const hasRequestButton = Boolean(canBorrowBook || canReturnBook || !user);
   const primaryActionButtonCount =
     Number(hasAddToBooklistButton) + Number(hasRequestButton);
@@ -950,78 +853,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   };
 
   const handleAddToBooklistClick = () => {
-    if (availableBooklists.length === 0) {
-      setErrorMessage(
-        t(
-          "item.noAvailableBooklists",
-          "No recent booklists are available for this item",
-        ),
-      );
-      setErrorSnackbarOpen(true);
-      return;
-    }
-
-    setSelectedNewsPostId(availableBooklists[0]?.id ?? "");
-    setBooklistDialogOpen(true);
+    setBooklistDialogMode("collaborative");
   };
 
-  const handleCloseBooklistDialog = () => {
-    if (updateBooklistLoading) {
-      return;
-    }
-
-    setBooklistDialogOpen(false);
-    setSelectedNewsPostId("");
-  };
-
-  const handleConfirmAddToBooklist = async () => {
-    if (!itemId || !selectedNewsPostId) {
-      return;
-    }
-
-    const selectedNewsPost = availableBooklists.find(
-      (newsPost) => newsPost.id === selectedNewsPostId,
-    );
-
-    if (!selectedNewsPost) {
-      setErrorMessage(
-        t("item.invalidBooklistSelection", "Please choose a valid booklist"),
-      );
-      setErrorSnackbarOpen(true);
-      return;
-    }
-    try {
-      await addItemToNewsPost({
-        variables: {
-          id: selectedNewsPostId,
-          itemId,
-          comment,
-        },
-      });
-    } catch (mutationError) {
-      console.error("Error adding item to news post:", mutationError);
-    }
-    /*
-    const relatedItemIds = Array.from(
-      new Set([
-        ...(selectedNewsPost.relatedItems?.map(
-          (relatedItem) => relatedItem.id,
-        ) ?? []),
-        itemId,
-      ]),
-    );
-
-    try {
-      await updateBooklist({
-        variables: {
-          id: selectedNewsPost.id,
-          relatedItemIds,
-        },
-      });
-    } catch (mutationError) {
-      console.error("Error updating booklist:", mutationError);
-    }
-*/
+  const handleAddToPersonalBooklistClick = () => {
+    setBooklistDialogMode("personal");
   };
 
   const handleAuthSuccess = () => {
@@ -1065,7 +901,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     } catch (error) {
       console.error("Error transferring ownership:", error);
     }
-  }
+  };
 
   const handleConfirmRequest = async (
     location: TransactionLocation,
@@ -1497,463 +1333,473 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       </Box>
 
       {/* Loading State */}
-      {
-        loading && (
-          <Box sx={loadingBlockSx}>
-            <CircularProgress size={60} />
-          </Box>
-        )
-      }
+      {loading && (
+        <Box sx={loadingBlockSx}>
+          <CircularProgress size={60} />
+        </Box>
+      )}
 
       {/* Error State */}
-      {
-        error && (
-          <Alert severity="error" sx={sectionMb4Sx}>
-            {t("item.errorLoading")}: {error.message}
-          </Alert>
-        )
-      }
+      {error && (
+        <Alert severity="error" sx={sectionMb4Sx}>
+          {t("item.errorLoading")}: {error.message}
+        </Alert>
+      )}
 
       {/* Item Content */}
-      {
-        data?.item && (
-          <Paper elevation={1} sx={paperSectionSx}>
-            <Box sx={heroRowSx}>
-              <Paper
-                elevation={0}
-                sx={heroImagePaperSx}
-                onClick={() => {
-                  if (heroPreviewImage) {
-                    handleThumbnailClick(0);
-                  }
-                }}
-              >
-                {heroPreviewImage ? (
-                  <img
-                    src={heroPreviewImage}
-                    alt={data.item.name}
-                    style={heroImageStyle}
+      {data?.item && (
+        <Paper elevation={1} sx={paperSectionSx}>
+          <Box sx={heroRowSx}>
+            <Paper
+              elevation={0}
+              sx={heroImagePaperSx}
+              onClick={() => {
+                if (heroPreviewImage) {
+                  handleThumbnailClick(0);
+                }
+              }}
+            >
+              {heroPreviewImage ? (
+                <img
+                  src={heroPreviewImage}
+                  alt={data.item.name}
+                  style={heroImageStyle}
+                />
+              ) : (
+                <Box sx={heroFallbackImageSx}>{t("item.noImage", "Image")}</Box>
+              )}
+            </Paper>
+
+            <Box>
+              <Box sx={heroMetaRowSx}>
+                <Box sx={heroMetaItemSx}>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={heroMetaLabelSx}
+                  >
+                    {t("item.status", "Status")}
+                  </Typography>
+                  <Chip
+                    icon={getItemStatusChipIcon(data.item.status)}
+                    label={t(
+                      `shortStatus.${data.item.status}`,
+                      data.item.status,
+                    )}
+                    size="small"
+                    sx={{
+                      ...infoStatusChipSx(data.item.status),
+                      "& .MuiChip-icon": {
+                        color: "inherit",
+                        fontSize: "0.9rem",
+                      },
+                    }}
                   />
-                ) : (
-                  <Box sx={heroFallbackImageSx}>{t("item.noImage", "Image")}</Box>
-                )}
-              </Paper>
-
-              <Box>
-                <Box sx={heroMetaRowSx}>
-                  <Box sx={heroMetaItemSx}>
-                    <Typography
-                      variant="body1"
-                      color="text.secondary"
-                      sx={heroMetaLabelSx}
-                    >
-                      {t("item.status", "Status")}
-                    </Typography>
-                    <Chip
-                      icon={getItemStatusChipIcon(data.item.status)}
-                      label={t(
-                        `shortStatus.${data.item.status}`,
-                        data.item.status,
-                      )}
-                      size="small"
-                      sx={{
-                        ...infoStatusChipSx(data.item.status),
-                        "& .MuiChip-icon": { color: "inherit", fontSize: "0.9rem" },
-                      }}
-                    />
-                  </Box>
-                  <Box sx={heroMetaItemSx}>
-                    <Typography sx={heroMetaLabelSx}>
-                      {t("item.condition", "Condition")}
-                    </Typography>
-                    <Chip
-                      label={t(
-                        `item.conditions.${data.item.condition}`,
-                        data.item.condition,
-                      )}
-                      color="default"
-                      size="small"
-                      sx={{ ml: 1 }}
-                    />
-                  </Box>
-                  <Box sx={heroMetaItemSx}>
-                    <Typography sx={heroMetaLabelSx}>
-                      {t("item.deposit", "Deposit")}
-                    </Typography>
-                    <Chip
-                      label={
-                        data?.item.deposit
-                          ? `${data.item.deposit} AUD`
-                          : t("common.none", "None")
-                      }
-                      size="small"
-                      sx={tinyMetaChipSx}
-                    />
-                  </Box>
                 </Box>
-
-                <Typography sx={heroTitleSx}>{data.item.name}</Typography>
-
-                <Box sx={flexWrapRowSx}>
-                  {isOwner ? (
-                    <>
-                      <Chip
-                        label={t("item.owner", "Owner")}
-                        size="small"
-                        sx={tagChipSx}
-                      />
-                      <IconButton
-                        onClick={handlePinToggle}
-                        disabled={pinLoading || unpinLoading}
-                        sx={ownerPinButtonSx}
-                        title={
-                          isItemPinned()
-                            ? t("item.unpinItem", "Unpin item")
-                            : t("item.pinItem", "Pin item")
-                        }
-                      >
-                        {pinLoading || unpinLoading ? (
-                          <CircularProgress size={18} />
-                        ) : (
-                          <PinIcon sx={pinIconSx(isItemPinned())} />
-                        )}
-                      </IconButton>
-                    </>
-                  ) : (
-                    <>
-                      {ownerData?.user && (
-                        <Chip
-                          label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email}`}
-                          // label={t("item.owner", "Owner")}
-                          color="primary"
-                          size="small"
-                          sx={{ ml: 2 }}
-                          //   sx={tagChipSx}
-                          onClick={() =>
-                            isOwner
-                              ? undefined
-                              : handleUserClick(ownerData.user.id)
-                          }
-                        />
-                      )}
-                      {!isHolder &&
-                        holderData?.user &&
-                        data.item.holderId !== data.item.ownerId && (
-                          <Chip
-                            label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email}`}
-                            size="small"
-                            sx={tagChipSx}
-                            onClick={() => handleUserClick(holderData.user.id)}
-                          />
-                        )}
-                    </>
-                  )}
+                <Box sx={heroMetaItemSx}>
+                  <Typography sx={heroMetaLabelSx}>
+                    {t("item.condition", "Condition")}
+                  </Typography>
+                  <Chip
+                    label={t(
+                      `item.conditions.${data.item.condition}`,
+                      data.item.condition,
+                    )}
+                    color="default"
+                    size="small"
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                <Box sx={heroMetaItemSx}>
+                  <Typography sx={heroMetaLabelSx}>
+                    {t("item.deposit", "Deposit")}
+                  </Typography>
+                  <Chip
+                    label={
+                      data?.item.deposit
+                        ? `${data.item.deposit} AUD`
+                        : t("common.none", "None")
+                    }
+                    size="small"
+                    sx={tinyMetaChipSx}
+                  />
                 </Box>
               </Box>
-            </Box>
 
-            <Box sx={sectionMb4Sx}>
-              <Typography variant="subtitle1" sx={sectionTitleSx}>
-                {t("item.tags", "Tags")}
-              </Typography>
-              <Box sx={tagsListSx}>
-                {renderClassificationPath(data.item.clssfctns)}
-                {data.item.category && data.item.category.length > 0 && (
+              <Typography sx={heroTitleSx}>{data.item.name}</Typography>
+
+              <Box sx={flexWrapRowSx}>
+                {isOwner ? (
                   <>
-                    {data.item.category.map((category, index) => (
+                    <Chip
+                      label={t("item.owner", "Owner")}
+                      size="small"
+                      sx={tagChipSx}
+                    />
+                    <IconButton
+                      onClick={handlePinToggle}
+                      disabled={pinLoading || unpinLoading}
+                      sx={ownerPinButtonSx}
+                      title={
+                        isItemPinned()
+                          ? t("item.unpinItem", "Unpin item")
+                          : t("item.pinItem", "Pin item")
+                      }
+                    >
+                      {pinLoading || unpinLoading ? (
+                        <CircularProgress size={18} />
+                      ) : (
+                        <PinIcon sx={pinIconSx(isItemPinned())} />
+                      )}
+                    </IconButton>
+                  </>
+                ) : (
+                  <>
+                    {ownerData?.user && (
                       <Chip
-                        key={index}
-                        label={category}
-                        variant="filled"
-                        sx={tagChipSx}
+                        label={`${t("item.owner", "Owner")}: ${ownerData.user.nickname || ownerData.user.email}`}
+                        // label={t("item.owner", "Owner")}
+                        color="primary"
+                        size="small"
+                        sx={{ ml: 2 }}
+                        //   sx={tagChipSx}
+                        onClick={() =>
+                          isOwner
+                            ? undefined
+                            : handleUserClick(ownerData.user.id)
+                        }
                       />
-                    ))}
+                    )}
+                    {!isHolder &&
+                      holderData?.user &&
+                      data.item.holderId !== data.item.ownerId && (
+                        <Chip
+                          label={`${t("item.holder", "Holder")}: ${holderData.user.nickname || holderData.user.email}`}
+                          size="small"
+                          sx={tagChipSx}
+                          onClick={() => handleUserClick(holderData.user.id)}
+                        />
+                      )}
                   </>
                 )}
               </Box>
             </Box>
+          </Box>
 
-            {/* Description */}
-            {normalizedDescription && (
-              <DetailSectionCard
-                title={t("item.description", "Book Description")}
+          <Box sx={sectionMb4Sx}>
+            <Typography variant="subtitle1" sx={sectionTitleSx}>
+              {t("item.tags", "Tags")}
+            </Typography>
+            <Box sx={tagsListSx}>
+              {renderClassificationPath(data.item.clssfctns)}
+              {data.item.category && data.item.category.length > 0 && (
+                <>
+                  {data.item.category.map((category, index) => (
+                    <Chip
+                      key={index}
+                      label={category}
+                      variant="filled"
+                      sx={tagChipSx}
+                    />
+                  ))}
+                </>
+              )}
+            </Box>
+          </Box>
+
+          {/* Description */}
+          {normalizedDescription && (
+            <DetailSectionCard
+              title={t("item.description", "Book Description")}
+            >
+              <Typography
+                variant="body1"
+                sx={descriptionContentSx(showFullDescription)}
               >
-                <Typography
-                  variant="body1"
-                  sx={descriptionContentSx(showFullDescription)}
-                >
-                  {convertLinksToClickable(normalizedDescription)}
-                </Typography>
-                {shouldShowReadMore && (
-                  <Button
-                    variant="text"
-                    sx={descriptionToggleButtonSx}
-                    onClick={() => setShowFullDescription((prev) => !prev)}
-                  >
-                    {showFullDescription
-                      ? t("common.showLess", "Show less")
-                      : t("common.readMore", "Read more")}
-                  </Button>
-                )}
-              </DetailSectionCard>
-            )}
-
-            <Box sx={historySectionSx}>
-              <Typography sx={historyTitleSx}>
-                {t("item.handoverHistory", "Handover History")}
+                {convertLinksToClickable(normalizedDescription)}
               </Typography>
-              <Box sx={historyLineWrapSx}>
-                <Box sx={historyLineSx} />
-                {handoverEvents.map((event) => (
-                  <Box key={event.id} sx={historyRowSx}>
-                    <Box sx={event.active ? historyDotActiveSx : historyDotSx} />
-                    <Typography sx={historyItemTextSx}>{event.text}</Typography>
-                    <Typography sx={historyDateTextSx}>
-                      {formatHistoryDate(event.date)}
-                    </Typography>
-                  </Box>
-                ))}
+              {shouldShowReadMore && (
+                <Button
+                  variant="text"
+                  sx={descriptionToggleButtonSx}
+                  onClick={() => setShowFullDescription((prev) => !prev)}
+                >
+                  {showFullDescription
+                    ? t("common.showLess", "Show less")
+                    : t("common.readMore", "Read more")}
+                </Button>
+              )}
+            </DetailSectionCard>
+          )}
+
+          <Box sx={historySectionSx}>
+            <Typography sx={historyTitleSx}>
+              {t("item.handoverHistory", "Handover History")}
+            </Typography>
+            <Box sx={historyLineWrapSx}>
+              <Box sx={historyLineSx} />
+              {handoverEvents.map((event) => (
+                <Box key={event.id} sx={historyRowSx}>
+                  <Box sx={event.active ? historyDotActiveSx : historyDotSx} />
+                  <Typography sx={historyItemTextSx}>{event.text}</Typography>
+                  <Typography sx={historyDateTextSx}>
+                    {formatHistoryDate(event.date)}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* IMAGES — visual first */}
+          {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
+            (data.item.images && data.item.images.length > 0)) && (
+            <Box sx={mb4Sx}>
+              <Box sx={sectionMb4Sx}>
+                <Grid container spacing={2}>
+                  {(data.item.thumbnails && data.item.thumbnails.length > 0
+                    ? data.item.thumbnails
+                    : data.item.images || []
+                  ).map((image, index) => (
+                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                      <Paper
+                        elevation={2}
+                        sx={thumbnailPaperSx}
+                        onClick={() => handleThumbnailClick(index)}
+                      >
+                        <img
+                          src={image}
+                          alt={`${data.item.name} - Thumbnail ${index + 1} `}
+                          style={thumbnailImageStyle}
+                        />
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
               </Box>
             </Box>
+          )}
 
-            {/* IMAGES — visual first */}
-            {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
-              (data.item.images && data.item.images.length > 0)) && (
-                <Box sx={mb4Sx}>
-                  <Box sx={sectionMb4Sx}>
-                    <Grid container spacing={2}>
-                      {(data.item.thumbnails && data.item.thumbnails.length > 0
-                        ? data.item.thumbnails
-                        : data.item.images || []
-                      ).map((image, index) => (
-                        <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                          <Paper
-                            elevation={2}
-                            sx={thumbnailPaperSx}
-                            onClick={() => handleThumbnailClick(index)}
-                          >
-                            <img
-                              src={image}
-                              alt={`${data.item.name} - Thumbnail ${index + 1} `}
-                              style={thumbnailImageStyle}
-                            />
-                          </Paper>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                </Box>
-              )}
-
-            {/* ITEM INFO GRID */}
-            <Card elevation={0} sx={infoCardSx}>
-              <CardContent>
-                <Grid container spacing={3}>
-                  {user && getDistanceToOwner() && (
-                    <Grid size={6}>
-                      <Typography variant="body1" color="text.secondary">
-                        <strong>{t("item.distance")}:</strong>{" "}
-                        <Chip
-                          label={getDistanceToOwner()}
-                          color="info"
-                          size="small"
-                          sx={{ ml: 1 }}
-                          icon={<LocationOnIcon fontSize="small" />}
-                        />
-                      </Typography>
-                    </Grid>
-                  )}
-                  <Grid size={5}>
+          {/* ITEM INFO GRID */}
+          <Card elevation={0} sx={infoCardSx}>
+            <CardContent>
+              <Grid container spacing={3}>
+                {user && getDistanceToOwner() && (
+                  <Grid size={6}>
                     <Typography variant="body1" color="text.secondary">
-                      <strong>{t("common.language")}:</strong>{" "}
-                      {data.item.language}
+                      <strong>{t("item.distance")}:</strong>{" "}
+                      <Chip
+                        label={getDistanceToOwner()}
+                        color="info"
+                        size="small"
+                        sx={{ ml: 1 }}
+                        icon={<LocationOnIcon fontSize="small" />}
+                      />
                     </Typography>
                   </Grid>
-                  <Grid size={user && getDistanceToOwner() ? 6 : 6}>
-                    <Typography variant="body1" color="text.secondary">
-                      <strong>{t("item.addedOn")}:</strong>{" "}
-                      {new Date(data.item.createdAt).toLocaleDateString()}
-                    </Typography>
-                  </Grid>
-                  {data.item.publishedYear && (
-                    <Grid size={6}>
-                      <Typography variant="body1" color="text.secondary">
-                        <strong>{t("item.publishedYear")}:</strong>{" "}
-                        {data.item.publishedYear}
-                      </Typography>
-                    </Grid>
-                  )}
-                  {(data.item as any).contentRating != null &&
-                    (isOwner || !(data.item as any).contentRatingChecked) && (
-                      <Grid size={7}>
-                        <Typography
-                          variant="body1"
-                          color="text.secondary"
-                          component="div"
-                        >
-                          <strong>
-                            {t("contentRating.label", "Content Rating")}:
-                          </strong>{" "}
-                          {(() => {
-                            const opt = getContentRatingOption(
-                              (data.item as any).contentRating,
-                            );
-                            return opt ? (
-                              <Chip
-                                label={t(opt.labelKey, opt.labelKey)}
-                                color={opt.color as any}
-                                size="small"
-                                sx={{ ml: 1 }}
-                              />
-                            ) : null;
-                          })()}
-                        </Typography>
-                      </Grid>
-                    )}
+                )}
+                <Grid size={5}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("common.language")}:</strong>{" "}
+                    {data.item.language}
+                  </Typography>
                 </Grid>
-              </CardContent>
-            </Card>
+                <Grid size={user && getDistanceToOwner() ? 6 : 6}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>{t("item.addedOn")}:</strong>{" "}
+                    {new Date(data.item.createdAt).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                {data.item.publishedYear && (
+                  <Grid size={6}>
+                    <Typography variant="body1" color="text.secondary">
+                      <strong>{t("item.publishedYear")}:</strong>{" "}
+                      {data.item.publishedYear}
+                    </Typography>
+                  </Grid>
+                )}
+                {(data.item as any).contentRating != null &&
+                  (isOwner || !(data.item as any).contentRatingChecked) && (
+                    <Grid size={7}>
+                      <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        component="div"
+                      >
+                        <strong>
+                          {t("contentRating.label", "Content Rating")}:
+                        </strong>{" "}
+                        {(() => {
+                          const opt = getContentRatingOption(
+                            (data.item as any).contentRating,
+                          );
+                          return opt ? (
+                            <Chip
+                              label={t(opt.labelKey, opt.labelKey)}
+                              color={opt.color as any}
+                              size="small"
+                              sx={{ ml: 1 }}
+                            />
+                          ) : null;
+                        })()}
+                      </Typography>
+                    </Grid>
+                  )}
+              </Grid>
+            </CardContent>
+          </Card>
 
-            {/* STATUS + PRIMARY ACTION — "can I get this?" */}
-            {/* <StatusBox status={data.item.status} /> */}
+          {/* STATUS + PRIMARY ACTION — "can I get this?" */}
+          {/* <StatusBox status={data.item.status} /> */}
 
-            <Box sx={primaryActionsRowSxDynamic}>
-              {hasAddToBooklistButton ? (
+          <Box sx={primaryActionsRowSxDynamic}>
+            {hasAddToBooklistButton ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "stretch",
+                  gap: 1,
+                  ...primaryActionButtonGridItemSx,
+                }}
+              >
                 <Button
                   variant="outlined"
                   color="secondary"
                   size="large"
                   onClick={handleAddToBooklistClick}
-                  disabled={newsRecent.loading || updateBooklistLoading}
                   startIcon={<ArticleIcon />}
-                  sx={{
-                    ...addBookshelfButtonSx,
-                    ...primaryActionButtonGridItemSx,
-                  }}
+                  sx={{ ...addBookshelfButtonSx, flex: 1 }}
                 >
                   {t("item.addbooklist", "Add to Bookshelf")}
                 </Button>
-              ) : null}
-
-              {hasRequestButton ? (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  fullWidth={primaryActionButtonCount === 1}
-                  onClick={handleRequestClick}
-                  sx={{
-                    ...primaryActionButtonSx,
-                    ...primaryActionButtonGridItemSx,
-                  }}
-                  disabled={contactHolderLoading}
+                <IconButton
+                  color="secondary"
+                  onClick={handleAddToPersonalBooklistClick}
+                  aria-label={t("item.addToMyBooklist", "Add to My Booklist")}
+                  sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}
                 >
-                  {contactHolderLoading ? (
-                    <CircularProgress size={20} sx={inheritProgressSx} />
-                  ) : null}
-                  {canReturnBook
-                    ? t("item.return")
-                    : t("item.requestToBorrow", "Request To Borrow")}
-                </Button>
-              ) : null}
-            </Box>
+                  <FavoriteBorderIcon />
+                </IconButton>
+              </Box>
+            ) : null}
 
-            {/* 7. SECONDARY ACTIONS */}
-            <Box sx={secondaryActionsRowSx}>
-              {(isOwner || isHolder) && (
+            {hasRequestButton ? (
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                fullWidth={primaryActionButtonCount === 1}
+                onClick={handleRequestClick}
+                sx={{
+                  ...primaryActionButtonSx,
+                  ...primaryActionButtonGridItemSx,
+                }}
+                disabled={contactHolderLoading}
+              >
+                {contactHolderLoading ? (
+                  <CircularProgress size={20} sx={inheritProgressSx} />
+                ) : null}
+                {canReturnBook
+                  ? t("item.return")
+                  : t("item.requestToBorrow", "Request To Borrow")}
+              </Button>
+            ) : null}
+          </Box>
+
+          {/* 7. SECONDARY ACTIONS */}
+          <Box sx={secondaryActionsRowSx}>
+            {(isOwner || isHolder) && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={handleFaceToFaceClick}
+                disabled={quickTransactionLoading}
+                startIcon={<TransferIcon />}
+              >
+                {t("item.faceToFaceTransfer", "Face-to-Face Transfer")}
+              </Button>
+            )}
+            {canTransferOwnership && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={handleTransferOwnershipClick}
+                disabled={transferOwnershipLoading}
+                startIcon={<TransferIcon />}
+              >
+                {t("item.transferOwnership.title", "Transfer Ownership")}
+              </Button>
+            )}
+            {isOwner &&
+              data?.item?.holderId &&
+              data.item.holderId !== data.item.ownerId && (
                 <Button
                   variant="outlined"
-                  color="secondary"
+                  color="success"
                   size="small"
-                  onClick={handleFaceToFaceClick}
-                  disabled={quickTransactionLoading}
+                  onClick={handleConfirmReturnClick}
+                  disabled={confirmReturnLoading}
                   startIcon={<TransferIcon />}
                 >
-                  {t("item.faceToFaceTransfer", "Face-to-Face Transfer")}
+                  {t("item.confirmReturn", "Confirm Return")}
                 </Button>
               )}
-              {canTransferOwnership && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="small"
-                  onClick={handleTransferOwnershipClick}
-                  disabled={transferOwnershipLoading}
-                  startIcon={<TransferIcon />}
-                >
-                  {t("item.transferOwnership.title", "Transfer Ownership")}
-                </Button>
-              )}
-              {isOwner &&
-                data?.item?.holderId &&
-                data.item.holderId !== data.item.ownerId && (
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    size="small"
-                    onClick={handleConfirmReturnClick}
-                    disabled={confirmReturnLoading}
-                    startIcon={<TransferIcon />}
-                  >
-                    {t("item.confirmReturn", "Confirm Return")}
-                  </Button>
-                )}
-              {isAdmin && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="small"
-                  onClick={handleCreateNewsClick}
-                  startIcon={<ArticleIcon />}
-                >
-                  {t("item.createNews", "Create News")}
-                </Button>
-              )}
+            {isAdmin && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={handleCreateNewsClick}
+                startIcon={<ArticleIcon />}
+              >
+                {t("item.createNews", "Create News")}
+              </Button>
+            )}
 
-              {(isOwner || isAdmin) && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="small"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  {t("item.editItem")}
-                </Button>
-              )}
+            {(isOwner || isAdmin) && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={() => setEditDialogOpen(true)}
+              >
+                {t("item.editItem")}
+              </Button>
+            )}
 
-              {/* related news */}
-              {itemNewsPosts?.data?.newsRecentPosts &&
-                itemNewsPosts?.data?.newsRecentPosts.length > 0 && (
-                  <List sx={relatedNewsListSx}>
-                    <Typography variant="h6">
-                      {t("item.relatedNews", "Related News")}
-                    </Typography>
-                    {itemNewsPosts.data.newsRecentPosts.map((news: SimpleNews) => (
+            {/* related news */}
+            {itemNewsPosts?.data?.newsRecentPosts &&
+              itemNewsPosts?.data?.newsRecentPosts.length > 0 && (
+                <List sx={relatedNewsListSx}>
+                  <Typography variant="h6">
+                    {t("item.relatedNews", "Related News")}
+                  </Typography>
+                  {itemNewsPosts.data.newsRecentPosts.map(
+                    (news: SimpleNews) => (
                       <NewsSummary
                         key={news.id}
                         news={news}
                         onClick={handleNewsItemClick}
                       />
-                    ))}
-                  </List>
-                )}
-            </Box>
-          </Paper>
-        )
-      }
+                    ),
+                  )}
+                </List>
+              )}
+          </Box>
+        </Paper>
+      )}
       {/* Edit Item Dialog */}
-      {
-        user && (
-          <ItemForm
-            open={editDialogOpen}
-            user={user}
-            onClose={() => setEditDialogOpen(false)}
-            item={data?.item || null}
-            onItemUpdated={handleEditSuccess}
-            onError={handleEditError}
-          />
-        )
-      }
+      {user && (
+        <ItemForm
+          open={editDialogOpen}
+          user={user}
+          onClose={() => setEditDialogOpen(false)}
+          item={data?.item || null}
+          onItemUpdated={handleEditSuccess}
+          onError={handleEditError}
+        />
+      )}
       {/* Location Prompt Dialog */}
       <Modal
         open={locationPromptOpen}
@@ -2052,7 +1898,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
               )}
             </Typography>
             <TextField
-              label={t("item.details", "Details (optional)")}
+              label={t("item.details1", "Details (optional)")}
               value={confirmReturnDetails}
               onChange={(event) => setConfirmReturnDetails(event.target.value)}
               fullWidth
@@ -2082,69 +1928,23 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={booklistDialogOpen}
-        onClose={handleCloseBooklistDialog}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>{t("item.addbooklist", "Add to Booklist")}</DialogTitle>
-        <DialogContent>
-          <Box sx={dialogTopPaddingSx}>
-            <FormControl fullWidth>
-              <InputLabel id="booklist-select-label">
-                {t("item.booklist", "Booklist")}
-              </InputLabel>
-              <Select
-                labelId="booklist-select-label"
-                value={selectedNewsPostId}
-                label={t("item.booklist", "Booklist")}
-                onChange={(event) =>
-                  setSelectedNewsPostId(event.target.value as string)
-                }
-              >
-                {availableBooklists.map((newsPost) => (
-                  <MenuItem key={newsPost.id} value={newsPost.id}>
-                    {newsPost.title}
-                  </MenuItem>
-                ))}
-              </Select>
-              <TextField
-                label={t("item.comment", "Comment")}
-                value={comment}
-                onChange={(event) => setComment(event.target.value)}
-                fullWidth
-                multiline
-                rows={3}
-                sx={mt2Sx}
-              />
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleCloseBooklistDialog}
-            disabled={addItemToNewsPostLoading || updateBooklistLoading}
-          >
-            {t("common.cancel", "Cancel")}
-          </Button>
-          <Button
-            onClick={handleConfirmAddToBooklist}
-            variant="contained"
-            disabled={
-              !selectedNewsPostId ||
-              addItemToNewsPostLoading ||
-              updateBooklistLoading
-            }
-          >
-            {addItemToNewsPostLoading ? (
-              <CircularProgress size={20} sx={progressMr1Sx} />
-            ) : null}
-            {t("common.add", "Add")}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
+      <AddToBooklistDialog
+        open={booklistDialogMode !== null}
+        mode={booklistDialogMode ?? "collaborative"}
+        itemId={itemId ?? ""}
+        userId={user?.id ?? ""}
+        nickname={user?.nickname ?? ""}
+        onClose={() => setBooklistDialogMode(null)}
+        onAdded={() => {
+          setBooklistDialogMode(null);
+          setSuccessMessage(t("item.addBooklistSuccess", "Added to booklist"));
+          setSuccessSnackbarOpen(true);
+        }}
+        onError={(message) => {
+          setErrorMessage(message);
+          setErrorSnackbarOpen(true);
+        }}
+      />
 
       {/* Success Snackbar */}
       <Snackbar
@@ -2188,39 +1988,33 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         onNext={handleNextImage}
         itemName={data?.item?.name}
       />
-      {
-        data?.item && (
-          <Box sx={commentsWrapSx}>
-            <ItemComments itemId={itemId!} currentUser={user} />
-          </Box>
-        )
-      }
+      {data?.item && (
+        <Box sx={commentsWrapSx}>
+          <ItemComments itemId={itemId!} currentUser={user} />
+        </Box>
+      )}
 
-      {
-        data?.item && (
-          <ItemShareDialog
-            open={shareDialogOpen}
-            onClose={() => setShareDialogOpen(false)}
-            itemName={data.item.name}
-            itemUrl={itemShareUrl}
-            adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
-          />
-        )
-      }
+      {data?.item && (
+        <ItemShareDialog
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          itemName={data.item.name}
+          itemUrl={itemShareUrl}
+          adminTemplates={hostConfig?.itemShareMessageTemplates ?? []}
+        />
+      )}
 
       {/* News Form Dialog - For admins to create news related to the item */}
-      {
-        user && isAdmin && (
-          <NewsForm
-            open={newsFormOpen}
-            onClose={() => setNewsFormOpen(false)}
-            relatedItem={data?.item || null}
-            onSuccess={handleEditSuccess}
-            onError={handleEditError}
-          />
-        )
-      }
-    </Container >
+      {user && isAdmin && (
+        <NewsForm
+          open={newsFormOpen}
+          onClose={() => setNewsFormOpen(false)}
+          relatedItem={data?.item || null}
+          onSuccess={handleEditSuccess}
+          onError={handleEditError}
+        />
+      )}
+    </Container>
   );
 };
 
