@@ -54,7 +54,8 @@ export class NewsService {
       .collection("news")
       .orderBy("updated", "desc")
       .limit(limit)
-      .offset(offset);
+      .offset(offset)
+      .where("isVisible", "==", true);
     if (tags && tags.length > 0)
       newsQuery = newsQuery.where("tags", "array-contains-any", tags);
     if (keyword)

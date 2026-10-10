@@ -95,16 +95,6 @@ const CREATE_USER_BOOKLIST_MUTATION = gql`
   }
 `;
 
-const UPDATE_USER_BOOKLIST_MUTATION = gql`
-  mutation AddItemToUserBooklist($id: ID!, $relatedItemIds: [ID!]) {
-    updateNewsPost(id: $id, relatedItemIds: $relatedItemIds) {
-      id
-      relatedItems {
-        id
-      }
-    }
-  }
-`;
 
 const ADD_ITEM_TO_COLLABORATIVE_BOOKLIST_MUTATION = gql`
   mutation AddItemToCollaborativeBooklist(
@@ -173,9 +163,7 @@ const AddToBooklistDialog: React.FC<AddToBooklistDialogProps> = ({
   const [createUserBooklist, { loading: createLoading }] = useMutation(
     CREATE_USER_BOOKLIST_MUTATION,
   );
-  const [updateUserBooklist, { loading: updateLoading }] = useMutation(
-    UPDATE_USER_BOOKLIST_MUTATION,
-  );
+
   const [addToCollaborativeBooklist, { loading: collaborativeAddLoading }] =
     useMutation(ADD_ITEM_TO_COLLABORATIVE_BOOKLIST_MUTATION);
   const queryLoading =
@@ -185,7 +173,7 @@ const AddToBooklistDialog: React.FC<AddToBooklistDialogProps> = ({
   const queryError =
     mode === "personal" ? userBooklistsQuery.error : collaborativeQuery.error;
   const mutationLoading =
-    createLoading || updateLoading || collaborativeAddLoading;
+    createLoading || collaborativeAddLoading;
 
   useEffect(() => {
     if (!open) return;
@@ -385,7 +373,7 @@ const AddToBooklistDialog: React.FC<AddToBooklistDialogProps> = ({
             mutationLoading
           }
         >
-          {updateLoading || collaborativeAddLoading ? (
+          {collaborativeAddLoading ? (
             <CircularProgress size={20} sx={{ mr: 1 }} />
           ) : null}
           {t("common.add", "Add")}

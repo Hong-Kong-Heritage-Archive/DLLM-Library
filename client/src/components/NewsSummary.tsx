@@ -13,6 +13,7 @@ import { semanticTokens } from "../styles/semanticTokens";
 export interface SimpleNews {
   id: string;
   title: string;
+  createdAt: string | number;
   updatedAt: string | number;
   images?: string[] | null;
   tags?: string[] | null;

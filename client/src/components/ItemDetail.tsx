@@ -85,6 +85,7 @@ const ITEM_RELATED_NEWS_QUERY = gql`
       id
       title
       createdAt
+      updatedAt
       images
       tags
     }

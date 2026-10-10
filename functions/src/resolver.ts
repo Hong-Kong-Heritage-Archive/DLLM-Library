@@ -29,8 +29,6 @@ import { CategoryService } from "./categoryService";
 import { CommentService } from "./commentService";
 import { RecommendService } from "./recommendService";
 import { SystemService } from "./systemService";
-import { ID } from "graphql-ws/client";
-//import { BinderService } from "./binderService";
 
 interface Context {
   loginUser: LoginUser | null;
