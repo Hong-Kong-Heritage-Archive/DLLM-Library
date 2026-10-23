@@ -272,6 +272,22 @@ export class ItemService {
     );
   }
 
+  async totalItemsCountOnLoanByOwner(
+    userId: string,
+    category: string[] = [],
+    status?: string,
+    keyword?: string,
+  ): Promise<number> {
+    let query = this._itemsQuery([], category, status, keyword, false);
+    query = query
+      .where("ownerId", "==", userId)
+      .where("holderId", "!=", null)
+      .orderBy("holderId")
+      .orderBy("updated", "desc");
+    const snapshot = await query.get();
+    return snapshot.size;
+  }
+
   async itemsOnLoanByHolder(
     loggedInUser: User | UserModel, // Using loggedInUser to ensure censor function works
     category: string[],
@@ -293,6 +309,20 @@ export class ItemService {
       limit,
       offset,
     );
+  }
+
+  async totalItemsCountOnLoanByHolder(
+    userId: string,
+    category: string[] = [],
+    status?: string,
+    keyword?: string,
+  ): Promise<number> {
+    let query = this._itemsQuery([], category, status, keyword, false);
+    query = query
+      .where("holderId", "==", userId)
+      .orderBy("updated", "desc");
+    const snapshot = await query.get();
+    return snapshot.size;
   }
 
   async itemModelById(

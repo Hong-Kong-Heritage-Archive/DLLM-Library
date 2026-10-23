@@ -364,6 +364,12 @@ type Query {
     limit: Int
     offset: Int
   ): [Item!]!
+  totalItemsCountOnLoanByOwner(
+    userId: ID!
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+  ): Int! # Total items currently on loan by this owner (holderId != null)
   itemsOnLoanByHolder(
     userId: ID!
     category: [String!]
@@ -372,6 +378,12 @@ type Query {
     limit: Int
     offset: Int
   ): [Item!]! # 查詢用戶借入的藏品
+  totalItemsCountOnLoanByHolder(
+    userId: ID!
+    category: [String!]
+    status: ItemStatus
+    keyword: String
+  ): Int! # Total items currently borrowed by this holder
   recentAddedItems(
     limit: Int
     offset: Int

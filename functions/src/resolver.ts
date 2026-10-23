@@ -281,6 +281,18 @@ export const resolvers: Resolvers = {
         offset,
       );
     },
+    totalItemsCountOnLoanByOwner: async (
+      _: any,
+      { userId, category, status, keyword }: any,
+      __: any,
+    ): Promise<number> => {
+      return itemService.totalItemsCountOnLoanByOwner(
+        userId,
+        category,
+        status,
+        keyword,
+      );
+    },
     itemsOnLoanByHolder: async (
       _: any,
       { userId, category, status, keyword, limit = 20, offset = 0 }: any,
@@ -298,6 +310,18 @@ export const resolvers: Resolvers = {
         keyword,
         limit,
         offset,
+      );
+    },
+    totalItemsCountOnLoanByHolder: async (
+      _: any,
+      { userId, category, status, keyword }: any,
+      __: any,
+    ): Promise<number> => {
+      return itemService.totalItemsCountOnLoanByHolder(
+        userId,
+        category,
+        status,
+        keyword,
       );
     },
     item: async (

@@ -49,6 +49,12 @@ const GET_ON_LOAN_ITEMS = gql`
   }
 `;
 
+const GET_BORROWED_TOTAL = gql`
+  query TotalItemsCountOnLoanByHolder($userId: ID!) {
+    totalItemsCountOnLoanByHolder(userId: $userId)
+  }
+`;
+
 const GET_USER = gql`
   query GetUser($id: ID!) {
     user(id: $id) {
@@ -77,6 +83,10 @@ interface OnLoanItemsData {
   itemsOnLoanByHolder: OnLoanItem[];
 }
 
+interface BorrowedTotalData {
+  totalItemsCountOnLoanByHolder: number;
+}
+
 interface UserData {
   user: {
     id: string;
@@ -100,7 +110,7 @@ const BorrowedItemsView: React.FC = () => {
   const { user } = useOutletContext<OutletContext>();
 
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 2;
   const [enrichedItems, setEnrichedItems] = useState<EnrichedItem[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
@@ -116,6 +126,17 @@ const BorrowedItemsView: React.FC = () => {
       errorPolicy: "all",
     }
   );
+
+  const {
+    data: totalItemsData,
+    loading: totalItemsLoading,
+    error: totalError,
+  } = useQuery<BorrowedTotalData>(GET_BORROWED_TOTAL, {
+    variables: { userId: user?.id! },
+    skip: !user?.id,
+    fetchPolicy: "network-only",
+    errorPolicy: "none",
+  });
 
   const [getUser] = useLazyQuery<UserData>(GET_USER, {
     errorPolicy: "all",
@@ -205,9 +226,19 @@ const BorrowedItemsView: React.FC = () => {
     }
   };
 
-  // Since we don't have total count from the query, we'll estimate based on returned items
-  const hasMoreItems = data?.itemsOnLoanByHolder.length === pageSize;
-  const canShowPagination = page > 1 || hasMoreItems;
+  const totalItems = totalItemsData?.totalItemsCountOnLoanByHolder;
+  const totalPages =
+    totalItems != null && totalItems > 0
+      ? Math.max(1, Math.ceil(totalItems / pageSize))
+      : null;
+  const hasNextPage =
+    totalItems != null && totalItems > 0
+      ? page * pageSize < totalItems
+      : enrichedItems.length === pageSize;
+  const canShowPagination =
+    page > 1 ||
+    hasNextPage ||
+    (totalPages != null && totalPages > 1);
 
   if (!user) {
     return (
@@ -247,12 +278,21 @@ const BorrowedItemsView: React.FC = () => {
           </Button>
         </Alert>
       )}
+      {totalError && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {t(
+            "item.errorLoadingBorrowedTotal",
+            "Could not load total page count",
+          )}
+          : {totalError.message}
+        </Alert>
+      )}
 
       {/* Results Summary */}
       {!isLoadingContent && enrichedItems && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1" color="text.secondary">
-            {enrichedItems.length === 0
+            {enrichedItems.length === 0 && !totalItems
               ? t(
                 "item.noBorrowedItems",
                 "You currently have no borrowed items"
@@ -261,17 +301,10 @@ const BorrowedItemsView: React.FC = () => {
                 "item.borrowedItemsCount",
                 "You have {{count}} borrowed item(s)",
                 {
-                  count: enrichedItems.length,
+                  count: totalItems ?? enrichedItems.length,
                 }
               )}
           </Typography>
-          {enrichedItems.length > 0 && (
-            <Typography variant="caption" color="text.secondary">
-              {t("item.pageInfo", "Page {{page}}", { page })}
-              {hasMoreItems &&
-                t("item.moreItemsAvailable", " (more items may be available)")}
-            </Typography>
-          )}
         </Box>
       )}
 
@@ -466,11 +499,16 @@ const BorrowedItemsView: React.FC = () => {
                 {t("common.previous", "Previous")}
               </Button>
               <Typography sx={{ display: "flex", alignItems: "center", px: 2 }}>
-                {t("item.currentPage", "Page {{page}}", { page })}
+                {totalPages != null
+                  ? t("common.pageOfTotal", "Page {{page}} of {{total}}", {
+                      page,
+                      total: totalPages,
+                    })
+                  : t("item.currentPage", "Page {{page}}", { page })}
               </Typography>
               <Button
                 variant="outlined"
-                disabled={!hasMoreItems}
+                disabled={!hasNextPage || totalItemsLoading}
                 onClick={() => handlePageChange(null as any, page + 1)}
               >
                 {t("common.next", "Next")}
