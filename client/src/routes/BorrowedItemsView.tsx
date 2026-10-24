@@ -110,7 +110,7 @@ const BorrowedItemsView: React.FC = () => {
   const { user } = useOutletContext<OutletContext>();
 
   const [page, setPage] = useState(1);
-  const pageSize = 2;
+  const pageSize = 20;
   const [enrichedItems, setEnrichedItems] = useState<EnrichedItem[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
