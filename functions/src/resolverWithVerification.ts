@@ -11,6 +11,7 @@ const mutationResolvers = (resolvers as any).Mutation as Record<
 // browsing/profile actions remain available to authenticated unverified users.
 const verificationRequiredMutations = [
   "contactHolder",
+  "createTransaction",
   "createQuickTransaction",
   "receiveTransaction",
   "confirmReturn",

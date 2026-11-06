@@ -13,6 +13,7 @@ import {
   SignedUrlResponse,
   Transaction,
   TransactionStatus,
+  IncompleteRequestsPage,
   Role,
   CategoryMap,
   HostConfig,
@@ -443,6 +444,21 @@ export const resolvers: Resolvers = {
         TransactionStatus.Expired,
       ]);
     },
+    incompleteRequestsByItem: async (
+      _: any,
+      { itemId, limit = 5, offset = 0 }: any,
+      { loginUser }: Context,
+    ): Promise<IncompleteRequestsPage> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return transactionService.incompleteRequestsByItem(
+        user,
+        itemId,
+        limit,
+        offset,
+      );
+    },
     openTransactionsByUser: async (
       _: any,
       { userId }: any,
@@ -821,6 +837,22 @@ export const resolvers: Resolvers = {
         details,
       );
     },
+    createTransaction: async (
+      _: any,
+      { itemId, location, locationIndex, details }: any,
+      { loginUser }: Context,
+    ): Promise<Transaction> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const requestor = await userService.me(loginUser);
+      if (!requestor) throw new Error("User not found");
+      return transactionService.createTransaction(
+        requestor,
+        itemId,
+        location,
+        locationIndex ?? 0,
+        details ?? "",
+      );
+    },
     createQuickTransaction: async (
       _: any,
       { itemId, details }: any,
@@ -887,6 +919,26 @@ export const resolvers: Resolvers = {
       const user = await userService.me(loginUser);
       if (!user) throw new Error("User not found");
       return transactionService.cancelTransaction(user, id);
+    },
+    deleteIncompleteRequest: async (
+      _: any,
+      { id }: any,
+      { loginUser }: Context,
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return transactionService.deleteIncompleteRequest(user, id);
+    },
+    deleteIncompleteRequests: async (
+      _: any,
+      { ids }: any,
+      { loginUser }: Context,
+    ): Promise<boolean> => {
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+      return transactionService.deleteIncompleteRequests(user, ids);
     },
     addItemComment: async (
       _: any,

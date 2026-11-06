@@ -5,6 +5,8 @@ import {
   sendNotificationViaEmail,
 } from "./platform";
 import {
+  IncompleteRequest,
+  IncompleteRequestsPage,
   Item,
   Transaction,
   TransactionStatus,
@@ -14,6 +16,12 @@ import {
 import { ItemService } from "./itemService";
 import { UserService } from "./userService";
 import { it } from "node:test";
+
+const INCOMPLETE_EXCLUDED_STATUSES: TransactionStatus[] = [
+  TransactionStatus.Completed,
+  TransactionStatus.Cancelled,
+  TransactionStatus.Expired,
+];
 
 type TransactionModel = Omit<
   Transaction,
@@ -273,7 +281,6 @@ Let me know if that works for you. No rush at all!`;
     return true;
   }
 
-  /*
   async createTransaction(
     requestor: User,
     itemId: string,
@@ -417,15 +424,21 @@ Let me know if that works for you. No rush at all!`;
         throw new Error("Failed to create chained transaction");
       }
     }
-    // Notify the user
-
-    sendNotificationViaEmail(
-      toList,
-      ccList,
-      "New Transaction Request",
-      `You have a new transaction request for item ${item.name} from ${requestor.nickname}.`,
-      "transaction/" + transactionRef.id,
-    );
+    // Notify participants (best-effort — do not fail the persisted request)
+    try {
+      await sendNotificationViaEmail(
+        toList,
+        ccList,
+        "New Transaction Request",
+        `You have a new transaction request for item ${item.name} from ${requestor.nickname}.`,
+        "transaction/" + transactionRef.id,
+      );
+    } catch (emailError) {
+      console.error(
+        "createTransaction: failed to send notification email:",
+        emailError,
+      );
+    }
     let rv: Transaction = {
       id: transactionRef.id,
       item: item,
@@ -439,7 +452,7 @@ Let me know if that works for you. No rush at all!`;
     };
     return rv;
   }
-*/
+
   async createQuickTransaction(
     holder: User,
     itemId: string,
@@ -526,6 +539,101 @@ Let me know if that works for you. No rush at all!`;
 
   async cancelTransaction(user: User, id: string): Promise<boolean> {
     return this._cancelTransaction(user, id, false);
+  }
+
+  /**
+   * List incomplete borrow requests for a book.
+   * Visible only to the book owner and current holder; others get an empty page.
+   */
+  async incompleteRequestsByItem(
+    user: User,
+    itemId: string,
+    limit: number = 5,
+    offset: number = 0,
+  ): Promise<IncompleteRequestsPage> {
+    const item = await this.itemService.itemById(user, itemId, true);
+    if (!item) {
+      throw new Error(`Item with id ${itemId} not found`);
+    }
+
+    const isOwner = item.ownerId === user.id;
+    const isHolder = this.itemService.isHolder(item, user);
+    if (!isOwner && !isHolder) {
+      return { requests: [], totalCount: 0 };
+    }
+
+    const safeLimit = Math.max(1, Math.min(limit ?? 5, 50));
+    const safeOffset = Math.max(0, offset ?? 0);
+
+    const transactionsMap = await this._transactionsNotStatus(
+      itemId,
+      null,
+      INCOMPLETE_EXCLUDED_STATUSES,
+    );
+    const entries = Array.from(transactionsMap.entries());
+    const totalCount = entries.length;
+    const page = entries.slice(safeOffset, safeOffset + safeLimit);
+
+    const requests: IncompleteRequest[] = [];
+    for (const [id, data] of page) {
+      // Use lightweight profile load — full userById/updateCache can throw for
+      // incomplete user docs (missing id) via category path lookups.
+      const requestor = await this.userService.userModelById(data.requestorId);
+      if (!requestor?.email && !requestor?.nickname) {
+        continue;
+      }
+      requests.push({
+        id,
+        requestorName: requestor.nickname || requestor.email || "Unknown",
+        requestorEmail: requestor.email || "",
+        createdAt: data.created.seconds * 1000,
+        updatedAt: data.updated.seconds * 1000,
+      });
+    }
+
+    return { requests, totalCount };
+  }
+
+  /**
+   * Owner-only soft-delete of a single incomplete request (marks CANCELLED).
+   */
+  async deleteIncompleteRequest(user: User, id: string): Promise<boolean> {
+    const data = await this._transactionById(id);
+    const item = await this.itemService.itemById(user, data.itemId, true);
+    if (!item) {
+      throw new Error(`Item with id ${data.itemId} not found`);
+    }
+    if (item.ownerId !== user.id) {
+      throw new Error(
+        `User with id ${user.id} is not the owner of item with id ${data.itemId}`,
+      );
+    }
+    if (
+      INCOMPLETE_EXCLUDED_STATUSES.includes(data.status as TransactionStatus)
+    ) {
+      throw new Error(
+        `Transaction with id ${id} is not an incomplete request, current status: ${data.status}`,
+      );
+    }
+    return this._cancelTransaction(user, id, false);
+  }
+
+  /**
+   * Owner-only batch soft-delete of incomplete requests.
+   */
+  async deleteIncompleteRequests(
+    user: User,
+    ids: string[],
+  ): Promise<boolean> {
+    if (!ids || ids.length === 0) {
+      throw new Error("No request ids provided");
+    }
+    // Deduplicate while preserving order
+    const uniqueIds = Array.from(new Set(ids));
+    for (const id of uniqueIds) {
+      await this.deleteIncompleteRequest(user, id);
+    }
+    return true;
   }
 
   async _cancelTransaction(
