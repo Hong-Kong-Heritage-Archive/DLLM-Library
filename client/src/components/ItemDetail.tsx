@@ -796,9 +796,6 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const [contactHolder, { loading: contactHolderLoading }] = useMutation(
     CONTACT_HOLDER_MUTATION,
     {
-      onCompleted: (data) => {
-        console.log("Holder contacted:", data.contactHolder);
-      },
       onError: (error) => {
         // Email notify is best-effort after createTransaction succeeds.
         console.error("Error contacting holder:", error);
@@ -808,8 +805,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const [createTransaction, { loading: createTransactionLoading }] =
     useMutation(CREATE_TRANSACTION_MUTATION, {
-      onCompleted: (data) => {
-        console.log("Transaction created:", data.createTransaction);
+      onCompleted: () => {
         setRequestDialogOpen(false);
         setSuccessMessage(t("item.requestSubmitted"));
         setSuccessSnackbarOpen(true);

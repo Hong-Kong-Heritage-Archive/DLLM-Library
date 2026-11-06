@@ -15,7 +15,6 @@ import {
 } from "./generated/graphql";
 import { ItemService } from "./itemService";
 import { UserService } from "./userService";
-import { it } from "node:test";
 
 const INCOMPLETE_EXCLUDED_STATUSES: TransactionStatus[] = [
   TransactionStatus.Completed,
