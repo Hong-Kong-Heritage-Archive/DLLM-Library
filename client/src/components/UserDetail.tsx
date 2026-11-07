@@ -55,6 +55,7 @@ import AddressReminderDialog from "./AddressReminderDialog";
 import ItemForm from "./ItemForm";
 import { PageLoader } from "./LoadingState";
 import UserBookListBanner from "./UserBookListBanner";
+import ExchangePointNames from "./ExchangePointNames";
 
 // GraphQL query to fetch user's items with pagination and category filter
 const USER_ITEMS_QUERY = gql`
@@ -875,7 +876,7 @@ const UserDetail: React.FC<UserDetailProps> = ({
                   >
                     {userData.user.exchangePoints &&
                     userData.user.exchangePoints.length > 0
-                      ? userData.user.exchangePoints.join(", ")
+                      ? <ExchangePointNames ids={userData.user.exchangePoints} />
                       : t("user.notSet", "None selected")}
                   </Typography>
                 </Box>
