@@ -74,15 +74,16 @@ export class UserService {
   }
 
   async userModelById(userId: string): Promise<UserModel | null> {
+    if (!userId) return null;
     const userDoc = await userCollection.doc(userId).get();
     if (!userDoc.exists) return null;
     const data = userDoc.data() as UserModel;
-    // Add the defaults.
+    // Add the defaults. Always prefer the document id when the stored id is missing.
     return {
       ...data,
+      id: data.id || userDoc.id,
       visibleContentRating: data.visibleContentRating ?? DEFAULT_CONTENT_RATING,
     };
-    return data;
   }
 
   async _userById(userId: string): Promise<User | null> {

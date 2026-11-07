@@ -234,6 +234,20 @@ enum TransactionStatus {
   GIFTED # 已贈送（所有權轉移）
 }
 
+# Incomplete borrowing requests for a book (owner/holder visibility)
+type IncompleteRequest {
+  id: ID!
+  requestorName: String!
+  requestorEmail: String!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type IncompleteRequestsPage {
+  requests: [IncompleteRequest!]!
+  totalCount: Int!
+}
+
 enum TransactionLocation {
   HOLDER_LOCATION
   HOLDER_PUBLIC_EXCHANGE_POINT
@@ -397,6 +411,12 @@ type Query {
   openTransactionsByUser(userId: ID!): [Transaction!]! # 按用戶ID查詢交易
   transactionsByUser(userId: ID!): [Transaction!]! # 按用戶ID查詢交易
   transactions(userId: ID, itemId: ID): [Transaction!]!
+  # Incomplete borrow requests on book detail (owner + current holder only)
+  incompleteRequestsByItem(
+    itemId: ID!
+    limit: Int = 5
+    offset: Int = 0
+  ): IncompleteRequestsPage!
 
   # 新聞相關
   newsPost(id: ID!): NewsPost
@@ -519,12 +539,12 @@ type Mutation {
   editItemComment(itemId: ID!, commentId: ID!, content: String!): Boolean!
 
   # 交易管理
-  #  createTransaction(
-  #    itemId: ID!
-  #    location: TransactionLocation! = HOLDER_LOCATION
-  #    locationIndex: Int! = 0
-  #    details: String
-  #  ): Transaction!
+  createTransaction(
+    itemId: ID!
+    location: TransactionLocation! = HOLDER_LOCATION
+    locationIndex: Int! = 0
+    details: String
+  ): Transaction!
   # 快速創建交易 By Holder
   # 使用預設位置選項 FACE_TO_FACE
   # 只需提供 itemId 即可
@@ -543,6 +563,9 @@ type Mutation {
   receiveTransaction(id: ID!, images: [String!]): Transaction!
   confirmReturn(itemId: ID!, images: [String!], details: String): Transaction!
   cancelTransaction(id: ID!): Boolean!
+  # Owner-only: remove incomplete request(s) from the book queue (soft cancel)
+  deleteIncompleteRequest(id: ID!): Boolean!
+  deleteIncompleteRequests(ids: [ID!]!): Boolean!
 
   # 新聞管理 Only for Admin/Moderator
   createNewsPost(

@@ -635,7 +635,22 @@
     "confirmReturnDescription": "你確定要確認歸還 {{name}} 嗎？這會將物品標記為已歸還並通知持有者。",
     "confirmReturnSuccess": "已確認歸還",
     "details1": "細節（選擇性）",
-    "confirmReturnDetails": "細節（選擇性）"
+    "confirmReturnDetails": "細節（選擇性）",
+    "requestQueue": {
+      "title": "申請佇列",
+      "empty": "目前沒有未完成的借閱申請。",
+      "selectAll": "全選本頁",
+      "deleteSelected": "刪除已選",
+      "deleteOne": "刪除申請",
+      "deleteTitle": "從佇列移除",
+      "deleteOneConfirm": "確定從佇列刪除此借閱申請？",
+      "deleteBatchConfirm": "確定刪除已選的 {{count}} 個申請？",
+      "deleteConfirm": "刪除",
+      "deleteSuccess": "已從佇列移除申請",
+      "deleteError": "刪除申請失敗",
+      "loadError": "載入申請佇列失敗：{{message}}",
+      "pageInfo": "{{from}}–{{to}}／共 {{total}}"
+    }
   },
   "userProfile": {
     "nickname": "暱稱",

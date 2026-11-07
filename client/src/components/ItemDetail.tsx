@@ -22,6 +22,8 @@ import {
   Card,
   CardContent,
   TextField,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -32,6 +34,7 @@ import {
   Article as ArticleIcon,
   Share as ShareIcon,
   FavoriteBorder as FavoriteBorderIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import {
@@ -138,6 +141,27 @@ const CONTACT_HOLDER_MUTATION = gql`
   }
 `;
 
+const CREATE_TRANSACTION_MUTATION = gql`
+  mutation CreateTransaction(
+    $itemId: ID!
+    $location: TransactionLocation!
+    $locationIndex: Int
+    $details: String
+  ) {
+    createTransaction(
+      itemId: $itemId
+      location: $location
+      locationIndex: $locationIndex
+      details: $details
+    ) {
+      id
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 const CREATE_QUICK_TRANSACTION_MUTATION = gql`
   mutation CreateQuickTransaction($itemId: ID!, $details: String!) {
     createQuickTransaction(itemId: $itemId, details: $details) {
@@ -240,6 +264,43 @@ const ITEM_TRANSACTIONS_QUERY = gql`
     }
   }
 `;
+
+const REQUEST_QUEUE_PAGE_SIZE = 5;
+
+const INCOMPLETE_REQUESTS_QUERY = gql`
+  query IncompleteRequestsByItem($itemId: ID!, $limit: Int, $offset: Int) {
+    incompleteRequestsByItem(itemId: $itemId, limit: $limit, offset: $offset) {
+      totalCount
+      requests {
+        id
+        requestorName
+        requestorEmail
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+const DELETE_INCOMPLETE_REQUEST_MUTATION = gql`
+  mutation DeleteIncompleteRequest($id: ID!) {
+    deleteIncompleteRequest(id: $id)
+  }
+`;
+
+const DELETE_INCOMPLETE_REQUESTS_MUTATION = gql`
+  mutation DeleteIncompleteRequests($ids: [ID!]!) {
+    deleteIncompleteRequests(ids: $ids)
+  }
+`;
+
+type IncompleteRequestRow = {
+  id: string;
+  requestorName: string;
+  requestorEmail: string;
+  createdAt: string | number;
+  updatedAt: string | number;
+};
 
 interface ItemDetailProps {
   itemId: string | null;
@@ -497,6 +558,29 @@ const historyDateTextSx = {
   color: "var(--color-text-secondary)",
   fontSize: "0.92rem",
 };
+const queueMetaTextSx = {
+  color: "var(--color-text-secondary)",
+  fontSize: "0.92rem",
+  display: "block",
+};
+const queueActionsRowSx = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 1,
+  alignItems: "center",
+  mb: 1.5,
+};
+const queuePaginationRowSx = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 2,
+  mt: 2,
+};
+const queueEmptyTextSx = {
+  color: "var(--color-text-secondary)",
+  fontSize: "0.95rem",
+};
 const infoStatusChipBaseSx = {
   ml: 1,
   borderWidth: 1,
@@ -618,6 +702,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [queuePageNumber, setQueuePageNumber] = useState(1);
+  const [selectedQueueIds, setSelectedQueueIds] = useState<string[]>([]);
+  const [queueDeleteConfirmIds, setQueueDeleteConfirmIds] = useState<
+    string[] | null
+  >(null);
 
   const itemShareUrl = useMemo(() => {
     if (!itemId || typeof window === "undefined") return "";
@@ -646,6 +735,37 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     skip: !itemId,
     fetchPolicy: "cache-and-network",
   });
+
+  const canViewRequestQueue = Boolean(
+    user &&
+      data?.item &&
+      (data.item.ownerId === user.id ||
+        data.item.holderId === user.id ||
+        (data.item.ownerId === user.id && data.item.holderId == null)),
+  );
+  const canManageRequestQueue = Boolean(
+    user && data?.item && data.item.ownerId === user.id,
+  );
+
+  const incompleteRequestsQuery = useQuery<{
+    incompleteRequestsByItem: {
+      totalCount: number;
+      requests: IncompleteRequestRow[];
+    };
+  }>(INCOMPLETE_REQUESTS_QUERY, {
+    variables: {
+      itemId: itemId!,
+      limit: REQUEST_QUEUE_PAGE_SIZE,
+      offset: (queuePageNumber - 1) * REQUEST_QUEUE_PAGE_SIZE,
+    },
+    skip: !itemId || !canViewRequestQueue,
+    fetchPolicy: "cache-and-network",
+  });
+
+  const [deleteIncompleteRequest, { loading: deleteQueueLoading }] =
+    useMutation(DELETE_INCOMPLETE_REQUEST_MUTATION);
+  const [deleteIncompleteRequests, { loading: deleteQueueBatchLoading }] =
+    useMutation(DELETE_INCOMPLETE_REQUESTS_MUTATION);
 
   // Query for item config (for classification translation)
   const { data: configData } = useQuery<{
@@ -676,19 +796,28 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const [contactHolder, { loading: contactHolderLoading }] = useMutation(
     CONTACT_HOLDER_MUTATION,
     {
-      onCompleted: (data) => {
-        setRequestDialogOpen(false);
-        setSuccessSnackbarOpen(true);
-        console.log("Transaction created:", data.contactHolder);
-      },
       onError: (error) => {
-        setRequestDialogOpen(false);
-        setErrorMessage(error.message);
-        setErrorSnackbarOpen(true);
-        console.error("Transaction creation error:", error);
+        // Email notify is best-effort after createTransaction succeeds.
+        console.error("Error contacting holder:", error);
       },
     },
   );
+
+  const [createTransaction, { loading: createTransactionLoading }] =
+    useMutation(CREATE_TRANSACTION_MUTATION, {
+      onCompleted: () => {
+        setRequestDialogOpen(false);
+        setSuccessMessage(t("item.requestSubmitted"));
+        setSuccessSnackbarOpen(true);
+        incompleteRequestsQuery.refetch().catch(() => undefined);
+        itemTransactions.refetch().catch(() => undefined);
+      },
+      onError: (error) => {
+        console.error("Error creating transaction:", error);
+        setErrorMessage(error.message);
+        setErrorSnackbarOpen(true);
+      },
+    });
 
   const [createQuickTransaction, { loading: quickTransactionLoading }] =
     useMutation(CREATE_QUICK_TRANSACTION_MUTATION, {
@@ -913,16 +1042,30 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
     try {
       const details = buildDetailsString();
-      await contactHolder({
+      // Persist the borrow request into Firestore so it appears in the request queue.
+      await createTransaction({
         variables: {
           itemId,
           location,
           locationIndex: locationIndex || 0,
-          subject: subject || "",
-          emailContent: emailContent || "",
           details: details,
         },
       });
+      // Keep the existing email notification path (best-effort; do not fail the request).
+      try {
+        await contactHolder({
+          variables: {
+            itemId,
+            location,
+            locationIndex: locationIndex || 0,
+            subject: subject || "",
+            emailContent: emailContent || "",
+            details: details,
+          },
+        });
+      } catch (emailError) {
+        console.error("Transaction created but email notify failed:", emailError);
+      }
     } catch (error) {
       console.error("Error creating transaction:", error);
     }
@@ -1067,12 +1210,100 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   //   );
   // };
 
-  const formatHistoryDate = (dateString: string) => {
+  const formatHistoryDate = (dateString: string | number) => {
     return new Date(dateString).toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
+  };
+
+  useEffect(() => {
+    setQueuePageNumber(1);
+    setSelectedQueueIds([]);
+  }, [itemId]);
+
+  const queuePage = incompleteRequestsQuery.data?.incompleteRequestsByItem;
+  const queueRequests = queuePage?.requests ?? [];
+  const queueTotalCount = queuePage?.totalCount ?? 0;
+  const queueTotalPages =
+    queueTotalCount > 0
+      ? Math.max(1, Math.ceil(queueTotalCount / REQUEST_QUEUE_PAGE_SIZE))
+      : null;
+  const queueHasNextPage =
+    queueTotalCount > 0
+      ? queuePageNumber * REQUEST_QUEUE_PAGE_SIZE < queueTotalCount
+      : queueRequests.length === REQUEST_QUEUE_PAGE_SIZE;
+  const canShowQueuePagination =
+    queuePageNumber > 1 ||
+    queueHasNextPage ||
+    (queueTotalPages != null && queueTotalPages > 1);
+  const queueDeleting = deleteQueueLoading || deleteQueueBatchLoading;
+
+  const handleQueuePageChange = (
+    _: React.ChangeEvent<unknown> | null,
+    value: number,
+  ) => {
+    setQueuePageNumber(value);
+    setSelectedQueueIds([]);
+  };
+
+  const toggleQueueSelection = (requestId: string) => {
+    setSelectedQueueIds((prev) =>
+      prev.includes(requestId)
+        ? prev.filter((id) => id !== requestId)
+        : [...prev, requestId],
+    );
+  };
+
+  const toggleSelectAllOnPage = () => {
+    const pageIds = queueRequests.map((r) => r.id);
+    const allSelected = pageIds.every((id) => selectedQueueIds.includes(id));
+    if (allSelected) {
+      setSelectedQueueIds((prev) => prev.filter((id) => !pageIds.includes(id)));
+    } else {
+      setSelectedQueueIds((prev) => Array.from(new Set([...prev, ...pageIds])));
+    }
+  };
+
+  const refreshRequestQueue = async () => {
+    await incompleteRequestsQuery.refetch();
+    setSelectedQueueIds([]);
+  };
+
+  const handleConfirmQueueDelete = async () => {
+    if (!queueDeleteConfirmIds || queueDeleteConfirmIds.length === 0) return;
+    try {
+      if (queueDeleteConfirmIds.length === 1) {
+        await deleteIncompleteRequest({
+          variables: { id: queueDeleteConfirmIds[0] },
+        });
+      } else {
+        await deleteIncompleteRequests({
+          variables: { ids: queueDeleteConfirmIds },
+        });
+      }
+      setSuccessMessage(
+        t("item.requestQueue.deleteSuccess", "Request(s) removed from queue"),
+      );
+      setSuccessSnackbarOpen(true);
+      setQueueDeleteConfirmIds(null);
+      // If the last item on this page was deleted, step back a page.
+      const remainingOnPage =
+        queueRequests.length - queueDeleteConfirmIds.length;
+      if (remainingOnPage <= 0 && queuePageNumber > 1) {
+        setQueuePageNumber((prev) => Math.max(1, prev - 1));
+      }
+      await refreshRequestQueue();
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : t("item.requestQueue.deleteError", "Failed to delete request(s)"),
+      );
+      setErrorSnackbarOpen(true);
+      setQueueDeleteConfirmIds(null);
+    }
   };
 
   const handleEditSuccess = () => {
@@ -1550,6 +1781,170 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
             </Box>
           </Box>
 
+          {canViewRequestQueue && (
+            <Box sx={historySectionSx}>
+              <Typography sx={historyTitleSx}>
+                {t("item.requestQueue.title", "Request Queue")}
+              </Typography>
+              {canManageRequestQueue && queueRequests.length > 0 && (
+                <Box sx={queueActionsRowSx}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={
+                          queueRequests.length > 0 &&
+                          queueRequests.every((r) =>
+                            selectedQueueIds.includes(r.id),
+                          )
+                        }
+                        indeterminate={
+                          selectedQueueIds.some((id) =>
+                            queueRequests.some((r) => r.id === id),
+                          ) &&
+                          !queueRequests.every((r) =>
+                            selectedQueueIds.includes(r.id),
+                          )
+                        }
+                        onChange={toggleSelectAllOnPage}
+                        disabled={queueDeleting}
+                      />
+                    }
+                    label={t("item.requestQueue.selectAll", "Select page")}
+                  />
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    startIcon={<DeleteIcon />}
+                    disabled={
+                      selectedQueueIds.length === 0 || queueDeleting
+                    }
+                    onClick={() =>
+                      setQueueDeleteConfirmIds([...selectedQueueIds])
+                    }
+                  >
+                    {t("item.requestQueue.deleteSelected", "Delete selected")}
+                    {selectedQueueIds.length > 0
+                      ? ` (${selectedQueueIds.length})`
+                      : ""}
+                  </Button>
+                </Box>
+              )}
+              {incompleteRequestsQuery.error ? (
+                <Alert severity="error" sx={{ mb: 1 }}>
+                  {t(
+                    "item.requestQueue.loadError",
+                    "Failed to load request queue: {{message}}",
+                    { message: incompleteRequestsQuery.error.message },
+                  )}
+                </Alert>
+              ) : incompleteRequestsQuery.loading && !queuePage ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : queueRequests.length === 0 ? (
+                <Typography sx={queueEmptyTextSx}>
+                  {t(
+                    "item.requestQueue.empty",
+                    "No incomplete borrow requests.",
+                  )}
+                </Typography>
+              ) : (
+                <Box sx={historyLineWrapSx}>
+                  <Box sx={historyLineSx} />
+                  {queueRequests.map((request) => (
+                    <Box key={request.id} sx={historyRowSx}>
+                      <Box sx={historyDotSx} />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 1,
+                        }}
+                      >
+                        {canManageRequestQueue && (
+                          <Checkbox
+                            size="small"
+                            checked={selectedQueueIds.includes(request.id)}
+                            onChange={() => toggleQueueSelection(request.id)}
+                            disabled={queueDeleting}
+                            sx={{ p: 0.25, mt: 0.25 }}
+                          />
+                        )}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={historyItemTextSx}>
+                            {request.requestorName}
+                          </Typography>
+                          <Typography sx={queueMetaTextSx}>
+                            {request.requestorEmail}
+                          </Typography>
+                          <Typography sx={historyDateTextSx}>
+                            {formatHistoryDate(request.updatedAt)}
+                          </Typography>
+                        </Box>
+                        {canManageRequestQueue && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            aria-label={t(
+                              "item.requestQueue.deleteOne",
+                              "Delete request",
+                            )}
+                            disabled={queueDeleting}
+                            onClick={() =>
+                              setQueueDeleteConfirmIds([request.id])
+                            }
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+              {canShowQueuePagination && (
+                <Box sx={queuePaginationRowSx}>
+                  <Button
+                    variant="outlined"
+                    disabled={queuePageNumber <= 1 || queueDeleting}
+                    onClick={() =>
+                      handleQueuePageChange(null, queuePageNumber - 1)
+                    }
+                  >
+                    {t("common.previous", "Previous")}
+                  </Button>
+                  <Typography
+                    sx={{ display: "flex", alignItems: "center", px: 2 }}
+                  >
+                    {queueTotalPages != null
+                      ? t("common.pageOfTotal", "Page {{page}} of {{total}}", {
+                          page: queuePageNumber,
+                          total: queueTotalPages,
+                        })
+                      : t("item.currentPage", "Page {{page}}", {
+                          page: queuePageNumber,
+                        })}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    disabled={
+                      !queueHasNextPage ||
+                      queueDeleting ||
+                      incompleteRequestsQuery.loading
+                    }
+                    onClick={() =>
+                      handleQueuePageChange(null, queuePageNumber + 1)
+                    }
+                  >
+                    {t("common.next", "Next")}
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          )}
+
           {/* IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
@@ -1693,9 +2088,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   ...primaryActionButtonSx,
                   ...primaryActionButtonGridItemSx,
                 }}
-                disabled={contactHolderLoading}
+                disabled={
+                  contactHolderLoading || createTransactionLoading
+                }
               >
-                {contactHolderLoading ? (
+                {contactHolderLoading || createTransactionLoading ? (
                   <CircularProgress size={20} sx={inheritProgressSx} />
                 ) : null}
                 {canReturnBook
@@ -1856,7 +2253,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         open={requestDialogOpen}
         onClose={handleCloseRequestDialog}
         onConfirm={handleConfirmRequest}
-        loading={contactHolderLoading}
+        loading={contactHolderLoading || createTransactionLoading}
         item={data?.item || null}
         owner={ownerData?.user || null}
         holder={holderData?.user || null}
@@ -1879,6 +2276,51 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         loading={transferOwnershipLoading}
         itemName={data?.item?.name || ""}
       />
+
+      {/* Request queue delete confirmation */}
+      <Dialog
+        open={queueDeleteConfirmIds !== null}
+        onClose={() => (queueDeleting ? null : setQueueDeleteConfirmIds(null))}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>
+          {t("item.requestQueue.deleteTitle", "Remove from queue")}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            {queueDeleteConfirmIds && queueDeleteConfirmIds.length > 1
+              ? t(
+                  "item.requestQueue.deleteBatchConfirm",
+                  "Delete {{count}} selected request(s) from the queue?",
+                  { count: queueDeleteConfirmIds.length },
+                )
+              : t(
+                  "item.requestQueue.deleteOneConfirm",
+                  "Delete this borrow request from the queue?",
+                )}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setQueueDeleteConfirmIds(null)}
+            disabled={queueDeleting}
+          >
+            {t("common.cancel", "Cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmQueueDelete}
+            variant="contained"
+            color="error"
+            disabled={queueDeleting}
+          >
+            {queueDeleting ? (
+              <CircularProgress size={20} sx={progressMr1Sx} />
+            ) : null}
+            {t("item.requestQueue.deleteConfirm", "Delete")}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Confirm Return Dialog */}
       <Dialog

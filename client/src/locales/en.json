@@ -622,7 +622,22 @@
     "confirmReturnDescription": "Are you sure you want to confirm the return of {{name}}? This will mark the item as returned and notify the holder.",
     "confirmReturnSuccess": "Item return confirmed",
     "details1": "Details (optional)",
-    "confirmReturnDetails": "Details (optional)"
+    "confirmReturnDetails": "Details (optional)",
+    "requestQueue": {
+      "title": "Request Queue",
+      "empty": "No incomplete borrow requests.",
+      "selectAll": "Select page",
+      "deleteSelected": "Delete selected",
+      "deleteOne": "Delete request",
+      "deleteTitle": "Remove from queue",
+      "deleteOneConfirm": "Delete this borrow request from the queue?",
+      "deleteBatchConfirm": "Delete {{count}} selected request(s) from the queue?",
+      "deleteConfirm": "Delete",
+      "deleteSuccess": "Request(s) removed from queue",
+      "deleteError": "Failed to delete request(s)",
+      "loadError": "Failed to load request queue: {{message}}",
+      "pageInfo": "{{from}}–{{to}} of {{total}}"
+    }
   },
   "languages": {
     "en": "English",
