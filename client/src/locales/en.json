@@ -164,7 +164,8 @@
       "userPicked": "Recommended for You",
       "newArrivals": "New Arrivals",
       "popular": "Popular Items"
-    }
+    },
+    "verifyHelper": "Verify to borrow and lend books."
   },
   "onboarding": {
     "skip": "Skip",
@@ -237,7 +238,18 @@
     "verifying": "Verifying...",
     "verify": "Verify",
     "later": "Later",
-    "fallbackEmail": "your email"
+    "fallbackEmail": "your email",
+    "autoSentDescription": "We've sent a 6-digit code to {{email}}. Check your inbox.",
+    "cardTitle": "Verify your email",
+    "expiryNote": "The code expires in 10 minutes.",
+    "reason": "A verified email lets you borrow and lend books, and lets members reach you.",
+    "resendShort": "Resend code",
+    "codeResent": "We've sent a new code.",
+    "goBack": "Go back",
+    "blockingNote": "Nothing is sent or changed until you verify.",
+    "codeAlreadySent": "We've already sent a code. Check your inbox.",
+    "successMessage": "Email verified. You can now borrow and lend books.",
+    "done": "Done"
   },
   "common": {
     "name": "Name",
@@ -544,9 +556,11 @@
     "meetSuburbNotFound": "We couldn't find that suburb. Try another nearby one.",
     "meetSuburbError": "We couldn't save it. Check your connection and try again.",
     "chooseMeetingPlaceHint": "Choose where to meet to send your request.",
+    "missionStepVerify": "Verify email",
+    "missionStepSend": "Review and send",
     "requestErrorVerification": "Verify your email to send this request.",
     "requestVerifyEmailButton": "Verify email",
-    "requestVerifiedNowSend": "Email verified. Press \"Confirm Request\" to send it.",
+    "requestVerifiedNowSend": "Email verified. Press \"Send request\" to send it.",
     "requestErrorCapacity": "This book already has {{count}} requests waiting. Tap ♡ to save it to your booklist and check back later, or look for another book.",
     "requestErrorUnavailable": "This book can't be requested anymore. It may have been removed or changed.",
     "requestErrorOther": "We couldn't send your request. Check your connection and try again. Your message is kept.",
@@ -652,7 +666,11 @@
       "deleteError": "Failed to delete request(s)",
       "loadError": "Failed to load request queue: {{message}}",
       "pageInfo": "{{from}}–{{to}} of {{total}}"
-    }
+    },
+    "sendRequest": "Send request",
+    "meetSuburbNoMatch": "No matching suburb. Check the spelling.",
+    "meetSuburbChoose": "Choose a suburb from the list.",
+    "missionStepPlace": "Where to meet"
   },
   "languages": {
     "en": "English",

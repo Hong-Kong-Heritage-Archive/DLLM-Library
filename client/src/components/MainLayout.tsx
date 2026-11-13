@@ -37,7 +37,6 @@ import ClassificationAssignment from "./ClassificationAssignment";
 import ContentRatingApprovalDialog from "./ContentRatingApprovalDialog";
 import OnboardingTour from "./OnboardingTour";
 import SignupOnboardingDialog from "./SignupOnboardingDialog";
-import { hasPendingSignupOnboarding } from "../utils/signupOnboarding";
 import { resolveBranding } from "../utils/branding";
 
 const headerActionButtonSx = {
@@ -179,11 +178,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     }
   };
 
-  React.useEffect(() => {
-    if (user && hasPendingSignupOnboarding()) {
-      setSignupOnboardingOpen(true);
-    }
-  }, [user]);
+  // The signup welcome no longer opens after sign-up: verification and the
+  // meeting suburb are asked only when a member starts an exchange
+  // (Issue #258, decided 13 Nov). Its orientation content moves to after the
+  // first request in Phase 3 (D2).
 
   const handleAuthSuccess = () => {
     setAuthDialogOpen(false);

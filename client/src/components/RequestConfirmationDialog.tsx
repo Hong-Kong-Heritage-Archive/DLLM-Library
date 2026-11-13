@@ -22,12 +22,18 @@ import {
   Paper,
   TextField,
   Alert,
+  Stepper,
+  Step,
+  StepLabel,
+  Autocomplete,
 } from "@mui/material";
 import {
   Person as PersonIcon,
   LocationOn as LocationOnIcon,
   NotificationImportant as NotificationIcon,
-  Home as HomeIcon,
+  MenuBook as HolderPlaceIcon,
+  MyLocation as YourPlaceIcon,
+  WarningAmber as WarningAmberIcon,
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
@@ -38,9 +44,14 @@ import {
   User,
   TransactionLocation,
 } from "../generated/graphql";
-import { isUsableSuburbLocation, suburbWithState } from "../utils/suburbName";
+import {
+  isUsableSuburbLocation,
+  suburbWithState,
+  suggestSuburbs,
+} from "../utils/suburbName";
 import type { RequestError } from "../utils/requestErrors";
 import { openEmailVerificationDialog } from "../utils/emailVerification";
+import EmailVerificationCard from "./EmailVerificationCard";
 
 /** A message shown above the buttons: why sending failed, or that it can go now. */
 export type RequestNotice = RequestError | { kind: "verified" };
@@ -72,6 +83,9 @@ const SAVE_MEETING_SUBURB = gql`
 `;
 
 type SuburbStatus = "idle" | "checking" | "saved" | "notFound" | "error";
+
+/** The steps a new member must unlock before sending a request (Issue #258). */
+type MissionStep = "verify" | "suburb" | "send";
 
 /**
  * Colour by meaning, not by "something went wrong":
@@ -159,10 +173,22 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   const [suburbInput, setSuburbInput] = useState("");
   const [suburbStatus, setSuburbStatus] = useState<SuburbStatus>("idle");
   const [savedSuburb, setSavedSuburb] = useState("");
+  // Suggestions come from a list of NSW suburbs, loaded only when needed, so
+  // only real suburb names can be saved ("chatswoods" suggests "Chatswood").
+  const [allSuburbs, setAllSuburbs] = useState<string[] | null>(null);
+  const [selectedSuburb, setSelectedSuburb] = useState<string | null>(null);
+  const [suburbListOpen, setSuburbListOpen] = useState(false);
   const [checkSuburb] = useLazyQuery(CHECK_MEETING_SUBURB, {
     fetchPolicy: "network-only",
   });
   const [saveSuburb] = useMutation(SAVE_MEETING_SUBURB);
+  // Verify before writing the request (Issue #258, D3, R4). Google sign-ins
+  // and members who verified earlier skip this step.
+  const [verifiedHere, setVerifiedHere] = useState(false);
+  const needsVerification =
+    !!requestor && !requestor.isVerified && !verifiedHere;
+  // Fixed when the window opens, so finished steps stay visible as ticked.
+  const [missionSteps, setMissionSteps] = useState<MissionStep[]>([]);
   const [selectedExchangePointIndex, setSelectedExchangePointIndex] =
     useState<number>(0);
   const defaultSubject = t("item.defaultEmailSubject", "Request for Item: {{itemName}}", { itemName: item?.name || "" });
@@ -203,8 +229,18 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
       setSelectedLocation(null);
       setSelectedExchangePointIndex(0);
       setSuburbInput("");
+      setSelectedSuburb(null);
       setSuburbStatus("idle");
       setSavedSuburb("");
+      setVerifiedHere(false);
+      const steps: MissionStep[] = [];
+      if (requestor && !requestor.isVerified) steps.push("verify");
+      // "Where to meet" covers the suburb (if missing) and picking a place.
+      const missingSuburb = !(requestor?.address && requestor?.location);
+      if ((requestor && !requestor.isVerified) || missingSuburb) steps.push("suburb");
+      steps.push("send");
+      // Only show the strip when there is something to unlock.
+      setMissionSteps(steps.length > 1 ? steps : []);
     }
   }, [open]);
 
@@ -219,15 +255,82 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
     savedSuburb ||
     (requestor?.address && requestor?.location ? requestor.address : "");
   const needsSuburb = !requestorSuburb;
+
+  useEffect(() => {
+    if (!open || !needsSuburb || allSuburbs) return;
+    let cancelled = false;
+    import("../data/nswSuburbs").then((module) => {
+      if (!cancelled) setAllSuburbs(module.NSW_SUBURBS);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, needsSuburb, allSuburbs]);
+
+  const suburbSuggestions = allSuburbs ? suggestSuburbs(suburbInput, allSuburbs) : [];
+  // Typed something, list is loaded, and nothing matches: warn under the field.
+  const suburbNoMatch =
+    !!allSuburbs &&
+    !selectedSuburb &&
+    suburbInput.trim().length >= 2 &&
+    suburbSuggestions.length === 0;
+
   const holderAddress = displayHolder?.address || "";
 
   const selectedPlaceIsUsable =
     (selectedLocation === TransactionLocation.HolderLocation && !!holderAddress) ||
     (selectedLocation === TransactionLocation.RequestorLocation && !!requestorSuburb);
 
+  // Step 2 is only done once a meeting place is actually chosen.
+  const activeMissionStep: MissionStep = needsVerification
+    ? "verify"
+    : needsSuburb || !selectedPlaceIsUsable
+      ? "suburb"
+      : "send";
+  const missionStepLabels: Record<MissionStep, string> = {
+    verify: t("item.missionStepVerify", "Verify email"),
+    suburb: t("item.missionStepPlace", "Where to meet"),
+    send: t("item.missionStepSend", "Review and send"),
+  };
+  const missionStrip =
+    missionSteps.length > 0 ? (
+      // Stays at the top while the form scrolls.
+      <Box
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 2,
+          bgcolor: "background.paper",
+          pt: 1,
+          pb: 2,
+          mb: 1,
+        }}
+      >
+        <Stepper
+          activeStep={missionSteps.indexOf(activeMissionStep)}
+          alternativeLabel
+        >
+          {missionSteps.map((step) => (
+            <Step key={step}>
+              <StepLabel
+                StepIconProps={{
+                  // Brighter than the theme's dark success green so the ticks
+                  // read as "done" at a glance (3.8:1 on white, passes WCAG
+                  // 1.4.11). Phase 4: move into semanticTokens.
+                  sx: { "&.Mui-completed": { color: "#2A9455" } },
+                }}
+              >
+                {missionStepLabels[step]}
+              </StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      </Box>
+    ) : null;
+
   const handleUseSuburb = async () => {
     // Search and save as "Chatswood NSW" so the map stays in New South Wales.
-    const name = suburbWithState(suburbInput);
+    const name = selectedSuburb ? suburbWithState(selectedSuburb) : "";
     if (!name || suburbStatus === "checking") return;
     setSuburbStatus("checking");
     try {
@@ -268,15 +371,35 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   const exchangePointOptions = getExchangePointOptions();
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth={needsVerification ? "xs" : "md"}
+      fullWidth
+    >
+      {needsVerification ? (
+        // Verifying is an account step, so it gets its own card, shown in
+        // place of the request (one layer, no stacking).
+        <DialogContent sx={{ p: 3 }}>
+          {missionStrip}
+          <EmailVerificationCard
+            mode="blocking"
+            showSuccess={false}
+            onVerified={() => setVerifiedHere(true)}
+            onExit={onClose}
+          />
+        </DialogContent>
+      ) : (
+      <>
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <NotificationIcon color="primary" />
-          {t("item.confirmRequest", "Confirm Request")}
+          {t("item.requestToBorrow", "Request To Borrow")}
         </Box>
       </DialogTitle>
 
       <DialogContent>
+        {missionStrip}
         {
           <Box>
             {/* Item Information */}
@@ -315,6 +438,18 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
               </Box>
             )}
 
+            {suburbStatus === "saved" && (
+              <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+                <CheckCircleIcon color="success" fontSize="small" />
+                <Typography variant="body2">
+                  {savedSuburb}{" "}
+                  <Typography component="span" variant="body2" color="text.secondary">
+                    {t("item.meetSuburbSaved", "Saved. Now choose where to meet below.")}
+                  </Typography>
+                </Typography>
+              </Box>
+            )}
+
             {/* Location Selection */}
             <Box sx={{ mb: 3 }}>
               <FormControl component="fieldset" fullWidth>
@@ -331,37 +466,78 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                 {needsSuburb && (
                   <Box sx={{ mb: 2 }}>
                     <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-                      <TextField
+                      <Autocomplete
                         fullWidth
                         size="small"
-                        label={t("item.meetSuburbLabel", "Where can you meet?")}
-                        placeholder={t("item.meetSuburbPlaceholder", "Suburb, e.g. Chatswood")}
-                        InputLabelProps={{ shrink: true }}
-                        value={suburbInput}
-                        onChange={(e) => {
-                          setSuburbInput(e.target.value);
+                        autoHighlight
+                        options={suburbSuggestions}
+                        open={suburbListOpen && suburbSuggestions.length > 0}
+                        onOpen={() => setSuburbListOpen(true)}
+                        onClose={() => setSuburbListOpen(false)}
+                        filterOptions={(options) => options}
+                        value={selectedSuburb}
+                        onChange={(_event, value) => {
+                          setSelectedSuburb(value);
                           if (suburbStatus !== "checking") setSuburbStatus("idle");
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleUseSuburb();
+                        inputValue={suburbInput}
+                        onInputChange={(_event, value, reason) => {
+                          setSuburbInput(value);
+                          if (reason === "input") {
+                            setSelectedSuburb(null);
+                            if (suburbStatus !== "checking") setSuburbStatus("idle");
                           }
                         }}
+                        noOptionsText={t(
+                          "item.meetSuburbNoMatch",
+                          "No matching suburb. Check the spelling.",
+                        )}
+                        loading={!allSuburbs}
                         disabled={suburbStatus === "checking"}
-                        error={suburbStatus === "notFound" || suburbStatus === "error"}
-                        helperText={
-                          suburbStatus === "notFound"
-                            ? t("item.meetSuburbNotFound", "We couldn't find that suburb. Try another nearby one.")
-                            : suburbStatus === "error"
-                              ? t("item.meetSuburbError", "We couldn't save it. Check your connection and try again.")
-                              : t("item.meetSuburbHelper", "Shared with the book's owner and holder.")
-                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label={t("item.meetSuburbLabel", "Where can you meet?")}
+                            placeholder={t("item.meetSuburbPlaceholder", "Suburb, e.g. Chatswood")}
+                            InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
+                            error={suburbStatus === "notFound" || suburbStatus === "error"}
+                            FormHelperTextProps={
+                              suburbNoMatch && suburbStatus === "idle"
+                                ? {
+                                    sx: {
+                                      color: "warning.dark",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                      fontWeight: 500,
+                                    },
+                                  }
+                                : undefined
+                            }
+                            helperText={
+                              suburbNoMatch && suburbStatus === "idle" ? (
+                                <>
+                                  <WarningAmberIcon sx={{ fontSize: 16 }} />
+                                  {t(
+                                    "item.meetSuburbNoMatch",
+                                    "No matching suburb. Check the spelling.",
+                                  )}
+                                </>
+                              ) : suburbStatus === "notFound"
+                                ? t("item.meetSuburbNotFound", "We couldn't find that suburb. Try another nearby one.")
+                                : suburbStatus === "error"
+                                  ? t("item.meetSuburbError", "We couldn't save it. Check your connection and try again.")
+                                  : suburbInput.trim() && !selectedSuburb
+                                    ? t("item.meetSuburbChoose", "Choose a suburb from the list.")
+                                    : t("item.meetSuburbHelper", "Shared with the book's owner and holder.")
+                            }
+                          />
+                        )}
                       />
                       <Button
-                        variant={suburbInput.trim() ? "contained" : "outlined"}
+                        variant={selectedSuburb ? "contained" : "outlined"}
                         onClick={handleUseSuburb}
-                        disabled={!suburbInput.trim() || suburbStatus === "checking"}
+                        disabled={!selectedSuburb || suburbStatus === "checking"}
                         sx={{ flexShrink: 0, height: 40 }}
                       >
                         {suburbStatus === "checking" ? (
@@ -371,18 +547,6 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                         )}
                       </Button>
                     </Box>
-                  </Box>
-                )}
-
-                {suburbStatus === "saved" && (
-                  <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                    <CheckCircleIcon color="success" fontSize="small" />
-                    <Typography variant="body2">
-                      {savedSuburb}{" "}
-                      <Typography component="span" variant="body2" color="text.secondary">
-                        {t("item.meetSuburbSaved", "Saved. Now choose where to meet below.")}
-                      </Typography>
-                    </Typography>
                   </Box>
                 )}
 
@@ -398,7 +562,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                     control={<Radio />}
                     label={
                       <Box sx={inlineOptionLabelSx}>
-                        <HomeIcon fontSize="small" />
+                        <HolderPlaceIcon fontSize="small" color="action" />
                         <Box>
                           <Typography variant="body2">
                             {t("item.holderAddress", "Holder's Address")}
@@ -419,7 +583,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                     control={<Radio />}
                     label={
                       <Box sx={inlineOptionLabelSx}>
-                        <HomeIcon fontSize="small" />
+                        <YourPlaceIcon fontSize="small" color="action" />
                         <Box>
                           <Typography variant="body2">
                             {t("item.requestorAddress", "Your Address")}
@@ -639,7 +803,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                   variant="outlined"
                   color="inherit"
                   size="small"
-                  onClick={openEmailVerificationDialog}
+                  onClick={() => openEmailVerificationDialog("blocking")}
                   sx={{ whiteSpace: "nowrap", alignSelf: "center" }}
                 >
                   {t("item.requestVerifyEmailButton", "Verify email")}
@@ -655,7 +819,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
             {notice.kind === "verified" &&
               t(
                 "item.requestVerifiedNowSend",
-                "Email verified. Press \"Confirm Request\" to send it.",
+                "Email verified. Press \"Send request\" to send it.",
               )}
             {notice.kind === "capacity" &&
               t(
@@ -703,10 +867,12 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
               <span>{t("item.requesting", "Requesting...")}</span>
             </Box>
           ) : (
-            t("item.confirmRequest", "Confirm Request")
+            t("item.sendRequest", "Send request")
           )}
         </Button>
       </DialogActions>
+      </>
+      )}
     </Dialog>
   );
 };

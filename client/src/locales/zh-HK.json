@@ -151,7 +151,8 @@
       "userPicked": "為你推薦",
       "newArrivals": "新番",
       "popular": "熱門項目"
-    }
+    },
+    "verifyHelper": "驗證後就可以借書同借出書。"
   },
   "onboarding": {
     "skip": "跳過",
@@ -224,7 +225,18 @@
     "verifying": "驗證中...",
     "verify": "驗證",
     "later": "稍後再做",
-    "fallbackEmail": "你的電郵"
+    "fallbackEmail": "你的電郵",
+    "autoSentDescription": "我哋已將 6 位數驗證碼寄去 {{email}}，請檢查收件箱。",
+    "cardTitle": "驗證你嘅 email",
+    "expiryNote": "驗證碼 10 分鐘內有效。",
+    "reason": "驗證 email 後，你就可以借書同借出書，書友亦可以聯絡你。",
+    "resendShort": "重新寄出",
+    "codeResent": "已寄出新嘅驗證碼。",
+    "goBack": "返回",
+    "blockingNote": "驗證之前，乜嘢都唔會送出或更改。",
+    "codeAlreadySent": "驗證碼已經寄出咗，請檢查你嘅收件箱。",
+    "successMessage": "Email 已驗證，你而家可以借書同借出書。",
+    "done": "完成"
   },
   "common": {
     "name": "名稱",
@@ -525,15 +537,17 @@
     "addExchangeLocation": "加入交收地點",
     "meetSuburbLabel": "你方便喺邊度交收？",
     "meetSuburbPlaceholder": "區名，例如 Chatswood",
-    "meetSuburbHelper": "書主及持書人可查看。",
+    "meetSuburbHelper": "物主及持有者可查看。",
     "meetSuburbUse": "確認",
     "meetSuburbSaved": "已儲存，請喺下面揀交收地點。",
     "meetSuburbNotFound": "搵唔到呢個區，試吓附近另一個區。",
     "meetSuburbError": "儲存唔到，請檢查網絡再試。",
     "chooseMeetingPlaceHint": "揀好交收地點，就可以送出請求。",
+    "missionStepVerify": "驗證 email",
+    "missionStepSend": "檢查後送出",
     "requestErrorVerification": "驗證 email 後就可以送出請求。",
     "requestVerifyEmailButton": "驗證 email",
-    "requestVerifiedNowSend": "Email 已驗證，撳「確認提交請求」就可以送出。",
+    "requestVerifiedNowSend": "Email 已驗證，撳「送出請求」就可以送出。",
     "requestErrorCapacity": "呢本書已經有 {{count}} 個請求等緊。撳 ♡ 加入你嘅書單，遲啲再嚟睇，或者搵其他書。",
     "requestErrorUnavailable": "呢本書已經唔可以申請，可能已被移除或更改。",
     "requestErrorOther": "送出唔到請求，請檢查網絡再試。你寫好嘅內容會保留。",
@@ -572,7 +586,7 @@
     "responsibility3": "如有要求，需將物品歸還給物主",
     "confirmReceiptInstructions": "只有在實際從當前持有者手中收到物品後，才點擊「已接收」。",
     "received": "已接收",
-    "selectExchangeLocation": "選擇交換地點",
+    "selectExchangeLocation": "選擇交收地點",
     "holderAddress": "持有者交收地址",
     "requestorAddress": "你的交收地址",
     "holderExchangePoint": "持有者的交換站",
@@ -660,7 +674,11 @@
       "deleteError": "刪除申請失敗",
       "loadError": "載入申請佇列失敗：{{message}}",
       "pageInfo": "{{from}}–{{to}}／共 {{total}}"
-    }
+    },
+    "sendRequest": "送出請求",
+    "meetSuburbNoMatch": "搵唔到相符嘅區，請檢查串法。",
+    "meetSuburbChoose": "請喺清單揀一個區。",
+    "missionStepPlace": "交收地點"
   },
   "userProfile": {
     "nickname": "暱稱",
@@ -815,7 +833,8 @@
     "shareProfileCopyMessageAndLink": "複製訊息同連結",
     "shareProfileCopiedMessageAndLink": "已複製訊息同連結！",
     "rootBinder": "根資料夾",
-    "noRootBinder": "此用戶尚未創建根資料夾。"
+    "noRootBinder": "此用戶尚未創建根資料夾。",
+    "addressNotSet": "未設定交收地址"
   },
   "transactions": {
     "title": "我的交換",

@@ -21,7 +21,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
-import { Chat as ChatIcon } from "@mui/icons-material";
+import { Chat as ChatIcon, LockOpen as LockOpenIcon } from "@mui/icons-material";
 import {
   User,
   Item,
@@ -34,7 +34,7 @@ import { useOutletContext } from "react-router-dom";
 import UpdateUser from "../components/UserProfile";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { openSignupEmailVerificationStep } from "../components/SignupOnboardingDialog";
+import { openEmailVerificationDialog } from "../utils/emailVerification";
 import ItemForm from "../components/ItemForm";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import AddressReminderDialog from "../components/AddressReminderDialog";
@@ -387,13 +387,19 @@ const HomePage: React.FC = () => {
               email && (
                 <Box>
                   <Typography variant="h5" sx={{ mb: 2 }}>
-                    {t("home.welcome")} {email}
+                    {t("home.welcome", { nickname: email })}
                   </Typography>
+                  {!emailVerified && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {t("home.verifyHelper", "Verify to borrow and lend books.")}
+                    </Typography>
+                  )}
                   <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                     {!emailVerified && (
                       <Button
-                        variant="outlined"
-                        onClick={openSignupEmailVerificationStep}
+                        variant="contained"
+                        startIcon={<LockOpenIcon />}
+                        onClick={() => openEmailVerificationDialog("optional")}
                         size="large"
                       >
                         {t("auth.resendVerification", "Verify Email")}

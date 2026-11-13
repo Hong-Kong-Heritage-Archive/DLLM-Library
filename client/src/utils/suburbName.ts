@@ -48,3 +48,36 @@ export function isUsableSuburbLocation(latitude: number, longitude: number): boo
     Math.abs(longitude - NSW_FALLBACK_POINT.lng) < FALLBACK_TOLERANCE;
   return insideNsw && !isFallback;
 }
+
+/**
+ * Suburb names that match what someone has typed, best first:
+ * names starting with it, then names with a word starting with it.
+ * If nothing matches (for example "chatswoods"), drop letters from the end
+ * until something does, so a small typo still finds "Chatswood".
+ */
+export function suggestSuburbs(
+  query: string,
+  suburbs: readonly string[],
+  limit = 6,
+): string[] {
+  const clean = query.trim().replace(/\s+/g, " ").toLowerCase().replace(/\s+nsw$/, "");
+  if (clean.length < 2) return [];
+
+  const find = (text: string): string[] => {
+    const starts: string[] = [];
+    const wordStarts: string[] = [];
+    for (const name of suburbs) {
+      const lower = name.toLowerCase();
+      if (lower.startsWith(text)) starts.push(name);
+      else if (lower.includes(" " + text)) wordStarts.push(name);
+      if (starts.length >= limit) break;
+    }
+    return [...starts, ...wordStarts].slice(0, limit);
+  };
+
+  for (let length = clean.length; length >= Math.min(4, clean.length); length--) {
+    const found = find(clean.slice(0, length));
+    if (found.length) return found;
+  }
+  return [];
+}

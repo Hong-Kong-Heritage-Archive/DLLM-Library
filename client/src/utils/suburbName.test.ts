@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { formatSuburbName, isUsableSuburbLocation, suburbWithState } from "./suburbName";
+import { formatSuburbName, isUsableSuburbLocation, suburbWithState, suggestSuburbs } from "./suburbName";
+import { NSW_SUBURBS } from "../data/nswSuburbs";
 
 describe("formatSuburbName", () => {
   it("capitalises a single-word suburb", () => {
@@ -52,5 +53,32 @@ describe("isUsableSuburbLocation", () => {
   it("rejects places outside NSW", () => {
     expect(isUsableSuburbLocation(32.75457, -117.1021041)).toBe(false); // San Diego
     expect(isUsableSuburbLocation(37.5407246, -77.4360481)).toBe(false); // Richmond, Virginia
+  });
+});
+
+describe("suggestSuburbs", () => {
+  it("suggests suburbs that start with what was typed", () => {
+    const found = suggestSuburbs("chats", NSW_SUBURBS);
+    expect(found).toContain("Chatswood");
+    expect(found).toContain("Chatswood West");
+    expect(found.every((name) => name.toLowerCase().startsWith("chats"))).toBe(true);
+  });
+
+  it("still finds the suburb after a small typo", () => {
+    expect(suggestSuburbs("chatswoods", NSW_SUBURBS)[0]).toBe("Chatswood");
+    expect(suggestSuburbs("eastwoods", NSW_SUBURBS)).toContain("Eastwood");
+  });
+
+  it("matches a later word too", () => {
+    expect(suggestSuburbs("ives", NSW_SUBURBS)).toContain("St Ives");
+  });
+
+  it("ignores a typed NSW and needs at least two letters", () => {
+    expect(suggestSuburbs("rhodes nsw", NSW_SUBURBS)).toContain("Rhodes");
+    expect(suggestSuburbs("c", NSW_SUBURBS)).toEqual([]);
+  });
+
+  it("returns nothing for gibberish", () => {
+    expect(suggestSuburbs("sdff", NSW_SUBURBS)).toEqual([]);
   });
 });
