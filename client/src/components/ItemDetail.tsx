@@ -58,6 +58,9 @@ import {
   rememberPendingRequest,
   takePendingRequest,
 } from "../utils/pendingRequest";
+import { classifyRequestError } from "../utils/requestErrors";
+import { EMAIL_VERIFICATION_COMPLETED_EVENT } from "../utils/emailVerification";
+import type { RequestNotice } from "./RequestConfirmationDialog";
 import TransferOwnershipConfirmDialog from "./TransferOwnershipConfirmDialog";
 import ItemComments from "./ItemComments";
 import { convertLinksToClickable } from "../utils/helpers";
@@ -676,6 +679,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const [successMessage, setSuccessMessage] = useState("");
   const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  // Shown inside the request form when sending fails (Issue #258, R5, R10).
+  const [requestNotice, setRequestNotice] = useState<RequestNotice | null>(null);
 
   // Simplified auth state
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
@@ -821,10 +826,23 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       },
       onError: (error) => {
         console.error("Error creating transaction:", error);
-        setErrorMessage(error.message);
-        setErrorSnackbarOpen(true);
+        // Explain the failure inside the request form, which stays open with
+        // everything the person entered.
+        setRequestNotice(classifyRequestError(error.message));
       },
     });
+
+  // After verifying from the request form, tell the person they can send now.
+  useEffect(() => {
+    const handleVerified = () => {
+      setRequestNotice((current) =>
+        current?.kind === "verification" ? { kind: "verified" } : current,
+      );
+    };
+    window.addEventListener(EMAIL_VERIFICATION_COMPLETED_EVENT, handleVerified);
+    return () =>
+      window.removeEventListener(EMAIL_VERIFICATION_COMPLETED_EVENT, handleVerified);
+  }, []);
 
   const [createQuickTransaction, { loading: quickTransactionLoading }] =
     useMutation(CREATE_QUICK_TRANSACTION_MUTATION, {
@@ -985,6 +1003,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
     // No location gate here: a missing meeting suburb is added inside the
     // request form, so the person never leaves the book (Issue #258, R2).
+    setRequestNotice(null);
     setRequestDialogOpen(true);
   };
 
@@ -1108,6 +1127,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const handleCloseRequestDialog = () => {
     setRequestDialogOpen(false);
+    setRequestNotice(null);
   };
 
   const handleCloseFaceToFaceDialog = () => {
@@ -2276,6 +2296,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         owner={ownerData?.user || null}
         holder={holderData?.user || null}
         requestor={user || null}
+        notice={requestNotice}
       />
 
       {/* Face-to-Face Confirmation Dialog */}

@@ -21,6 +21,7 @@ import {
   InputLabel,
   Paper,
   TextField,
+  Alert,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -38,6 +39,11 @@ import {
   TransactionLocation,
 } from "../generated/graphql";
 import { isUsableSuburbLocation, suburbWithState } from "../utils/suburbName";
+import type { RequestError } from "../utils/requestErrors";
+import { openEmailVerificationDialog } from "../utils/emailVerification";
+
+/** A message shown above the buttons: why sending failed, or that it can go now. */
+export type RequestNotice = RequestError | { kind: "verified" };
 
 // Checks that a suburb can be found on the map before it is saved. updateUser
 // clears the address when it can't resolve it, so we check first.
@@ -66,6 +72,25 @@ const SAVE_MEETING_SUBURB = gql`
 `;
 
 type SuburbStatus = "idle" | "checking" | "saved" | "notFound" | "error";
+
+/**
+ * Colour by meaning, not by "something went wrong":
+ * action needed = warning, not the person's fault = info,
+ * something broke = error, done = success.
+ */
+function noticeSeverity(notice: RequestNotice): "warning" | "info" | "error" | "success" {
+  switch (notice.kind) {
+    case "verified":
+      return "success";
+    case "verification":
+      return "warning";
+    case "capacity":
+    case "unavailable":
+      return "info";
+    default:
+      return "error";
+  }
+}
 
 const itemInfoCardSx = {
   mb: 3,
@@ -113,6 +138,7 @@ interface RequestConfirmationDialogProps {
   owner: User | null;
   holder: User | null;
   requestor: User | null;
+  notice?: RequestNotice | null;
 }
 
 const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
@@ -124,6 +150,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   owner,
   holder,
   requestor,
+  notice,
 }) => {
   const { t } = useTranslation();
   // Nothing is pre-selected: the person chooses where to meet (Issue #258, R7).
@@ -602,6 +629,53 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
         }
       </DialogContent>
 
+      {notice && (
+        <Box sx={{ px: 3, pt: 2 }}>
+          <Alert
+            severity={noticeSeverity(notice)}
+            action={
+              notice.kind === "verification" ? (
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  size="small"
+                  onClick={openEmailVerificationDialog}
+                  sx={{ whiteSpace: "nowrap", alignSelf: "center" }}
+                >
+                  {t("item.requestVerifyEmailButton", "Verify email")}
+                </Button>
+              ) : undefined
+            }
+          >
+            {notice.kind === "verification" &&
+              t(
+                "item.requestErrorVerification",
+                "Verify your email to send this request.",
+              )}
+            {notice.kind === "verified" &&
+              t(
+                "item.requestVerifiedNowSend",
+                "Email verified. Press \"Confirm Request\" to send it.",
+              )}
+            {notice.kind === "capacity" &&
+              t(
+                "item.requestErrorCapacity",
+                "This book already has {{count}} requests waiting. Tap ♡ to save it to your booklist and check back later, or look for another book.",
+                { count: notice.count ?? 2 },
+              )}
+            {notice.kind === "unavailable" &&
+              t(
+                "item.requestErrorUnavailable",
+                "This book can't be requested anymore. It may have been removed or changed.",
+              )}
+            {notice.kind === "other" &&
+              t(
+                "item.requestErrorOther",
+                "We couldn't send your request. Check your connection and try again. Your message is kept.",
+              )}
+          </Alert>
+        </Box>
+      )}
       {!selectedPlaceIsUsable && (
         <Typography
           variant="body2"
