@@ -983,11 +983,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       return;
     }
 
-    if (!user.location?.latitude || !user.location?.longitude) {
-      setLocationPromptOpen(true);
-      return;
-    }
-
+    // No location gate here: a missing meeting suburb is added inside the
+    // request form, so the person never leaves the book (Issue #258, R2).
     setRequestDialogOpen(true);
   };
 
