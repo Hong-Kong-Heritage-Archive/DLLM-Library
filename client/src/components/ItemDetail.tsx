@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -53,6 +53,11 @@ import { calculateDistance, formatDistance } from "../utils/geoProcessor";
 import RequestConfirmationDialog from "./RequestConfirmationDialog";
 import ItemForm from "./ItemForm";
 import FaceToFaceConfirmDialog from "./FaceToFaceConfirmDialog";
+import {
+  clearPendingRequest,
+  rememberPendingRequest,
+  takePendingRequest,
+} from "../utils/pendingRequest";
 import TransferOwnershipConfirmDialog from "./TransferOwnershipConfirmDialog";
 import ItemComments from "./ItemComments";
 import { convertLinksToClickable } from "../utils/helpers";
@@ -675,7 +680,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   // Simplified auth state
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authDefaultSignUp, setAuthDefaultSignUp] = useState(false);
-  const [pendingRequestAction, setPendingRequestAction] = useState(false);
+  // Set when sign-in or sign-up succeeds. AuthDialog calls onClose before
+  // onSuccess, so closing alone can't tell "cancelled" from "succeeded".
+  const authSucceededRef = useRef(false);
 
   // Add edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -968,8 +975,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const handleRequestClick = () => {
     if (!user) {
       setAuthDefaultSignUp(false); // Default to sign in
+      authSucceededRef.current = false;
       setAuthDialogOpen(true);
-      setPendingRequestAction(true);
+      // Remember the book so the request continues after sign-up, which
+      // reloads the app and would otherwise lose this page's state.
+      if (itemId) rememberPendingRequest(itemId);
       return;
     }
 
@@ -990,13 +1000,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   };
 
   const handleAuthSuccess = () => {
+    authSucceededRef.current = true;
     setAuthDialogOpen(false);
-
-    setTimeout(() => {
-      if (pendingRequestAction) {
-        setRequestDialogOpen(true);
-      }
-    }, 500);
+    // The request resumes in the effect below, once the signed-in user has
+    // loaded. That covers both sign-in (no reload) and sign-up (app reloads).
   };
 
   const handleGoToProfile = () => {
@@ -1006,8 +1013,22 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const handleCloseAuthDialog = () => {
     setAuthDialogOpen(false);
-    setPendingRequestAction(false);
+    // Wait until AuthDialog has finished its close-then-success sequence, then
+    // forget the book only if the person cancelled rather than signed in.
+    setTimeout(() => {
+      if (!authSucceededRef.current) clearPendingRequest();
+    }, 0);
   };
+
+  // Continue a request the person started before signing in or signing up.
+  useEffect(() => {
+    if (!user || !itemId || !data?.item) return;
+    if (!takePendingRequest(itemId)) return;
+    if (!canBorrowBook) return;
+    handleRequestClick();
+    // Runs when the user, book or loaded item changes; handlers are stable enough here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, itemId, data?.item?.id]);
 
   const handleFaceToFaceClick = () => {
     setFaceToFaceDialogOpen(true);
