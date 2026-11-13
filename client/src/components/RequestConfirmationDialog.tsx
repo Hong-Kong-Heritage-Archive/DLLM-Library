@@ -31,6 +31,8 @@ import {
   Person as PersonIcon,
   LocationOn as LocationOnIcon,
   NotificationImportant as NotificationIcon,
+  MarkEmailUnread as EmailIcon,
+  Edit as EditIcon,
   MenuBook as HolderPlaceIcon,
   MyLocation as YourPlaceIcon,
   WarningAmber as WarningAmberIcon,
@@ -52,6 +54,9 @@ import {
 import type { RequestError } from "../utils/requestErrors";
 import { openEmailVerificationDialog } from "../utils/emailVerification";
 import EmailVerificationCard from "./EmailVerificationCard";
+import { requestRecipients } from "../utils/requestRecipients";
+import BoldNames, { nameMarker } from "./BoldNames";
+import RequestSentCard from "./RequestSentCard";
 
 /** A message shown above the buttons: why sending failed, or that it can go now. */
 export type RequestNotice = RequestError | { kind: "verified" };
@@ -131,17 +136,14 @@ const personCardBaseSx = {
   p: 2,
   border: "1px solid",
   borderRadius: 1,
+  // Nicknames can be emails with no spaces; let them wrap.
+  overflowWrap: "anywhere",
 };
 
 const boldSubtitleSx = {
   fontWeight: "bold",
 };
 
-const notificationBoxSx = {
-  p: 2,
-  backgroundColor: "warning.light",
-  borderRadius: 1,
-};
 
 interface RequestConfirmationDialogProps {
   open: boolean;
@@ -153,6 +155,9 @@ interface RequestConfirmationDialogProps {
   holder: User | null;
   requestor: User | null;
   notice?: RequestNotice | null;
+  // After a first request the same window shows "Request sent".
+  sent?: boolean;
+  onDone?: () => void;
 }
 
 const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
@@ -165,6 +170,8 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   holder,
   requestor,
   notice,
+  sent = false,
+  onDone,
 }) => {
   const { t } = useTranslation();
   // Nothing is pre-selected: the person chooses where to meet (Issue #258, R7).
@@ -199,8 +206,10 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   );
   const [draftSubject, setDraftSubject] = useState(defaultSubject);
   const [draftEmailContent, setDraftEmailContent] = useState(defaultEmailContent);
+  const [editingDraft, setEditingDraft] = useState(false);
 
   const isOwnerAndHolderSame = owner?.id === holder?.id;
+  const recipients = requestRecipients(owner, holder);
   const displayHolder = holder || owner;
 
   // Get exchange point IDs for both holder and requestor
@@ -233,6 +242,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
       setSuburbStatus("idle");
       setSavedSuburb("");
       setVerifiedHere(false);
+      setEditingDraft(false);
       const steps: MissionStep[] = [];
       if (requestor && !requestor.isVerified) steps.push("verify");
       // "Where to meet" covers the suburb (if missing) and picking a place.
@@ -374,10 +384,24 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={needsVerification ? "xs" : "md"}
+      maxWidth={needsVerification || sent ? "xs" : "md"}
       fullWidth
+      // Narrow side margins on phones so the window nearly fills the screen.
+      PaperProps={{
+        sx: {
+          mx: { xs: 1, sm: 4 },
+          width: { xs: "calc(100% - 16px)", sm: undefined },
+        },
+      }}
     >
-      {needsVerification ? (
+      {sent ? (
+        <DialogContent sx={{ p: 3 }}>
+          <RequestSentCard
+            recipients={recipients}
+            onDone={onDone ?? onClose}
+          />
+        </DialogContent>
+      ) : needsVerification ? (
         // Verifying is an account step, so it gets its own card, shown in
         // place of the request (one layer, no stacking).
         <DialogContent sx={{ p: 3 }}>
@@ -699,96 +723,102 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
               </FormControl>
             </Box>
 
-            <Divider sx={{ my: 2 }} />
-
-            {/* People Information */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="h6"
-                sx={sectionTitleSx}
+            {/* Email preview (Issue #258). Shown in full for review; editing is
+                the exception. Header (To, Subject) is kept apart from the
+                message. Owner and holder appear here as recipients. */}
+            <Paper sx={{ p: 2, mb: 1, overflowWrap: "anywhere" }} variant="outlined">
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1.5,
+                }}
               >
-                <PersonIcon />
-                {t("item.peopleInvolved", "People Involved")}
-              </Typography>
-
-              {/* Owner Information */}
-              {owner && (
-                <Box sx={{ ...personCardBaseSx, borderColor: "primary.light" }}>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ ...boldSubtitleSx, color: "primary.main" }}
+                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: "bold" }}>
+                  {t("item.requestEmailTitle", "Your request email")}
+                </Typography>
+                {!editingDraft && (
+                  <Button
+                    size="small"
+                    startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+                    onClick={() => setEditingDraft(true)}
+                    sx={{ minWidth: 0, py: 0 }}
                   >
-                    {t("item.owner", "Owner")}: {owner.nickname || owner.email}
-                  </Typography>
+                    {t("item.editShort", "Edit")}
+                  </Button>
+                )}
+              </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "auto minmax(0, 1fr)",
+                  columnGap: 1.5,
+                  rowGap: 0.5,
+                  typography: "body2",
+                }}
+              >
+                <Box sx={{ color: "text.secondary" }}>{t("item.emailTo", "To")}</Box>
+                <Box>
+                  <Box component="span" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                    {recipients.ownerName}
+                  </Box>{" "}
+                  {recipients.holderName
+                    ? t("item.roleOwnerShort", "(owner)")
+                    : t("item.roleOwnerAndHolderShort", "(owner, has the book)")}
+                  {recipients.holderName && (
+                    <>
+                      ,{" "}
+                      <Box component="span" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                        {recipients.holderName}
+                      </Box>{" "}
+                      {t("item.roleHolderShort", "(holder)")}
+                    </>
+                  )}
                 </Box>
-              )}
+                {!editingDraft && (
+                  <>
+                    <Box sx={{ color: "text.secondary" }}>{t("item.subject", "Subject")}</Box>
+                    <Box>{draftSubject.trim() || defaultSubject}</Box>
+                  </>
+                )}
+              </Box>
 
-              {/* Holder Information (if different from owner) */}
-              {displayHolder && !isOwnerAndHolderSame && (
-                <Box sx={{ ...personCardBaseSx, borderColor: "secondary.light" }}>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ ...boldSubtitleSx, color: "secondary.main" }}
-                  >
-                    {t("item.currentHolder", "Current Holder")}:{" "}
-                    {displayHolder.nickname || displayHolder.email}
-                  </Typography>
+              <Divider sx={{ my: 1.5 }} />
+
+              {editingDraft ? (
+                <Box>
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={1}
+                    label={t("item.subject", "Subject")}
+                    value={draftSubject}
+                    onChange={(e) => setDraftSubject(e.target.value)}
+                    sx={{ mb: 2 }}
+                  />
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={5}
+                    label={t("item.emailContent", "Email Content")}
+                    value={draftEmailContent}
+                    onChange={(e) => setDraftEmailContent(e.target.value)}
+                  />
+                  <Box sx={{ textAlign: "right", mt: 1 }}>
+                    <Button size="small" onClick={() => setEditingDraft(false)}>
+                      {t("item.doneEditingDraft", "Done editing")}
+                    </Button>
+                  </Box>
                 </Box>
+              ) : (
+                <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                  {draftEmailContent.trim()}
+                </Typography>
               )}
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Draft Email Editor */}
-            <Paper sx={{ p: 2, mb: 3 }} variant="outlined">
-              <Typography variant="subtitle1" sx={{ ...boldSubtitleSx, mb: 2 }}>{t("item.draftEmail", "Draft Email")}</Typography>
-              <TextField
-                fullWidth
-                multiline
-                minRows={1}
-                label={t("item.subject", "Subject")}
-                value={draftSubject}
-                onChange={(e) => setDraftSubject(e.target.value)}
-                sx={{ mb: 2 }}
-              />
-
-              <TextField
-                fullWidth
-                multiline
-                minRows={6}
-                label={t("item.emailContent", "Email Content")}
-                value={draftEmailContent}
-                onChange={(e) => setDraftEmailContent(e.target.value)}
-                sx={{ mb: 2 }}
-              />
             </Paper>
 
-            <Divider sx={{ my: 2 }} />
-
-            {/* Notification Information */}
-            <Box sx={notificationBoxSx}>
-              <Typography
-                variant="subtitle1"
-                sx={{ ...boldSubtitleSx, mb: 1 }}
-              >
-                {t("item.notificationInfo", "Notifications")}
-              </Typography>
-              {isOwnerAndHolderSame ? (
-                <Typography variant="body2">
-                  {t(
-                    "item.ownerWillBeNotified",
-                    "The owner will be notified of your request.",
-                  )}
-                </Typography>
-              ) : (
-                <Typography variant="body2">
-                  {t(
-                    "item.ownerAndHolderWillBeNotified",
-                    "Both the owner and current holder will be notified of your request, as they are different people.",
-                  )}
-                </Typography>
-              )}
-            </Box>
           </Box>
         }
       </DialogContent>
@@ -840,6 +870,31 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
           </Alert>
         </Box>
       )}
+      {/* Inline confirmation: who gets emailed the moment they press send. */}
+      <Box sx={{ px: 3, pt: 2 }}>
+        <Alert
+          severity="info"
+          icon={<EmailIcon fontSize="inherit" />}
+          sx={{ overflowWrap: "anywhere" }}
+        >
+          <BoldNames
+            names={{ owner: recipients.ownerName, holder: recipients.holderName ?? "" }}
+            text={
+              recipients.holderName
+                ? t(
+                    "item.sendEmailsWho",
+                    "Pressing Send request emails {{owner}} (owner) and {{holder}} (holder) now. You'll get a copy.",
+                    { owner: nameMarker("owner"), holder: nameMarker("holder") },
+                  )
+                : t(
+                    "item.sendEmailsWhoSame",
+                    "Pressing Send request emails {{owner}} now. They own this book and have it. You'll get a copy.",
+                    { owner: nameMarker("owner") },
+                  )
+            }
+          />
+        </Alert>
+      </Box>
       {!selectedPlaceIsUsable && (
         <Typography
           variant="body2"

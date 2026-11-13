@@ -69,6 +69,7 @@ import {
   type TransactionWorkflowState,
 } from "../utils/transactionWorkflow";
 import { getTransactionStatusChipProps } from "../utils/itemStatusChip";
+import { requestCloseInfo } from "../utils/requestRecipients";
 
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
@@ -86,6 +87,7 @@ const GET_TRANSACTION = gql`
       status
       createdAt
       updatedAt
+      expireAt
       item {
         id
         name
@@ -694,6 +696,36 @@ const TransactionDetailPage: React.FC = () => {
         <Typography variant="body2">
           {workflowState.description}
         </Typography>
+        {transaction.status === TransactionStatus.Pending &&
+          (() => {
+            // Waiting requests close 14 days after they're sent (Issue #258).
+            const close = requestCloseInfo(transaction.expireAt);
+            if (!close) return null;
+            const date = close.date.toLocaleDateString(undefined, {
+              day: "numeric",
+              month: "short",
+            });
+            return (
+              <Typography
+                variant="body2"
+                sx={{ mt: 1, pt: 1, borderTop: "1px solid", borderColor: "divider" }}
+              >
+                <strong>
+                  {close.daysLeft <= 1
+                    ? t("transactions.closesWithinDay", "Closes {{date}}, within a day", { date })
+                    : t("transactions.closesOn", "Closes {{date}} ({{days}} days left)", {
+                        date,
+                        days: close.daysLeft,
+                      })}
+                  .
+                </strong>{" "}
+                {t(
+                  "transactions.closesExplain",
+                  "Requests close 14 days after they're sent. If it closes, you can send a new one.",
+                )}
+              </Typography>
+            );
+          })()}
       </Alert>
 
       <Box sx={qrWrapperSx}>

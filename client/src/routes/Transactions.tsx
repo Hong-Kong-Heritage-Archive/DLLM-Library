@@ -35,6 +35,8 @@ import { useNavigateBack } from "../hook/useNavigateBack";
 import { User, Transaction, TransactionStatus } from "../generated/graphql";
 import { PageLoader } from "../components/LoadingState";
 import { getTransactionStatusChipProps } from "../utils/itemStatusChip";
+import { requestCloseInfo } from "../utils/requestRecipients";
+import { HourglassBottom as HourglassIcon } from "@mui/icons-material";
 
 const GET_USER_TRANSACTIONS = gql`
   query GetUserTransactions($userId: ID!) {
@@ -43,6 +45,7 @@ const GET_USER_TRANSACTIONS = gql`
       status
       createdAt
       updatedAt
+      expireAt
       item {
         id
         name
@@ -70,6 +73,7 @@ const GET_USER_OPEN_TRANSACTIONS = gql`
       status
       createdAt
       updatedAt
+      expireAt
       item {
         id
         name
@@ -332,6 +336,37 @@ const TransactionsPage: React.FC = () => {
                             transaction.requestor?.email)}
                       </strong>
                     </Typography>
+                    {transaction.status === TransactionStatus.Pending &&
+                      transaction.requestor?.id === user?.id &&
+                      (() => {
+                        // Waiting requests close 14 days after they're sent.
+                        const close = requestCloseInfo(transaction.expireAt);
+                        if (!close) return null;
+                        const date = close.date.toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "short",
+                        });
+                        return (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "warning.dark",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              mb: 0.5,
+                            }}
+                          >
+                            <HourglassIcon sx={{ fontSize: 16 }} />
+                            {close.daysLeft <= 1
+                              ? t("transactions.closesWithinDay", "Closes {{date}}, within a day", { date })
+                              : t("transactions.closesOn", "Closes {{date}} ({{days}} days left)", {
+                                  date,
+                                  days: close.daysLeft,
+                                })}
+                          </Typography>
+                        );
+                      })()}
                     <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                       <Typography variant="caption" color="text.secondary">
                         {t("transactions.created", "Created")}:{" "}

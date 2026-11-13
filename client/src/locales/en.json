@@ -536,8 +536,8 @@
     "draftEmail": "Draft Email",
     "subject": "Subject",
     "emailContent": "Email Content",
-    "defaultEmailSubject": "New request for item: {{itemName}}",
-    "defaultEmailContent": "Hello,\n\nI would like to request the item '{{itemName}}'. Please click on view details below for further actions.\n\nThank you.",
+    "defaultEmailSubject": "BookGuide borrow request: {{itemName}}",
+    "defaultEmailContent": "Hello,\n\nI'd like to borrow '{{itemName}}'. If there's a fee or deposit, let's agree on it before we meet.\n\nThank you.",
     "approvedTransfer": "Approved Transfer",
     "approvedForTransfer": "Approved for Transfer",
     "approvedOn": "Approved on",
@@ -574,7 +574,7 @@
     "away": "away",
     "here": "In the neighborhood",
     "request": "Request Item",
-    "requestSubmitted": "Request submitted! You'll be notified by email.",
+    "requestSubmitted": "Watch your email for the owner's reply, or track it with the bell at the top.",
     "locationRequired": "Location Required",
     "locationRequiredDescription": "Please set your location in your profile before requesting an item. This helps us match you with nearby items.",
     "goToProfile": "Go to Profile",
@@ -670,7 +670,24 @@
     "sendRequest": "Send request",
     "meetSuburbNoMatch": "No matching suburb. Check the spelling.",
     "meetSuburbChoose": "Choose a suburb from the list.",
-    "missionStepPlace": "Where to meet"
+    "missionStepPlace": "Where to meet",
+    "sendEmailsWho": "Pressing Send request emails {{owner}} (owner) and {{holder}} (holder) now. You'll get a copy.",
+    "sendEmailsWhoSame": "Pressing Send request emails {{owner}} now. They own this book and have it. You'll get a copy.",
+    "requestSentTitle": "Request sent",
+    "requestSentWho": "We've emailed {{owner}} (owner) and {{holder}} (holder). You'll get a copy too.",
+    "requestSentWhoSame": "We've emailed {{owner}}. They own this book and have it. You'll get a copy too.",
+    "requestSentWatchTitle": "Keep an eye on your email.",
+    "requestSentWatchBody": "You'll hear when the owner approves, then you'll arrange the handover by email. Emails come from BookGuide. If you can't find one, check your junk folder.",
+    "requestSentHelp": "Questions? Ask us in the Signal group.",
+    "emailTo": "To",
+    "roleOwnerShort": "(owner)",
+    "roleHolderShort": "(holder)",
+    "roleOwnerAndHolderShort": "(owner, has the book)",
+    "doneEditingDraft": "Done editing",
+    "requestSentTrackTitle": "Track your request:",
+    "requestSentTrackBody": "tap the bell at the top to open My Exchanges. You'll see where it's up to and how long it stays open.",
+    "requestEmailTitle": "Your request email",
+    "editShort": "Edit"
   },
   "languages": {
     "en": "English",
@@ -953,7 +970,10 @@
       "transfered": "Handed Over",
       "completed": "Completed",
       "cancelled": "Cancelled"
-    }
+    },
+    "closesOn": "Closes {{date}} ({{days}} days left)",
+    "closesWithinDay": "Closes {{date}}, within a day",
+    "closesExplain": "Requests close 14 days after they're sent. If it closes, you can send a new one."
   },
   "itemsAll": {
     "title": "Search Items",

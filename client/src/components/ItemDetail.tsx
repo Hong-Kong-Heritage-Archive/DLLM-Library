@@ -11,6 +11,7 @@ import {
   Container,
   Paper,
   Snackbar,
+  AlertTitle,
   Modal,
   Backdrop,
   Fade,
@@ -36,7 +37,8 @@ import {
   FavoriteBorder as FavoriteBorderIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { gql, useQuery, useMutation, useLazyQuery } from "@apollo/client";
+import { isFirstRequest } from "../utils/requestRecipients";
 import {
   Item,
   User,
@@ -146,6 +148,18 @@ const CONTACT_HOLDER_MUTATION = gql`
       emailContent: $emailContent
       details: $details
     )
+  }
+`;
+
+// Used to tell whether a request was the member's first.
+const MY_REQUESTS_QUERY = gql`
+  query MyRequests($userId: ID!) {
+    transactionsByUser(userId: $userId) {
+      id
+      requestor {
+        id
+      }
+    }
   }
 `;
 
@@ -681,6 +695,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const [errorMessage, setErrorMessage] = useState("");
   // Shown inside the request form when sending fails (Issue #258, R5, R10).
   const [requestNotice, setRequestNotice] = useState<RequestNotice | null>(null);
+  // First request only: the window turns into "Request sent" (Issue #258, D2).
+  const [requestSent, setRequestSent] = useState(false);
+  const [loadMyRequests] = useLazyQuery(MY_REQUESTS_QUERY, {
+    fetchPolicy: "network-only",
+  });
 
   // Simplified auth state
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
@@ -818,9 +837,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const [createTransaction, { loading: createTransactionLoading }] =
     useMutation(CREATE_TRANSACTION_MUTATION, {
       onCompleted: () => {
-        setRequestDialogOpen(false);
-        setSuccessMessage(t("item.requestSubmitted"));
-        setSuccessSnackbarOpen(true);
+        // Closing the window and confirming happen in handleConfirmRequest,
+        // once we know whether this was the member's first request.
         incompleteRequestsQuery.refetch().catch(() => undefined);
         itemTransactions.refetch().catch(() => undefined);
       },
@@ -1080,7 +1098,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
     try {
       const details = buildDetailsString();
       // Persist the borrow request into Firestore so it appears in the request queue.
-      await createTransaction({
+      const created = await createTransaction({
         variables: {
           itemId,
           location,
@@ -1088,6 +1106,9 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           details: details,
         },
       });
+      // A failed request is explained in the form (onError). Stop here so no
+      // emails go out for a request that doesn't exist.
+      if (!created.data?.createTransaction) return;
       // Keep the existing email notification path (best-effort; do not fail the request).
       try {
         await contactHolder({
@@ -1102,6 +1123,23 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         });
       } catch (emailError) {
         console.error("Transaction created but email notify failed:", emailError);
+      }
+
+      let firstRequest = false;
+      if (user?.id) {
+        try {
+          const mine = await loadMyRequests({ variables: { userId: user.id } });
+          firstRequest = isFirstRequest(mine.data?.transactionsByUser ?? [], user.id);
+        } catch {
+          firstRequest = false;
+        }
+      }
+      if (firstRequest) {
+        setRequestSent(true);
+      } else {
+        setRequestDialogOpen(false);
+        setSuccessMessage(t("item.requestSubmitted"));
+        setSuccessSnackbarOpen(true);
       }
     } catch (error) {
       console.error("Error creating transaction:", error);
@@ -1128,6 +1166,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
   const handleCloseRequestDialog = () => {
     setRequestDialogOpen(false);
     setRequestNotice(null);
+    // Wait for the closing animation before switching back to the form.
+    setTimeout(() => setRequestSent(false), 300);
   };
 
   const handleCloseFaceToFaceDialog = () => {
@@ -2297,6 +2337,8 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         holder={holderData?.user || null}
         requestor={user || null}
         notice={requestNotice}
+        sent={requestSent}
+        onDone={handleCloseRequestDialog}
       />
 
       {/* Face-to-Face Confirmation Dialog */}
@@ -2428,18 +2470,37 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
       />
 
       {/* Success Snackbar */}
+      {/* Success notices sit at the top, under the header, where the eye is
+          after a window closes (Issue #258). */}
       <Snackbar
         open={successSnackbarOpen}
-        autoHideDuration={6000}
+        autoHideDuration={8000}
         onClose={handleCloseSuccessSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ top: { xs: 88, sm: 96 } }}
       >
         <Alert
           onClose={handleCloseSuccessSnackbar}
           severity="success"
-          sx={fullWidthSx}
+          sx={{
+            width: { xs: "100%", sm: 560 },
+            py: 1.5,
+            border: "1px solid",
+            borderColor: "success.main",
+            boxShadow: 3,
+            "& .MuiAlert-icon": { fontSize: 26 },
+          }}
         >
-          {successMessage || t("item.requestSuccess")}
+          {successMessage === t("item.requestSubmitted") ? (
+            <>
+              <AlertTitle sx={{ mb: 0.25, fontWeight: "bold" }}>
+                {t("item.requestSentTitle", "Request sent")}
+              </AlertTitle>
+              {t("item.requestSubmitted")}
+            </>
+          ) : (
+            successMessage || t("item.requestSuccess")
+          )}
         </Alert>
       </Snackbar>
 

@@ -483,7 +483,7 @@
     "relatedItems": "相關物品",
     "loadItems": "載入物品中...",
     "request": "申請借閱",
-    "requestSubmitted": "交易請求已提交！你將通過電子郵件收到通知。",
+    "requestSubmitted": "記得留意 email 回覆，亦可以撳上面嘅鐘仔追蹤進度。",
     "locationRequired": "需要設定位置",
     "locationRequiredDescription": "請先喺個人檔案設定你嘅位置，再進行物品請求。呢個可以幫我地為你配對附近嘅物品。",
     "goToProfile": "前往個人檔案",
@@ -518,8 +518,8 @@
     "draftEmail": "草稿電子郵件",
     "subject": "主題",
     "emailContent": "電子郵件內容",
-    "defaultEmailSubject": "有人想借你件{{itemName}}",
-    "defaultEmailContent": "你好，\n\n我想借你有持住嘅'{{itemName}}'。另外，如果涉及一切手續費/押金（Deposit），建議事先同對方溝通好。\n\n謝謝。",
+    "defaultEmailSubject": "BookGuide 借書請求：{{itemName}}",
+    "defaultEmailContent": "你好，\n\n我想借《{{itemName}}》。如果涉及手續費或押金（Deposit），我哋可以喺見面前傾好。\n\n謝謝。",
     "approvedTransfer": "準備交收",
     "approvedForTransfer": "的交易請求已被批准",
     "approvedOn": "批准於",
@@ -678,7 +678,24 @@
     "sendRequest": "送出請求",
     "meetSuburbNoMatch": "搵唔到相符嘅區，請檢查串法。",
     "meetSuburbChoose": "請喺清單揀一個區。",
-    "missionStepPlace": "交收地點"
+    "missionStepPlace": "交收地點",
+    "sendEmailsWho": "撳「送出請求」會即刻 email 通知 {{owner}}（物主）同 {{holder}}（持有者），你都會收到副本。",
+    "sendEmailsWhoSame": "撳「送出請求」會即刻 email 通知 {{owner}}（物主兼持有者），你都會收到副本。",
+    "requestSentTitle": "請求已送出",
+    "requestSentWho": "我哋已經 email 通知 {{owner}}（物主）同 {{holder}}（持有者），你都會收到副本。",
+    "requestSentWhoSame": "我哋已經 email 通知 {{owner}}（物主兼持有者），你都會收到副本。",
+    "requestSentWatchTitle": "請留意你嘅 email。",
+    "requestSentWatchBody": "物主批准後你會收到通知，之後可以用 email 安排交收。Email 由 BookGuide 寄出，如果搵唔到，記得睇吓垃圾郵件。",
+    "requestSentHelp": "有問題？可以喺 Signal 群組問我哋。",
+    "emailTo": "寄給",
+    "roleOwnerShort": "（物主）",
+    "roleHolderShort": "（持有者）",
+    "roleOwnerAndHolderShort": "（物主兼持有者）",
+    "doneEditingDraft": "完成編輯",
+    "requestSentTrackTitle": "追蹤你嘅請求：",
+    "requestSentTrackBody": "撳上面嘅鐘仔，就可以喺「我的交換」睇到進度同請求仲有幾耐有效。",
+    "requestEmailTitle": "你嘅借書 email",
+    "editShort": "編輯"
   },
   "userProfile": {
     "nickname": "暱稱",
@@ -958,7 +975,10 @@
       "transfered": "已轉交",
       "completed": "已完成",
       "cancelled": "已取消"
-    }
+    },
+    "closesOn": "{{date}} 自動關閉（剩 {{days}} 日）",
+    "closesWithinDay": "{{date}} 自動關閉，剩唔夠一日",
+    "closesExplain": "請求會喺送出後 14 日自動關閉。如果關閉咗，你可以再送一個新請求。"
   },
   "diagram": {
     "roles": {
