@@ -98,10 +98,10 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
   // someone arriving from a shared link came for that book, and the tour
   // would cover it. It waits for their first visit to a general page instead.
   // The member tour points at Home's "view all" and "add item", so it only
-  // starts on Home, where those targets exist.
+  // starts on Home ("/" or "/home"), where those targets exist.
   const { pathname } = useLocation();
   const tourAllowedHere = isLoggedIn && isVerified
-    ? pathname === "/"
+    ? pathname === "/" || pathname === "/home"
     : !pathname.startsWith("/item");
 
   // Check if onboarding should be shown

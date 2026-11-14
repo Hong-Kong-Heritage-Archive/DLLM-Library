@@ -53,3 +53,12 @@ export function requestCloseInfo(
   const daysLeft = Math.max(0, Math.ceil((date.getTime() - now.getTime()) / 86_400_000));
   return { date, daysLeft };
 }
+
+/**
+ * Short day-and-month date ("27 Nov" / "11月27日") in the app's language,
+ * not the browser's, so it matches the sentence around it.
+ */
+export function formatCloseDate(date: Date, appLanguage: string | undefined): string {
+  const locale = appLanguage && appLanguage.startsWith("zh") ? "zh-HK" : "en-AU";
+  return date.toLocaleDateString(locale, { day: "numeric", month: "short" });
+}

@@ -131,15 +131,6 @@ const sectionTitleSx = {
   gap: 1,
 };
 
-const personCardBaseSx = {
-  mb: 2,
-  p: 2,
-  border: "1px solid",
-  borderRadius: 1,
-  // Nicknames can be emails with no spaces; let them wrap.
-  overflowWrap: "anywhere",
-};
-
 const boldSubtitleSx = {
   fontWeight: "bold",
 };
@@ -208,7 +199,6 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   const [draftEmailContent, setDraftEmailContent] = useState(defaultEmailContent);
   const [editingDraft, setEditingDraft] = useState(false);
 
-  const isOwnerAndHolderSame = owner?.id === holder?.id;
   const recipients = requestRecipients(owner, holder);
   const displayHolder = holder || owner;
 

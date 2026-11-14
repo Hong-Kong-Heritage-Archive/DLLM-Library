@@ -35,7 +35,8 @@ import { useNavigateBack } from "../hook/useNavigateBack";
 import { User, Transaction, TransactionStatus } from "../generated/graphql";
 import { PageLoader } from "../components/LoadingState";
 import { getTransactionStatusChipProps } from "../utils/itemStatusChip";
-import { requestCloseInfo } from "../utils/requestRecipients";
+import { formatCloseDate, requestCloseInfo } from "../utils/requestRecipients";
+import i18next from "i18next";
 import { HourglassBottom as HourglassIcon } from "@mui/icons-material";
 
 const GET_USER_TRANSACTIONS = gql`
@@ -342,10 +343,7 @@ const TransactionsPage: React.FC = () => {
                         // Waiting requests close 14 days after they're sent.
                         const close = requestCloseInfo(transaction.expireAt);
                         if (!close) return null;
-                        const date = close.date.toLocaleDateString(undefined, {
-                          day: "numeric",
-                          month: "short",
-                        });
+                        const date = formatCloseDate(close.date, i18next.language);
                         return (
                           <Typography
                             variant="body2"

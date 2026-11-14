@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { displayName, requestRecipients, isFirstRequest, requestCloseInfo } from "./requestRecipients";
+import {
+  displayName,
+  requestRecipients,
+  isFirstRequest,
+  requestCloseInfo,
+  formatCloseDate,
+} from "./requestRecipients";
 
 describe("requestRecipients", () => {
   it("names both when owner and holder differ", () => {
@@ -42,5 +48,14 @@ describe("requestCloseInfo", () => {
     expect(requestCloseInfo("2026-11-01T00:00:00+11:00", now)?.daysLeft).toBe(0);
     expect(requestCloseInfo(null, now)).toBeNull();
     expect(requestCloseInfo("not a date", now)).toBeNull();
+  });
+});
+
+describe("formatCloseDate", () => {
+  const date = new Date("2026-11-27T12:00:00+11:00");
+  it("follows the app's language, not the browser's", () => {
+    expect(formatCloseDate(date, "en")).toContain("Nov");
+    expect(formatCloseDate(date, "zh-HK")).toContain("11");
+    expect(formatCloseDate(date, "zh-HK")).not.toContain("Nov");
   });
 });
