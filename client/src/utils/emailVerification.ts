@@ -64,6 +64,13 @@ export async function confirmEmailVerificationCode(code: string) {
   return true;
 }
 
-export function openEmailVerificationDialog() {
-  window.dispatchEvent(new CustomEvent("bookguide:email-verification-required"));
+/**
+ * Opens the shared verification card.
+ * "blocking" (default): an exchange step is waiting on it, exit is "Go back".
+ * "optional": nothing is blocked (for example Home's Verify Email button), exit is "Later".
+ */
+export function openEmailVerificationDialog(mode: "optional" | "blocking" = "blocking") {
+  window.dispatchEvent(
+    new CustomEvent("bookguide:email-verification-required", { detail: { mode } }),
+  );
 }

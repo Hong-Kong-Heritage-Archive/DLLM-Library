@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Backdrop,
@@ -93,22 +94,34 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const cookieName =
     isLoggedIn && isVerified ? USER_ONBOARDING_COOKIE : GUEST_ONBOARDING_COOKIE;
 
+  // Where the tour may start (Issue #258, decision 1A). Never on a book page:
+  // someone arriving from a shared link came for that book, and the tour
+  // would cover it. It waits for their first visit to a general page instead.
+  // The member tour points at Home's "view all" and "add item", so it only
+  // starts on Home ("/" or "/home"), where those targets exist.
+  const { pathname } = useLocation();
+  const tourAllowedHere = isLoggedIn && isVerified
+    ? pathname === "/" || pathname === "/home"
+    : !pathname.startsWith("/item");
+
   // Check if onboarding should be shown
   useEffect(() => {
-    const checkAndShowTour = () => {
-      const hasSeenTour = getCookie(cookieName);
+    if (!tourAllowedHere) return;
+    if (getCookie(cookieName)) return;
+    // Small delay to ensure DOM elements are rendered
+    const timer = setTimeout(() => {
+      setShowTour(true);
+      setCurrentStep(0);
+    }, 1000);
+    // Leaving the page before the delay ends cancels the tour for now.
+    return () => clearTimeout(timer);
+  }, [isLoggedIn, isVerified, cookieName, tourAllowedHere]);
 
-      if (!hasSeenTour) {
-        // Small delay to ensure DOM elements are rendered
-        setTimeout(() => {
-          setShowTour(true);
-          setCurrentStep(0);
-        }, 1000);
-      }
-    };
-
-    checkAndShowTour();
-  }, [isLoggedIn, isVerified, cookieName]);
+  // If the person moves to a book page mid-tour, hide it without marking it
+  // as seen, so it can show again on a general page.
+  useEffect(() => {
+    if (!tourAllowedHere) setShowTour(false);
+  }, [tourAllowedHere]);
 
   // Update target element position when step changes
   useEffect(() => {
