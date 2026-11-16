@@ -35,6 +35,13 @@ interface Context {
   loginUser: LoginUser | null;
 }
 
+const OPEN_TRANSACTION_EXCLUDED_STATUSES: TransactionStatus[] = [
+  TransactionStatus.Completed,
+  TransactionStatus.Cancelled,
+  TransactionStatus.Expired,
+  TransactionStatus.Gifted,
+];
+
 const systemService = new SystemService();
 const categoryService = new CategoryService();
 const itemService = new ItemService(categoryService, systemService);
@@ -438,11 +445,11 @@ export const resolvers: Resolvers = {
       { itemId }: any,
       __: any,
     ): Promise<Transaction[]> => {
-      return transactionService.transactionsNotStatus(itemId, null, [
-        TransactionStatus.Completed,
-        TransactionStatus.Cancelled,
-        TransactionStatus.Expired,
-      ]);
+      return transactionService.transactionsNotStatus(
+        itemId,
+        null,
+        OPEN_TRANSACTION_EXCLUDED_STATUSES,
+      );
     },
     incompleteRequestsByItem: async (
       _: any,
@@ -462,13 +469,17 @@ export const resolvers: Resolvers = {
     openTransactionsByUser: async (
       _: any,
       { userId }: any,
-      __: any,
+      { loginUser }: Context,
     ): Promise<Transaction[]> => {
-      return transactionService.transactionsNotStatus(null, userId, [
-        TransactionStatus.Completed,
-        TransactionStatus.Cancelled,
-        TransactionStatus.Expired,
-      ]);
+      if (!loginUser) throw new Error("Not authenticated");
+      const user = await userService.me(loginUser);
+      if (!user) throw new Error("User not found");
+
+      return transactionService.transactionsNotStatus(
+        null,
+        userId,
+        OPEN_TRANSACTION_EXCLUDED_STATUSES,
+      );
     },
     transactionsByUser: async (
       _: any,
