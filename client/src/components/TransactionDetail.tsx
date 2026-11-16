@@ -781,6 +781,7 @@ const TransactionDetailPage: React.FC = () => {
 
           {/* Receive Button - Transferred */}
           {!isHolder &&
+            !isOwner &&
             (isRequestor || isReceiver || isQuickExchange) &&
             transaction.status === TransactionStatus.Transfered && (
               <>
