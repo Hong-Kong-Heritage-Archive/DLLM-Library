@@ -4,6 +4,7 @@ import Home from "./routes/Home";
 import NewsPage from "./routes/News";
 import NewsDetailPage from "./routes/News.$id";
 import AllNewsPage from "./routes/News.all";
+import HowToBorrowPage from "./routes/HowToBorrow";
 import ItemDetailPage from "./routes/Item.$id";
 import ItemRecentPage from "./routes/Item.recent";
 import ItemAllPage from "./routes/Item.all";
@@ -57,6 +58,10 @@ export const createRouter = (
         {
           path: "news/all",
           element: <AllNewsPage />,
+        },
+        {
+          path: "news/how-to-borrow",
+          element: <HowToBorrowPage />,
         },
         {
           path: "news/:id",

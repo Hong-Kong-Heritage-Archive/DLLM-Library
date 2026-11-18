@@ -1096,5 +1096,14 @@
     "message": "The page you are looking for does not exist.",
     "loginRequired": "Sign In Required",
     "contentRestricted": "Content Restricted"
+  },
+  "howToBorrow": {
+    "pageTitle": "How to borrow",
+    "back": "Back",
+    "card": {
+      "title": "First time borrowing?",
+      "body": "From request to book in hand, in five steps.",
+      "button": "See how borrowing works"
+    }
   }
 }
