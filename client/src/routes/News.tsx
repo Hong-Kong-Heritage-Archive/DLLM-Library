@@ -38,7 +38,7 @@ import {
   CreateNewsPostMutation,
   NewsStatus,
 } from "../generated/graphql";
-import TransactionFlowDiagrams from "../components/TransactionFlowDiagrams";
+import FirstBorrowCard from "../components/how-to-borrow/FirstBorrowCard";
 import RecentNewsBanner from "../components/RecentNewsBanner";
 import { batchProcessImages } from "../utils/ImageProcessor";
 import { uploadImages, ImagePreview } from "../utils/imageUpload";
@@ -409,6 +409,9 @@ const NewsPage: React.FC = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
+      {/* Entry to 點樣借書 (transitional, until the 新聞 sub-tabs) */}
+      {!isEditing && <FirstBorrowCard />}
+
       {/* Header */}
       {isAdmin && <RecentNewsBanner newsStatus={NewsStatus.Draft} />}
       <RecentNewsBanner newsStatus={NewsStatus.CoEditing} />
@@ -873,13 +876,6 @@ const NewsPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Transaction Flow Diagrams Section - Add after About Us */}
-      {!isEditing && (
-        <Box sx={{ mt: 4 }}>
-          <TransactionFlowDiagrams />
-        </Box>
-      )}
 
       {/* Edit Action Buttons */}
       {isEditing && (

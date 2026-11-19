@@ -1222,5 +1222,14 @@
     "message": "你查找的頁面不存在。",
     "loginRequired": "需要登入",
     "contentRestricted": "內容受限"
+  },
+  "howToBorrow": {
+    "pageTitle": "如何借書",
+    "back": "返回",
+    "card": {
+      "title": "第一次借書？",
+      "body": "從申請到拿到書，只要五個步驟。",
+      "button": "看看如何借書"
+    }
   }
 }

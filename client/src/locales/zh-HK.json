@@ -1259,5 +1259,93 @@
     "message": "你查找的頁面不存在。",
     "loginRequired": "需要登入",
     "contentRestricted": "內容受限"
+  },
+  "howToBorrow": {
+    "pageTitle": "點樣借書",
+    "back": "返回",
+    "eyebrow": "HOW BOOKGUIDE WORKS",
+    "title": "一本書，傳落去",
+    "intro": "BookGuide 係一間由大家一齊打理嘅圖書館。館藏係每個人最鍾意嗰幾本書：你揭過好多次、成日想推俾朋友嗰本。",
+    "note": "書會由讀者親手交到下一位手上，可能仲夾住上一位留低嘅書籤，或者一張寫俾你嘅「密語」小字條。呢啲，電子書俾唔到你㗎。",
+    "ready": "想加入一齊傳書？1 分鐘咁大把睇完呢頁，你就準備好借第一本書。",
+    "tocHint": "想睇邊part？撳一下就跳過去",
+    "tocLabel": "跳去章節",
+    "roles": {
+      "title": "借書會遇到邊啲人？",
+      "subtitle": "每位圖書館員都有自己嘅崗位。認得佢哋，借書就易好多。",
+      "owner": "物主",
+      "ownerEn": "Owner",
+      "ownerDesc": "本書嘅主人\n決定借唔借",
+      "holder": "持有者",
+      "holderEn": "Holder",
+      "holderDesc": "而家拎住本書\n負責交收",
+      "borrower": "借書人",
+      "borrowerEn": "Borrower",
+      "borrowerDesc": "想借書嘅你\n申請同收書",
+      "you": "你",
+      "firstLoan": "第一次借出，持有者就係物主本人。"
+    },
+    "relay": {
+      "title": "本書點樣去到我手？",
+      "subtitle": "你收到書嗰刻，就輪到你保管佢。下一位讀者，會由你手上接過去。",
+      "previous": "上一位讀者",
+      "next": "下一位讀者",
+      "nextAria": "下一位讀者，未知係邊個",
+      "returnNote": "任何時候都可以還返物主，由物主撳「{{label}}」。"
+    },
+    "before": {
+      "title": "開始之前",
+      "subtitle": "兩分鐘搞掂，申請同交收就唔會卡住。",
+      "account": "登記帳戶",
+      "verify": "驗證 email",
+      "location": "喺個人檔案設定位置"
+    },
+    "steps": {
+      "title": "點樣借第一本書？",
+      "subtitle": "由申請到攞到書，五步搞掂。",
+      "listLabel": "借書五個步驟",
+      "step": "Step {{n}}",
+      "meetup": "見面交收",
+      "timer": "持有者撳「{{label}}」之後，1 小時內要搞掂",
+      "s1Title": "申請借書",
+      "s1Body": "喺書本頁撳",
+      "s1Note": "email 會寄俾物主、持有者同你",
+      "s2Title": "約時間地點",
+      "s2Body": "回覆 email，傾好幾時、喺邊度見",
+      "s2FirstLoan": "第一次借出，持有者就係物主本人",
+      "s2Note": "要俾押金嘅話，一齊傾清楚",
+      "s3Title": "見面，出 QR code",
+      "s3Body": "撳",
+      "s3Note": "畫面出 QR code，交書俾你",
+      "s4Title": "Scan QR code 收書",
+      "s4Body": "Scan QR code，撳",
+      "s4Note": "想留紀錄可以影相，唔影都得",
+      "s5Title": "本書而家由你保管",
+      "s5Before": "喺",
+      "s5After": "睇到"
+    },
+    "rules": {
+      "title": "借書有咩要留意？",
+      "subtitle": "記住呢幾樣，傳書就順順利利。",
+      "meetTitle": "見到面先好撳",
+      "meetDesc": "持有者撳「{{label}}」之後，1 小時內要搞掂",
+      "publicTitle": "約喺公眾地方",
+      "publicDesc": "圖書館、商場、咖啡店都啱",
+      "expiryTitle": "14 日冇人覆",
+      "expiryDesc": "申請會自動取消，可以揀過另一本",
+      "durationTitle": "借幾耐",
+      "durationDesc": "同物主傾，暫時冇固定借期",
+      "onwardTitle": "有人想借你手上嗰本",
+      "onwardDesc": "你會收到 email，用返同樣方法交收俾佢",
+      "notesTitle": "字條夾喺書入面",
+      "notesDesc": "唔好喺書上面寫字"
+    },
+    "backToToc": "返去章節目錄",
+    "cta": "去睇今期「超.強」推介",
+    "card": {
+      "title": "第一次借書？",
+      "body": "由申請到攞到書，五步搞掂。",
+      "button": "睇吓點樣借書"
+    }
   }
 }
