@@ -151,7 +151,8 @@
       "userPicked": "為你推薦",
       "newArrivals": "新番",
       "popular": "熱門項目"
-    }
+    },
+    "verifyHelper": "驗證後就可以借書同借出書。"
   },
   "onboarding": {
     "skip": "跳過",
@@ -211,7 +212,7 @@
   },
   "emailVerification": {
     "title": "驗證電郵",
-    "transactionDescription": "開始或完成書籍交易前，請先驗證你的電郵。",
+    "transactionDescription": "書友會用 email 同你約交收，開始或完成交換前請先驗證你嘅 email。",
     "sendDescription": "我哋會將 6 位數驗證碼寄去 {{email}}。驗證碼會喺 10 分鐘後失效。",
     "codeSent": "驗證碼已寄出，請檢查你的收件箱。",
     "sendError": "未能寄出驗證碼",
@@ -224,7 +225,18 @@
     "verifying": "驗證中...",
     "verify": "驗證",
     "later": "稍後再做",
-    "fallbackEmail": "你的電郵"
+    "fallbackEmail": "你的電郵",
+    "autoSentDescription": "我哋已將 6 位數驗證碼寄去 {{email}}，請檢查收件箱。",
+    "cardTitle": "驗證你嘅 email",
+    "expiryNote": "驗證碼 10 分鐘內有效。",
+    "reason": "驗證 email 後，你就可以借書同借出書，書友亦可以聯絡你。",
+    "resendShort": "重新寄出",
+    "codeResent": "已寄出新嘅驗證碼。",
+    "goBack": "返回",
+    "blockingNote": "驗證之前，乜嘢都唔會送出或更改。",
+    "codeAlreadySent": "驗證碼已經寄出咗，請檢查你嘅收件箱。",
+    "successMessage": "Email 已驗證，你而家可以借書同借出書。",
+    "done": "完成"
   },
   "common": {
     "name": "名稱",
@@ -471,7 +483,7 @@
     "relatedItems": "相關物品",
     "loadItems": "載入物品中...",
     "request": "申請借閱",
-    "requestSubmitted": "交易請求已提交！你將通過電子郵件收到通知。",
+    "requestSubmitted": "記得留意 email 回覆，亦可以撳上面嘅鐘仔追蹤進度。",
     "locationRequired": "需要設定位置",
     "locationRequiredDescription": "請先喺個人檔案設定你嘅位置，再進行物品請求。呢個可以幫我地為你配對附近嘅物品。",
     "goToProfile": "前往個人檔案",
@@ -506,8 +518,8 @@
     "draftEmail": "草稿電子郵件",
     "subject": "主題",
     "emailContent": "電子郵件內容",
-    "defaultEmailSubject": "有人想借你件{{itemName}}",
-    "defaultEmailContent": "你好，\n\n我想借你有持住嘅'{{itemName}}'。另外，如果涉及一切手續費/押金（Deposit），建議事先同對方溝通好。\n\n謝謝。",
+    "defaultEmailSubject": "BookGuide 借書請求：{{itemName}}",
+    "defaultEmailContent": "你好，\n\n我想借《{{itemName}}》。如果涉及手續費或押金（Deposit），我哋可以喺見面前傾好。\n\n謝謝。",
     "approvedTransfer": "準備交收",
     "approvedForTransfer": "的交易請求已被批准",
     "approvedOn": "批准於",
@@ -522,6 +534,23 @@
     "holder": "持有者",
     "detailsloading": "資料加載中",
     "requestToBorrow": "申請借閱",
+    "addExchangeLocation": "加入交收地點",
+    "meetSuburbLabel": "你方便喺邊度交收？",
+    "meetSuburbPlaceholder": "區名，例如 Chatswood",
+    "meetSuburbHelper": "物主及持有者可查看。",
+    "meetSuburbUse": "確認",
+    "meetSuburbSaved": "已儲存，請喺下面揀交收地點。",
+    "meetSuburbNotFound": "搵唔到呢個區，試吓附近另一個區。",
+    "meetSuburbError": "儲存唔到，請檢查網絡再試。",
+    "chooseMeetingPlaceHint": "揀好交收地點，就可以送出請求。",
+    "missionStepVerify": "驗證 email",
+    "missionStepSend": "檢查後送出",
+    "requestErrorVerification": "驗證 email 後就可以送出請求。",
+    "requestVerifyEmailButton": "驗證 email",
+    "requestVerifiedNowSend": "Email 已驗證，撳「送出請求」就可以送出。",
+    "requestErrorCapacity": "呢本書已經有 {{count}} 個請求等緊。撳 ♡ 加入你嘅書單，遲啲再嚟睇，或者搵其他書。",
+    "requestErrorUnavailable": "呢本書已經唔可以申請，可能已被移除或更改。",
+    "requestErrorOther": "送出唔到請求，請檢查網絡再試。你寫好嘅內容會保留。",
     "errorLoading": "載入物品資料時出現錯誤",
     "category": "#標籤",
     "language": "語言",
@@ -557,7 +586,7 @@
     "responsibility3": "如有要求，需將物品歸還給物主",
     "confirmReceiptInstructions": "只有在實際從當前持有者手中收到物品後，才點擊「已接收」。",
     "received": "已接收",
-    "selectExchangeLocation": "選擇交換地點",
+    "selectExchangeLocation": "選擇交收地點",
     "holderAddress": "持有者交收地址",
     "requestorAddress": "你的交收地址",
     "holderExchangePoint": "持有者的交換站",
@@ -645,7 +674,28 @@
       "deleteError": "刪除申請失敗",
       "loadError": "載入申請佇列失敗：{{message}}",
       "pageInfo": "{{from}}–{{to}}／共 {{total}}"
-    }
+    },
+    "sendRequest": "送出請求",
+    "meetSuburbNoMatch": "搵唔到相符嘅區，請檢查串法。",
+    "meetSuburbChoose": "請喺清單揀一個區。",
+    "missionStepPlace": "交收地點",
+    "sendEmailsWho": "撳「送出請求」會即刻 email 通知 {{owner}}（物主）同 {{holder}}（持有者），你都會收到副本。",
+    "sendEmailsWhoSame": "撳「送出請求」會即刻 email 通知 {{owner}}（物主兼持有者），你都會收到副本。",
+    "requestSentTitle": "請求已送出",
+    "requestSentWho": "我哋已經 email 通知 {{owner}}（物主）同 {{holder}}（持有者），你都會收到副本。",
+    "requestSentWhoSame": "我哋已經 email 通知 {{owner}}（物主兼持有者），你都會收到副本。",
+    "requestSentWatchTitle": "請留意你嘅 email。",
+    "requestSentWatchBody": "物主批准後你會收到通知，之後可以用 email 安排交收。Email 由 BookGuide 寄出，如果搵唔到，記得睇吓垃圾郵件。",
+    "requestSentHelp": "有問題？可以喺 Signal 群組問我哋。",
+    "emailTo": "寄給",
+    "roleOwnerShort": "（物主）",
+    "roleHolderShort": "（持有者）",
+    "roleOwnerAndHolderShort": "（物主兼持有者）",
+    "doneEditingDraft": "完成編輯",
+    "requestSentTrackTitle": "追蹤你嘅請求：",
+    "requestSentTrackBody": "撳上面嘅鐘仔，就可以喺「我的交換」睇到進度同請求仲有幾耐有效。",
+    "requestEmailTitle": "你嘅借書 email",
+    "editShort": "編輯"
   },
   "userProfile": {
     "nickname": "暱稱",
@@ -800,7 +850,8 @@
     "shareProfileCopyMessageAndLink": "複製訊息同連結",
     "shareProfileCopiedMessageAndLink": "已複製訊息同連結！",
     "rootBinder": "根資料夾",
-    "noRootBinder": "此用戶尚未創建根資料夾。"
+    "noRootBinder": "此用戶尚未創建根資料夾。",
+    "addressNotSet": "未設定交收地址"
   },
   "transactions": {
     "title": "我的交換",
@@ -924,7 +975,10 @@
       "transfered": "已轉交",
       "completed": "已完成",
       "cancelled": "已取消"
-    }
+    },
+    "closesOn": "{{date}} 自動關閉（剩 {{days}} 日）",
+    "closesWithinDay": "{{date}} 自動關閉，剩唔夠一日",
+    "closesExplain": "請求會喺送出後 14 日自動關閉。如果關閉咗，你可以再送一個新請求。"
   },
   "diagram": {
     "roles": {

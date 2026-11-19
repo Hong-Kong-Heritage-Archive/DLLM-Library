@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from "@mui/material";
-import { useTranslation } from "react-i18next";
-import EmailVerificationForm from "./EmailVerificationForm";
+import { Dialog, DialogContent } from "@mui/material";
+import EmailVerificationCard, {
+  EmailVerificationCardMode,
+} from "./EmailVerificationCard";
 
+/**
+ * The shared verification card in a window. Opens in "blocking" mode when the
+ * server refuses an exchange step (request, receive, return, transfer), and in
+ * "optional" mode when the person chooses to verify (Home's Verify Email).
+ */
 const EmailVerificationDialog: React.FC = () => {
-  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<EmailVerificationCardMode>("blocking");
 
   useEffect(() => {
-    const handleOpen = () => setOpen(true);
+    // Server refusals send no detail, so they open in "blocking" mode.
+    const handleOpen = (event: Event) => {
+      const requested = (event as CustomEvent).detail?.mode;
+      setMode(requested === "optional" ? "optional" : "blocking");
+      setOpen(true);
+    };
     window.addEventListener(
       "bookguide:email-verification-required",
       handleOpen as EventListener,
@@ -26,24 +31,18 @@ const EmailVerificationDialog: React.FC = () => {
       );
   }, []);
 
-  const handleVerified = () => {
-    setOpen(false);
-  };
+  const close = () => setOpen(false);
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
-      <DialogTitle>{t("emailVerification.title")}</DialogTitle>
-      <DialogContent sx={{ pt: 1 }}>
-        <EmailVerificationForm
-          onVerified={handleVerified}
-          description={t("emailVerification.transactionDescription")}
-        />
+    <Dialog open={open} onClose={close} maxWidth="xs" fullWidth>
+      <DialogContent sx={{ p: 3 }}>
+        {open && (
+          <EmailVerificationCard
+            mode={mode}
+            onExit={close}
+          />
+        )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setOpen(false)}>
-          {t("emailVerification.later")}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
