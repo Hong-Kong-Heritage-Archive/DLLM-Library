@@ -9,18 +9,13 @@ import { useTranslation } from "react-i18next";
 import BoldNames, { nameMarker } from "./BoldNames";
 import { RequestRecipients } from "../utils/requestRecipients";
 
-// Invite link for the BookGuide community Signal group (help for members).
-export const SIGNAL_GROUP_URL =
-  "https://signal.group/#CjQKII2nqSOfKad5MIlUhmwB1yTQBPlO2eO-5rmcGlQvg4cnEhB6B4skJ4TUQkg_F9nQ6PH9";
-
-/**
- * Shown once, after a member's first request (Issue #258, D2). The one job is
- * to get people to watch their email: some members rarely check it.
- */
+// Shown once, after a member's first request (Issue #258, D2). The one job is
+// to get people to watch their email: some members rarely check it.
 const RequestSentCard: React.FC<{
   recipients: RequestRecipients;
   onDone: () => void;
-}> = ({ recipients, onDone }) => {
+  chatLink?: string | null;
+}> = ({ recipients, onDone, chatLink }) => {
   const { t } = useTranslation();
   const names = {
     owner: recipients.ownerName,
@@ -43,15 +38,15 @@ const RequestSentCard: React.FC<{
           text={
             recipients.holderName
               ? t(
-                  "item.requestSentWho",
-                  "We've emailed {{owner}} (owner) and {{holder}} (holder). You'll get a copy too.",
-                  markers,
-                )
+                "item.requestSentWho",
+                "We've emailed {{owner}} (owner) and {{holder}} (holder). You'll get a copy too.",
+                markers,
+              )
               : t(
-                  "item.requestSentWhoSame",
-                  "We've emailed {{owner}}. They own this book and have it. You'll get a copy too.",
-                  markers,
-                )
+                "item.requestSentWhoSame",
+                "We've emailed {{owner}}. They own this book and have it. You'll get a copy too.",
+                markers,
+              )
           }
         />
       </Typography>
@@ -91,12 +86,12 @@ const RequestSentCard: React.FC<{
       </Box>
 
       <Typography variant="body2" color="text.secondary">
-        {SIGNAL_GROUP_URL ? (
-          <Link href={SIGNAL_GROUP_URL} target="_blank" rel="noopener">
-            {t("item.requestSentHelp", "Questions? Ask us in the Signal group.")}
+        {chatLink ? (
+          <Link href={chatLink} target="_blank" rel="noopener noreferrer">
+            {t("item.requestSentHelp", "Questions? Ask us in the community chat.")}
           </Link>
         ) : (
-          t("item.requestSentHelp", "Questions? Ask us in the Signal group.")
+          t("item.requestSentHelp", "Questions? Ask us in the community chat.")
         )}
       </Typography>
 

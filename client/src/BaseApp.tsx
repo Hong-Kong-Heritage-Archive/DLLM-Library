@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "./firebase";
-import { Button, Box } from "@mui/material";
+import { Dialog, DialogContent, Button, Box } from "@mui/material";
 import { User as fireUser } from "firebase/auth";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { ApolloProvider } from "@apollo/client";
@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import client from "./apollo";
 import App from "./App";
 import { AuthDialog, ResetPasswordDialog } from "./components/Auth";
+import EmailVerificationCard, { EmailVerificationCardMode } from "./components/EmailVerificationCard";
 
 // Adds messages only in a dev environment
 loadDevMessages();
@@ -19,6 +20,26 @@ const BaseApp: React.FC = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
   const [defaultIsSignUp, setDefaultIsSignUp] = useState(false);
+  const [emailVerificationOpen, setEmailVerificationOpen] = useState(false);
+  const [emailVerificationMode, setEmailVerificationMode] = useState<EmailVerificationCardMode>("blocking");
+
+  useEffect(() => {
+    // Server refusals send no detail, so they open in "blocking" mode.
+    const handleOpen = (event: Event) => {
+      const requested = (event as CustomEvent).detail?.mode;
+      setEmailVerificationMode(requested === "optional" ? "optional" : "blocking");
+      setEmailVerificationOpen(true);
+    };
+    window.addEventListener(
+      "bookguide:email-verification-required",
+      handleOpen as EventListener,
+    );
+    return () =>
+      window.removeEventListener(
+        "bookguide:email-verification-required",
+        handleOpen as EventListener,
+      );
+  }, []);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(setUser);
@@ -73,6 +94,17 @@ const BaseApp: React.FC = () => {
             onForgotPassword={handleForgotPassword}
             defaultIsSignUp={defaultIsSignUp}
           />
+
+          <Dialog open={emailVerificationOpen} onClose={() => setEmailVerificationOpen(false)} maxWidth="xs" fullWidth>
+            <DialogContent sx={{ p: 3 }}>
+              {emailVerificationOpen && (
+                <EmailVerificationCard
+                  mode={emailVerificationMode}
+                  onExit={() => setEmailVerificationOpen(false)}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
 
           {/* Reset Password Dialog */}
           <ResetPasswordDialog

@@ -769,10 +769,10 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
 
   const canViewRequestQueue = Boolean(
     user &&
-      data?.item &&
-      (data.item.ownerId === user.id ||
-        data.item.holderId === user.id ||
-        (data.item.ownerId === user.id && data.item.holderId == null)),
+    data?.item &&
+    (data.item.ownerId === user.id ||
+      data.item.holderId === user.id ||
+      (data.item.ownerId === user.id && data.item.holderId == null)),
   );
   const canManageRequestQueue = Boolean(
     user && data?.item && data.item.ownerId === user.id,
@@ -1998,12 +1998,12 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
                   >
                     {queueTotalPages != null
                       ? t("common.pageOfTotal", "Page {{page}} of {{total}}", {
-                          page: queuePageNumber,
-                          total: queueTotalPages,
-                        })
+                        page: queuePageNumber,
+                        total: queueTotalPages,
+                      })
                       : t("item.currentPage", "Page {{page}}", {
-                          page: queuePageNumber,
-                        })}
+                        page: queuePageNumber,
+                      })}
                   </Typography>
                   <Button
                     variant="outlined"
@@ -2026,31 +2026,31 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           {/* IMAGES — visual first */}
           {((data.item.thumbnails && data.item.thumbnails.length > 0) ||
             (data.item.images && data.item.images.length > 0)) && (
-            <Box sx={mb4Sx}>
-              <Box sx={sectionMb4Sx}>
-                <Grid container spacing={2}>
-                  {(data.item.thumbnails && data.item.thumbnails.length > 0
-                    ? data.item.thumbnails
-                    : data.item.images || []
-                  ).map((image, index) => (
-                    <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
-                      <Paper
-                        elevation={2}
-                        sx={thumbnailPaperSx}
-                        onClick={() => handleThumbnailClick(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${data.item.name} - Thumbnail ${index + 1} `}
-                          style={thumbnailImageStyle}
-                        />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
+              <Box sx={mb4Sx}>
+                <Box sx={sectionMb4Sx}>
+                  <Grid container spacing={2}>
+                    {(data.item.thumbnails && data.item.thumbnails.length > 0
+                      ? data.item.thumbnails
+                      : data.item.images || []
+                    ).map((image, index) => (
+                      <Grid key={index} size={{ xs: 6, sm: 4, md: 3 }}>
+                        <Paper
+                          elevation={2}
+                          sx={thumbnailPaperSx}
+                          onClick={() => handleThumbnailClick(index)}
+                        >
+                          <img
+                            src={image}
+                            alt={`${data.item.name} - Thumbnail ${index + 1} `}
+                            style={thumbnailImageStyle}
+                          />
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
               </Box>
-            </Box>
-          )}
+            )}
 
           {/* ITEM INFO GRID */}
           <Card elevation={0} sx={infoCardSx}>
@@ -2336,6 +2336,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
         owner={ownerData?.user || null}
         holder={holderData?.user || null}
         requestor={user || null}
+        chatLink={hostConfig?.chatLink}
         notice={requestNotice}
         sent={requestSent}
         onDone={handleCloseRequestDialog}
@@ -2372,14 +2373,14 @@ const ItemDetail: React.FC<ItemDetailProps> = ({
           <Typography variant="body1" sx={{ mt: 1 }}>
             {queueDeleteConfirmIds && queueDeleteConfirmIds.length > 1
               ? t(
-                  "item.requestQueue.deleteBatchConfirm",
-                  "Delete {{count}} selected request(s) from the queue?",
-                  { count: queueDeleteConfirmIds.length },
-                )
+                "item.requestQueue.deleteBatchConfirm",
+                "Delete {{count}} selected request(s) from the queue?",
+                { count: queueDeleteConfirmIds.length },
+              )
               : t(
-                  "item.requestQueue.deleteOneConfirm",
-                  "Delete this borrow request from the queue?",
-                )}
+                "item.requestQueue.deleteOneConfirm",
+                "Delete this borrow request from the queue?",
+              )}
           </Typography>
         </DialogContent>
         <DialogActions>
