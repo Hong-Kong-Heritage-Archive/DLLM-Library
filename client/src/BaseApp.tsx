@@ -95,17 +95,6 @@ const BaseApp: React.FC = () => {
             defaultIsSignUp={defaultIsSignUp}
           />
 
-          <Dialog open={emailVerificationOpen} onClose={() => setEmailVerificationOpen(false)} maxWidth="xs" fullWidth>
-            <DialogContent sx={{ p: 3 }}>
-              {emailVerificationOpen && (
-                <EmailVerificationCard
-                  mode={emailVerificationMode}
-                  onExit={() => setEmailVerificationOpen(false)}
-                />
-              )}
-            </DialogContent>
-          </Dialog>
-
           {/* Reset Password Dialog */}
           <ResetPasswordDialog
             open={showResetForm}
@@ -114,6 +103,18 @@ const BaseApp: React.FC = () => {
           />
         </>
       )}
+
+      {/* Must stay mounted while signed in — Home / request flow open it via event. */}
+      <Dialog open={emailVerificationOpen} onClose={() => setEmailVerificationOpen(false)} maxWidth="xs" fullWidth>
+        <DialogContent sx={{ p: 3 }}>
+          {emailVerificationOpen && (
+            <EmailVerificationCard
+              mode={emailVerificationMode}
+              onExit={() => setEmailVerificationOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <ApolloProvider client={client}>
         <App user={user} onSignOut={handleSignOut} />
