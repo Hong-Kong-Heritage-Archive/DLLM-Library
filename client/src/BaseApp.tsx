@@ -104,7 +104,7 @@ const BaseApp: React.FC = () => {
         </>
       )}
 
-      {/* Must stay mounted while signed in — Home / request flow open it via event. */}
+      {/* Must stay mounted near the app root — Home / request flow open it via event. */}
       <Dialog open={emailVerificationOpen} onClose={() => setEmailVerificationOpen(false)} maxWidth="xs" fullWidth>
         <DialogContent sx={{ p: 3 }}>
           {emailVerificationOpen && (
