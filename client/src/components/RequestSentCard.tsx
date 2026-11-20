@@ -86,7 +86,7 @@ const RequestSentCard: React.FC<{
       </Box>
 
       <Typography variant="body2" color="text.secondary">
-        {chatLink ? (
+        {chatLink && /^https?:\/\//i.test(chatLink) ? (
           <Link href={chatLink} target="_blank" rel="noopener noreferrer">
             {t("item.requestSentHelp", "Questions? Ask us in the community chat.")}
           </Link>
