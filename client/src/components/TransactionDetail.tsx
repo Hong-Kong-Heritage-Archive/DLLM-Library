@@ -70,7 +70,6 @@ import {
 } from "../utils/transactionWorkflow";
 import { getTransactionStatusChipProps } from "../utils/itemStatusChip";
 import { formatCloseDate, requestCloseInfo } from "../utils/requestRecipients";
-import i18next from "i18next";
 
 // Create a custom icon using Leaflet's default marker
 const customIcon = new L.Icon({
@@ -391,7 +390,7 @@ const locationPromptActionsSx = {
 };
 
 const TransactionDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { transactionId } = useParams<{ transactionId: string }>();
   const { user } = useOutletContext<OutletContext>();
@@ -702,7 +701,7 @@ const TransactionDetailPage: React.FC = () => {
             // Waiting requests close 14 days after they're sent (Issue #258).
             const close = requestCloseInfo(transaction.expireAt);
             if (!close) return null;
-            const date = formatCloseDate(close.date, i18next.language);
+            const date = formatCloseDate(close.date, i18n.language);
             return (
               <Typography
                 variant="body2"
@@ -712,9 +711,9 @@ const TransactionDetailPage: React.FC = () => {
                   {close.daysLeft <= 1
                     ? t("transactions.closesWithinDay", "Closes {{date}}, within a day", { date })
                     : t("transactions.closesOn", "Closes {{date}} ({{days}} days left)", {
-                        date,
-                        days: close.daysLeft,
-                      })}
+                      date,
+                      days: close.daysLeft,
+                    })}
                   .
                 </strong>{" "}
                 {t(

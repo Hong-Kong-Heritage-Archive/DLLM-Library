@@ -28,7 +28,6 @@ import {
   Autocomplete,
 } from "@mui/material";
 import {
-  Person as PersonIcon,
   LocationOn as LocationOnIcon,
   NotificationImportant as NotificationIcon,
   MarkEmailUnread as EmailIcon,
@@ -124,18 +123,6 @@ const inlineOptionLabelSx = {
   gap: 1,
 };
 
-const sectionTitleSx = {
-  mb: 2,
-  display: "flex",
-  alignItems: "center",
-  gap: 1,
-};
-
-const boldSubtitleSx = {
-  fontWeight: "bold",
-};
-
-
 interface RequestConfirmationDialogProps {
   open: boolean;
   onClose: () => void;
@@ -145,6 +132,7 @@ interface RequestConfirmationDialogProps {
   owner: User | null;
   holder: User | null;
   requestor: User | null;
+  chatLink?: string | null;
   notice?: RequestNotice | null;
   // After a first request the same window shows "Request sent".
   sent?: boolean;
@@ -160,6 +148,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
   owner,
   holder,
   requestor,
+  chatLink,
   notice,
   sent = false,
   onDone,
@@ -389,6 +378,7 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
           <RequestSentCard
             recipients={recipients}
             onDone={onDone ?? onClose}
+            chatLink={chatLink}
           />
         </DialogContent>
       ) : needsVerification ? (
@@ -404,216 +394,216 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
           />
         </DialogContent>
       ) : (
-      <>
-      <DialogTitle>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <NotificationIcon color="primary" />
-          {t("item.requestToBorrow", "Request To Borrow")}
-        </Box>
-      </DialogTitle>
+        <>
+          <DialogTitle>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <NotificationIcon color="primary" />
+              {t("item.requestToBorrow", "Request To Borrow")}
+            </Box>
+          </DialogTitle>
 
-      <DialogContent>
-        {missionStrip}
-        {
-          <Box>
-            {/* Item Information */}
-            {item && (
-              <Box sx={itemInfoCardSx}>
-                <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
-                  {item.name}
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
-                  <Chip
-                    label={`${t("item.condition", "Condition")}: ${item.condition
-                      }`}
-                    size="small"
-                    variant="outlined"
-                  />
-                  <Chip
-                    label={`${t("item.status", "Status")}: ${item.status}`}
-                    size="small"
-                    variant="outlined"
-                    color={
-                      item.status === "AVAILABLE"
-                        ? "success"
-                        : item.status === "EXCHANGEABLE"
-                          ? "info"
-                          : item.status === "GIFT"
-                            ? "warning"
-                            : "default"
-                    }
-                  />
-                </Box>
-                {item.language && (
-                  <Typography variant="body2" color="text.secondary">
-                    {t("item.language", "Language")}: {item.language}
-                  </Typography>
-                )}
-              </Box>
-            )}
-
-            {suburbStatus === "saved" && (
-              <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                <CheckCircleIcon color="success" fontSize="small" />
-                <Typography variant="body2">
-                  {savedSuburb}{" "}
-                  <Typography component="span" variant="body2" color="text.secondary">
-                    {t("item.meetSuburbSaved", "Saved. Now choose where to meet below.")}
-                  </Typography>
-                </Typography>
-              </Box>
-            )}
-
-            {/* Location Selection */}
-            <Box sx={{ mb: 3 }}>
-              <FormControl component="fieldset" fullWidth>
-                <FormLabel
-                  component="legend"
-                  sx={{ mb: 2, fontWeight: "bold" }}
-                >
-                  <LocationOnIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                  {needsSuburb
-                    ? t("item.addExchangeLocation", "Add exchange location")
-                    : t("item.selectExchangeLocation", "Select Exchange Location")}
-                </FormLabel>
-                {/* Add a meeting suburb without leaving the request (Issue #258, R2) */}
-                {needsSuburb && (
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-                      <Autocomplete
-                        fullWidth
+          <DialogContent>
+            {missionStrip}
+            {
+              <Box>
+                {/* Item Information */}
+                {item && (
+                  <Box sx={itemInfoCardSx}>
+                    <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
+                      {item.name}
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
+                      <Chip
+                        label={`${t("item.condition", "Condition")}: ${item.condition
+                          }`}
                         size="small"
-                        autoHighlight
-                        options={suburbSuggestions}
-                        open={suburbListOpen && suburbSuggestions.length > 0}
-                        onOpen={() => setSuburbListOpen(true)}
-                        onClose={() => setSuburbListOpen(false)}
-                        filterOptions={(options) => options}
-                        value={selectedSuburb}
-                        onChange={(_event, value) => {
-                          setSelectedSuburb(value);
-                          if (suburbStatus !== "checking") setSuburbStatus("idle");
-                        }}
-                        inputValue={suburbInput}
-                        onInputChange={(_event, value, reason) => {
-                          setSuburbInput(value);
-                          if (reason === "input") {
-                            setSelectedSuburb(null);
-                            if (suburbStatus !== "checking") setSuburbStatus("idle");
-                          }
-                        }}
-                        noOptionsText={t(
-                          "item.meetSuburbNoMatch",
-                          "No matching suburb. Check the spelling.",
-                        )}
-                        loading={!allSuburbs}
-                        disabled={suburbStatus === "checking"}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label={t("item.meetSuburbLabel", "Where can you meet?")}
-                            placeholder={t("item.meetSuburbPlaceholder", "Suburb, e.g. Chatswood")}
-                            InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
-                            error={suburbStatus === "notFound" || suburbStatus === "error"}
-                            FormHelperTextProps={
-                              suburbNoMatch && suburbStatus === "idle"
-                                ? {
-                                    sx: {
-                                      color: "warning.dark",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 0.5,
-                                      fontWeight: 500,
-                                    },
-                                  }
-                                : undefined
-                            }
-                            helperText={
-                              suburbNoMatch && suburbStatus === "idle" ? (
-                                <>
-                                  <WarningAmberIcon sx={{ fontSize: 16 }} />
-                                  {t(
-                                    "item.meetSuburbNoMatch",
-                                    "No matching suburb. Check the spelling.",
-                                  )}
-                                </>
-                              ) : suburbStatus === "notFound"
-                                ? t("item.meetSuburbNotFound", "We couldn't find that suburb. Try another nearby one.")
-                                : suburbStatus === "error"
-                                  ? t("item.meetSuburbError", "We couldn't save it. Check your connection and try again.")
-                                  : suburbInput.trim() && !selectedSuburb
-                                    ? t("item.meetSuburbChoose", "Choose a suburb from the list.")
-                                    : t("item.meetSuburbHelper", "Shared with the book's owner and holder.")
-                            }
-                          />
-                        )}
+                        variant="outlined"
                       />
-                      <Button
-                        variant={selectedSuburb ? "contained" : "outlined"}
-                        onClick={handleUseSuburb}
-                        disabled={!selectedSuburb || suburbStatus === "checking"}
-                        sx={{ flexShrink: 0, height: 40 }}
-                      >
-                        {suburbStatus === "checking" ? (
-                          <CircularProgress size={18} />
-                        ) : (
-                          t("item.meetSuburbUse", "Use this")
-                        )}
-                      </Button>
+                      <Chip
+                        label={`${t("item.status", "Status")}: ${item.status}`}
+                        size="small"
+                        variant="outlined"
+                        color={
+                          item.status === "AVAILABLE"
+                            ? "success"
+                            : item.status === "EXCHANGEABLE"
+                              ? "info"
+                              : item.status === "GIFT"
+                                ? "warning"
+                                : "default"
+                        }
+                      />
                     </Box>
+                    {item.language && (
+                      <Typography variant="body2" color="text.secondary">
+                        {t("item.language", "Language")}: {item.language}
+                      </Typography>
+                    )}
                   </Box>
                 )}
 
-                <RadioGroup
-                  value={selectedLocation ?? ""}
-                  onChange={(e) =>
-                    setSelectedLocation(e.target.value as TransactionLocation)
-                  }
-                >
-                  {/* Holder Address Option */}
-                  <FormControlLabel
-                    value={TransactionLocation.HolderLocation}
-                    control={<Radio />}
-                    label={
-                      <Box sx={inlineOptionLabelSx}>
-                        <HolderPlaceIcon fontSize="small" color="action" />
-                        <Box>
-                          <Typography variant="body2">
-                            {t("item.holderAddress", "Holder's Address")}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {displayHolder?.address ||
-                              t("user.addressNotSet", "Address not set")}
-                          </Typography>
+                {suburbStatus === "saved" && (
+                  <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+                    <CheckCircleIcon color="success" fontSize="small" />
+                    <Typography variant="body2">
+                      {savedSuburb}{" "}
+                      <Typography component="span" variant="body2" color="text.secondary">
+                        {t("item.meetSuburbSaved", "Saved. Now choose where to meet below.")}
+                      </Typography>
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Location Selection */}
+                <Box sx={{ mb: 3 }}>
+                  <FormControl component="fieldset" fullWidth>
+                    <FormLabel
+                      component="legend"
+                      sx={{ mb: 2, fontWeight: "bold" }}
+                    >
+                      <LocationOnIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                      {needsSuburb
+                        ? t("item.addExchangeLocation", "Add exchange location")
+                        : t("item.selectExchangeLocation", "Select Exchange Location")}
+                    </FormLabel>
+                    {/* Add a meeting suburb without leaving the request (Issue #258, R2) */}
+                    {needsSuburb && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+                          <Autocomplete
+                            fullWidth
+                            size="small"
+                            autoHighlight
+                            options={suburbSuggestions}
+                            open={suburbListOpen && suburbSuggestions.length > 0}
+                            onOpen={() => setSuburbListOpen(true)}
+                            onClose={() => setSuburbListOpen(false)}
+                            filterOptions={(options) => options}
+                            value={selectedSuburb}
+                            onChange={(_event, value) => {
+                              setSelectedSuburb(value);
+                              if (suburbStatus !== "checking") setSuburbStatus("idle");
+                            }}
+                            inputValue={suburbInput}
+                            onInputChange={(_event, value, reason) => {
+                              setSuburbInput(value);
+                              if (reason === "input") {
+                                setSelectedSuburb(null);
+                                if (suburbStatus !== "checking") setSuburbStatus("idle");
+                              }
+                            }}
+                            noOptionsText={t(
+                              "item.meetSuburbNoMatch",
+                              "No matching suburb. Check the spelling.",
+                            )}
+                            loading={!allSuburbs}
+                            disabled={suburbStatus === "checking"}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label={t("item.meetSuburbLabel", "Where can you meet?")}
+                                placeholder={t("item.meetSuburbPlaceholder", "Suburb, e.g. Chatswood")}
+                                InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
+                                error={suburbStatus === "notFound" || suburbStatus === "error"}
+                                FormHelperTextProps={
+                                  suburbNoMatch && suburbStatus === "idle"
+                                    ? {
+                                      sx: {
+                                        color: "warning.dark",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 0.5,
+                                        fontWeight: 500,
+                                      },
+                                    }
+                                    : undefined
+                                }
+                                helperText={
+                                  suburbNoMatch && suburbStatus === "idle" ? (
+                                    <>
+                                      <WarningAmberIcon sx={{ fontSize: 16 }} />
+                                      {t(
+                                        "item.meetSuburbNoMatch",
+                                        "No matching suburb. Check the spelling.",
+                                      )}
+                                    </>
+                                  ) : suburbStatus === "notFound"
+                                    ? t("item.meetSuburbNotFound", "We couldn't find that suburb. Try another nearby one.")
+                                    : suburbStatus === "error"
+                                      ? t("item.meetSuburbError", "We couldn't save it. Check your connection and try again.")
+                                      : suburbInput.trim() && !selectedSuburb
+                                        ? t("item.meetSuburbChoose", "Choose a suburb from the list.")
+                                        : t("item.meetSuburbHelper", "Shared with the book's owner and holder.")
+                                }
+                              />
+                            )}
+                          />
+                          <Button
+                            variant={selectedSuburb ? "contained" : "outlined"}
+                            onClick={handleUseSuburb}
+                            disabled={!selectedSuburb || suburbStatus === "checking"}
+                            sx={{ flexShrink: 0, height: 40 }}
+                          >
+                            {suburbStatus === "checking" ? (
+                              <CircularProgress size={18} />
+                            ) : (
+                              t("item.meetSuburbUse", "Use this")
+                            )}
+                          </Button>
                         </Box>
                       </Box>
-                    }
-                    disabled={!displayHolder?.address}
-                  />
+                    )}
 
-                  {/* Requestor Address Option */}
-                  <FormControlLabel
-                    value={TransactionLocation.RequestorLocation}
-                    control={<Radio />}
-                    label={
-                      <Box sx={inlineOptionLabelSx}>
-                        <YourPlaceIcon fontSize="small" color="action" />
-                        <Box>
-                          <Typography variant="body2">
-                            {t("item.requestorAddress", "Your Address")}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {requestorSuburb ||
-                              t("user.addressNotSet", "Address not set")}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    }
-                    disabled={!requestorSuburb}
-                  />
+                    <RadioGroup
+                      value={selectedLocation ?? ""}
+                      onChange={(e) =>
+                        setSelectedLocation(e.target.value as TransactionLocation)
+                      }
+                    >
+                      {/* Holder Address Option */}
+                      <FormControlLabel
+                        value={TransactionLocation.HolderLocation}
+                        control={<Radio />}
+                        label={
+                          <Box sx={inlineOptionLabelSx}>
+                            <HolderPlaceIcon fontSize="small" color="action" />
+                            <Box>
+                              <Typography variant="body2">
+                                {t("item.holderAddress", "Holder's Address")}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {displayHolder?.address ||
+                                  t("user.addressNotSet", "Address not set")}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        }
+                        disabled={!displayHolder?.address}
+                      />
 
-                  {/* Holder Exchange Point Option */}
-                  {/* {holderExchangePointIds.length > 0 && (
+                      {/* Requestor Address Option */}
+                      <FormControlLabel
+                        value={TransactionLocation.RequestorLocation}
+                        control={<Radio />}
+                        label={
+                          <Box sx={inlineOptionLabelSx}>
+                            <YourPlaceIcon fontSize="small" color="action" />
+                            <Box>
+                              <Typography variant="body2">
+                                {t("item.requestorAddress", "Your Address")}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {requestorSuburb ||
+                                  t("user.addressNotSet", "Address not set")}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        }
+                        disabled={!requestorSuburb}
+                      />
+
+                      {/* Holder Exchange Point Option */}
+                      {/* {holderExchangePointIds.length > 0 && (
                     <FormControlLabel
                       value={TransactionLocation.HolderPublicExchangePoint}
                       control={<Radio />}
@@ -633,8 +623,8 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                     />
                   )} */}
 
-                  {/* Requestor Exchange Point Option */}
-                  {/* {requestorExchangePointIds.length > 0 && (
+                      {/* Requestor Exchange Point Option */}
+                      {/* {requestorExchangePointIds.length > 0 && (
                     <FormControlLabel
                       value={TransactionLocation.RequestorPublicExchangePoint}
                       control={<Radio />}
@@ -653,270 +643,270 @@ const RequestConfirmationDialog: React.FC<RequestConfirmationDialogProps> = ({
                       }
                     />
                   )} */}
-                </RadioGroup>
+                    </RadioGroup>
 
-                {/* Exchange Point Selection Dropdown */}
-                {(selectedLocation ===
-                  TransactionLocation.HolderPublicExchangePoint ||
-                  selectedLocation ===
-                  TransactionLocation.RequestorPublicExchangePoint) && (
-                    <Box sx={{ mt: 2, pl: 4 }}>
-                      <FormControl fullWidth disabled={exchangePointsLoading}>
-                        <InputLabel id="exchange-point-select-label">
-                          {t("item.selectExchangePoint", "Select Exchange Point")}
-                        </InputLabel>
-                        <Select
-                          labelId="exchange-point-select-label"
-                          value={selectedExchangePointIndex}
-                          label={t(
-                            "item.selectExchangePoint",
-                            "Select Exchange Point",
-                          )}
-                          onChange={(e) =>
-                            setSelectedExchangePointIndex(
-                              e.target.value as number,
-                            )
-                          }
-                        >
-                          {exchangePointsLoading ? (
-                            <MenuItem value="">
-                              <CircularProgress size={20} />
-                            </MenuItem>
-                          ) : (
-                            exchangePointOptions.map(
-                              (ep: User, index: number) => (
-                                <MenuItem key={ep.id} value={index}>
-                                  <Box>
-                                    <Typography
-                                      variant="body2"
-                                      sx={{ fontWeight: "medium" }}
-                                    >
-                                      {ep.nickname}
-                                    </Typography>
-                                    {ep.address && (
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                      >
-                                        {ep.address}
-                                      </Typography>
-                                    )}
-                                  </Box>
+                    {/* Exchange Point Selection Dropdown */}
+                    {(selectedLocation ===
+                      TransactionLocation.HolderPublicExchangePoint ||
+                      selectedLocation ===
+                      TransactionLocation.RequestorPublicExchangePoint) && (
+                        <Box sx={{ mt: 2, pl: 4 }}>
+                          <FormControl fullWidth disabled={exchangePointsLoading}>
+                            <InputLabel id="exchange-point-select-label">
+                              {t("item.selectExchangePoint", "Select Exchange Point")}
+                            </InputLabel>
+                            <Select
+                              labelId="exchange-point-select-label"
+                              value={selectedExchangePointIndex}
+                              label={t(
+                                "item.selectExchangePoint",
+                                "Select Exchange Point",
+                              )}
+                              onChange={(e) =>
+                                setSelectedExchangePointIndex(
+                                  e.target.value as number,
+                                )
+                              }
+                            >
+                              {exchangePointsLoading ? (
+                                <MenuItem value="">
+                                  <CircularProgress size={20} />
                                 </MenuItem>
-                              ),
-                            )
-                          )}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  )}
-              </FormControl>
-            </Box>
+                              ) : (
+                                exchangePointOptions.map(
+                                  (ep: User, index: number) => (
+                                    <MenuItem key={ep.id} value={index}>
+                                      <Box>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{ fontWeight: "medium" }}
+                                        >
+                                          {ep.nickname}
+                                        </Typography>
+                                        {ep.address && (
+                                          <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                          >
+                                            {ep.address}
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                    </MenuItem>
+                                  ),
+                                )
+                              )}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      )}
+                  </FormControl>
+                </Box>
 
-            {/* Email preview (Issue #258). Shown in full for review; editing is
+                {/* Email preview (Issue #258). Shown in full for review; editing is
                 the exception. Header (To, Subject) is kept apart from the
                 message. Owner and holder appear here as recipients. */}
-            <Paper sx={{ p: 2, mb: 1, overflowWrap: "anywhere" }} variant="outlined">
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 1.5,
-                }}
-              >
-                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: "bold" }}>
-                  {t("item.requestEmailTitle", "Your request email")}
-                </Typography>
-                {!editingDraft && (
-                  <Button
-                    size="small"
-                    startIcon={<EditIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => setEditingDraft(true)}
-                    sx={{ minWidth: 0, py: 0 }}
+                <Paper sx={{ p: 2, mb: 1, overflowWrap: "anywhere" }} variant="outlined">
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 1.5,
+                    }}
                   >
-                    {t("item.editShort", "Edit")}
-                  </Button>
-                )}
-              </Box>
-
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "auto minmax(0, 1fr)",
-                  columnGap: 1.5,
-                  rowGap: 0.5,
-                  typography: "body2",
-                }}
-              >
-                <Box sx={{ color: "text.secondary" }}>{t("item.emailTo", "To")}</Box>
-                <Box>
-                  <Box component="span" sx={{ fontWeight: "bold", color: "primary.main" }}>
-                    {recipients.ownerName}
-                  </Box>{" "}
-                  {recipients.holderName
-                    ? t("item.roleOwnerShort", "(owner)")
-                    : t("item.roleOwnerAndHolderShort", "(owner, has the book)")}
-                  {recipients.holderName && (
-                    <>
-                      ,{" "}
-                      <Box component="span" sx={{ fontWeight: "bold", color: "primary.main" }}>
-                        {recipients.holderName}
-                      </Box>{" "}
-                      {t("item.roleHolderShort", "(holder)")}
-                    </>
-                  )}
-                </Box>
-                {!editingDraft && (
-                  <>
-                    <Box sx={{ color: "text.secondary" }}>{t("item.subject", "Subject")}</Box>
-                    <Box>{draftSubject.trim() || defaultSubject}</Box>
-                  </>
-                )}
-              </Box>
-
-              <Divider sx={{ my: 1.5 }} />
-
-              {editingDraft ? (
-                <Box>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={1}
-                    label={t("item.subject", "Subject")}
-                    value={draftSubject}
-                    onChange={(e) => setDraftSubject(e.target.value)}
-                    sx={{ mb: 2 }}
-                  />
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={5}
-                    label={t("item.emailContent", "Email Content")}
-                    value={draftEmailContent}
-                    onChange={(e) => setDraftEmailContent(e.target.value)}
-                  />
-                  <Box sx={{ textAlign: "right", mt: 1 }}>
-                    <Button size="small" onClick={() => setEditingDraft(false)}>
-                      {t("item.doneEditingDraft", "Done editing")}
-                    </Button>
+                    <Typography variant="subtitle1" component="h3" sx={{ fontWeight: "bold" }}>
+                      {t("item.requestEmailTitle", "Your request email")}
+                    </Typography>
+                    {!editingDraft && (
+                      <Button
+                        size="small"
+                        startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+                        onClick={() => setEditingDraft(true)}
+                        sx={{ minWidth: 0, py: 0 }}
+                      >
+                        {t("item.editShort", "Edit")}
+                      </Button>
+                    )}
                   </Box>
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "auto minmax(0, 1fr)",
+                      columnGap: 1.5,
+                      rowGap: 0.5,
+                      typography: "body2",
+                    }}
+                  >
+                    <Box sx={{ color: "text.secondary" }}>{t("item.emailTo", "To")}</Box>
+                    <Box>
+                      <Box component="span" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                        {recipients.ownerName}
+                      </Box>{" "}
+                      {recipients.holderName
+                        ? t("item.roleOwnerShort", "(owner)")
+                        : t("item.roleOwnerAndHolderShort", "(owner, has the book)")}
+                      {recipients.holderName && (
+                        <>
+                          ,{" "}
+                          <Box component="span" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                            {recipients.holderName}
+                          </Box>{" "}
+                          {t("item.roleHolderShort", "(holder)")}
+                        </>
+                      )}
+                    </Box>
+                    {!editingDraft && (
+                      <>
+                        <Box sx={{ color: "text.secondary" }}>{t("item.subject", "Subject")}</Box>
+                        <Box>{draftSubject.trim() || defaultSubject}</Box>
+                      </>
+                    )}
+                  </Box>
+
+                  <Divider sx={{ my: 1.5 }} />
+
+                  {editingDraft ? (
+                    <Box>
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={1}
+                        label={t("item.subject", "Subject")}
+                        value={draftSubject}
+                        onChange={(e) => setDraftSubject(e.target.value)}
+                        sx={{ mb: 2 }}
+                      />
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={5}
+                        label={t("item.emailContent", "Email Content")}
+                        value={draftEmailContent}
+                        onChange={(e) => setDraftEmailContent(e.target.value)}
+                      />
+                      <Box sx={{ textAlign: "right", mt: 1 }}>
+                        <Button size="small" onClick={() => setEditingDraft(false)}>
+                          {t("item.doneEditingDraft", "Done editing")}
+                        </Button>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                      {draftEmailContent.trim()}
+                    </Typography>
+                  )}
+                </Paper>
+
+              </Box>
+            }
+          </DialogContent>
+
+          {notice && (
+            <Box sx={{ px: 3, pt: 2 }}>
+              <Alert
+                severity={noticeSeverity(notice)}
+                action={
+                  notice.kind === "verification" ? (
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      size="small"
+                      onClick={() => openEmailVerificationDialog("blocking")}
+                      sx={{ whiteSpace: "nowrap", alignSelf: "center" }}
+                    >
+                      {t("item.requestVerifyEmailButton", "Verify email")}
+                    </Button>
+                  ) : undefined
+                }
+              >
+                {notice.kind === "verification" &&
+                  t(
+                    "item.requestErrorVerification",
+                    "Verify your email to send this request.",
+                  )}
+                {notice.kind === "verified" &&
+                  t(
+                    "item.requestVerifiedNowSend",
+                    "Email verified. Press \"Send request\" to send it.",
+                  )}
+                {notice.kind === "capacity" &&
+                  t(
+                    "item.requestErrorCapacity",
+                    "This book already has {{count}} requests waiting. Tap ♡ to save it to your booklist and check back later, or look for another book.",
+                    { count: notice.count ?? 2 },
+                  )}
+                {notice.kind === "unavailable" &&
+                  t(
+                    "item.requestErrorUnavailable",
+                    "This book can't be requested anymore. It may have been removed or changed.",
+                  )}
+                {notice.kind === "other" &&
+                  t(
+                    "item.requestErrorOther",
+                    "We couldn't send your request. Check your connection and try again. Your message is kept.",
+                  )}
+              </Alert>
+            </Box>
+          )}
+          {/* Inline confirmation: who gets emailed the moment they press send. */}
+          <Box sx={{ px: 3, pt: 2 }}>
+            <Alert
+              severity="info"
+              icon={<EmailIcon fontSize="inherit" />}
+              sx={{ overflowWrap: "anywhere" }}
+            >
+              <BoldNames
+                names={{ owner: recipients.ownerName, holder: recipients.holderName ?? "" }}
+                text={
+                  recipients.holderName
+                    ? t(
+                      "item.sendEmailsWho",
+                      "Pressing Send request emails {{owner}} (owner) and {{holder}} (holder) now. You'll get a copy.",
+                      { owner: nameMarker("owner"), holder: nameMarker("holder") },
+                    )
+                    : t(
+                      "item.sendEmailsWhoSame",
+                      "Pressing Send request emails {{owner}} now. They own this book and have it. You'll get a copy.",
+                      { owner: nameMarker("owner") },
+                    )
+                }
+              />
+            </Alert>
+          </Box>
+          {!selectedPlaceIsUsable && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ px: 3, pt: 2 }}
+            >
+              {t("item.chooseMeetingPlaceHint", "Choose where to meet to send your request.")}
+            </Typography>
+          )}
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={onClose} disabled={loading} size="large">
+              {t("common.cancel", "Cancel")}
+            </Button>
+            <Button
+              onClick={handleConfirmRequest}
+              variant="contained"
+              color="primary"
+              disabled={loading || !selectedPlaceIsUsable}
+              size="large"
+              sx={{ minWidth: 120 }}
+            >
+              {loading ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CircularProgress size={20} />
+                  <span>{t("item.requesting", "Requesting...")}</span>
                 </Box>
               ) : (
-                <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
-                  {draftEmailContent.trim()}
-                </Typography>
+                t("item.sendRequest", "Send request")
               )}
-            </Paper>
-
-          </Box>
-        }
-      </DialogContent>
-
-      {notice && (
-        <Box sx={{ px: 3, pt: 2 }}>
-          <Alert
-            severity={noticeSeverity(notice)}
-            action={
-              notice.kind === "verification" ? (
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  size="small"
-                  onClick={() => openEmailVerificationDialog("blocking")}
-                  sx={{ whiteSpace: "nowrap", alignSelf: "center" }}
-                >
-                  {t("item.requestVerifyEmailButton", "Verify email")}
-                </Button>
-              ) : undefined
-            }
-          >
-            {notice.kind === "verification" &&
-              t(
-                "item.requestErrorVerification",
-                "Verify your email to send this request.",
-              )}
-            {notice.kind === "verified" &&
-              t(
-                "item.requestVerifiedNowSend",
-                "Email verified. Press \"Send request\" to send it.",
-              )}
-            {notice.kind === "capacity" &&
-              t(
-                "item.requestErrorCapacity",
-                "This book already has {{count}} requests waiting. Tap ♡ to save it to your booklist and check back later, or look for another book.",
-                { count: notice.count ?? 2 },
-              )}
-            {notice.kind === "unavailable" &&
-              t(
-                "item.requestErrorUnavailable",
-                "This book can't be requested anymore. It may have been removed or changed.",
-              )}
-            {notice.kind === "other" &&
-              t(
-                "item.requestErrorOther",
-                "We couldn't send your request. Check your connection and try again. Your message is kept.",
-              )}
-          </Alert>
-        </Box>
-      )}
-      {/* Inline confirmation: who gets emailed the moment they press send. */}
-      <Box sx={{ px: 3, pt: 2 }}>
-        <Alert
-          severity="info"
-          icon={<EmailIcon fontSize="inherit" />}
-          sx={{ overflowWrap: "anywhere" }}
-        >
-          <BoldNames
-            names={{ owner: recipients.ownerName, holder: recipients.holderName ?? "" }}
-            text={
-              recipients.holderName
-                ? t(
-                    "item.sendEmailsWho",
-                    "Pressing Send request emails {{owner}} (owner) and {{holder}} (holder) now. You'll get a copy.",
-                    { owner: nameMarker("owner"), holder: nameMarker("holder") },
-                  )
-                : t(
-                    "item.sendEmailsWhoSame",
-                    "Pressing Send request emails {{owner}} now. They own this book and have it. You'll get a copy.",
-                    { owner: nameMarker("owner") },
-                  )
-            }
-          />
-        </Alert>
-      </Box>
-      {!selectedPlaceIsUsable && (
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ px: 3, pt: 2 }}
-        >
-          {t("item.chooseMeetingPlaceHint", "Choose where to meet to send your request.")}
-        </Typography>
-      )}
-      <DialogActions sx={{ p: 3 }}>
-        <Button onClick={onClose} disabled={loading} size="large">
-          {t("common.cancel", "Cancel")}
-        </Button>
-        <Button
-          onClick={handleConfirmRequest}
-          variant="contained"
-          color="primary"
-          disabled={loading || !selectedPlaceIsUsable}
-          size="large"
-          sx={{ minWidth: 120 }}
-        >
-          {loading ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <CircularProgress size={20} />
-              <span>{t("item.requesting", "Requesting...")}</span>
-            </Box>
-          ) : (
-            t("item.sendRequest", "Send request")
-          )}
-        </Button>
-      </DialogActions>
-      </>
+            </Button>
+          </DialogActions>
+        </>
       )}
     </Dialog>
   );

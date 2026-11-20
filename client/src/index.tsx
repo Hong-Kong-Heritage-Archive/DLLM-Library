@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import BaseApp from "./BaseApp";
-import EmailVerificationDialog from "./components/EmailVerificationDialog";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "./theme";
@@ -27,7 +26,6 @@ const renderApp = async () => {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BaseApp />
-        <EmailVerificationDialog />
       </ThemeProvider>
     </React.StrictMode>
   );

@@ -1,18 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Button, Stack, TextField, Typography } from "@mui/material";
 import { MarkEmailUnread as MarkEmailUnreadIcon } from "@mui/icons-material";
+import BoldNames, { nameMarker } from "./BoldNames";
 
-function withBoldEmail(text: string, email: string): React.ReactNode {
-  if (!email || !text.includes(email)) return text;
-  const [before, ...rest] = text.split(email);
-  return (
-    <>
-      {before}
-      <strong>{email}</strong>
-      {rest.join(email)}
-    </>
-  );
-}
 import { useTranslation } from "react-i18next";
 import { auth } from "../firebase";
 import {
@@ -152,14 +142,14 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
             // a typo in it is easy to spot.
             <Alert severity="info" icon={<MarkEmailUnreadIcon fontSize="inherit" />}>
               <Typography variant="body2">
-                {withBoldEmail(
-                  t(
+                <BoldNames
+                  text={t(
                     "emailVerification.autoSentDescription",
                     "We've sent a 6-digit code to {{email}}. Check your inbox.",
-                    { email },
-                  ),
-                  email,
-                )}
+                    { email: nameMarker("email") },
+                  )}
+                  names={{ email }}
+                />
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {t("emailVerification.expiryNote", "The code expires in 10 minutes.")}
